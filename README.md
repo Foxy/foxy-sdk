@@ -9,7 +9,7 @@ Universal SDK for a full server-side and a limited in-browser access to Foxy hAP
 ### Step 1: Install
 
 ```bash
-npm i @api.io/api
+npm i @foxy.io/api
 ```
 
 ### Step 2: Import
@@ -23,17 +23,17 @@ There are 3 types of API you can pick from:
 There's a class for each one of them, and you can import it like so:
 
 ```js
-const { ClientAPI } = require("@api.io/api");
-const { UserAPI } = require("@api.io/api");
-const { CustomerAPI } = require("@api.io/api");
+const { ClientAPI } = require("@foxy.io/api");
+const { UserAPI } = require("@foxy.io/api");
+const { CustomerAPI } = require("@foxy.io/api");
 ```
 
 With TypeScript or Node v13+ you can also use [ES Modules](http://nodejs.org/docs/latest-v13.x/api/esm.html…):
 
 ```ts
-import { ClientAPI } from "@api.io/api";
-import { UserAPI } from "@api.io/api";
-import { CustomerAPI } from "@api.io/api";
+import { ClientAPI } from "@foxy.io/api";
+import { UserAPI } from "@foxy.io/api";
+import { CustomerAPI } from "@foxy.io/api";
 ```
 
 ### Step 3: Initialize and sign in
