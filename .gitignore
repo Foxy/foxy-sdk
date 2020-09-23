@@ -1,0 +1,9 @@
+node_modules
+dist
+src/.generators
+src/playground.ts
+.env
+.eslintcache
+.coverage
+.vscode
+.DS_Store

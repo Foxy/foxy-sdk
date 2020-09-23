@@ -1,0 +1,91 @@
+{
+  "name": "@foxy.io/api",
+  "version": "0.2.0",
+  "description": "Universal client for Cart API, Admin API, Portal API, Checkout API and full hAPI access.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "docs": "jsdoc -r src -c jsdoc.json -d docs",
+    "test": "jest --config ./jest.config.json",
+    "test:watch": "jest --watch --config ./jest.config.json",
+    "lint": "tsc --noEmit && eslint \"{src,test}/**/*.ts\" --quiet --fix",
+    "build": "tsc",
+    "build:cdn": "webpack -p",
+    "prepack": "npm run build && npm run build:cdn"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/foxy/foxy-api.git"
+  },
+  "keywords": [
+    "foxycart",
+    "foxy.io",
+    "foxy",
+    "serverless",
+    "nodejs",
+    "api"
+  ],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/foxy/foxy-api/issues"
+  },
+  "homepage": "https://github.com/foxy/foxy-api#readme",
+  "devDependencies": {
+    "@babel/core": "^7.11.6",
+    "@babel/plugin-proposal-class-properties": "^7.10.4",
+    "@babel/preset-env": "^7.11.5",
+    "@babel/preset-typescript": "^7.10.4",
+    "@types/clone": "^2.1.0",
+    "@types/jest": "^26.0.14",
+    "@types/jsdom": "^16.2.4",
+    "@types/node": "^14.11.1",
+    "@typescript-eslint/eslint-plugin": "^4.2.0",
+    "@typescript-eslint/parser": "^4.2.0",
+    "babel-jest": "^26.3.0",
+    "clean-webpack-plugin": "^3.0.0",
+    "cz-conventional-changelog": "^3.3.0",
+    "eslint": "^7.9.0",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-prettier": "^3.1.4",
+    "husky": "^4.3.0",
+    "jest": "^26.4.2",
+    "jsdoc": "^3.6.6",
+    "lint-staged": "^10.4.0",
+    "prettier": "^2.1.2",
+    "ts-node": "^9.0.0",
+    "typescript": "^4.0.3",
+    "uglifyjs-webpack-plugin": "^2.2.0",
+    "webpack": "^4.44.2",
+    "webpack-cli": "^3.3.12"
+  },
+  "husky": {
+    "hooks": {
+      "prepare-commit-msg": "exec < /dev/tty && git cz --hook || true",
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "{src,test}/**/*.ts": "eslint --cache --fix"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  },
+  "dependencies": {
+    "@aws-amplify/auth": "^3.4.4",
+    "@types/crypto-js": "^3.1.47",
+    "@types/traverse": "^0.6.32",
+    "babel-loader": "^8.1.0",
+    "clone": "^2.1.2",
+    "cross-fetch": "^3.0.6",
+    "crypto-js": "^4.0.0",
+    "ministorage": "^1.0.0",
+    "normalize-url": "^5.1.0",
+    "traverse": "^0.6.6"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "collectCoverage": true,
+  "coverageDirectory": ".coverage",
+  "coveragePathIgnorePatterns": ["/node_modules/", "<rootDir>/test/mocks/"],
+  "testEnvironment": "node"
+}
