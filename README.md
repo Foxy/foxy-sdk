@@ -61,7 +61,7 @@ const customerAPI = new CustomerAPI({
 Signing in, on the other hand, is different for each one of the APIs. You'll need OAuth client credentials for the ClientAPI and an email + password pair for User and Customer API:
 
 ```ts
-await api.signIn({
+await clientAPI.signIn({
   clientId: "client-id-for-your-integration",
   clientSecret: "client-secret-for-your-integration",
   refreshToken: "refresh-token-for-your-integration",
@@ -99,7 +99,7 @@ new CustomerAPI({ storage: window.localStorage });
 Signing out is as simple as calling the `.signOut()` method. It's always async:
 
 ```ts
-await api.signOut();
+await clientAPI.signOut();
 await userAPI.signOut();
 await customerAPI.signOut();
 ```
@@ -228,6 +228,70 @@ await store.fetch({
   skipCache: true,
 });
 ```
+
+## Custom element
+
+This package includes a custom element for APIs that can be used in a browser (currently Customer API and User API). You'll most likely need it to connect components from `@foxy.io/elements` to hAPI, but you can also use it with your own elements.
+
+To get started, import the element and add a tag anywhere on the page:
+
+**JS**
+
+```js
+// Quick setup: registers <foxy-api> globally
+import "@foxy.io/api/dist/element";
+
+// Advanced setup: custom name, register when ready, extend the class etc.
+import { APIElement } from "@foxy.io/api";
+customElements.define("my-api", APIElement);
+```
+
+**HTML**
+
+```html
+<foxy-api><!-- put your components here --></foxy-api>
+```
+
+API element creates a `UserAPI` instance linked to `${location.origin}/s/admin` by default. You'll most likely want to customize the endpoint or be explicit about the API you use:
+
+```html
+<foxy-api href="https://api.example.com/admin" rel="user">...</foxy-api>
+```
+
+For `CustomerAPI` you'll need to provide both the `href` the `rel` attribute values:
+
+```html
+<foxy-api href="https://api.example.com/customer" rel="customer">...</foxy-api>
+```
+
+That's it! From this point our custom element will listen to the `request` events emitted by the child elements and send them to the chosen API with the correct auth headers. If you'd like to make your element compatible with `<foxy-api>`, replace `fetch` with `RequestEvent.emit` like so:
+
+#### Before
+
+```ts
+class MyCustomElement extends HTMLElement {
+  getStore() {
+    return fetch("https://api.example.com/s/admin/stores/8");
+  }
+}
+```
+
+#### After
+
+```ts
+import { RequestEvent } from "@foxy.io/api";
+
+class MyCustomElement extends HTMLElement {
+  getStore() {
+    return RequestEvent.emit({
+      source: this,
+      init: ["https://api.example.com/s/admin/stores/8"],
+    });
+  }
+}
+```
+
+The `init` option accepts exactly the same parameters as `fetch`, so your code should be instantly compatible if you're already relying on Fetch API to make API requests.
 
 ## Development
 

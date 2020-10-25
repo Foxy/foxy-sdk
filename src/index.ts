@@ -1,3 +1,3 @@
-export { CustomerAPI } from "./customer";
-export { ClientAPI } from "./client";
-export { UserAPI } from "./user";
+export { IntegrationAPI } from "./IntegrationAPI";
+export { CustomerAPI } from "./CustomerAPI";
+export { AdminAPI } from "./AdminAPI";

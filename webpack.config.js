@@ -2,8 +2,8 @@ const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 
 module.exports = {
   entry: {
-    "user": "./src/user.ts",
-    "user-element": "./src/user-element.ts",
+    user: "./src/user.ts",
+    element: "./src/element/index.ts",
   },
   output: {
     filename: "[name].js",

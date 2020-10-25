@@ -86,6 +86,7 @@
     "crypto-js": "^4.0.0",
     "ministorage": "^1.0.0",
     "normalize-url": "^5.1.0",
+    "ow": "^0.18.0",
     "traverse": "^0.6.6"
   }
 }
