@@ -1,7 +1,7 @@
 import { fetch } from "cross-fetch";
 import { BrowserAPI } from "./BrowserAPI";
 import { BrowserAPICredentials } from "./types/auth";
-import { Graph } from "./types/customer";
+import { CustomerAPIGraph } from "./types/customer";
 
 interface CustomerAPISession {
   /** The session lifetime as configured in Foxy (in seconds). */
@@ -14,7 +14,7 @@ interface CustomerAPISession {
   jwt?: string;
 }
 
-export class CustomerAPI extends BrowserAPI<Graph> {
+export class CustomerAPI extends BrowserAPI<CustomerAPIGraph> {
   static readonly AUTH_EXPIRES = "fx.customer.expires";
   static readonly AUTH_HEADER = "fx.customer";
   static readonly AUTH_TOKEN = "fx.customer";

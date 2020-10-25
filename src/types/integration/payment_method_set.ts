@@ -4,11 +4,9 @@ import type * as FxPaymentMethodSets from "./payment_method_sets";
 import type * as FxPaymentGateway from "./payment_gateway";
 import type * as FxStore from "./store";
 
-export type Rel = "payment_method_set";
-export type Curie = "fx:payment_method_set";
-export type Methods = "GET" | "PUT" | "HEAD" | "PATCH" | "DELETE" | "OPTIONS";
+type Curie = "fx:payment_method_set";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Store this payment method set belongs to. */
@@ -23,7 +21,7 @@ export interface Links {
   "fx:payment_method_set_hosted_payment_gateways": FxPaymentMethodSetHostedPaymentGateways.Graph;
 }
 
-export interface Props {
+interface Props {
   /** The full API URI of the payment_gateway associated with this payment method set. */
   gateway_uri: string;
   /** The description of your payment method set. */
@@ -38,11 +36,8 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

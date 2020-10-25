@@ -3,11 +3,9 @@ import type * as FxCoupon from "./coupon";
 import type * as FxStore from "./store";
 import type * as FxCart from "./cart";
 
-export type Rel = "applied_coupon_code";
-export type Curie = "fx:applied_coupon_code";
-export type Methods = "GET" | "HEAD" | "DELETE" | "OPTIONS";
+type Curie = "fx:applied_coupon_code";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Related cart resource. */
@@ -20,7 +18,7 @@ export interface Links {
   "fx:coupon_code": FxCouponCode.Graph;
 }
 
-export interface Props {
+interface Props {
   /** The coupon code applied to this cart. */
   code: string;
   /** The date this resource was created. */
@@ -29,11 +27,8 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

@@ -1,9 +1,9 @@
-import type * as FxSubscriptions from "../integration/subscriptions";
-import type * as FxSubscription from "./subscription";
+import type * as IntegrationAPIFxSubscriptions from "../integration/subscriptions";
+import type { FxSubscription } from "./subscription";
 
-export interface Graph {
-  curie: FxSubscriptions.Graph["curie"];
+export interface FxSubscriptions {
+  curie: IntegrationAPIFxSubscriptions.Graph["curie"];
   links: never;
   props: never;
-  child: FxSubscription.Graph;
+  child: FxSubscription;
 }

@@ -10,8 +10,6 @@ enum ReservedURI {
   ResetPassword = "foxy://reset-password",
 }
 
-type Rel = keyof typeof APIElement["rels"];
-
 export class APIElement extends HTMLElement {
   public static readonly observedAttributes = ["href", "rel"];
   public static readonly defaultEndpoint = new URL("/s/admin", location.origin).toString();

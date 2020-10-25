@@ -1,11 +1,9 @@
 import type * as FxCustomer from "./customer";
 import type * as FxStore from "./store";
 
-export type Rel = "default_payment_method";
-export type Curie = "fx:default_payment_method";
-export type Methods = "GET" | "PUT" | "HEAD" | "PATCH" | "OPTIONS";
+type Curie = "fx:default_payment_method";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Store the customer is registered in. */
@@ -14,7 +12,7 @@ export interface Links {
   "fx:customer": FxCustomer.Graph;
 }
 
-export interface Props {
+interface Props {
   /** If the customer selected to save their payment information, this will be true. To clear out the payment information, set this to false. */
   save_cc: string;
   /** The credit card or debit card type. This will be determined automatically once the payment card is saved. */
@@ -33,11 +31,8 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

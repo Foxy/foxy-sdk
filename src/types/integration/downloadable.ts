@@ -2,11 +2,9 @@ import type * as FxDownloadableItemCategories from "./downloadable_item_categori
 import type * as FxItemCategory from "./item_category";
 import type * as FxStore from "./store";
 
-export type Rel = "downloadable";
-export type Curie = "fx:downloadable";
-export type Methods = "GET" | "PUT" | "HEAD" | "PATCH" | "DELETE" | "OPTIONS";
+type Curie = "fx:downloadable";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Store this downloadable product belongs to. */
@@ -17,7 +15,7 @@ export interface Links {
   "fx:downloadable_item_categories": FxDownloadableItemCategories.Graph;
 }
 
-export interface Props {
+interface Props {
   /** The full API URI of the item category this product is part of. The item category must have an item delivery type of downloaded. */
   item_category_uri: string;
   /** The name of this downloadable. This will be shown to the customer in the cart. */
@@ -38,11 +36,8 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

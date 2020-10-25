@@ -17,11 +17,9 @@ import type * as FxStore from "./store";
 import type * as FxItems from "./items";
 import type * as FxVoid from "./void";
 
-export type Rel = "transaction";
-export type Curie = "fx:transaction";
-export type Methods = "GET" | "PUT" | "POST" | "HEAD" | "PATCH" | "OPTIONS";
+type Curie = "fx:transaction";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** POST here to void this transaction. */
@@ -62,7 +60,7 @@ export interface Links {
   "fx:native_integrations": FxNativeIntegrations.Graph;
 }
 
-export interface Props {
+interface Props {
   /** The order number. */
   id: number;
   /** True if this transaction was a test transaction and not run against a live payment gateway. */
@@ -111,7 +109,7 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = {
+type Zooms = {
   billing_addresses?: FxBillingAddresses.Graph;
   applied_taxes?: FxAppliedTaxes.Graph;
   custom_fields?: FxCustomFields.Graph;

@@ -1,7 +1,7 @@
-import type * as FxItem from "../integration/item";
+import type * as IntegrationAPIFxItem from "../integration/item";
 
-export interface Graph {
-  curie: FxItem.Graph["curie"];
+export interface FxItem {
+  curie: IntegrationAPIFxItem.Graph["curie"];
   links: never;
-  props: FxItem.Graph["props"];
+  props: IntegrationAPIFxItem.Graph["props"];
 }

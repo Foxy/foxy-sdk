@@ -1,11 +1,9 @@
 import type * as FxTemplateSets from "./template_sets";
 import type * as FxStore from "./store";
 
-export type Rel = "template_config";
-export type Curie = "fx:template_config";
-export type Methods = "GET" | "PUT" | "HEAD" | "PATCH" | "DELETE" | "OPTIONS";
+type Curie = "fx:template_config";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Related store resource. */
@@ -14,7 +12,7 @@ export interface Links {
   "fx:template_sets": FxTemplateSets.Graph;
 }
 
-export interface Props {
+interface Props {
   /** The description of your template config. */
   description: string;
   /** This is the template configuration settings for your store. */
@@ -25,11 +23,8 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

@@ -1,12 +1,12 @@
-import type * as FxDefaultShippingAddress from "./default_shipping_address";
-import type * as FxDefaultBillingAddress from "./default_billing_address";
-import type * as FxDefaultPaymentMethod from "./default_payment_method";
-import type * as FxSubscriptions from "./subscriptions";
-import type * as FxTransactions from "./transactions";
-import type * as FxAttributes from "./attributes";
+import type { FxDefaultShippingAddress } from "./default_shipping_address";
+import type { FxDefaultBillingAddress } from "./default_billing_address";
+import type { FxDefaultPaymentMethod } from "./default_payment_method";
+import type { FxSubscriptions } from "./subscriptions";
+import type { FxTransactions } from "./transactions";
+import type { FxAttributes } from "./attributes";
 import type * as FxCustomer from "../integration/customer";
 
-export interface Graph {
+export interface CustomerAPIGraph {
   curie: never;
   links: never;
   props: Pick<
@@ -22,11 +22,11 @@ export interface Graph {
     | "tax_id"
   >;
   zooms: {
-    default_shipping_address?: FxDefaultShippingAddress.Graph;
-    default_billing_address?: FxDefaultBillingAddress.Graph;
-    default_payment_method?: FxDefaultPaymentMethod.Graph;
-    subscriptions?: FxSubscriptions.Graph;
-    transactions?: FxTransactions.Graph;
-    attributes: FxAttributes.Graph;
+    default_shipping_address?: FxDefaultShippingAddress;
+    default_billing_address?: FxDefaultBillingAddress;
+    default_payment_method?: FxDefaultPaymentMethod;
+    subscriptions?: FxSubscriptions;
+    transactions?: FxTransactions;
+    attributes: FxAttributes;
   };
 }

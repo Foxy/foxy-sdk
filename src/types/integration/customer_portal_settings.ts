@@ -1,17 +1,15 @@
 import type * as FxStore from "./store";
 
-export type Rel = "customer_portal_settings";
-export type Curie = "fx:customer_portal_settings";
-export type Methods = "GET" | "PUT" | "HEAD" | "PATCH" | "DELETE" | "OPTIONS";
+type Curie = "fx:customer_portal_settings";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Store the customer portal of which this resource configures. */
   "fx:store": FxStore.Graph;
 }
 
-export interface Props {
+interface Props {
   /** An array of domains. No trailing slashes, must be https unless it's localhost. Can accept a port. Allow up to 10 entries. */
   allowedOrigins: string[];
   /** Object which contains "allowFrequencyModification" and "allowNextDateModification" fields. Subscription modification data. */
@@ -64,11 +62,8 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

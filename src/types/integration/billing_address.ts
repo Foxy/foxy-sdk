@@ -4,11 +4,9 @@ import type * as FxTransaction from "./transaction";
 import type * as FxCustomer from "./customer";
 import type * as FxStore from "./store";
 
-export type Rel = "billing_address";
-export type Curie = "fx:billing_address";
-export type Methods = "GET" | "HEAD" | "OPTIONS";
+type Curie = "fx:billing_address";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Store this billing address is registered in. */
@@ -23,7 +21,7 @@ export interface Links {
   "fx:billing_addresses": FxBillingAddresses.Graph;
 }
 
-export interface Props {
+interface Props {
   /** The name of this address. This is also the value used as the shipto entry for a multiship item. */
   address_name: string;
   /** The given name associated with this address. */
@@ -56,11 +54,8 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

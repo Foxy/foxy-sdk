@@ -4,11 +4,9 @@ import type * as FxCustomer from "./customer";
 import type * as FxStore from "./store";
 import type * as FxItem from "./item";
 
-export type Rel = "downloadable_purchase";
-export type Curie = "fx:downloadable_purchase";
-export type Methods = "GET" | "HEAD" | "OPTIONS";
+type Curie = "fx:downloadable_purchase";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Related cart item. */
@@ -23,7 +21,7 @@ export interface Links {
   "fx:downloadable": FxDownloadable.Graph;
 }
 
-export interface Props {
+interface Props {
   /** The number of times the customer attempted to download this item. This is useful for fine tuning your downloadables settings. */
   number_of_downloads: number;
   /** The time of the first download attempt by the customer. This is useful for fine tuning your downloadables settings. */
@@ -36,11 +34,8 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

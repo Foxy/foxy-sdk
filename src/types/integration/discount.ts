@@ -4,11 +4,9 @@ import type * as FxCustomer from "./customer";
 import type * as FxCoupon from "./coupon";
 import type * as FxStore from "./store";
 
-export type Rel = "discount";
-export type Curie = "fx:discount";
-export type Methods = "GET" | "HEAD" | "OPTIONS";
+type Curie = "fx:discount";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Store that provided this discount. */
@@ -23,7 +21,7 @@ export interface Links {
   "fx:coupon_code": FxCouponCode.Graph;
 }
 
-export interface Props {
+interface Props {
   /** The original coupon code used for this discount. */
   code: string;
   /** The amount of the discount. */
@@ -42,11 +40,8 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

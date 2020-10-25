@@ -1,17 +1,15 @@
 import type * as FxStore from "./store";
 
-export type Rel = "subscription_settings";
-export type Curie = "fx:subscription_settings";
-export type Methods = "GET" | "PUT" | "HEAD" | "PATCH" | "OPTIONS";
+type Curie = "fx:subscription_settings";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Related store resource. */
   "fx:store": FxStore.Graph;
 }
 
-export interface Props {
+interface Props {
   /** If your customer's subscription payment fails and is configured to keep track of past due amounts, this option will automatically charge the past due amount in the next scheduled subscription. The default value is true. */
   automatically_charge_past_due_amount: boolean;
   /** If you would like to keep track of past due amounts but not automatically charge them, this setting is helpful to reset them once a successful transaction for that subscription is processed. The default value is false. */
@@ -40,11 +38,8 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

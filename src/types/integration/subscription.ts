@@ -7,11 +7,9 @@ import type * as FxAttributes from "./attributes";
 import type * as FxCustomer from "./customer";
 import type * as FxStore from "./store";
 
-export type Rel = "subscription";
-export type Curie = "fx:subscription";
-export type Methods = "GET" | "PUT" | "HEAD" | "PATCH" | "OPTIONS";
+type Curie = "fx:subscription";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** List of attributes for this subscription. */
@@ -30,7 +28,7 @@ export interface Links {
   "fx:sub_token_url": FxSubTokenUrl.Graph;
 }
 
-export interface Props {
+interface Props {
   /** The original date this subscription began or will begin if set in the future. */
   start_date: string;
   /** The date for when this subscription will run again. */
@@ -55,7 +53,7 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = {
+type Zooms = {
   original_transaction?: FxOriginalTransaction.Graph;
   transaction_template?: FxTransactionTemplate.Graph;
   last_transaction?: FxLastTransaction.Graph;

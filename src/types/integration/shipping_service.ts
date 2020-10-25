@@ -2,11 +2,9 @@ import type * as FxShippingMethods from "./shipping_methods";
 import type * as FxPropertyHelpers from "./property_helpers";
 import type * as FxShippingMethod from "./shipping_method";
 
-export type Rel = "shipping_service";
-export type Curie = "fx:shipping_service";
-export type Methods = "GET" | "HEAD" | "OPTIONS";
+type Curie = "fx:shipping_service";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Shipping method associated with this shipping service. */
@@ -17,7 +15,7 @@ export interface Links {
   "fx:property_helpers": FxPropertyHelpers.Graph;
 }
 
-export interface Props {
+interface Props {
   /** The name of this shipping service */
   name: string;
   /** The code for this shipping service */
@@ -30,11 +28,8 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

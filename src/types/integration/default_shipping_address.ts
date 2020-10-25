@@ -1,15 +1,12 @@
 import type * as FxCustomerAddress from "./customer_address";
 
-export type Rel = "default_shipping_address";
-export type Curie = "fx:default_shipping_address";
-export type Methods = FxCustomerAddress.Methods;
-export type Links = FxCustomerAddress.Graph;
-export type Props = FxCustomerAddress.Props;
-export type Zooms = FxCustomerAddress.Zooms;
+type Curie = "fx:default_shipping_address";
+type Links = FxCustomerAddress.Graph;
+type Props = FxCustomerAddress.Graph["props"];
+type Zooms = FxCustomerAddress.Graph["zooms"];
 
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

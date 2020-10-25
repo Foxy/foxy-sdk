@@ -5,11 +5,9 @@ import type * as FxPropertyHelpers from "./property_helpers";
 import type * as FxEmailTemplates from "./email_templates";
 import type * as FxCartTemplates from "./cart_templates";
 
-export type Rel = "default_templates";
-export type Curie = "fx:default_templates";
-export type Methods = "GET" | "HEAD" | "OPTIONS";
+type Curie = "fx:default_templates";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Default cart templates. */
@@ -26,16 +24,13 @@ export interface Links {
   "fx:cart_include_templates": FxCartIncludeTemplates.Graph;
 }
 
-export interface Props {
+interface Props {
   /** A small, human readable explanation of this property helper. */
   message: string;
 }
-
-export type Zooms = never;
 
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

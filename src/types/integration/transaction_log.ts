@@ -4,11 +4,9 @@ import type * as FxCustomer from "./customer";
 import type * as FxStore from "./store";
 import type * as FxUser from "./user";
 
-export type Rel = "transaction_logs";
-export type Curie = "fx:transaction_logs";
-export type Methods = "GET" | "HEAD" | "OPTIONS";
+type Curie = "fx:transaction_logs";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Related user resource. */
@@ -23,7 +21,7 @@ export interface Links {
   "fx:transaction_log_details": FxTransactionLogDetails.Graph;
 }
 
-export interface Props {
+interface Props {
   /** A complete JSON snapshot of the transaction prior to the modification made this log entry records. It includes all of the following zoom values: `customer`, `payments`, `applied_taxes`, `discounts`, `shipments`, `billing_addresses`, `items`, `items:item_options`, `custom_fields`, `attributes`. */
   snapshot: string;
   /** Describes the source transaction modification such as admin or hAPI. */
@@ -32,11 +30,8 @@ export interface Props {
   date_created: string;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

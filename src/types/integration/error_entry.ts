@@ -1,17 +1,15 @@
 import type * as FxStore from "./store";
 
-export type Rel = "error_entry";
-export type Curie = "fx:error_entry";
-export type Methods = "GET" | "PUT" | "HEAD" | "PATCH" | "DELETE" | "OPTIONS";
+type Curie = "fx:error_entry";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Store this error entry was created in. */
   "fx:store": FxStore.Graph;
 }
 
-export interface Props {
+interface Props {
   /** The Foxy page where the error took place. */
   url: string;
   /** The error message explaining what happened. */
@@ -36,11 +34,8 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

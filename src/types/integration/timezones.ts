@@ -1,17 +1,15 @@
 import type * as FxPropertyHelpers from "./property_helpers";
 
-export type Rel = "timezones";
-export type Curie = "fx:timezones";
-export type Methods = "GET" | "HEAD" | "OPTIONS";
+type Curie = "fx:timezones";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Various predefined property values. */
   "fx:property_helpers": FxPropertyHelpers.Graph;
 }
 
-export interface Props {
+interface Props {
   /** A small, human readable explanation of this property helper. */
   message: string;
   /** JSON object with an array of timezones. */
@@ -26,11 +24,8 @@ export interface Props {
   };
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

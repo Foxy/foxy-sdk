@@ -3,11 +3,9 @@ import type * as FxGenerateCodes from "./generate_codes";
 import type * as FxCouponCodes from "./coupon_codes";
 import type * as FxStore from "./store";
 
-export type Rel = "coupon";
-export type Curie = "fx:coupon";
-export type Methods = "GET" | "PUT" | "HEAD" | "PATCH" | "DELETE" | "OPTIONS";
+type Curie = "fx:coupon";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Store this coupon belongs to. */
@@ -20,7 +18,7 @@ export interface Links {
   "fx:coupon_item_categories": FxCouponItemCategories.Graph;
 }
 
-export interface Props {
+interface Props {
   /** The name of this coupon. This will be for your own use and displayed to the customer. */
   name: string;
   /** If you want this coupon's usage to be limited by a time frame or start in the future, add a start date here. To clear it out, set an empty value or use 0000-00-00. */
@@ -57,7 +55,7 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = {
+type Zooms = {
   coupon_item_categories?: FxCouponItemCategories.Graph;
   coupon_codes?: FxCouponCodes.Graph;
 };

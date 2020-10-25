@@ -1,7 +1,7 @@
-import type * as FxAttribute from "../integration/attribute";
+import type * as IntegrationAPIFxAttribute from "../integration/attribute";
 
-export interface Graph {
-  curie: FxAttribute.Graph["curie"];
+export interface FxAttribute {
+  curie: IntegrationAPIFxAttribute.Graph["curie"];
   links: never;
-  props: FxAttribute.Graph["props"];
+  props: IntegrationAPIFxAttribute.Graph["props"];
 }

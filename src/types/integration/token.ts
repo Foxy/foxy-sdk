@@ -1,9 +1,7 @@
-export type Rel = "token";
-export type Curie = "fx:token";
-export type Methods = "POST" | "OPTIONS";
-export type Links = never;
+type Curie = "fx:token";
+type Links = never;
 
-export interface Props {
+interface Props {
   /** The OAuth refresh token. This token is returned in the response whenever creating a client, user or store or when doing an authorization code grant. */
   refresh_token: string;
   /** The OAuth access token. Access tokens expire after 7200 seconds (2 hours). */
@@ -16,11 +14,8 @@ export interface Props {
   scope: string;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

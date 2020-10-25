@@ -1,11 +1,9 @@
 import type * as FxTransaction from "./transaction";
 
-export type Rel = "original_transaction";
-export type Curie = "fx:original_transaction";
-export type Methods = FxTransaction.Methods;
-export type Links = FxTransaction.Graph;
-export type Props = FxTransaction.Props;
-export type Zooms = FxTransaction.Zooms;
+type Curie = "fx:original_transaction";
+type Links = FxTransaction.Graph;
+type Props = FxTransaction.Graph["props"];
+type Zooms = FxTransaction.Graph["zooms"];
 
 export interface Graph {
   curie: Curie;

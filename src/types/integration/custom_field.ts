@@ -1,11 +1,9 @@
 import type * as FxTransaction from "./transaction";
 import type * as FxStore from "./store";
 
-export type Rel = "custom_field";
-export type Curie = "fx:custom_field";
-export type Methods = "GET" | "PUT" | "HEAD" | "PATCH" | "DELETE" | "OPTIONS";
+type Curie = "fx:custom_field";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Store this custom field was created in. */
@@ -14,7 +12,7 @@ export interface Links {
   "fx:transaction": FxTransaction.Graph;
 }
 
-export interface Props {
+interface Props {
   /** The name of the custom field. */
   name: string;
   /** The value of this custom field. */
@@ -27,11 +25,8 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

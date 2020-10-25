@@ -1,7 +1,7 @@
-import type * as FxDefaultShippingAddress from "../integration/default_shipping_address";
+import type * as IntegrationAPIFxDefaultShippingAddress from "../integration/default_shipping_address";
 
-export interface Graph {
-  curie: FxDefaultShippingAddress.Graph["curie"];
+export interface FxDefaultShippingAddress {
+  curie: IntegrationAPIFxDefaultShippingAddress.Graph["curie"];
   links: never;
-  props: FxDefaultShippingAddress.Graph["props"];
+  props: IntegrationAPIFxDefaultShippingAddress.Graph["props"];
 }

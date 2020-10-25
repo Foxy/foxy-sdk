@@ -3,11 +3,9 @@ import type * as FxPropertyHelpers from "./property_helpers";
 import type * as FxShippingMethods from "./shipping_methods";
 import type * as FxShippingMethod from "./shipping_method";
 
-export type Rel = "shipping_container";
-export type Curie = "fx:shipping_container";
-export type Methods = "GET" | "HEAD" | "OPTIONS";
+type Curie = "fx:shipping_container";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Shipping method that will be used to deliver this container. */
@@ -20,7 +18,7 @@ export interface Links {
   "fx:shipping_containers": FxShippingContainers.Graph;
 }
 
-export interface Props {
+interface Props {
   /** The name of this shipping container */
   name: string;
   /** The code for this shipping container */
@@ -31,11 +29,8 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

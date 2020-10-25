@@ -1,13 +1,11 @@
-export type Rel = "attribute";
-export type Curie = "fx:attribute";
-export type Methods = "GET" | "PUT" | "HEAD" | "PATCH" | "DELETE" | "OPTIONS";
+type Curie = "fx:attribute";
 
-export interface Links {
+interface Links {
   /** This resource. */
   self: Graph;
 }
 
-export interface Props {
+interface Props {
   /** Controls who can see this attribute. Public attributes can be shown to anyone, including customers. Private attributes are more suitable for configuration or technical details which are irrelevant to the public. Restricted attributes can only be viewed by the OAuth client who creates them. */
   visibility: "public" | "private" | "restricted";
   /** The name of this attribute. */
@@ -20,11 +18,8 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

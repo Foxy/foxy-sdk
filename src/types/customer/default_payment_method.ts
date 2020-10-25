@@ -1,7 +1,7 @@
-import type * as FxDefaultPaymentMethod from "../integration/default_payment_method";
+import type * as IntegrationAPIFxDefaultPaymentMethod from "../integration/default_payment_method";
 
-export interface Graph {
-  curie: FxDefaultPaymentMethod.Graph["curie"];
+export interface FxDefaultPaymentMethod {
+  curie: IntegrationAPIFxDefaultPaymentMethod.Graph["curie"];
   links: never;
-  props: FxDefaultPaymentMethod.Graph["props"];
+  props: IntegrationAPIFxDefaultPaymentMethod.Graph["props"];
 }

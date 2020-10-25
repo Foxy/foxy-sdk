@@ -13,11 +13,9 @@ import type * as FxCountries from "./countries";
 import type * as FxTimezones from "./timezones";
 import type * as FxRegions from "./regions";
 
-export type Rel = "property_helpers";
-export type Curie = "fx:property_helpers";
-export type Methods = "GET" | "HEAD" | "OPTIONS";
+type Curie = "fx:property_helpers";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** List of valid region values. It defaults to US states, but you can fetch other country states using `?country_code=<valid country code>`. */
@@ -50,16 +48,13 @@ export interface Links {
   "fx:customer_password_hash_types": FxCustomerPasswordHashTypes.Graph;
 }
 
-export interface Props {
+interface Props {
   /** Resource description. */
   message: string;
 }
-
-export type Zooms = never;
 
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

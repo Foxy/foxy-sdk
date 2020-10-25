@@ -1,14 +1,10 @@
-export type Rel = "cache";
-export type Curie = "fx:cache";
-export type Methods = "POST";
+type Curie = "fx:cache";
 
-export type Links = never;
-export type Props = never;
-export type Zooms = never;
+type Links = never;
+type Props = never;
 
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

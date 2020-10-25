@@ -1,17 +1,15 @@
 import type * as FxAttributes from "./attributes";
 
-export type Rel = "client";
-export type Curie = "fx:client";
-export type Methods = "GET" | "PUT" | "HEAD" | "PATCH" | "DELETE" | "OPTIONS";
+type Curie = "fx:client";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Custom attributes of this client. */
   "fx:attributes": FxAttributes.Graph;
 }
 
-export interface Props {
+interface Props {
   /** A unique identifier for this client. If you do not supply one, one will be automatically generated for you. If you're not hosting the client integration yourself, please use a known prefix when creating your clients. This can not be modified once it is created. */
   client_id: string;
   /** The password to be used with this client_id for OAuth 2.0 integration. This is generated automatically and can't be changed. */
@@ -40,11 +38,8 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

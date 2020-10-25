@@ -24,11 +24,9 @@ import type * as FxTaxes from "./taxes";
 import type * as FxUsers from "./users";
 import type * as FxCarts from "./carts";
 
-export type Rel = "store";
-export type Curie = "fx:store";
-export type Methods = "GET" | "PUT" | "HEAD" | "PATCH" | "DELETE" | "OPTIONS";
+type Curie = "fx:store";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** List of carts in this store. */
@@ -83,7 +81,7 @@ export interface Links {
   "fx:process_subscription_webhook": FxProcessSubscriptionWebhook.Graph;
 }
 
-export interface Props {
+interface Props {
   /** This is the store version for this store. For more details about this version, see the {@link https://api-sandbox.foxycart.com/hal-browser/browser.html#https://api-sandbox.foxycart.com/property_helpers/store_versions store_versions} property helpers which include changelog information. */
   store_version_uri: string;
   /** The name of your store as you'd like it displayed to your customers and our system. */
@@ -172,11 +170,8 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

@@ -1,11 +1,9 @@
 import type * as FxPaymentMethodSets from "./payment_method_sets";
 import type * as FxStore from "./store";
 
-export type Rel = "payment_gateway";
-export type Curie = "fx:payment_gateway";
-export type Methods = "GET" | "PUT" | "HEAD" | "PATCH" | "DELETE" | "OPTIONS";
+type Curie = "fx:payment_gateway";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Store using this gateway. */
@@ -14,7 +12,7 @@ export interface Links {
   "fx:payment_method_sets": FxPaymentMethodSets.Graph;
 }
 
-export interface Props {
+interface Props {
   /** Description of this payment gateway */
   description: string;
   /** Valid payment gateway type. */
@@ -46,11 +44,8 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

@@ -1,10 +1,8 @@
-export type Rel = "generate_codes";
-export type Curie = "fx:generate_codes";
-export type Methods = "POST" | "HEAD" | "OPTIONS";
+type Curie = "fx:generate_codes";
 
-export type Links = never;
+type Links = never;
 
-export interface Props {
+interface Props {
   /** Optional length of the coupon code. Defaults to 6 characters. */
   length: number;
   /** Optional number of coupon code variations you would like. Defaults to 10. */
@@ -13,11 +11,8 @@ export interface Props {
   prefix: string;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

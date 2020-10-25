@@ -2,11 +2,9 @@ import type * as FxTransaction from "./transaction";
 import type * as FxStore from "./store";
 import type * as FxTax from "./tax";
 
-export type Rel = "applied_tax";
-export type Curie = "fx:applied_tax";
-export type Methods = "GET" | "HEAD" | "OPTIONS";
+type Curie = "fx:applied_tax";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Tax configuration. */
@@ -17,7 +15,7 @@ export interface Links {
   "fx:transaction": FxTransaction.Graph;
 }
 
-export interface Props {
+interface Props {
   /** The tax rate as a percentage for this applied tax. As an example, a 9.75% tax rate would be displayed as 9.75. */
   rate: number;
   /** The original tax name of this tax. */
@@ -38,11 +36,8 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

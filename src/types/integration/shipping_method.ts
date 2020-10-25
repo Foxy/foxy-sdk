@@ -4,11 +4,9 @@ import type * as FxShippingServices from "./shipping_services";
 import type * as FxShippingMethods from "./shipping_methods";
 import type * as FxPropertyHelpers from "./property_helpers";
 
-export type Rel = "shipping_method";
-export type Curie = "fx:shipping_method";
-export type Methods = "GET" | "HEAD" | "OPTIONS";
+type Curie = "fx:shipping_method";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** List of all available shipping methods. */
@@ -23,7 +21,7 @@ export interface Links {
   "fx:shipping_drop_types": FxShippingDropTypes.Graph;
 }
 
-export interface Props {
+interface Props {
   /** The name of this shipping method */
   name: string;
   /** The code for this shipping method */
@@ -34,11 +32,8 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

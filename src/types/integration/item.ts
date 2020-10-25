@@ -7,11 +7,9 @@ import type * as FxAttributes from "./attributes";
 import type * as FxShipment from "./shipment";
 import type * as FxStore from "./store";
 
-export type Rel = "item";
-export type Curie = "fx:item";
-export type Methods = "GET" | "PUT" | "HEAD" | "PATCH" | "DELETE" | "OPTIONS";
+type Curie = "fx:item";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Store this item belongs to. */
@@ -32,7 +30,7 @@ export interface Links {
   "fx:discount_details": FxDiscountDetails.Graph;
 }
 
-export interface Props {
+interface Props {
   /** The full API URI of the item category associated with this item. */
   item_category_uri: string;
   /** The name of this item. */
@@ -87,7 +85,7 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = {
+type Zooms = {
   discount_details?: FxDiscountDetails.Graph;
   coupon_details?: FxCouponDetails.Graph;
   item_category?: FxItemCategory.Graph;

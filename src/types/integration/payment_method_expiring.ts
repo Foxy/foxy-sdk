@@ -4,11 +4,9 @@ import type * as FxSubscriptions from "./subscriptions";
 import type * as FxCustomer from "./customer";
 import type * as FxStore from "./store";
 
-export type Rel = "payment_method_expiring";
-export type Curie = "fx:payment_method_expiring";
-export type Methods = "GET" | "HEAD" | "OPTIONS";
+type Curie = "fx:payment_method_expiring";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Related store resource. */
@@ -23,7 +21,7 @@ export interface Links {
   "fx:default_billing_address": FxDefaultBillingAddress.Graph;
 }
 
-export interface Props {
+interface Props {
   /** Months from today's day before this payment card will expire. */
   months_before_expiration: number;
   /** The customer's given name. */
@@ -46,11 +44,8 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

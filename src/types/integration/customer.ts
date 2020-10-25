@@ -7,11 +7,9 @@ import type * as FxTransactions from "./transactions";
 import type * as FxAttributes from "./attributes";
 import type * as FxStore from "./store";
 
-export type Rel = "customer";
-export type Curie = "fx:customer";
-export type Methods = "GET" | "PUT" | "HEAD" | "PATCH" | "DELETE" | "OPTIONS";
+type Curie = "fx:customer";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Store this customer is registered in. */
@@ -32,7 +30,7 @@ export interface Links {
   "fx:default_shipping_address": FxDefaultShippingAddress.Graph;
 }
 
-export interface Props {
+interface Props {
   /** The FoxyCart customer id, useful for Single Sign On integrations. */
   id: number;
   /** The date of the last time this customer authenticated with the FoxyCart checkout. */
@@ -67,7 +65,7 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = {
+type Zooms = {
   default_shipping_address?: FxDefaultShippingAddress.Graph;
   default_billing_address?: FxDefaultBillingAddress.Graph;
   default_payment_method?: FxDefaultPaymentMethod.Graph;

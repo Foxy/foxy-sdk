@@ -3,11 +3,9 @@ import type * as FxEncode from "./encode";
 import type * as FxStore from "./store";
 import type * as FxCache from "./cache";
 
-export type Rel = "checkout_template";
-export type Curie = "fx:checkout_template";
-export type Methods = "GET" | "PUT" | "HEAD" | "PATCH" | "DELETE" | "OPTIONS";
+type Curie = "fx:checkout_template";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Store this template belongs to. */
@@ -20,7 +18,7 @@ export interface Links {
   "fx:template_sets": FxTemplateSets.Graph;
 }
 
-export interface Props {
+interface Props {
   /** The description of your checkout template. */
   description: string;
   /** The content of your checkout template. Leave blank to use the default responsive template. This shouldn't be set directly unless all of your image references are already over https. If they are not, set the `content_url` to point to your template content online and then POST to the `cache` link relationship. */
@@ -33,11 +31,8 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

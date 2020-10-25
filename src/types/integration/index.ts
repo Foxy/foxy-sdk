@@ -6,11 +6,9 @@ import type * as FxStore from "./store";
 import type * as FxToken from "./token";
 import type * as FxUser from "./user";
 
-export type Rel = never;
-export type Curie = never;
-export type Methods = "GET" | "HEAD" | "OPTIONS";
+type Curie = never;
 
-export interface Links {
+interface Links {
   /** Your API starting point. */
   "self": Graph;
   /** Various helpers used for determing valid property values. */
@@ -29,16 +27,13 @@ export interface Links {
   "fx:user": FxUser.Graph;
 }
 
-export interface Props {
+interface Props {
   /** A small, human readable explanation of this resource. */
   message: string;
 }
-
-export type Zooms = never;
 
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

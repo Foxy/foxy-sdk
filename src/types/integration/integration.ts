@@ -2,11 +2,9 @@ import type * as FxClient from "./client";
 import type * as FxStore from "./store";
 import type * as FxUser from "./user";
 
-export type Rel = "integration";
-export type Curie = "fx:integration";
-export type Methods = "GET" | "HEAD" | "DELETE" | "OPTIONS";
+type Curie = "fx:integration";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Admin user who created this integration. */
@@ -17,7 +15,7 @@ export interface Links {
   "fx:client": FxClient.Graph;
 }
 
-export interface Props {
+interface Props {
   /** A full API URI of the user resource used in this relationship. When working with hypermedia, it's important to save URIs and not just numeric ids. */
   user_uri: string;
   /** A unique identifier for this client. Maps to the client_id of the {@link https://api.foxycart.com/rels/client client} resource. */
@@ -46,11 +44,8 @@ export interface Props {
   added_by_email: string;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

@@ -1,20 +1,15 @@
-export type Rel = "create_session";
-export type Curie = "fx:create_session";
-export type Methods = "POST" | "OPTIONS";
-export type Links = never;
+type Curie = "fx:create_session";
+type Links = never;
 
-export interface Props {
+interface Props {
   /** Unique session identifier. */
   session_id: string;
   /** URL of the cart associated with this session. */
   cart_link: string;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

@@ -1,11 +1,9 @@
 import type * as FxCustomer from "./customer";
 import type * as FxStore from "./store";
 
-export type Rel = "customer_address";
-export type Curie = "fx:customer_address";
-export type Methods = "GET" | "PUT" | "POST" | "HEAD" | "PATCH" | "DELETE" | "OPTIONS";
+type Curie = "fx:customer_address";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Store the customer account belongs to. */
@@ -14,7 +12,7 @@ export interface Links {
   "fx:customer": FxCustomer.Graph;
 }
 
-export interface Props {
+interface Props {
   /** By default, the country value must be valid according to the store's location_filtering value in the template_config. For instance, if your store is configured to only allow shipping and billing to the US, attempting to set the country to CA (Canada) will error. If true is passed in, the country can be any valid values. For customer_address resources that aren't the default shipping or billing, the validation will assume the shipping restrictions. NOTE: This does not currently take the region filtering into account. Defaults to false. */
   ignore_address_restrictions: boolean;
   /** The name of this address. This is also the value used as the shipto entry for a multiship item. */
@@ -49,11 +47,8 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

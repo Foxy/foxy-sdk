@@ -4,11 +4,9 @@ import type * as FxShippingService from "./shipping_service";
 import type * as FxShippingMethod from "./shipping_method";
 import type * as FxStore from "./store";
 
-export type Rel = "store_shipping_service";
-export type Curie = "fx:store_shipping_service";
-export type Methods = "GET" | "PUT" | "HEAD" | "PATCH" | "DELETE" | "OPTIONS";
+type Curie = "fx:store_shipping_service";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Related store resource. */
@@ -23,7 +21,7 @@ export interface Links {
   "fx:shipping_services": FxShippingServices.Graph;
 }
 
-export interface Props {
+interface Props {
   /** The full API URI of the shipping method defined in our property helpers. */
   shipping_method_uri: string;
   /** The full API URI of the shipping method shipping service defined in our property helpers. Each shipping method will have it's own shipping services. */
@@ -34,11 +32,8 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

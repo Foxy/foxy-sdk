@@ -2,11 +2,9 @@ import type * as FxNativeIntegrations from "./native_integrations";
 import type * as FxTaxItemCategories from "./tax_item_categories";
 import type * as FxStore from "./store";
 
-export type Rel = "tax";
-export type Curie = "fx:tax";
-export type Methods = "GET" | "PUT" | "HEAD" | "PATCH" | "DELETE" | "OPTIONS";
+type Curie = "fx:tax";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Related store resource. */
@@ -17,7 +15,7 @@ export interface Links {
   "fx:native_integrations": FxNativeIntegrations.Graph;
 }
 
-export interface Props {
+interface Props {
   /** The name of this tax which will be displayed to the customer. */
   name: string;
   /** The type of tax rate which determines when this tax will be applied. */
@@ -46,11 +44,8 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

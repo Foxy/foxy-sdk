@@ -8,11 +8,9 @@ import type * as FxCustomer from "./customer";
 import type * as FxStore from "./store";
 import type * as FxItems from "./items";
 
-export type Rel = "cart";
-export type Curie = "fx:cart";
-export type Methods = "GET" | "PUT" | "POST" | "HEAD" | "PATCH" | "DELETE" | "OPTIONS";
+type Curie = "fx:cart";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Store this cart was created in. */
@@ -35,7 +33,7 @@ export interface Links {
   "fx:applied_coupon_codes": FxAppliedCouponCodes.Graph;
 }
 
-export interface Props {
+interface Props {
   /**
    * The full API URI of the customer this cart is associated with. You can not POST a cart into a transaction (ie. charge a customer's saved payment method) unless this value is set to a valid customer with an active default payment method.
    *
@@ -129,7 +127,7 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = {
+type Zooms = {
   custom_fields?: FxCustomFields.Graph;
   attributes: FxAttributes.Graph;
   discounts?: FxDiscounts.Graph;

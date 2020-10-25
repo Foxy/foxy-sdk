@@ -1,11 +1,9 @@
 import type * as FxPaymentMethodSets from "./payment_method_sets";
 import type * as FxStore from "./store";
 
-export type Rel = "fraud_protection";
-export type Curie = "fx:fraud_protection";
-export type Methods = "GET" | "PUT" | "HEAD" | "PATCH" | "DELETE" | "OPTIONS";
+type Curie = "fx:fraud_protection";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Store this fraud protection policy was set on. */
@@ -14,7 +12,7 @@ export interface Links {
   "fx:payment_method_sets": FxPaymentMethodSets.Graph;
 }
 
-export interface Props {
+interface Props {
   /** The type of this fraud protection */
   type: "minfraud" | "google_recaptcha" | "custom_precheckout_hook";
   /** Description of this fraud protection */
@@ -29,11 +27,8 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

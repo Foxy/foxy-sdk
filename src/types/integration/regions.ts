@@ -1,17 +1,15 @@
 import type * as FxPropertyHelpers from "./property_helpers";
 
-export type Rel = "regions";
-export type Curie = "fx:regions";
-export type Methods = "GET" | "HEAD" | "OPTIONS";
+type Curie = "fx:regions";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Various predefined property values. */
   "fx:property_helpers": FxPropertyHelpers.Graph;
 }
 
-export interface Props {
+interface Props {
   /** A small, human readable explanation of this property helper. */
   message: string;
   /** JSON objects with the region codes as the keys. */
@@ -33,11 +31,8 @@ export interface Props {
   };
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

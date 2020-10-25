@@ -1,11 +1,9 @@
 import type * as FxTransaction from "./transaction";
 import type * as FxStore from "./store";
 
-export type Rel = "payment";
-export type Curie = "fx:payment";
-export type Methods = "GET" | "HEAD" | "OPTIONS";
+type Curie = "fx:payment";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Store that received this payment. */
@@ -14,7 +12,7 @@ export interface Links {
   "fx:transaction": FxTransaction.Graph;
 }
 
-export interface Props {
+interface Props {
   /** The payment type for this payment. Values include plastic (for credit/debit cards), purchase_order, paypal, amazon_mws, hosted, ogone, and paypal_ec */
   type: "plastic" | "purchase_order" | "paypal" | "amazon_mws" | "hosted" | "ogone" | "paypal_ec";
   /** The payment gateway type for this payment. This should correspond to a value in {@link https://api-sandbox.foxycart.com/hal-browser/browser.html#https://api-sandbox.foxycart.com/property_helpers/hosted_payment_gateways hosted_payment_gateways} or {@link https://api-sandbox.foxycart.com/hal-browser/browser.html#https://api-sandbox.foxycart.com/property_helpers/payment_gateways payment_gateways}. */
@@ -47,11 +45,8 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

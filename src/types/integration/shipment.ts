@@ -5,11 +5,9 @@ import type * as FxCustomer from "./customer";
 import type * as FxStore from "./store";
 import type * as FxItems from "./items";
 
-export type Rel = "shipment";
-export type Curie = "fx:shipment";
-export type Methods = "GET" | "HEAD" | "OPTIONS";
+type Curie = "fx:shipment";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Related store resource. */
@@ -26,7 +24,7 @@ export interface Links {
   "fx:customer_address": FxCustomerAddress.Graph;
 }
 
-export interface Props {
+interface Props {
   /** Either the shipto value or `Default Shipping Address` for non-multiship transactions. */
   address_name: string;
   /** The given name associated with this address. */
@@ -67,11 +65,8 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

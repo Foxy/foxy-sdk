@@ -8,11 +8,9 @@ import type * as FxShippingMethods from "./shipping_methods";
 import type * as FxShippingMethod from "./shipping_method";
 import type * as FxStore from "./store";
 
-export type Rel = "store_shipping_method";
-export type Curie = "fx:store_shipping_method";
-export type Methods = "GET" | "PUT" | "HEAD" | "PATCH" | "DELETE" | "OPTIONS";
+type Curie = "fx:store_shipping_method";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Related store resource. */
@@ -35,7 +33,7 @@ export interface Links {
   "fx:store_shipping_services": FxStoreShippingServices.Graph;
 }
 
-export interface Props {
+interface Props {
   /** The full API URI of the shipping method defined in our property helpers. */
   shipping_method_uri: string;
   /** The full API URI of the shipping method container defined in our property helpers. Each shipping method will have it's own shipping containers. */
@@ -75,5 +73,4 @@ export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

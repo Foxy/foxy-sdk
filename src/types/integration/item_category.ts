@@ -2,11 +2,9 @@ import type * as FxTaxItemCategories from "./tax_item_categories";
 import type * as FxEmailTemplates from "./email_templates";
 import type * as FxStore from "./store";
 
-export type Rel = "item_category";
-export type Curie = "fx:item_category";
-export type Methods = "GET" | "PUT" | "HEAD" | "PATCH" | "DELETE" | "OPTIONS";
+type Curie = "fx:item_category";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Store this category is registered in. */
@@ -17,7 +15,7 @@ export interface Links {
   "fx:tax_item_categories": FxTaxItemCategories.Graph;
 }
 
-export interface Props {
+interface Props {
   /** The full API URI of the email template used by this category for sending an administrative email if send_admin_email is true. */
   admin_email_template_uri: string;
   /** The full API URI of the email template used by this category for sending an additional customer email if send_customer_email is true. */
@@ -70,11 +68,8 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

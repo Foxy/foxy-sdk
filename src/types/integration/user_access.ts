@@ -1,11 +1,9 @@
 import type * as FxStore from "./store";
 import type * as FxUser from "./user";
 
-export type Rel = "user_access";
-export type Curie = "fx:user_access";
-export type Methods = "GET" | "PUT" | "HEAD" | "PATCH" | "DELETE" | "OPTIONS";
+type Curie = "fx:user_access";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Related user resource. */
@@ -14,7 +12,7 @@ export interface Links {
   "fx:store": FxStore.Graph;
 }
 
-export interface Props {
+interface Props {
   /** A full API URI of the user resource used in this relationship. When working with hypermedia, it's important to save URIs and not just numeric ids. */
   user_uri: string;
   /** A full API URI of the store resource used in this relationship. When working with hypermedia, it's important to save URIs and not just numeric ids. */
@@ -27,11 +25,8 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

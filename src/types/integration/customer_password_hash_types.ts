@@ -1,17 +1,15 @@
 import type * as FxPropertyHelpers from "./property_helpers";
 
-export type Rel = "customer_password_hash_types";
-export type Curie = "fx:customer_password_hash_types";
-export type Methods = "GET" | "HEAD" | "OPTIONS";
+type Curie = "fx:customer_password_hash_types";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Various pre-defined property values. */
   "fx:property_helpers": FxPropertyHelpers.Graph;
 }
 
-export interface Props {
+interface Props {
   /** A small, human readable explanation of this property helper. */
   message: string;
   /** JSON objects with the password hash type as the object key. This key is the value you use for the Store resource's `customer_password_hash_type` property and the Customer resource's `password_hash_type` property. */
@@ -25,11 +23,8 @@ export interface Props {
   };
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

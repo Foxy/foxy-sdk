@@ -2,11 +2,9 @@ import type * as FxPaymentMethodSet from "./payment_method_set";
 import type * as FxFraudProtection from "./fraud_protection";
 import type * as FxStore from "./store";
 
-export type Rel = "payment_method_set_fraud_protection";
-export type Curie = "fx:payment_method_set_fraud_protection";
-export type Methods = "GET" | "PUT" | "HEAD" | "PATCH" | "DELETE" | "OPTIONS";
+type Curie = "fx:payment_method_set_fraud_protection";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Store this configuration belongs to. */
@@ -17,7 +15,7 @@ export interface Links {
   "fx:payment_method_set": FxPaymentMethodSet.Graph;
 }
 
-export interface Props {
+interface Props {
   /** The full API URI of the payment method set associated with this payment method set fraud protection. */
   payment_method_set_uri: string;
   /** The full API URI of the fraud protection associated with this payment method set fraud protection. */
@@ -28,11 +26,8 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

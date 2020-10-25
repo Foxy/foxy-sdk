@@ -6,11 +6,9 @@ import type * as FxEmailTemplate from "./email_template";
 import type * as FxCartTemplate from "./cart_template";
 import type * as FxStore from "./store";
 
-export type Rel = "template_set";
-export type Curie = "fx:template_set";
-export type Methods = "GET" | "PUT" | "HEAD" | "PATCH" | "DELETE" | "OPTIONS";
+type Curie = "fx:template_set";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Related store resource. */
@@ -29,7 +27,7 @@ export interface Links {
   "fx:cart_include_template": FxCartIncludeTemplate.Graph;
 }
 
-export interface Props {
+interface Props {
   /** The full API URI of the cart template associated with this template set. */
   cart_template_uri: string;
   /** The full API URI of the cart_include template associated with this template set. */
@@ -58,7 +56,7 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = {
+type Zooms = {
   cart_include_template?: FxCartIncludeTemplate.Graph;
   checkout_template?: FxCheckoutTemplate.Graph;
   receipt_template?: FxReceiptTemplate.Graph;

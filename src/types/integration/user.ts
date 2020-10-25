@@ -2,11 +2,9 @@ import type * as FxDefaultStore from "./default_store";
 import type * as FxAttributes from "./attributes";
 import type * as FxStores from "./stores";
 
-export type Rel = "user";
-export type Curie = "fx:user";
-export type Methods = "GET" | "PUT" | "HEAD" | "PATCH" | "DELETE" | "OPTIONS";
+type Curie = "fx:user";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** List of stores this user has access to. */
@@ -17,7 +15,7 @@ export interface Links {
   "fx:default_store": FxDefaultStore.Graph;
 }
 
-export interface Props {
+interface Props {
   /** The user's given name. */
   first_name: string;
   /** The user's surname. */
@@ -42,11 +40,8 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

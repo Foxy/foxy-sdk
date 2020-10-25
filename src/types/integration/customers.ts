@@ -1,10 +1,8 @@
 import type * as FxCustomer from "./customer";
 
-export type Rel = "customers";
-export type Curie = "fx:customers";
-export type Methods = "GET" | "POST" | "HEAD" | "OPTIONS";
+type Curie = "fx:customers";
 
-export interface Links {
+interface Links {
   /** This collection. */
   self: Graph;
   /** First page of this collection. */
@@ -17,7 +15,7 @@ export interface Links {
   last: Graph;
 }
 
-export interface Props {
+interface Props {
   /** Total number of resources in this collection. */
   total_items: number;
   /** Number of items returned with this response. */
@@ -28,12 +26,9 @@ export interface Props {
   offset: number;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
   child: FxCustomer.Graph;
-  zooms: Zooms;
 }

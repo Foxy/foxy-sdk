@@ -1,10 +1,8 @@
 import type * as FxStoreShippingService from "./store_shipping_service";
 
-export type Rel = "store_shipping_services";
-export type Curie = "fx:store_shipping_services";
-export type Methods = "GET" | "POST" | "HEAD" | "OPTIONS";
+type Curie = "fx:store_shipping_services";
 
-export interface Links {
+interface Links {
   /** This collection. */
   self: Graph;
   /** First page of this collection. */
@@ -17,7 +15,7 @@ export interface Links {
   last: Graph;
 }
 
-export interface Props {
+interface Props {
   /** Total number of resources in this collection. */
   total_items: number;
   /** Number of items returned with this response. */
@@ -28,12 +26,9 @@ export interface Props {
   offset: number;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
   child: FxStoreShippingService.Graph;
-  zooms: Zooms;
 }

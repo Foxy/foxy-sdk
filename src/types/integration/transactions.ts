@@ -1,10 +1,8 @@
 import type * as FxTransaction from "./transaction";
 
-export type Rel = "transactions";
-export type Curie = "fx:transactions";
-export type Methods = "GET" | "HEAD" | "OPTIONS";
+type Curie = "fx:transactions";
 
-export interface Links {
+interface Links {
   /** This collection. */
   self: Graph;
   /** First page of this collection. */
@@ -17,7 +15,7 @@ export interface Links {
   last: Graph;
 }
 
-export interface Props {
+interface Props {
   /** Total number of resources in this collection. */
   total_items: number;
   /** Number of items returned with this response. */
@@ -27,8 +25,6 @@ export interface Props {
   /** Number of skipped items. */
   offset: number;
 }
-
-export type Zooms = never;
 
 export interface Graph {
   curie: Curie;

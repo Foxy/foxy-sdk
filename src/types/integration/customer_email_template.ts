@@ -3,11 +3,9 @@ import type * as FxTemplateSets from "./template_sets";
 import type * as FxStore from "./store";
 import type * as FxCache from "./cache";
 
-export type Rel = "customer_email_template";
-export type Curie = "fx:customer_email_template";
-export type Methods = "GET" | "PUT" | "HEAD" | "PATCH" | "DELETE" | "OPTIONS";
+type Curie = "fx:customer_email_template";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Store this template belongs to. */
@@ -18,12 +16,10 @@ export interface Links {
   "fx:template_sets": FxTemplateSets.Graph;
 }
 
-export type Props = FxEmailTemplate.Props;
-export type Zooms = never;
+type Props = FxEmailTemplate.Graph["props"];
 
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

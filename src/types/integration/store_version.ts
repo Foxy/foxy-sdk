@@ -1,11 +1,9 @@
 import type * as FxPropertyHelpers from "./property_helpers";
 import type * as FxStoreVersions from "./store_versions";
 
-export type Rel = "store_version";
-export type Curie = "fx:store_version";
-export type Methods = "GET" | "HEAD" | "OPTIONS";
+type Curie = "fx:store_version";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** List of all available store versions. */
@@ -14,7 +12,7 @@ export interface Links {
   "fx:property_helpers": FxPropertyHelpers.Graph;
 }
 
-export interface Props {
+interface Props {
   /** Human readable store version string. */
   version: string;
   /** The full URL of the blog post describing the new release. */
@@ -37,11 +35,8 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

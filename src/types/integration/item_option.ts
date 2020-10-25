@@ -2,11 +2,9 @@ import type * as FxTransaction from "./transaction";
 import type * as FxStore from "./store";
 import type * as FxItem from "./item";
 
-export type Rel = "item_option";
-export type Curie = "fx:item_option";
-export type Methods = "GET" | "PUT" | "HEAD" | "PATCH" | "DELETE" | "OPTIONS";
+type Curie = "fx:item_option";
 
-export interface Links {
+interface Links {
   /** This resource. */
   "self": Graph;
   /** Item this option is attached to. */
@@ -17,7 +15,7 @@ export interface Links {
   "fx:transaction": FxTransaction.Graph;
 }
 
-export interface Props {
+interface Props {
   /** The name of this item option. */
   name: string;
   /** The value of this item option. */
@@ -32,11 +30,8 @@ export interface Props {
   date_modified: string;
 }
 
-export type Zooms = never;
-
 export interface Graph {
   curie: Curie;
   links: Links;
   props: Props;
-  zooms: Zooms;
 }

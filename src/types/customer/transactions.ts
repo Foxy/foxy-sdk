@@ -1,9 +1,9 @@
-import type * as FxTransactions from "../integration/transactions";
-import type * as FxTransaction from "./transaction";
+import type * as IntegrationAPIFxTransactions from "../integration/transactions";
+import type { FxTransaction } from "./transaction";
 
-export interface Graph {
-  curie: FxTransactions.Graph["curie"];
+export interface FxTransactions {
+  curie: IntegrationAPIFxTransactions.Graph["curie"];
   links: never;
   props: never;
-  child: FxTransaction.Graph;
+  child: FxTransaction;
 }
