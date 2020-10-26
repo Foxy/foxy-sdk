@@ -43,8 +43,11 @@ export type Query<TGraph extends Graph> = TGraph["child"] extends Graph
 
 type ObjectValues<Value> = Value[keyof Value];
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never;
-type RequiredPropertyOf<T> = Exclude<{ [K in keyof T]: T extends Record<K, T[K]> ? K : never }[keyof T], undefined>;
-type IntersectionOfValues<T> = UnionToIntersection<ObjectValues<T>>;
+export type RequiredPropertyOf<T> = Exclude<
+  { [K in keyof T]: T extends Record<K, T[K]> ? K : never }[keyof T],
+  undefined
+>;
+export type IntersectionOfValues<T> = UnionToIntersection<ObjectValues<T>>;
 type ArrayItem<T> = T extends (infer U)[] ? U : never;
 type KeyOf<T> = [T] extends [never] ? never : keyof T;
 
@@ -57,7 +60,7 @@ type KeyOf<T> = [T] extends [never] ? never : keyof T;
  *
  * @template T Any complex record, array or string type.
  */
-type Flatten<T> = T extends string
+export type Flatten<T> = T extends string
   ? T
   : T extends (infer U)[]
   ? Extract<U, string> | KeyOf<Extract<U, Record<string, any>>>
@@ -72,7 +75,7 @@ type Flatten<T> = T extends string
  * @template TQueryZoom Original zoom union type to operate on.
  * @template TRel Relation to zoom in on.
  */
-type ZoomIn<TQueryZoom, TRel extends PropertyKey> = TQueryZoom extends (infer ArrayItem)[]
+export type ZoomIn<TQueryZoom, TRel extends PropertyKey> = TQueryZoom extends (infer ArrayItem)[]
   ? ObjectValues<Extract<ArrayItem, Record<TRel, any>>>
   : TQueryZoom extends Record<TRel, infer NestedZoom>
   ? NestedZoom

@@ -2,10 +2,10 @@ import ow from "ow";
 import { APIResponse } from "./APIResponse";
 import { Curies, Follow, Graph, Properties, Query } from "./types";
 
-interface APINodeParameters {
-  path: string[];
+export interface APINodeParameters {
+  path: [URL, ...string[]];
   fetch: Window["fetch"];
-  resolve: (path: string[]) => Promise<URL>;
+  resolve: (path: [URL, ...string[]]) => Promise<URL>;
 }
 
 function stringifyZoom(prefix: string, zoom: any): string {
@@ -52,9 +52,9 @@ const isQuery = {
 };
 
 class APINode<G extends Graph> {
-  protected _path: string[];
+  protected _path: [URL, ...string[]];
   protected _fetch: Window["fetch"];
-  protected _resolve: (path: string[]) => Promise<URL>;
+  protected _resolve: (path: [URL, ...string[]]) => Promise<URL>;
 
   constructor({ path, fetch, resolve }: APINodeParameters) {
     this._path = path;
@@ -76,42 +76,55 @@ class APINode<G extends Graph> {
     if (order !== undefined) url.searchParams.set("order", stringifyOrder(order));
     if (zoom !== undefined) url.searchParams.set("zoom", stringifyZoom("", zoom));
 
-    return new APIResponse<G>(await this._fetch(new Request(url.toString())));
+    const response = await this._fetch(new Request(url.toString()));
+    return new APIResponse({ resolve: this._resolve, fetch: this._fetch, response });
   }
 
   async put(body: Properties<G>): Promise<APIResponse<G>> {
     ow(body, ow.object);
+
     const url = await this._resolve(this._path);
     const request = new Request(url.toString(), { method: "PUT", body: JSON.stringify(body) });
-    return new APIResponse<G>(await this._fetch(request));
+    const response = await this._fetch(request);
+
+    return new APIResponse<G>({ resolve: this._resolve, fetch: this._fetch, response });
   }
 
   async post(body?: Properties<G>): Promise<APIResponse<G>> {
     ow(body, ow.any(ow.undefined, ow.object));
+
     const url = await this._resolve(this._path);
     const request = new Request(url.toString(), { method: "POST", body: JSON.stringify(body) });
-    return new APIResponse<G>(await this._fetch(request));
+    const response = await this._fetch(request);
+
+    return new APIResponse<G>({ resolve: this._resolve, fetch: this._fetch, response });
   }
 
   async patch(body: Partial<Properties<G>>): Promise<APIResponse<G>> {
     ow(body, ow.object);
+
     const url = await this._resolve(this._path);
     const request = new Request(url.toString(), { method: "POST", body: JSON.stringify(body) });
-    return new APIResponse<G>(await this._fetch(request));
+    const response = await this._fetch(request);
+
+    return new APIResponse<G>({ resolve: this._resolve, fetch: this._fetch, response });
   }
 
   async delete(): Promise<APIResponse<G>> {
     const url = await this._resolve(this._path);
     const request = new Request(url.toString(), { method: "DELETE" });
-    return new APIResponse<G>(await this._fetch(request));
+    const response = await this._fetch(request);
+
+    return new APIResponse<G>({ resolve: this._resolve, fetch: this._fetch, response });
   }
 
   follow<C extends Curies<G>>(curie: C): APINode<Follow<G, C>> {
     ow(curie as any, ow.string);
+
     return new APINode<Follow<G, C>>({
       resolve: this._resolve,
       fetch: this._fetch,
-      path: this._path.concat(curie as string),
+      path: this._path.concat(curie as string) as [URL, ...string[]],
     });
   }
 }

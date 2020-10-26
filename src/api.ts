@@ -8,9 +8,8 @@ interface APIParameters {
 }
 
 interface ResolverParameters {
-  path: string[];
+  path: [URL, ...string[]];
   fetch: Window["fetch"];
-  baseURL: URL;
   storage: Storage;
 }
 
@@ -20,15 +19,15 @@ export class APIResolutionError extends Error {
   }
 }
 
-async function resolve({ baseURL: base, path, storage, fetch }: ResolverParameters): Promise<URL> {
-  const createKey = (base: URL, path: string[]) => [base.toString(), ...path].join("|");
+async function resolve({ path, storage, fetch }: ResolverParameters): Promise<URL> {
+  const createKey = (path: (string | URL)[]) => path.join("|");
 
-  let traversalPath = path;
+  let traversalPath: (string | URL)[] = path;
   let parentJSON: any | null = null;
-  let startURL = base;
+  let startURL = path[0];
 
   for (let i = path.length - 1; i >= 0; --i) {
-    const cachedURL = storage.getItem(createKey(base, path.slice(0, i)));
+    const cachedURL = storage.getItem(createKey(path.slice(0, i)));
     if (cachedURL) {
       traversalPath = path.slice(i + 1);
       startURL = new URL(cachedURL);
@@ -38,7 +37,7 @@ async function resolve({ baseURL: base, path, storage, fetch }: ResolverParamete
 
   for (let i = -1; i < traversalPath.length; ++i) {
     const url = new URL(parentJSON?._links.self.href ?? startURL);
-    const key = createKey(base, traversalPath.slice(0, i + 1));
+    const key = createKey(traversalPath.slice(0, i + 1));
     const response = await fetch(url.toString());
 
     if (!response.ok) throw new APIResolutionError(response);
@@ -57,7 +56,7 @@ export class API<TGraph extends Graph> extends APINode<TGraph> {
   constructor(params: APIParameters) {
     super({
       resolve: (path) => resolve({ ...this, path, fetch }),
-      path: [],
+      path: [params.baseURL],
       fetch,
     });
 
