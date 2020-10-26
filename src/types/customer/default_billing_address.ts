@@ -1,7 +1,7 @@
-import type * as IntegrationAPIFxDefaultBillingAddress from "../integration/default_billing_address";
+import type { FxDefaultBillingAddress as IntegrationAPIFxDefaultBillingAddress } from "../integration/default_billing_address";
 
 export interface FxDefaultBillingAddress {
-  curie: IntegrationAPIFxDefaultBillingAddress.Graph["curie"];
+  curie: IntegrationAPIFxDefaultBillingAddress["curie"];
   links: never;
-  props: IntegrationAPIFxDefaultBillingAddress.Graph["props"];
+  props: IntegrationAPIFxDefaultBillingAddress["props"];
 }

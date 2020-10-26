@@ -1,8 +1,8 @@
 import fetch from "cross-fetch";
 import MemoryStorage from "ministorage";
 import { API } from "./API";
-import { Graph } from "./types/integration";
-import { Graph as FxToken } from "./types/integration/token";
+import { IntegrationAPIGraph } from "./types/integration";
+import { FxToken } from "./types/integration/token";
 
 type IntegrationAPIVersion = "1";
 
@@ -15,7 +15,7 @@ interface IntegrationAPIParameters {
   baseURL?: URL; // pathname ending with "/" !!!
 }
 
-export class IntegrationAPI extends API<Graph> {
+export class IntegrationAPI extends API<IntegrationAPIGraph> {
   static readonly REFRESH_THRESHOLD = 5 * 60 * 1000;
   static readonly ACCESS_TOKEN = "access_token";
   static readonly BASE_URL = new URL("https://api.foxycart.com/");

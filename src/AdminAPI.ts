@@ -2,9 +2,9 @@ import { AuthClass } from "@aws-amplify/auth/lib-esm/Auth";
 import { fetch } from "cross-fetch";
 import { BrowserAPI } from "./BrowserAPI";
 import { BrowserAPICredentials, BrowserAPIParameters } from "./types/auth";
-import { Graph } from "./types/integration";
+import { IntegrationAPIGraph } from "./types/integration";
 
-export class AdminAPI extends BrowserAPI<Graph> {
+export class AdminAPI extends BrowserAPI<IntegrationAPIGraph> {
   readonly auth: AuthClass;
 
   constructor(params: BrowserAPIParameters) {

@@ -1,13 +1,8 @@
-import type * as FxTransaction from "./transaction";
+import type { FxTransaction } from "./transaction";
 
-type Curie = "fx:last_transaction";
-type Links = FxTransaction.Graph;
-type Props = FxTransaction.Graph["props"];
-type Zooms = FxTransaction.Graph["zooms"];
-
-export interface Graph {
-  curie: Curie;
-  links: Links;
-  props: Props;
-  zooms: Zooms;
+export interface FxLastTransaction {
+  curie: "fx:last_transaction";
+  links: FxTransaction["links"];
+  props: FxTransaction["props"];
+  zooms: FxTransaction["zooms"];
 }

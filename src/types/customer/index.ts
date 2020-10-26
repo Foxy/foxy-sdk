@@ -1,16 +1,16 @@
+import type { FxCustomer as IntegrationAPIFxCustomer } from "../integration/customer";
 import type { FxDefaultShippingAddress } from "./default_shipping_address";
 import type { FxDefaultBillingAddress } from "./default_billing_address";
 import type { FxDefaultPaymentMethod } from "./default_payment_method";
 import type { FxSubscriptions } from "./subscriptions";
 import type { FxTransactions } from "./transactions";
 import type { FxAttributes } from "./attributes";
-import type * as FxCustomer from "../integration/customer";
 
 export interface CustomerAPIGraph {
   curie: never;
   links: never;
   props: Pick<
-    FxCustomer.Graph["props"],
+    IntegrationAPIFxCustomer["props"],
     | "date_created"
     | "date_modified"
     | "email"

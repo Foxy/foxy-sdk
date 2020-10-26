@@ -1,34 +1,9 @@
-import type * as FxCouponCode from "./coupon_code";
+import type { CollectionLinks, CollectionProps } from "../index";
+import type { FxCouponCode } from "./coupon_code";
 
-type Curie = "fx:coupon_codes";
-
-interface Links {
-  /** This collection. */
-  self: Graph;
-  /** First page of this collection. */
-  first: Graph;
-  /** Previous page of this collection. */
-  prev: Graph;
-  /** Next page of this collection. */
-  next: Graph;
-  /** Last page of this collection. */
-  last: Graph;
-}
-
-interface Props {
-  /** Total number of resources in this collection. */
-  total_items: number;
-  /** Number of items returned with this response. */
-  returned_items: number;
-  /** Maximum allowed number of items for this query. */
-  limit: number;
-  /** Number of skipped items. */
-  offset: number;
-}
-
-export interface Graph {
-  curie: Curie;
-  links: Links;
-  props: Props;
-  child: FxCouponCode.Graph;
+export interface FxCouponCodes {
+  curie: "fx:coupon_codes";
+  links: CollectionLinks<FxCouponCodes>;
+  props: CollectionProps;
+  child: FxCouponCode;
 }

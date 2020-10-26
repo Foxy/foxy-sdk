@@ -1,32 +1,28 @@
-import type * as FxStore from "./store";
-import type * as FxUser from "./user";
+import type { FxStore } from "./store";
+import type { FxUser } from "./user";
 
-type Curie = "fx:user_access";
+export interface FxUserAccess {
+  curie: "fx:user_access";
 
-interface Links {
-  /** This resource. */
-  "self": Graph;
-  /** Related user resource. */
-  "fx:user": FxUser.Graph;
-  /** Related store resource. */
-  "fx:store": FxStore.Graph;
-}
+  links: {
+    /** This resource. */
+    "self": FxUserAccess;
+    /** Related user resource. */
+    "fx:user": FxUser;
+    /** Related store resource. */
+    "fx:store": FxStore;
+  };
 
-interface Props {
-  /** A full API URI of the user resource used in this relationship. When working with hypermedia, it's important to save URIs and not just numeric ids. */
-  user_uri: string;
-  /** A full API URI of the store resource used in this relationship. When working with hypermedia, it's important to save URIs and not just numeric ids. */
-  store_uri: string;
-  /** Set this to true to make this store the default store for this user. That means it will be the first store they see when the log in to the FoxyCart admin. */
-  is_default_store: boolean;
-  /** The date this resource was created. */
-  date_created: string;
-  /** The date this resource was last modified. */
-  date_modified: string;
-}
-
-export interface Graph {
-  curie: Curie;
-  links: Links;
-  props: Props;
+  props: {
+    /** A full API URI of the user resource used in this relationship. When working with hypermedia, it's important to save URIs and not just numeric ids. */
+    user_uri: string;
+    /** A full API URI of the store resource used in this relationship. When working with hypermedia, it's important to save URIs and not just numeric ids. */
+    store_uri: string;
+    /** Set this to true to make this store the default store for this user. That means it will be the first store they see when the log in to the FoxyCart admin. */
+    is_default_store: boolean;
+    /** The date this resource was created. */
+    date_created: string;
+    /** The date this resource was last modified. */
+    date_modified: string;
+  };
 }

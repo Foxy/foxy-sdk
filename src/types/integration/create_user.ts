@@ -1,11 +1,7 @@
-import type * as FxUser from "./user";
+import type { FxUser } from "./user";
 
-type Curie = "fx:create_user";
-type Links = FxUser.Graph;
-type Props = FxUser.Graph["props"];
-
-export interface Graph {
-  curie: Curie;
-  links: Links;
-  props: Props;
+export interface FxCreateUser {
+  curie: "fx:create_user";
+  links: FxUser["links"];
+  props: FxUser["props"];
 }

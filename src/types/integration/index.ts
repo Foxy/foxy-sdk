@@ -1,39 +1,35 @@
-import type * as FxPropertyHelpers from "./property_helpers";
-import type * as FxReporting from "./reporting";
-import type * as FxEncode from "./encode";
-import type * as FxStores from "./stores";
-import type * as FxStore from "./store";
-import type * as FxToken from "./token";
-import type * as FxUser from "./user";
+import type { FxPropertyHelpers } from "./property_helpers";
+import type { FxReporting } from "./reporting";
+import type { FxEncode } from "./encode";
+import type { FxStores } from "./stores";
+import type { FxStore } from "./store";
+import type { FxToken } from "./token";
+import type { FxUser } from "./user";
 
-type Curie = never;
+export interface IntegrationAPIGraph {
+  curie: never;
 
-interface Links {
-  /** Your API starting point. */
-  "self": Graph;
-  /** Various helpers used for determing valid property values. */
-  "fx:property_helpers": FxPropertyHelpers.Graph;
-  /** Reporting API home. */
-  "fx:reporting": FxReporting.Graph;
-  /** POST here to encode a body of html for use with our HMAC cart encryption. */
-  "fx:encode": FxEncode.Graph;
-  /** Your stores. */
-  "fx:stores": FxStores.Graph;
-  /** The current store for your authentication token. */
-  "fx:store": FxStore.Graph;
-  /** The OAuth endpoint for obtaining a new access_token using an existing refresh_token. POST `www-form-url-encoded` data as follows: `grant_type=refresh_token&refresh_token={refresh_token}&client_id={client_id}&client_secret={client_secret}`. */
-  "fx:token": FxToken.Graph;
-  /** Your API home page. */
-  "fx:user": FxUser.Graph;
-}
+  links: {
+    /** Your API starting point. */
+    "self": IntegrationAPIGraph;
+    /** Various helpers used for determing valid property values. */
+    "fx:property_helpers": FxPropertyHelpers;
+    /** Reporting API home. */
+    "fx:reporting": FxReporting;
+    /** POST here to encode a body of html for use with our HMAC cart encryption. */
+    "fx:encode": FxEncode;
+    /** Your stores. */
+    "fx:stores": FxStores;
+    /** The current store for your authentication token. */
+    "fx:store": FxStore;
+    /** The OAuth endpoint for obtaining a new access_token using an existing refresh_token. POST `www-form-url-encoded` data as follows: `grant_type=refresh_token&refresh_token={refresh_token}&client_id={client_id}&client_secret={client_secret}`. */
+    "fx:token": FxToken;
+    /** Your API home page. */
+    "fx:user": FxUser;
+  };
 
-interface Props {
-  /** A small, human readable explanation of this resource. */
-  message: string;
-}
-
-export interface Graph {
-  curie: Curie;
-  links: Links;
-  props: Props;
+  props: {
+    /** A small, human readable explanation of this resource. */
+    message: string;
+  };
 }

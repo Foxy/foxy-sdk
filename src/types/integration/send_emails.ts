@@ -1,9 +1,5 @@
-type Curie = "fx:send_emails";
-type Links = never;
-type Props = never;
-
-export interface Graph {
-  curie: Curie;
-  links: Links;
-  props: Props;
+export interface FxSendEmails {
+  curie: "fx:send_emails";
+  links: never;
+  props: never;
 }

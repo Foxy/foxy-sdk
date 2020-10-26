@@ -1,12 +1,7 @@
-import * as FxPaymentGateway from "./payment_gateway";
+import { FxPaymentGateway } from "./payment_gateway";
 
-type Curie = "fx:hosted_payment_gateway";
-type Links = FxPaymentGateway.Graph;
-type Props = FxPaymentGateway.Graph["props"];
-type Zooms = FxPaymentGateway.Graph["zooms"];
-
-export interface Graph {
-  curie: Curie;
-  links: Links;
-  props: Props;
+export interface FxHostedPaymentGateway {
+  curie: "fx:hosted_payment_gateway";
+  links: FxPaymentGateway["links"];
+  props: FxPaymentGateway["props"];
 }

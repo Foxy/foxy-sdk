@@ -1,9 +1,9 @@
-import type * as IntegrationAPIFxTransaction from "../integration/transaction";
+import type { FxTransaction as IntegrationAPIFxTransaction } from "../integration/transaction";
 import type { FxItems } from "./items";
 
 export interface FxTransaction {
-  curie: IntegrationAPIFxTransaction.Graph["curie"];
-  links: Pick<IntegrationAPIFxTransaction.Graph["links"], "fx:receipt">;
-  props: IntegrationAPIFxTransaction.Graph["props"];
+  curie: IntegrationAPIFxTransaction["curie"];
+  links: Pick<IntegrationAPIFxTransaction["links"], "fx:receipt">;
+  props: IntegrationAPIFxTransaction["props"];
   zooms: { items?: FxItems };
 }

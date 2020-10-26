@@ -132,3 +132,27 @@ type ZoomedResources<TGraph extends Graph, TQuery> = TQuery extends Query<TGraph
 export type ResponseJSON<TGraph extends Graph, TQuery = undefined> = Links<TGraph> &
   (TGraph["child"] extends Graph ? FullResponse<TGraph> : PartialResponse<TGraph, TQuery>) &
   (TGraph["child"] extends Graph ? CollectionItems<TGraph, TQuery> : ZoomedResources<TGraph, TQuery>);
+
+export type CollectionLinks<TGraph extends Graph> = {
+  /** This collection. */
+  self: TGraph;
+  /** First page of this collection. */
+  first: TGraph;
+  /** Previous page of this collection. */
+  prev: TGraph;
+  /** Next page of this collection. */
+  next: TGraph;
+  /** Last page of this collection. */
+  last: TGraph;
+};
+
+export type CollectionProps = {
+  /** Total number of resources in this collection. */
+  total_items: number;
+  /** Number of items returned with this response. */
+  returned_items: number;
+  /** Maximum allowed number of items for this query. */
+  limit: number;
+  /** Number of skipped items. */
+  offset: number;
+};

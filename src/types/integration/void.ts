@@ -1,9 +1,5 @@
-type Curie = "fx:void";
-type Links = never;
-type Props = never;
-
-export interface Graph {
-  curie: Curie;
-  links: Links;
-  props: Props;
+export interface FxVoid {
+  curie: "fx:void";
+  links: never;
+  props: never;
 }

@@ -1,9 +1,5 @@
-type Curie = "fx:encode";
-type Links = never;
-type Props = never;
-
-export interface Graph {
-  curie: Curie;
-  links: Links;
-  props: Props;
+export interface FxEncode {
+  curie: "fx:encode";
+  links: never;
+  props: never;
 }

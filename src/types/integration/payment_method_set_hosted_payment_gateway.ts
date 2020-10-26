@@ -1,33 +1,29 @@
-import type * as FxHostedPaymentGateway from "./hosted_payment_gateway";
-import type * as FxPaymentMethodSet from "./payment_method_set";
-import type * as FxStore from "./store";
+import type { FxHostedPaymentGateway } from "./hosted_payment_gateway";
+import type { FxPaymentMethodSet } from "./payment_method_set";
+import type { FxStore } from "./store";
 
-type Curie = "fx:payment_method_set_hosted_payment_gateway";
+export interface FxPaymentMethodSetHostedPaymentGateway {
+  curie: "fx:payment_method_set_hosted_payment_gateway";
 
-interface Links {
-  /** This resource. */
-  "self": Graph;
-  /** Related store resource. */
-  "fx:store": FxStore.Graph;
-  /** Linked payment method set.  */
-  "fx:payment_method_set": FxPaymentMethodSet.Graph;
-  /** Linked hosted payment gateway. */
-  "fx:hosted_payment_gateway": FxHostedPaymentGateway.Graph;
-}
+  links: {
+    /** This resource. */
+    "self": FxPaymentMethodSetHostedPaymentGateway;
+    /** Related store resource. */
+    "fx:store": FxStore;
+    /** Linked payment method set.  */
+    "fx:payment_method_set": FxPaymentMethodSet;
+    /** Linked hosted payment gateway. */
+    "fx:hosted_payment_gateway": FxHostedPaymentGateway;
+  };
 
-interface Props {
-  /** The full API URI of the payment method set associated with this payment method set hosted payment gateway. */
-  payment_method_set_uri: string;
-  /** The full API URI of the hosted payment gateway associated with this payment method set hosted payment gateway. */
-  hosted_payment_gateway_uri: string;
-  /** The date this resource was created. */
-  date_created: string;
-  /** The date this resource was last modified. */
-  date_modified: string;
-}
-
-export interface Graph {
-  curie: Curie;
-  links: Links;
-  props: Props;
+  props: {
+    /** The full API URI of the payment method set associated with this payment method set hosted payment gateway. */
+    payment_method_set_uri: string;
+    /** The full API URI of the hosted payment gateway associated with this payment method set hosted payment gateway. */
+    hosted_payment_gateway_uri: string;
+    /** The date this resource was created. */
+    date_created: string;
+    /** The date this resource was last modified. */
+    date_modified: string;
+  };
 }

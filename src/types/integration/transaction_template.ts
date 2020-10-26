@@ -1,11 +1,8 @@
-import * as FxCart from "./cart";
+import type { FxCart } from "./cart";
 
-type Curie = "fx:transaction_template";
-type Links = FxCart.Graph;
-type Props = FxCart.Graph["props"];
-
-export interface Graph {
-  curie: Curie;
-  links: Links;
-  props: Props;
+export interface FxTransactionTemplate {
+  curie: "fx:transaction_template";
+  links: FxCart["links"];
+  props: FxCart["props"];
+  zooms: FxCart["zooms"];
 }

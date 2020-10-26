@@ -1,9 +1,5 @@
-type Curie = "fx:refund";
-type Links = never;
-type Props = never;
-
-export interface Graph {
-  curie: Curie;
-  links: Links;
-  props: Props;
+export interface FxRefund {
+  curie: "fx:refund";
+  links: never;
+  props: never;
 }
