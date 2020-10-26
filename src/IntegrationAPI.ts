@@ -1,8 +1,8 @@
 import fetch from "cross-fetch";
 import MemoryStorage from "ministorage";
-import { API } from "./API";
-import { IntegrationAPIGraph } from "./types/integration";
-import { FxToken } from "./types/integration/token";
+import { API } from "./core/API";
+import { IntegrationAPIGraph } from "./rels/integration";
+import { FxToken } from "./rels/integration/token";
 
 type IntegrationAPIVersion = "1";
 

@@ -1,7 +1,7 @@
 import { fetch } from "cross-fetch";
-import { BrowserAPI } from "./BrowserAPI";
-import { BrowserAPICredentials } from "./types/auth";
-import { CustomerAPIGraph } from "./types/customer";
+import { BrowserAPI } from "./core/BrowserAPI";
+import { BrowserAPICredentials } from "./core/auth";
+import { CustomerAPIGraph } from "./rels/customer";
 
 interface CustomerAPISession {
   /** The session lifetime as configured in Foxy (in seconds). */
