@@ -17,7 +17,7 @@ enum BrowserCache {
   local = "local",
 }
 
-enum ReservedURI {
+export enum ReservedURI {
   SignIn = "foxy://sign-in",
   SignOut = "foxy://sign-out",
   ResetPassword = "foxy://reset-password",
