@@ -44,6 +44,7 @@ function validateZoomRecord(zoom: any): zoom is Record<string, unknown> {
 }
 
 const isQuery = {
+  filters: ow.optional.array.ofType(ow.string),
   fields: ow.optional.array.ofType(ow.string),
   offset: ow.optional.number.integer.greaterThanOrEqual(0),
   limit: ow.optional.number.integer.greaterThanOrEqual(0),
@@ -68,7 +69,14 @@ class APINode<G extends Graph> {
     ow(query, ow.optional.object.partialShape(isQuery));
 
     const url = await this._resolve(this._path);
-    const { fields, offset, limit, order, zoom } = query ?? {};
+    const { filters, fields, offset, limit, order, zoom } = query ?? {};
+
+    if (filters !== undefined) {
+      filters.forEach((filter: string) => {
+        const params = new URLSearchParams(filter);
+        [...params.entries()].forEach(([key, value]) => url.searchParams.append(key, value));
+      });
+    }
 
     if (fields !== undefined) url.searchParams.set("fields", fields.join(","));
     if (offset !== undefined) url.searchParams.set("offset", String(offset));

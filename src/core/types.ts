@@ -34,7 +34,7 @@ export type Query<TGraph extends Graph> = TGraph["child"] extends Graph
       readonly limit?: number;
       readonly fields?: QueryFields<TGraph["child"]>;
       readonly offset?: number;
-      // readonly filters?: any; TODO
+      readonly filters?: string[];
     }
   : {
       readonly zoom?: QueryZoom<TGraph>;
