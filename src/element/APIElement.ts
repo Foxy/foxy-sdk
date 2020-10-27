@@ -23,10 +23,13 @@ const statusMap = {
 };
 
 export class APIElement<G extends Graph, A extends BrowserAPI<G>> extends HTMLElement {
-  static readonly observedAttributes = ["api", "base", "storage"];
+  static readonly observedAttributes = ["api", "base", "cache", "storage"];
 
   private __storageInstance: Storage = new MemoryStorage();
   private __storage: Storage | BrowserStorage = new MemoryStorage();
+
+  private __cacheInstance: Storage = new MemoryStorage();
+  private __cache: Storage | BrowserStorage = new MemoryStorage();
 
   private __apiInstance: Promise<A> | null = null;
   private __apiModule: Promise<any> | null = null;
@@ -78,6 +81,18 @@ export class APIElement<G extends Graph, A extends BrowserAPI<G>> extends HTMLEl
     this.__apiInstance = this.__createApiInstance();
   }
 
+  get cache(): Storage | BrowserStorage {
+    return this.__cache;
+  }
+
+  set cache(newValue: Storage | BrowserStorage) {
+    ow(newValue, ow.any(ow.object.partialShape(isStorage), ow.string.oneOf(["local", "session"])));
+
+    this.__cache = newValue;
+    this.__cacheInstance = this.__createCacheInstance();
+    this.__apiInstance = this.__createApiInstance();
+  }
+
   get storage(): Storage | BrowserStorage {
     return this.__storage;
   }
@@ -96,6 +111,7 @@ export class APIElement<G extends Graph, A extends BrowserAPI<G>> extends HTMLEl
 
     if (name === "api") return void (this.api = newValue);
     if (name === "base") return void (this.base = newValue);
+    if (name === "cache") return void (this.cache = (newValue as Storage | BrowserStorage) ?? new MemoryStorage());
     if (name === "storage") return void (this.storage = (newValue as Storage | BrowserStorage) ?? new MemoryStorage());
   }
 
@@ -111,19 +127,28 @@ export class APIElement<G extends Graph, A extends BrowserAPI<G>> extends HTMLEl
     return new ScopedStorage("@foxy.io/api", provider);
   }
 
+  private __createCacheInstance() {
+    if (typeof this.__cache === "object") return this.__cache;
+    const provider = this.__cache === BrowserStorage.session ? sessionStorage : localStorage;
+    return new ScopedStorage("@foxy.io/api", provider);
+  }
+
   private __createErrorResponse() {
     return new Response(null, { status: 500, statusText: "MISCONFIGURED" });
   }
 
   private __createApiInstance() {
-    if (this.__apiModule === null) {
-      return null;
-    } else {
-      return this.__apiModule.then((constructor) => {
-        if (this.__baseURL === null) return null;
-        return new constructor({ baseURL: this.__baseURL, storage: this.__storageInstance });
+    if (this.__apiModule === null) return null;
+    if (this.__baseURL === null) return null;
+
+    return this.__apiModule.then((constructor) => {
+      if (this.__baseURL === null) return null;
+      return new constructor({
+        storage: this.__storageInstance,
+        baseURL: this.__baseURL,
+        cache: this.__cacheInstance,
       });
-    }
+    });
   }
 
   private async __handlePasswordReset(init?: RequestInit) {

@@ -11,14 +11,16 @@ interface BrowserAPICredentials {
 interface BrowserAPIParameters {
   storage?: Storage;
   baseURL: URL; // pathname ending with "/" !!!
+  cache?: Storage;
 }
 
 abstract class BrowserAPI<TGraph extends Graph> extends API<TGraph> {
   constructor(params: BrowserAPIParameters) {
     super({
-      storage: params?.storage ?? new MemoryStorage(),
+      storage: params.storage ?? new MemoryStorage(),
       baseURL: params.baseURL,
       fetch: (...args) => this.fetch(...args),
+      cache: params.cache ?? new MemoryStorage(),
     });
   }
 

@@ -13,6 +13,7 @@ interface IntegrationAPIParameters {
   storage?: Storage;
   version?: IntegrationAPIVersion;
   baseURL?: URL; // pathname ending with "/" !!!
+  cache?: Storage;
 }
 
 export class IntegrationAPI extends API<IntegrationAPIGraph> {
@@ -31,6 +32,7 @@ export class IntegrationAPI extends API<IntegrationAPIGraph> {
       storage: params.storage ?? new MemoryStorage(),
       baseURL: params.baseURL ?? IntegrationAPI.BASE_URL,
       fetch: (...args) => this.fetch(...args),
+      cache: params.cache ?? new MemoryStorage(),
     });
 
     this.refreshToken = params.refreshToken;

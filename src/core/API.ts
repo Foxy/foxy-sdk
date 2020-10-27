@@ -3,14 +3,15 @@ import { Graph } from "./types";
 
 interface APIParameters {
   fetch: Window["fetch"];
+  cache: Storage;
   baseURL: URL;
   storage: Storage;
 }
 
 interface ResolverParameters {
   path: [URL, ...string[]];
+  cache: Storage;
   fetch: Window["fetch"];
-  storage: Storage;
 }
 
 export class APIResolutionError extends Error {
@@ -19,7 +20,7 @@ export class APIResolutionError extends Error {
   }
 }
 
-async function resolve({ path, storage, fetch }: ResolverParameters): Promise<URL> {
+async function resolve({ path, cache, fetch }: ResolverParameters): Promise<URL> {
   const createKey = (path: (string | URL)[]) => path.join("|");
 
   let traversalPath: (string | URL)[] = path;
@@ -27,7 +28,7 @@ async function resolve({ path, storage, fetch }: ResolverParameters): Promise<UR
   let startURL = path[0];
 
   for (let i = path.length - 1; i >= 0; --i) {
-    const cachedURL = storage.getItem(createKey(path.slice(0, i)));
+    const cachedURL = cache.getItem(createKey(path.slice(0, i)));
     if (cachedURL) {
       traversalPath = path.slice(i + 1);
       startURL = new URL(cachedURL);
@@ -41,7 +42,7 @@ async function resolve({ path, storage, fetch }: ResolverParameters): Promise<UR
     const response = await fetch(url.toString());
 
     if (!response.ok) throw new APIResolutionError(response);
-    if (i > -1) storage.setItem(key, url.toString());
+    if (i > -1) cache.setItem(key, url.toString());
 
     parentJSON = await response.json();
   }
@@ -53,14 +54,14 @@ export class API<TGraph extends Graph> extends APINode<TGraph> {
   readonly baseURL: URL;
   readonly storage: Storage;
 
-  constructor(params: APIParameters) {
+  constructor({ cache, fetch, storage, baseURL }: APIParameters) {
     super({
-      resolve: (path) => resolve({ ...this, path, fetch }),
-      path: [params.baseURL],
+      resolve: (path) => resolve({ path, fetch, cache }),
       fetch,
+      path: [baseURL],
     });
 
-    this.baseURL = params.baseURL;
-    this.storage = params.storage;
+    this.baseURL = baseURL;
+    this.storage = storage;
   }
 }
