@@ -1,6 +1,5 @@
 import { fetch } from "cross-fetch";
-import { BrowserAPI } from "./core/BrowserAPI";
-import { BrowserAPICredentials } from "./core/auth";
+import { BrowserAPI, BrowserAPIAuthError, BrowserAPIAuthErrorCode, BrowserAPICredentials } from "./core/BrowserAPI";
 import { CustomerAPIGraph } from "./rels/customer";
 
 interface CustomerAPISession {
@@ -35,11 +34,20 @@ export class CustomerAPI extends BrowserAPI<CustomerAPIGraph> {
   }
 
   async signIn(credentials: BrowserAPICredentials): Promise<void> {
-    const response = await fetch(new URL("authenticate", this.baseURL).toString(), {
-      headers: new Headers({ "Content-Type": "application/json" }),
-      method: "POST",
-      body: JSON.stringify(credentials),
-    });
+    let response: Response;
+
+    try {
+      response = await fetch(new URL("authenticate", this.baseURL).toString(), {
+        headers: new Headers({ "Content-Type": "application/json" }),
+        method: "POST",
+        body: JSON.stringify(credentials),
+      });
+    } catch (err) {
+      throw new BrowserAPIAuthError({
+        code: BrowserAPIAuthErrorCode.UNKNOWN,
+        originalError: err,
+      });
+    }
 
     if (response.ok) {
       const { jwt, cookieValue, cookieMaxAge } = (await response.json()) as CustomerAPISession;
@@ -49,18 +57,31 @@ export class CustomerAPI extends BrowserAPI<CustomerAPIGraph> {
       this.storage.setItem(CustomerAPI.AUTH_TOKEN, cookieValue);
       if (jwt) this.storage.setItem(CustomerAPI.AUTH_JWT, jwt);
     } else {
-      throw { code: "NotAuthorizedException" }; // TODO
+      throw new BrowserAPIAuthError({
+        code: response.status.toString().startsWith("5")
+          ? BrowserAPIAuthErrorCode.UNKNOWN
+          : BrowserAPIAuthErrorCode.UNAUTHORIZED,
+      });
     }
   }
 
   async sendPasswordResetEmail(email: string): Promise<void> {
-    const response = await fetch(new URL("forgot_password", this.baseURL).toString(), {
-      headers: new Headers({ "Content-Type": "application/json" }),
-      method: "POST",
-      body: JSON.stringify({ email }),
-    });
+    let response: Response;
 
-    if (!response.ok) throw { code: "UnhandledException" }; // TODO
+    try {
+      response = await fetch(new URL("forgot_password", this.baseURL).toString(), {
+        headers: new Headers({ "Content-Type": "application/json" }),
+        method: "POST",
+        body: JSON.stringify({ email }),
+      });
+    } catch (err) {
+      throw new BrowserAPIAuthError({
+        code: BrowserAPIAuthErrorCode.UNKNOWN,
+        originalError: err,
+      });
+    }
+
+    if (!response.ok) throw new BrowserAPIAuthError({ code: BrowserAPIAuthErrorCode.UNKNOWN });
   }
 
   async signOut(): Promise<void> {

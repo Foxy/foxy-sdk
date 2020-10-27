@@ -1,8 +1,27 @@
 import { AuthClass } from "@aws-amplify/auth/lib-esm/Auth";
 import { fetch } from "cross-fetch";
-import { BrowserAPI } from "./core/BrowserAPI";
-import { BrowserAPICredentials, BrowserAPIParameters } from "./core/auth";
+
+import {
+  BrowserAPIAuthErrorCode,
+  BrowserAPICredentials,
+  BrowserAPIParameters,
+  BrowserAPIAuthError,
+  BrowserAPI,
+} from "./core/BrowserAPI";
+
 import { IntegrationAPIGraph } from "./rels/integration";
+
+type AuthChallenge =
+  | "SMS_MFA"
+  | "SOFTWARE_TOKEN_MFA"
+  | "SELECT_MFA_TYPE"
+  | "MFA_SETUP"
+  | "PASSWORD_VERIFIER"
+  | "CUSTOM_CHALLENGE"
+  | "DEVICE_SRP_AUTH"
+  | "DEVICE_PASSWORD_VERIFIER"
+  | "ADMIN_NO_SRP_AUTH"
+  | "NEW_PASSWORD_REQUIRED";
 
 export class AdminAPI extends BrowserAPI<IntegrationAPIGraph> {
   readonly auth: AuthClass;
@@ -34,20 +53,25 @@ export class AdminAPI extends BrowserAPI<IntegrationAPIGraph> {
 
     try {
       user = await this.auth.signIn(credentials.email, credentials.password);
-    } catch {
-      throw { code: "Unauthorized" }; // TODO
+    } catch (err) {
+      throw new BrowserAPIAuthError({
+        code: BrowserAPIAuthErrorCode.UNAUTHORIZED,
+        originalError: err,
+      });
     }
 
-    if (user.challengeName === "NEW_PASSWORD_REQUIRED") {
+    if ((user.challengeName as AuthChallenge) === "NEW_PASSWORD_REQUIRED") {
       if (credentials.newPassword) {
-        const { requiredAttributes } = user.challengeParam;
         try {
-          await this.auth.completeNewPassword(user, credentials.newPassword, requiredAttributes);
-        } catch {
-          throw { code: "Unknown" }; // TODO
+          await this.auth.completeNewPassword(user, credentials.newPassword, user.challengeParam.requiredAttributes);
+        } catch (err) {
+          throw new BrowserAPIAuthError({
+            code: BrowserAPIAuthErrorCode.UNKNOWN,
+            originalError: err,
+          });
         }
       } else {
-        throw { code: "NewPasswordRequired" }; // TODO
+        throw new BrowserAPIAuthError({ code: BrowserAPIAuthErrorCode.NEW_PASSWORD_REQUIRED });
       }
     }
   }
@@ -55,8 +79,11 @@ export class AdminAPI extends BrowserAPI<IntegrationAPIGraph> {
   async sendPasswordResetEmail(email: string): Promise<void> {
     try {
       await this.auth.forgotPassword(email);
-    } catch {
-      throw { code: "UnhandledException" }; // TODO
+    } catch (err) {
+      throw new BrowserAPIAuthError({
+        code: BrowserAPIAuthErrorCode.UNKNOWN,
+        originalError: err,
+      });
     }
   }
 
