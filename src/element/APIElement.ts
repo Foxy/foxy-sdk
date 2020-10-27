@@ -1,4 +1,5 @@
 import MemoryStorage from "ministorage";
+import { CookieStorage } from "cookie-storage";
 import ow from "ow";
 import { BrowserAPI, BrowserAPIAuthError } from "../core/BrowserAPI";
 import { isStorage, ScopedStorage } from "../core/ScopedStorage";
@@ -6,6 +7,12 @@ import { Graph } from "../core/types";
 import { RequestEvent } from "./RequestEvent";
 
 enum BrowserStorage {
+  session = "session",
+  cookie = "cookie",
+  local = "local",
+}
+
+enum BrowserCache {
   session = "session",
   local = "local",
 }
@@ -29,7 +36,7 @@ export class APIElement<G extends Graph, A extends BrowserAPI<G>> extends HTMLEl
   private __storage: Storage | BrowserStorage = new MemoryStorage();
 
   private __cacheInstance: Storage = new MemoryStorage();
-  private __cache: Storage | BrowserStorage = new MemoryStorage();
+  private __cache: Storage | BrowserCache = new MemoryStorage();
 
   private __apiInstance: Promise<A> | null = null;
   private __apiModule: Promise<any> | null = null;
@@ -81,11 +88,11 @@ export class APIElement<G extends Graph, A extends BrowserAPI<G>> extends HTMLEl
     this.__apiInstance = this.__createApiInstance();
   }
 
-  get cache(): Storage | BrowserStorage {
+  get cache(): Storage | BrowserCache {
     return this.__cache;
   }
 
-  set cache(newValue: Storage | BrowserStorage) {
+  set cache(newValue: Storage | BrowserCache) {
     ow(newValue, ow.any(ow.object.partialShape(isStorage), ow.string.oneOf(["local", "session"])));
 
     this.__cache = newValue;
@@ -98,7 +105,7 @@ export class APIElement<G extends Graph, A extends BrowserAPI<G>> extends HTMLEl
   }
 
   set storage(newValue: Storage | BrowserStorage) {
-    ow(newValue, ow.any(ow.object.partialShape(isStorage), ow.string.oneOf(["local", "session"])));
+    ow(newValue, ow.any(ow.object.partialShape(isStorage), ow.string.oneOf(["local", "cookie", "session"])));
 
     this.__storage = newValue;
     this.__storageInstance = this.__createStorageInstance();
@@ -111,7 +118,7 @@ export class APIElement<G extends Graph, A extends BrowserAPI<G>> extends HTMLEl
 
     if (name === "api") return void (this.api = newValue);
     if (name === "base") return void (this.base = newValue);
-    if (name === "cache") return void (this.cache = (newValue as Storage | BrowserStorage) ?? new MemoryStorage());
+    if (name === "cache") return void (this.cache = (newValue as Storage | BrowserCache) ?? new MemoryStorage());
     if (name === "storage") return void (this.storage = (newValue as Storage | BrowserStorage) ?? new MemoryStorage());
   }
 
@@ -122,14 +129,25 @@ export class APIElement<G extends Graph, A extends BrowserAPI<G>> extends HTMLEl
   }
 
   private __createStorageInstance() {
+    const scope = "@foxy.io/api";
+
     if (typeof this.__storage === "object") return this.__storage;
-    const provider = this.__storage === BrowserStorage.session ? sessionStorage : localStorage;
-    return new ScopedStorage("@foxy.io/api", provider);
+    if (this.__storage === BrowserStorage.local) return new ScopedStorage(scope, localStorage);
+    if (this.__storage === BrowserStorage.session) return new ScopedStorage(scope, sessionStorage);
+
+    return new ScopedStorage(
+      scope,
+      new CookieStorage({
+        sameSite: "Strict",
+        expires: new Date(Date.now() + 2419200000), // ~1 month
+        secure: true,
+      })
+    );
   }
 
   private __createCacheInstance() {
     if (typeof this.__cache === "object") return this.__cache;
-    const provider = this.__cache === BrowserStorage.session ? sessionStorage : localStorage;
+    const provider = this.__cache === BrowserCache.session ? sessionStorage : localStorage;
     return new ScopedStorage("@foxy.io/api", provider);
   }
 

@@ -82,6 +82,7 @@
     "@types/traverse": "^0.6.32",
     "babel-loader": "^8.1.0",
     "clone": "^2.1.2",
+    "cookie-storage": "^6.1.0",
     "cross-fetch": "^3.0.6",
     "crypto-js": "^4.0.0",
     "ministorage": "^1.0.0",
