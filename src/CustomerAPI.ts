@@ -88,3 +88,5 @@ export class CustomerAPI extends BrowserAPI<CustomerAPIGraph> {
     this.storage.clear();
   }
 }
+
+export default CustomerAPI;

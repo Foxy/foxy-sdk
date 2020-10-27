@@ -1,8 +1,14 @@
-import { UserAPI } from "../AdminAPI";
-import { ApiError } from "../error";
-import { AuthError } from "../admin/auth";
-import { CustomerAPI } from "../api/customer";
+import MemoryStorage from "ministorage";
+import ow from "ow";
+import { BrowserAPI, BrowserAPIAuthError } from "../core/BrowserAPI";
+import { isStorage, ScopedStorage } from "../core/ScopedStorage";
+import { Graph } from "../core/types";
 import { RequestEvent } from "./RequestEvent";
+
+enum BrowserStorage {
+  session = "session",
+  local = "local",
+}
 
 enum ReservedURI {
   SignIn = "foxy://sign-in",
@@ -10,108 +16,163 @@ enum ReservedURI {
   ResetPassword = "foxy://reset-password",
 }
 
-export class APIElement extends HTMLElement {
-  public static readonly observedAttributes = ["href", "rel"];
-  public static readonly defaultEndpoint = new URL("/s/admin", location.origin).toString();
-  public static readonly defaultRel: Rel = "user";
-  public static readonly rels = {
-    customer: "customer",
-    user: "user",
-  };
+const statusMap = {
+  NEW_PASSWORD_REQUIRED: 205,
+  UNAUTHORIZED: 401,
+  UNKNOWN: 500,
+};
 
-  private __api!: UserAPI | CustomerAPI;
+export class APIElement<G extends Graph, A extends BrowserAPI<G>> extends HTMLElement {
+  static readonly observedAttributes = ["api", "base", "storage"];
 
-  public constructor() {
+  private __storageInstance: Storage = new MemoryStorage();
+  private __storage: Storage | BrowserStorage = new MemoryStorage();
+
+  private __apiInstance: Promise<A> | null = null;
+  private __apiModule: Promise<any> | null = null;
+  private __api: Promise<A> | string | null = null;
+
+  private __baseURL: URL | null = null;
+  private __base: URL | string | null = null;
+
+  constructor() {
     super();
 
-    this.addEventListener("request", (evt) =>
+    this.addEventListener("request", (evt) => {
       (evt as RequestEvent).detail.handle((input, init) => {
         switch (input) {
           case ReservedURI.SignIn:
             return this.__handleSignIn(init);
           case ReservedURI.SignOut:
-            return this.__handleSignOut(init);
+            return this.__handleSignOut();
           case ReservedURI.ResetPassword:
             return this.__handlePasswordReset(init);
           default:
             return this.__handleRequest(input, init);
         }
-      })
-    );
-
-    this.__init();
+      });
+    });
   }
 
-  public get href(): string {
-    return this.getAttribute("href") ?? APIElement.defaultEndpoint;
-  }
-  public set href(newValue: string) {
-    if (newValue !== this.href) this.setAttribute("href", newValue);
-  }
-
-  public get rel(): Rel {
-    return (this.getAttribute("rel") as Rel) ?? APIElement.defaultRel;
-  }
-  public set rel(newValue: Rel) {
-    if (newValue !== this.rel) this.setAttribute("rel", newValue);
-  }
-
-  public get api(): UserAPI | CustomerAPI {
+  get api(): Promise<A> | string | null {
     return this.__api;
   }
 
-  public attributeChangedCallback(): void {
-    this.__init();
+  set api(newValue: Promise<A> | string | null) {
+    ow(newValue, ow.any(ow.promise, ow.string, ow.null));
+
+    this.__api = newValue;
+    this.__apiModule = this.__createApiModuleLoader();
+    this.__apiInstance = this.__createApiInstance();
   }
 
-  private __init() {
-    const config = {
-      endpoint: this.href,
-      storage: localStorage,
-    };
+  get base(): URL | string | null {
+    return this.__base;
+  }
 
-    switch (this.rel) {
-      case APIElement.rels.user:
-        this.__api = new UserAPI(config);
-        break;
+  set base(newValue: URL | string | null) {
+    ow(newValue, ow.any(ow.null, ow.string, ow.object.instanceOf(URL)));
 
-      case APIElement.rels.customer:
-        this.__api = new CustomerAPI(config);
-        break;
+    this.__base = newValue;
+    this.__baseURL = newValue ? new URL(newValue.toString()) : null;
+    this.__apiInstance = this.__createApiInstance();
+  }
 
-      default:
-        throw new Error(`Unknown rel ${this.rel}`);
+  get storage(): Storage | BrowserStorage {
+    return this.__storage;
+  }
+
+  set storage(newValue: Storage | BrowserStorage) {
+    ow(newValue, ow.any(ow.object.partialShape(isStorage), ow.string.oneOf(["local", "session"])));
+
+    this.__storage = newValue;
+    this.__storageInstance = this.__createStorageInstance();
+    this.__apiInstance = this.__createApiInstance();
+  }
+
+  attributeChangedCallback(name: string, _: never, newValue: string | null): void {
+    ow(name, ow.string);
+    ow(newValue, ow.any(ow.string, ow.null));
+
+    if (name === "api") return void (this.api = newValue);
+    if (name === "base") return void (this.base = newValue);
+    if (name === "storage") return void (this.storage = (newValue as Storage | BrowserStorage) ?? new MemoryStorage());
+  }
+
+  private __createApiModuleLoader() {
+    return typeof this.__api === "string"
+      ? import(this.__api).then((v) => v.default ?? [...Object.values(v)].find((c) => typeof c === "function"))
+      : this.__api;
+  }
+
+  private __createStorageInstance() {
+    if (typeof this.__storage === "object") return this.__storage;
+    const provider = this.__storage === BrowserStorage.session ? sessionStorage : localStorage;
+    return new ScopedStorage("@foxy.io/api", provider);
+  }
+
+  private __createErrorResponse() {
+    return new Response(null, { status: 500, statusText: "MISCONFIGURED" });
+  }
+
+  private __createApiInstance() {
+    if (this.__apiModule === null) {
+      return null;
+    } else {
+      return this.__apiModule.then((constructor) => {
+        if (this.__baseURL === null) return null;
+        return new constructor({ baseURL: this.__baseURL, storage: this.__storageInstance });
+      });
+    }
+  }
+
+  private async __handlePasswordReset(init?: RequestInit) {
+    if (!this.__apiInstance) return this.__createErrorResponse();
+
+    try {
+      const api = await this.__apiInstance;
+      await api.sendPasswordResetEmail(JSON.parse(init?.body?.toString() ?? "{}"));
+      return new Response(null, { status: 200 });
+    } catch (err) {
+      if (err instanceof BrowserAPIAuthError) {
+        return new Response(null, { status: statusMap[err.code], statusText: err.code });
+      } else {
+        return new Response(null, { status: 500, statusText: "UNKNOWN" });
+      }
+    }
+  }
+
+  private async __handleRequest(input: RequestInfo, init?: RequestInit) {
+    if (!this.__apiInstance) return this.__createErrorResponse();
+    return (await this.__apiInstance).fetch(input, init);
+  }
+
+  private async __handleSignOut() {
+    if (!this.__apiInstance) return this.__createErrorResponse();
+
+    try {
+      await (await this.__apiInstance).signOut();
+      return new Response(null, { status: 200 });
+    } catch (err) {
+      if (err instanceof BrowserAPIAuthError) {
+        return new Response(null, { status: statusMap[err.code], statusText: err.code });
+      } else {
+        return new Response(null, { status: 500, statusText: "UNKNOWN" });
+      }
     }
   }
 
   private async __handleSignIn(init?: RequestInit) {
+    if (!this.__apiInstance) return this.__createErrorResponse();
+
     try {
-      await this.__api.signIn(JSON.parse(init?.body?.toString() ?? "{}"));
+      await (await this.__apiInstance).signIn(JSON.parse(init?.body?.toString() ?? "{}"));
       return new Response(null, { status: 200 });
     } catch (err) {
-      const status = err instanceof AuthError ? err.code : 500;
-      return new Response(null, { status });
-    }
-  }
-
-  private async __handleSignOut(init?: RequestInit) {
-    this.__api.signOut();
-    return new Response(null, { status: 200 });
-  }
-
-  private async __handlePasswordReset(init?: RequestInit) {
-    return new Response(null, { status: 500 }); // TODO
-  }
-
-  private async __handleRequest(input: RequestInfo, init?: RequestInit) {
-    try {
-      const json = await this.__api.fetchRaw({ url: input.toString(), ...init });
-      return new Response(JSON.stringify(json), { status: 200 });
-    } catch (err) {
-      if (err instanceof ApiError) {
-        return new Response(err.rawText, { status: err.status });
+      if (err instanceof BrowserAPIAuthError) {
+        return new Response(null, { status: statusMap[err.code], statusText: err.code });
       } else {
-        return new Response(String(err), { status: 500 });
+        return new Response(null, { status: 500, statusText: "UNKNOWN" });
       }
     }
   }

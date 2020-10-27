@@ -92,3 +92,5 @@ export class AdminAPI extends BrowserAPI<IntegrationAPIGraph> {
     this.storage.clear();
   }
 }
+
+export default AdminAPI;

@@ -1,8 +1,6 @@
 class UnhandledRequestError extends Error {
   constructor() {
-    super(
-      "Unhandled request detected. Please add a request handler to connect this component to a backend."
-    );
+    super("Unhandled request detected. Please add a request handler to connect this component to a backend.");
   }
 }
 
@@ -21,12 +19,8 @@ interface RequestEventInit<TSource extends HTMLElement> extends RequestSendInit<
   reject: (error: Error) => void;
 }
 
-export class RequestEvent<TSource extends HTMLElement = HTMLElement> extends CustomEvent<
-  RequestEventPayload<TSource>
-> {
-  public static emit<TSource extends HTMLElement>(
-    params: RequestSendInit<TSource>
-  ): Promise<Response> {
+export class RequestEvent<TSource extends HTMLElement = HTMLElement> extends CustomEvent<RequestEventPayload<TSource>> {
+  public static emit<TSource extends HTMLElement>(params: RequestSendInit<TSource>): Promise<Response> {
     return new Promise<Response>((resolve, reject) => {
       const event = new RequestEvent<HTMLElement>({ resolve, reject, ...params });
       if (params.source.dispatchEvent(event)) reject(new UnhandledRequestError());
