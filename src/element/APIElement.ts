@@ -45,6 +45,8 @@ export class APIElement<G extends Graph, A extends BrowserAPI<G>> extends HTMLEl
   private __baseURL: URL | null = null;
   private __base: URL | string | null = null;
 
+  private __scope = "@foxy.io/api";
+
   constructor() {
     super();
 
@@ -88,6 +90,19 @@ export class APIElement<G extends Graph, A extends BrowserAPI<G>> extends HTMLEl
     this.__apiInstance = this.__createApiInstance();
   }
 
+  get scope(): string {
+    return this.__scope;
+  }
+
+  set scope(newValue: string) {
+    ow(newValue, ow.string);
+
+    this.__scope = newValue;
+    this.__cacheInstance = this.__createCacheInstance();
+    this.__storageInstance = this.__createStorageInstance();
+    this.__apiInstance = this.__createApiInstance();
+  }
+
   get cache(): Storage | BrowserCache {
     return this.__cache;
   }
@@ -118,6 +133,7 @@ export class APIElement<G extends Graph, A extends BrowserAPI<G>> extends HTMLEl
 
     if (name === "api") return void (this.api = newValue);
     if (name === "base") return void (this.base = newValue);
+    if (name === "scope") return void (this.scope = newValue ?? "@foxy.io/api");
     if (name === "cache") return void (this.cache = (newValue as Storage | BrowserCache) ?? new MemoryStorage());
     if (name === "storage") return void (this.storage = (newValue as Storage | BrowserStorage) ?? new MemoryStorage());
   }
@@ -129,14 +145,12 @@ export class APIElement<G extends Graph, A extends BrowserAPI<G>> extends HTMLEl
   }
 
   private __createStorageInstance() {
-    const scope = "@foxy.io/api";
-
     if (typeof this.__storage === "object") return this.__storage;
-    if (this.__storage === BrowserStorage.local) return new ScopedStorage(scope, localStorage);
-    if (this.__storage === BrowserStorage.session) return new ScopedStorage(scope, sessionStorage);
+    if (this.__storage === BrowserStorage.local) return new ScopedStorage(this.__scope, localStorage);
+    if (this.__storage === BrowserStorage.session) return new ScopedStorage(this.__scope, sessionStorage);
 
     return new ScopedStorage(
-      scope,
+      this.__scope,
       new CookieStorage({
         sameSite: "Strict",
         expires: new Date(Date.now() + 2419200000), // ~1 month
@@ -148,7 +162,7 @@ export class APIElement<G extends Graph, A extends BrowserAPI<G>> extends HTMLEl
   private __createCacheInstance() {
     if (typeof this.__cache === "object") return this.__cache;
     const provider = this.__cache === BrowserCache.session ? sessionStorage : localStorage;
-    return new ScopedStorage("@foxy.io/api", provider);
+    return new ScopedStorage(this.__scope, provider);
   }
 
   private __createErrorResponse() {
