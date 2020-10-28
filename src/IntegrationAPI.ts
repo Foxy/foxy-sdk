@@ -75,7 +75,7 @@ export class IntegrationAPI extends API<IntegrationAPIGraph> {
 
     headers.set("FOXY-API-VERSION", this.version);
     headers.set("Content-Type", "application/json");
-    if (token !== null) headers.set("Authorization", `Bearer ${token}`);
+    if (token !== null) headers.set("Authorization", `Bearer ${token.access_token}`);
 
     return fetch(input, { ...init, headers });
   }
