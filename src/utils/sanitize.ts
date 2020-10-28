@@ -60,11 +60,7 @@ export function removeSensitiveData(this: TraverseContext): void {
  */
 export function removeAllLinksExcept(...linksToKeep: string[]): () => void {
   return function (this: TraverseContext): void {
-    if (
-      typeof this.key !== "undefined" &&
-      this.parent?.key === "_links" &&
-      linksToKeep.includes(this.key) === false
-    ) {
+    if (typeof this.key !== "undefined" && this.parent?.key === "_links" && linksToKeep.includes(this.key) === false) {
       this.remove();
     }
   };

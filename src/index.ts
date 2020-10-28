@@ -1,3 +1,3 @@
-export { IntegrationAPI } from "./IntegrationAPI";
-export { CustomerAPI } from "./CustomerAPI";
-export { AdminAPI } from "./AdminAPI";
+export * from "./integration";
+export * from "./customer";
+export * from "./admin";

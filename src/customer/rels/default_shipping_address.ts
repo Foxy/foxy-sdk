@@ -1,4 +1,4 @@
-import type { FxDefaultShippingAddress as IntegrationAPIFxDefaultShippingAddress } from "../integration/default_shipping_address";
+import type { FxDefaultShippingAddress as IntegrationAPIFxDefaultShippingAddress } from "../../integration/rels/default_shipping_address";
 
 export interface FxDefaultShippingAddress {
   curie: IntegrationAPIFxDefaultShippingAddress["curie"];

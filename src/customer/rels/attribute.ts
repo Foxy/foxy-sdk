@@ -1,4 +1,4 @@
-import { FxAttribute as IntegrationAPIFxAttribute } from "../integration/attribute";
+import { FxAttribute as IntegrationAPIFxAttribute } from "../../integration/rels/attribute";
 
 export interface FxAttribute {
   curie: IntegrationAPIFxAttribute["curie"];

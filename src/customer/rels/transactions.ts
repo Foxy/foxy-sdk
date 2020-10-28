@@ -1,4 +1,4 @@
-import type { FxTransactions as IntegrationAPIFxTransactions } from "../integration/transactions";
+import type { FxTransactions as IntegrationAPIFxTransactions } from "../../integration/rels/transactions";
 import type { FxTransaction } from "./transaction";
 
 export interface FxTransactions {

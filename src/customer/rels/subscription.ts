@@ -1,5 +1,5 @@
-import type { FxCustomerPortalSettings as IntegrationAPIFxCustomerPortalSettings } from "../integration/customer_portal_settings";
-import type { FxSubscription as IntegrationAPIFxSubscription } from "../integration/subscription";
+import type { FxCustomerPortalSettings as IntegrationAPIFxCustomerPortalSettings } from "../../integration/rels/customer_portal_settings";
+import type { FxSubscription as IntegrationAPIFxSubscription } from "../../integration/rels/subscription";
 import type { FxTransactionTemplate } from "./transaction_template";
 import type { FxTransactions } from "./transactions";
 

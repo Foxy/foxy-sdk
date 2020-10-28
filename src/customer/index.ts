@@ -1,19 +1,9 @@
 import { fetch } from "cross-fetch";
-import { BrowserAPI, BrowserAPIAuthError, BrowserAPIAuthErrorCode, BrowserAPICredentials } from "./core";
-import { CustomerAPIGraph } from "./rels/customer";
+import { BrowserAPI, BrowserAPIAuthError, BrowserAPIAuthErrorCode, BrowserAPICredentials } from "../core";
+import { CustomerAPISession } from "./types";
+import { CustomerAPIGraph } from "./rels";
 
-interface CustomerAPISession {
-  /** The session lifetime as configured in Foxy (in seconds). */
-  cookieMaxAge: number;
-  /** Name of the auth cookie and the respective auth header. */
-  cookieName: string;
-  /** Value of the auth cookie and the respective auth header. */
-  cookieValue: string;
-  /** Optional JWT string using RS256 (public/private key) signing. */
-  jwt?: string;
-}
-
-export class CustomerAPI extends BrowserAPI<CustomerAPIGraph> {
+class CustomerAPI extends BrowserAPI<CustomerAPIGraph> {
   static readonly AUTH_EXPIRES = "fx.customer.expires";
   static readonly AUTH_HEADER = "fx.customer";
   static readonly AUTH_TOKEN = "fx.customer";
@@ -92,4 +82,5 @@ export class CustomerAPI extends BrowserAPI<CustomerAPIGraph> {
   }
 }
 
+export { CustomerAPI };
 export default CustomerAPI;

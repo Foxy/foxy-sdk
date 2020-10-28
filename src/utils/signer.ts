@@ -1,8 +1,14 @@
 import * as crypto from "crypto";
-import { CodesDict } from "../types/utils";
 import { JSDOM } from "jsdom";
 import { URL } from "url";
 import * as fs from "fs";
+
+type CodesDict = {
+  [key: number]: {
+    code: string;
+    parent: string;
+  };
+};
 
 /**
  * HMAC signing utility. Methods are named after what it is to be signed, to
@@ -96,11 +102,9 @@ export class FoxySigner {
     }
     // sign the url object
     for (const p of originalParams.entries()) {
-      const signed = this._queryArg(
-        decodeURIComponent(p[0]),
-        decodeURIComponent(code),
-        decodeURIComponent(p[1])
-      ).split("=");
+      const signed = this._queryArg(decodeURIComponent(p[0]), decodeURIComponent(code), decodeURIComponent(p[1])).split(
+        "="
+      );
       newParams.set(signed[0], signed[1]);
     }
     url.search = newParams.toString();
@@ -209,10 +213,7 @@ export class FoxySigner {
    * This function may also be used to sign radio buttons.
    * @private
    */
-  private _option(
-    el: HTMLOptionElement | HTMLInputElement,
-    codes: CodesDict
-  ): HTMLOptionElement | HTMLInputElement {
+  private _option(el: HTMLOptionElement | HTMLInputElement, codes: CodesDict): HTMLOptionElement | HTMLInputElement {
     // Get the name parameter, either from the "select"
     // parent element of an option tag or from the name
     // attribute of the input element itself
@@ -301,8 +302,7 @@ export class FoxySigner {
             parent: this._retrieveParentCode(formElement),
           };
         } else {
-          const documentationURL =
-            "https://wiki.foxycart.com/v/2.0/hmac_validation#multiple_products_in_one_form";
+          const documentationURL = "https://wiki.foxycart.com/v/2.0/hmac_validation#multiple_products_in_one_form";
           const errorMsg = `There are multiple codes in the form element. Please, check ${documentationURL}`;
           throw new Error(errorMsg);
         }
@@ -317,13 +317,9 @@ export class FoxySigner {
       }
     });
     // Sign selects
-    formElement
-      .querySelectorAll("select[name]")
-      .forEach((s) => this._select(s as HTMLSelectElement, codes));
+    formElement.querySelectorAll("select[name]").forEach((s) => this._select(s as HTMLSelectElement, codes));
     // Sign textAreas
-    formElement
-      .querySelectorAll("textarea[name]")
-      .forEach((s) => this._textArea(s as HTMLTextAreaElement, codes));
+    formElement.querySelectorAll("textarea[name]").forEach((s) => this._textArea(s as HTMLTextAreaElement, codes));
   }
 
   /**

@@ -1,4 +1,4 @@
-import { AuthClass } from "@aws-amplify/auth/lib-esm/Auth";
+import { AuthClass } from "@aws-amplify/auth/lib/Auth";
 import { fetch } from "cross-fetch";
 
 import {
@@ -7,9 +7,9 @@ import {
   BrowserAPIParameters,
   BrowserAPIAuthError,
   BrowserAPI,
-} from "./core";
+} from "../core";
 
-import { IntegrationAPIGraph } from "./rels/integration";
+import { IntegrationAPIGraph } from "../integration/rels";
 
 type AuthChallenge =
   | "SMS_MFA"
@@ -23,7 +23,7 @@ type AuthChallenge =
   | "ADMIN_NO_SRP_AUTH"
   | "NEW_PASSWORD_REQUIRED";
 
-export class AdminAPI extends BrowserAPI<IntegrationAPIGraph> {
+class AdminAPI extends BrowserAPI<IntegrationAPIGraph> {
   readonly auth: AuthClass;
 
   constructor(params: BrowserAPIParameters) {
@@ -96,4 +96,5 @@ export class AdminAPI extends BrowserAPI<IntegrationAPIGraph> {
   }
 }
 
+export { AdminAPI };
 export default AdminAPI;

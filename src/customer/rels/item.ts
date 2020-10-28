@@ -1,4 +1,4 @@
-import type { FxItem as IntegrationAPIFxItem } from "../integration/item";
+import type { FxItem as IntegrationAPIFxItem } from "../../integration/rels/item";
 
 export interface FxItem {
   curie: IntegrationAPIFxItem["curie"];

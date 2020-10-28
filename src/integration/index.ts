@@ -1,14 +1,17 @@
 import { LogLevel } from "consola";
 import fetch, { Headers } from "cross-fetch";
 import MemoryStorage from "ministorage";
-import { API } from "./core";
-import { IntegrationAPIGraph } from "./rels/integration";
-import { FxToken } from "./rels/integration/token";
+import { API } from "../core";
+import { IntegrationAPIGraph } from "./rels";
+import { FxToken } from "./rels/token";
 
+type LocalToken = FxToken["props"] & { date_created: string };
+
+/** In order to facilitate any major, unforeseen breaking changes in the future, we require each request to include API version. We hope to rarely (never?) change it but by requiring it up front, we can ensure what you get today is what you’ll get tomorrow. */
 type IntegrationAPIVersion = "1";
-type IntegrationAPIToken = FxToken["props"] & { date_created: string };
 
-interface IntegrationAPIParameters {
+/** Contructor parameters of the {@link IntegrationAPI} class. */
+type IntegrationAPIInit = {
   refreshToken: string;
   clientSecret: string;
   clientId: string;
@@ -17,20 +20,21 @@ interface IntegrationAPIParameters {
   version?: IntegrationAPIVersion;
   baseURL?: URL; // pathname ending with "/" !!!
   cache?: Storage;
-}
+};
 
-export class IntegrationAPI extends API<IntegrationAPIGraph> {
+/** JS SDK for building integrations with [Foxy Hypermedia API](https://api.foxycart.com/docs). Hypermedia API is designed to give you complete control over all aspects of your Foxy accounts, whether working with a single store or automating the provisioning of thousands. Anything you can do within the Foxy administration, you can also do through the API. This means that you can embed Foxy into any application (CMS, LMS, CRM, etc.) and expose as much or as little of Foxy's functionality as desired. */
+class IntegrationAPI extends API<IntegrationAPIGraph> {
   static readonly REFRESH_THRESHOLD = 5 * 60 * 1000;
   static readonly ACCESS_TOKEN = "access_token";
   static readonly BASE_URL = new URL("https://api.foxycart.com/");
-  static readonly VERSION = "1";
+  static readonly VERSION: IntegrationAPIVersion = "1";
 
   readonly refreshToken: string;
   readonly clientSecret: string;
   readonly clientId: string;
   readonly version: IntegrationAPIVersion;
 
-  constructor(params: IntegrationAPIParameters) {
+  constructor(params: IntegrationAPIInit) {
     super({
       logLevel: params.logLevel,
       storage: params.storage ?? new MemoryStorage(),
@@ -46,7 +50,7 @@ export class IntegrationAPI extends API<IntegrationAPIGraph> {
   }
 
   async fetch(input: RequestInfo, init?: RequestInit): Promise<Response> {
-    let token = JSON.parse(this.storage.getItem(IntegrationAPI.ACCESS_TOKEN) ?? "null") as IntegrationAPIToken | null;
+    let token = JSON.parse(this.storage.getItem(IntegrationAPI.ACCESS_TOKEN) ?? "null") as LocalToken | null;
 
     if (token !== null) {
       const expiresAt = new Date(token.date_created).getTime() + token.expires_in * 1000;
@@ -97,3 +101,6 @@ export class IntegrationAPI extends API<IntegrationAPIGraph> {
     return fetch(input, { ...init, headers });
   }
 }
+
+export { IntegrationAPIVersion, IntegrationAPIInit, IntegrationAPI };
+export default IntegrationAPI;

@@ -1,4 +1,4 @@
-import type { FxSubscriptions as IntegrationAPIFxSubscriptions } from "../integration/subscriptions";
+import type { FxSubscriptions as IntegrationAPIFxSubscriptions } from "../../integration/rels/subscriptions";
 import type { FxSubscription } from "./subscription";
 
 export interface FxSubscriptions {

@@ -1,7 +1,8 @@
 node_modules
 dist
+docs
 src/.generators
-src/playground/*.ts
+playground
 .env
 .eslintcache
 .coverage

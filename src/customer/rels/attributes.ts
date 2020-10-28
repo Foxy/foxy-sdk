@@ -1,4 +1,4 @@
-import type { FxAttributes as IntegrationAPIFxAttributes } from "../integration/attributes";
+import type { FxAttributes as IntegrationAPIFxAttributes } from "../../integration/rels/attributes";
 import type { FxAttribute } from "./attribute";
 
 export interface FxAttributes {

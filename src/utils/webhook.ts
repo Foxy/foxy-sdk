@@ -38,10 +38,7 @@ export interface VerificationParams {
  * @tutorial https://wiki.foxycart.com/v/2.0/webhooks#validating_the_payload
  */
 export function verify(params: VerificationParams): boolean {
-  const computedSignature = crypto
-    .createHmac("sha256", params.key)
-    .update(params.payload)
-    .digest("hex");
+  const computedSignature = crypto.createHmac("sha256", params.key).update(params.payload).digest("hex");
 
   return params.signature === computedSignature;
 }

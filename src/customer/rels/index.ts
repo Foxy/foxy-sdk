@@ -1,4 +1,4 @@
-import type { FxCustomer as IntegrationAPIFxCustomer } from "../integration/customer";
+import type { FxCustomer as IntegrationAPIFxCustomer } from "../../integration/rels/customer";
 import type { FxDefaultShippingAddress } from "./default_shipping_address";
 import type { FxDefaultBillingAddress } from "./default_billing_address";
 import type { FxDefaultPaymentMethod } from "./default_payment_method";
