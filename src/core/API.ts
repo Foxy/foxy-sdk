@@ -1,5 +1,4 @@
-import { APINode } from "./APINode";
-import { Graph } from "./types";
+import { APINode, Graph } from "./index";
 
 interface APIParameters {
   fetch: Window["fetch"];

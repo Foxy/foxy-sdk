@@ -1,9 +1,7 @@
 import MemoryStorage from "ministorage";
 import { CookieStorage } from "cookie-storage";
 import ow from "ow";
-import { BrowserAPI, BrowserAPIAuthError } from "../core/BrowserAPI";
-import { isStorage, ScopedStorage } from "../core/ScopedStorage";
-import { Graph } from "../core/types";
+import { Graph, BrowserAPI, BrowserAPIAuthError, isStorage, ScopedStorage } from "../core";
 import { RequestEvent } from "./RequestEvent";
 
 enum BrowserStorage {

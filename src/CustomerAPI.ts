@@ -1,5 +1,5 @@
 import { fetch } from "cross-fetch";
-import { BrowserAPI, BrowserAPIAuthError, BrowserAPIAuthErrorCode, BrowserAPICredentials } from "./core/BrowserAPI";
+import { BrowserAPI, BrowserAPIAuthError, BrowserAPIAuthErrorCode, BrowserAPICredentials } from "./core";
 import { CustomerAPIGraph } from "./rels/customer";
 
 interface CustomerAPISession {

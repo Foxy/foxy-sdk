@@ -1,6 +1,5 @@
 import MemoryStorage from "ministorage";
-import { API } from "./API";
-import { Graph } from "./types";
+import { API, Graph } from "./index";
 
 interface BrowserAPICredentials {
   email: string;

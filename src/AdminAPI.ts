@@ -7,7 +7,7 @@ import {
   BrowserAPIParameters,
   BrowserAPIAuthError,
   BrowserAPI,
-} from "./core/BrowserAPI";
+} from "./core";
 
 import { IntegrationAPIGraph } from "./rels/integration";
 

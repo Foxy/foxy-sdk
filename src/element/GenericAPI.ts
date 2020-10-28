@@ -4,9 +4,9 @@ import {
   BrowserAPIAuthErrorCode,
   BrowserAPICredentials,
   BrowserAPIParameters,
-} from "../core/BrowserAPI";
+  Graph,
+} from "../core";
 
-import { Graph } from "../core/types";
 import { ReservedURI } from "./APIElement";
 import { RequestEvent } from "./RequestEvent";
 

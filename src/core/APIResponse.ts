@@ -1,6 +1,5 @@
-import { APINodeParameters } from "./APINode";
-import { APIResponseNode } from "./APIResponseNode";
-import { Graph, Query, ResponseJSON } from "./types";
+import { Response } from "cross-fetch";
+import { APINodeParameters, APIResponseNode, Graph, Query, ResponseJSON } from "./index";
 
 type APIResponseParameters = Omit<APINodeParameters, "path"> & { response: Response };
 

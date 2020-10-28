@@ -1,6 +1,6 @@
-import fetch from "cross-fetch";
+import fetch, { Headers } from "cross-fetch";
 import MemoryStorage from "ministorage";
-import { API } from "./core/API";
+import { API } from "./core";
 import { IntegrationAPIGraph } from "./rels/integration";
 import { FxToken } from "./rels/integration/token";
 
