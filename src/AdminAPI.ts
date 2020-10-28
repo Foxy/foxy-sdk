@@ -41,10 +41,13 @@ export class AdminAPI extends BrowserAPI<IntegrationAPIGraph> {
   async fetch(input: RequestInfo, init?: RequestInit): Promise<Response> {
     const session = await this.auth.currentSession().catch(() => null);
     const headers = new Headers(init?.headers);
+    const method = init?.method?.toUpperCase() ?? "GET";
+    const url = typeof input === "string" ? input : input.url;
 
     headers.set("Content-Type", "application/json");
     if (session !== null) headers.set("Authorization", `Bearer ${session.getAccessToken().getJwtToken()}`);
 
+    this.console.trace(`${method} ${url}`);
     return fetch(input, { ...init, headers });
   }
 

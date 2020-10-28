@@ -20,12 +20,15 @@ export class CustomerAPI extends BrowserAPI<CustomerAPIGraph> {
   static readonly AUTH_JWT = "fx.customer.jwt";
 
   async fetch(input: RequestInfo, init?: RequestInit): Promise<Response> {
-    const token = this.storage.getItem(CustomerAPI.AUTH_TOKEN);
     const headers = new Headers(init?.headers);
+    const method = init?.method?.toUpperCase() ?? "GET";
+    const token = this.storage.getItem(CustomerAPI.AUTH_TOKEN);
+    const url = typeof input === "string" ? input : input.url;
 
     headers.set("Content-Type", "application/json");
     if (token !== null) headers.set(CustomerAPI.AUTH_HEADER, token);
 
+    this.console.trace(`${method} ${url}`);
     const response = await fetch(input, { ...init, headers });
     const freshToken = response.headers.get(CustomerAPI.AUTH_HEADER);
     if (freshToken !== null) this.storage.setItem(CustomerAPI.AUTH_TOKEN, freshToken);

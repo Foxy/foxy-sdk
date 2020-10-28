@@ -1,3 +1,4 @@
+import { LogLevel } from "consola";
 import fetch, { Headers } from "cross-fetch";
 import MemoryStorage from "ministorage";
 import { API } from "./core";
@@ -5,11 +6,13 @@ import { IntegrationAPIGraph } from "./rels/integration";
 import { FxToken } from "./rels/integration/token";
 
 type IntegrationAPIVersion = "1";
+type IntegrationAPIToken = FxToken["props"] & { date_created: string };
 
 interface IntegrationAPIParameters {
   refreshToken: string;
   clientSecret: string;
   clientId: string;
+  logLevel?: LogLevel;
   storage?: Storage;
   version?: IntegrationAPIVersion;
   baseURL?: URL; // pathname ending with "/" !!!
@@ -29,6 +32,7 @@ export class IntegrationAPI extends API<IntegrationAPIGraph> {
 
   constructor(params: IntegrationAPIParameters) {
     super({
+      logLevel: params.logLevel,
       storage: params.storage ?? new MemoryStorage(),
       baseURL: params.baseURL ?? IntegrationAPI.BASE_URL,
       fetch: (...args) => this.fetch(...args),
@@ -42,11 +46,17 @@ export class IntegrationAPI extends API<IntegrationAPIGraph> {
   }
 
   async fetch(input: RequestInfo, init?: RequestInit): Promise<Response> {
-    let token = JSON.parse(this.storage.getItem(IntegrationAPI.ACCESS_TOKEN) ?? "null") as FxToken["props"] | null;
+    let token = JSON.parse(this.storage.getItem(IntegrationAPI.ACCESS_TOKEN) ?? "null") as IntegrationAPIToken | null;
 
     if (token !== null) {
-      const expiresAt = Date.now() + token.expires_in * 1000;
-      if (expiresAt < Date.now() + IntegrationAPI.REFRESH_THRESHOLD) token = null;
+      const expiresAt = new Date(token.date_created).getTime() + token.expires_in * 1000;
+      const refreshAt = Date.now() + IntegrationAPI.REFRESH_THRESHOLD;
+
+      if (expiresAt < refreshAt) {
+        this.storage.removeItem(IntegrationAPI.ACCESS_TOKEN);
+        this.console.info("Removed old access token from the storage.");
+        token = null;
+      }
     }
 
     if (token === null) {
@@ -62,21 +72,28 @@ export class IntegrationAPI extends API<IntegrationAPIGraph> {
       body.set("grant_type", "refresh_token");
       body.set("client_id", this.clientId);
 
+      this.console.trace("Access token isn't present in the storage. Fetching a new one...");
       const response = await fetch(url, { method: "POST", headers, body });
 
       if (response.ok) {
-        const text = await response.text();
-        token = JSON.parse(text) as FxToken["props"];
-        this.storage.setItem(IntegrationAPI.ACCESS_TOKEN, text);
+        const props = (await response.json()) as FxToken["props"];
+        token = { ...props, date_created: new Date().toISOString() };
+        this.storage.setItem(IntegrationAPI.ACCESS_TOKEN, JSON.stringify(token));
+        this.console.info("Access token updated.");
+      } else {
+        this.console.warn("Failed to fetch access token. Proceeding without authentication.");
       }
     }
 
     const headers = new Headers(init?.headers);
+    const method = init?.method?.toUpperCase() ?? "GET";
+    const url = typeof input === "string" ? input : input.url;
 
     headers.set("FOXY-API-VERSION", this.version);
     headers.set("Content-Type", "application/json");
     if (token !== null) headers.set("Authorization", `Bearer ${token.access_token}`);
 
+    this.console.trace(`${method} ${url}`);
     return fetch(input, { ...init, headers });
   }
 }
