@@ -35,18 +35,20 @@ async function resolve({ path, cache, fetch }: ResolverParameters): Promise<URL>
     }
   }
 
-  for (let i = -1; i < traversalPath.length; ++i) {
-    const url = new URL(parentJSON?._links.self.href ?? startURL);
-    const key = createKey(traversalPath.slice(0, i + 1));
+  for (let i = 0; i < traversalPath.length; ++i) {
+    const url = new URL(parentJSON?._links[traversalPath[i].toString()].href ?? startURL);
     const response = await fetch(url.toString());
 
     if (!response.ok) throw new APIResolutionError(response);
-    if (i > -1) cache.setItem(key, url.toString());
-
     parentJSON = await response.json();
+
+    if (i > 0) {
+      const key = createKey(traversalPath.slice(0, i + 1));
+      cache.setItem(key, url.toString());
+    }
   }
 
-  return parentJSON?._links.self.href ?? startURL;
+  return new URL(parentJSON?._links.self.href ?? startURL);
 }
 
 export class API<TGraph extends Graph> extends APINode<TGraph> {

@@ -1,4 +1,5 @@
 import ow from "ow";
+import { Request } from "cross-fetch";
 
 import {
   APIResponse,
