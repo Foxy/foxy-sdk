@@ -1,19 +1,19 @@
-import type { FxTransaction } from "./transaction";
-import type { FxStore } from "./store";
-import type { FxItem } from "./item";
+import type { FxTransaction } from './transaction';
+import type { FxStore } from './store';
+import type { FxItem } from './item';
 
 export interface FxItemOption {
-  curie: "fx:item_option";
+  curie: 'fx:item_option';
 
   links: {
     /** This resource. */
-    "self": FxItemOption;
+    'self': FxItemOption;
     /** Item this option is attached to. */
-    "fx:item": FxItem;
+    'fx:item': FxItem;
     /** Store the item belongs to. */
-    "fx:store": FxStore;
+    'fx:store': FxStore;
     /** Related transaction resource. */
-    "fx:transaction": FxTransaction;
+    'fx:transaction': FxTransaction;
   };
 
   props: {

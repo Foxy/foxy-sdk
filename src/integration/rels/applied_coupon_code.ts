@@ -1,22 +1,22 @@
-import type { FxCouponCode } from "./coupon_code";
-import type { FxCoupon } from "./coupon";
-import type { FxStore } from "./store";
-import type { FxCart } from "./cart";
+import type { FxCouponCode } from './coupon_code';
+import type { FxCoupon } from './coupon';
+import type { FxStore } from './store';
+import type { FxCart } from './cart';
 
 export interface FxAppliedCouponCode {
-  curie: "fx:applied_coupon_code";
+  curie: 'fx:applied_coupon_code';
 
   links: {
     /** This resource. */
-    "self": FxAppliedCouponCode;
+    'self': FxAppliedCouponCode;
     /** Related cart resource. */
-    "fx:cart": FxCart;
+    'fx:cart': FxCart;
     /** Related store resource. */
-    "fx:store": FxStore;
+    'fx:store': FxStore;
     /** Related coupon resource. */
-    "fx:coupon": FxCoupon;
+    'fx:coupon': FxCoupon;
     /** Related coupon code resource. */
-    "fx:coupon_code": FxCouponCode;
+    'fx:coupon_code': FxCouponCode;
   };
 
   props: {

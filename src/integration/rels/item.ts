@@ -1,34 +1,34 @@
-import type { FxDiscountDetails } from "./discount_details";
-import type { FxCouponDetails } from "./coupon_details";
-import type { FxItemCategory } from "./item_category";
-import type { FxItemOptions } from "./item_options";
-import type { FxTransaction } from "./transaction";
-import type { FxAttributes } from "./attributes";
-import type { FxShipment } from "./shipment";
-import type { FxStore } from "./store";
+import type { FxDiscountDetails } from './discount_details';
+import type { FxCouponDetails } from './coupon_details';
+import type { FxItemCategory } from './item_category';
+import type { FxItemOptions } from './item_options';
+import type { FxTransaction } from './transaction';
+import type { FxAttributes } from './attributes';
+import type { FxShipment } from './shipment';
+import type { FxStore } from './store';
 
 export interface FxItem {
-  curie: "fx:item";
+  curie: 'fx:item';
 
   links: {
     /** This resource. */
-    "self": FxItem;
+    'self': FxItem;
     /** Store this item belongs to. */
-    "fx:store": FxStore;
+    'fx:store': FxStore;
     /** Related shipment info. */
-    "fx:shipment": FxShipment;
+    'fx:shipment': FxShipment;
     /** Custom attributes linked to this item. */
-    "fx:attributes": FxAttributes;
+    'fx:attributes': FxAttributes;
     /** Related transaction info. */
-    "fx:transaction": FxTransaction;
+    'fx:transaction': FxTransaction;
     /** Various custom options for this item. */
-    "fx:item_options": FxItemOptions;
+    'fx:item_options': FxItemOptions;
     /** Category this item belongs in. */
-    "fx:item_category": FxItemCategory;
+    'fx:item_category': FxItemCategory;
     /** Details about coupons linked to this item. */
-    "fx:coupon_details": FxCouponDetails;
+    'fx:coupon_details': FxCouponDetails;
     /** Details about discounts linked to this item. */
-    "fx:discount_details": FxDiscountDetails;
+    'fx:discount_details': FxDiscountDetails;
   };
 
   props: {
@@ -53,7 +53,7 @@ export interface FxItem {
     /** The name of the line item discount if it is included on this item. */
     discount_name: string;
     /** The type of the line item discount if this item has a discount. */
-    discount_type: "" | "quantity_amount" | "quantity_percentage" | "price_amount" | "price_percentage";
+    discount_type: '' | 'quantity_amount' | 'quantity_percentage' | 'price_amount' | 'price_percentage';
     /** The details of the line item discount if this item has a discount. See the cart documentation for details on how this value should be formatted. */
     discount_details: string;
     /** This determines how often this subscription will be processed. The format is a number followed by a date type such as d (day), w (week), m (month), or y (year). You can also use .5m for twice a month. To modify this value for an existing subscription, you must modify the subscription directly. */

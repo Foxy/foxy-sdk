@@ -1,16 +1,16 @@
-import type { FxTemplateSets } from "./template_sets";
-import type { FxStore } from "./store";
+import type { FxTemplateSets } from './template_sets';
+import type { FxStore } from './store';
 
 export interface FxTemplateConfig {
-  curie: "fx:template_config";
+  curie: 'fx:template_config';
 
   links: {
     /** This resource. */
-    "self": FxTemplateConfig;
+    'self': FxTemplateConfig;
     /** Related store resource. */
-    "fx:store": FxStore;
+    'fx:store': FxStore;
     /** List of template sets using this template config. */
-    "fx:template_sets": FxTemplateSets;
+    'fx:template_sets': FxTemplateSets;
   };
 
   props: {

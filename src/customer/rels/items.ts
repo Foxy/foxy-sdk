@@ -1,8 +1,8 @@
-import type { FxItems as IntegrationAPIFxItems } from "../../integration/rels/items";
-import type { FxItem } from "./item";
+import type { FxItems as IntegrationAPIFxItems } from '../../integration/rels/items';
+import type { FxItem } from './item';
 
 export interface FxItems {
-  curie: IntegrationAPIFxItems["curie"];
+  curie: IntegrationAPIFxItems['curie'];
   links: never;
   props: never;
   child: FxItem;

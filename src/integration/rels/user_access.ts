@@ -1,16 +1,16 @@
-import type { FxStore } from "./store";
-import type { FxUser } from "./user";
+import type { FxStore } from './store';
+import type { FxUser } from './user';
 
 export interface FxUserAccess {
-  curie: "fx:user_access";
+  curie: 'fx:user_access';
 
   links: {
     /** This resource. */
-    "self": FxUserAccess;
+    'self': FxUserAccess;
     /** Related user resource. */
-    "fx:user": FxUser;
+    'fx:user': FxUser;
     /** Related store resource. */
-    "fx:store": FxStore;
+    'fx:store': FxStore;
   };
 
   props: {

@@ -1,19 +1,19 @@
-import type { FxTemplateSets } from "./template_sets";
-import type { FxStore } from "./store";
-import type { FxCache } from "./cache";
+import type { FxTemplateSets } from './template_sets';
+import type { FxStore } from './store';
+import type { FxCache } from './cache';
 
 export interface FxCartTemplate {
-  curie: "fx:cart_template";
+  curie: 'fx:cart_template';
 
   links: {
     /** This resource. */
-    "self": FxCartTemplate;
+    'self': FxCartTemplate;
     /** POST here to cache your template using the `content_html_url` and `content_text_url`. */
-    "fx:cache": FxCache;
+    'fx:cache': FxCache;
     /** Store this template belongs to. */
-    "fx:store": FxStore;
+    'fx:store': FxStore;
     /** Template sets using this template. */
-    "fx:template_sets": FxTemplateSets;
+    'fx:template_sets': FxTemplateSets;
   };
 
   props: {

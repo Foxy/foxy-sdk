@@ -1,5 +1,5 @@
 export interface FxCache {
-  curie: "fx:cache";
+  curie: 'fx:cache';
   links: never;
   props: never;
 }

@@ -1,37 +1,37 @@
-import type { FxAppliedCouponCodes } from "./applied_coupon_codes";
-import type { FxCreateSession } from "./create_session";
-import type { FxCustomFields } from "./custom_fields";
-import type { FxSubscription } from "./subscription";
-import type { FxAttributes } from "./attributes";
-import type { FxDiscounts } from "./discounts";
-import type { FxCustomer } from "./customer";
-import type { FxStore } from "./store";
-import type { FxItems } from "./items";
+import type { FxAppliedCouponCodes } from './applied_coupon_codes';
+import type { FxCreateSession } from './create_session';
+import type { FxCustomFields } from './custom_fields';
+import type { FxSubscription } from './subscription';
+import type { FxAttributes } from './attributes';
+import type { FxDiscounts } from './discounts';
+import type { FxCustomer } from './customer';
+import type { FxStore } from './store';
+import type { FxItems } from './items';
 
 export interface FxCart {
-  curie: "fx:cart";
+  curie: 'fx:cart';
 
   links: {
     /** This resource. */
-    "self": FxCart;
+    'self': FxCart;
     /** Store this cart was created in. */
-    "fx:store": FxStore;
+    'fx:store': FxStore;
     /** Items in this cart. */
-    "fx:items": FxItems;
+    'fx:items': FxItems;
     /** Customer who created this cart. */
-    "fx:customer": FxCustomer;
+    'fx:customer': FxCustomer;
     /** Discounts applied to the products in this cart. */
-    "fx:discounts": FxDiscounts;
+    'fx:discounts': FxDiscounts;
     /** Various attributes of this cart. */
-    "fx:attributes": FxAttributes;
+    'fx:attributes': FxAttributes;
     /** Subscription linked to this cart. */
-    "fx:subscription": FxSubscription;
+    'fx:subscription': FxSubscription;
     /** Custom fields applied to this cart. */
-    "fx:custom_fields": FxCustomFields;
+    'fx:custom_fields': FxCustomFields;
     /** POST here to create a browser session link. */
-    "fx:create_session": FxCreateSession;
+    'fx:create_session': FxCreateSession;
     /** Coupon codes applied to the items in this cart. */
-    "fx:applied_coupon_codes": FxAppliedCouponCodes;
+    'fx:applied_coupon_codes': FxAppliedCouponCodes;
   };
 
   props: {

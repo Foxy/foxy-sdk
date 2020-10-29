@@ -1,4 +1,4 @@
-import ow from "ow";
+import ow from 'ow';
 
 export const isStorage = {
   length: ow.number,
@@ -13,14 +13,6 @@ export class ScopedStorage {
   constructor(public readonly scope: string, public readonly provider: Storage) {
     ow(scope, ow.string);
     ow(provider, ow.object.partialShape(isStorage));
-  }
-
-  private get __prefix() {
-    return `${this.scope}::`;
-  }
-
-  private __getScopedKey(key: string) {
-    return `${this.__prefix}${key}`;
   }
 
   get length(): number {
@@ -66,5 +58,13 @@ export class ScopedStorage {
       const key = this.provider.key(i);
       if (key?.startsWith(this.__prefix)) this.provider.removeItem(key);
     }
+  }
+
+  private get __prefix() {
+    return `${this.scope}::`;
+  }
+
+  private __getScopedKey(key: string) {
+    return `${this.__prefix}${key}`;
   }
 }

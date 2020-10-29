@@ -1,32 +1,32 @@
-import type { FxTransactionTemplate } from "./transaction_template";
-import type { FxOriginalTransaction } from "./original_transaction";
-import type { FxLastTransaction } from "./last_transaction";
-import type { FxTransactions } from "./transactions";
-import type { FxSubTokenUrl } from "./sub_token_url";
-import type { FxAttributes } from "./attributes";
-import type { FxCustomer } from "./customer";
-import type { FxStore } from "./store";
+import type { FxTransactionTemplate } from './transaction_template';
+import type { FxOriginalTransaction } from './original_transaction';
+import type { FxLastTransaction } from './last_transaction';
+import type { FxTransactions } from './transactions';
+import type { FxSubTokenUrl } from './sub_token_url';
+import type { FxAttributes } from './attributes';
+import type { FxCustomer } from './customer';
+import type { FxStore } from './store';
 
 export interface FxSubscription {
-  curie: "fx:subscription";
+  curie: 'fx:subscription';
 
   links: {
     /** This resource. */
-    "self": FxSubscription;
+    'self': FxSubscription;
     /** List of attributes for this subscription. */
-    "fx:attributes": FxAttributes;
+    'fx:attributes': FxAttributes;
     /** Related store resource. */
-    "fx:store": FxStore;
+    'fx:store': FxStore;
     /** Customer who created this subscription. */
-    "fx:customer": FxCustomer;
+    'fx:customer': FxCustomer;
     /** Last transaction for this subscription. */
-    "fx:last_transaction": FxLastTransaction;
+    'fx:last_transaction': FxLastTransaction;
     /** List of transactions for this subscription. */
-    "fx:transactions": FxTransactions;
+    'fx:transactions': FxTransactions;
     /** Transaction template for this subscription. */
-    "fx:transaction_template": FxTransactionTemplate;
+    'fx:transaction_template': FxTransactionTemplate;
     /** Open this link in browser to load up the subscription template into a full HTML cart for the store. */
-    "fx:sub_token_url": FxSubTokenUrl;
+    'fx:sub_token_url': FxSubTokenUrl;
   };
 
   props: {

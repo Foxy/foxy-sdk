@@ -1,34 +1,34 @@
-import type { FxDefaultShippingAddress } from "./default_shipping_address";
-import type { FxDefaultBillingAddress } from "./default_billing_address";
-import type { FxDefaultPaymentMethod } from "./default_payment_method";
-import type { FxCustomerAddresses } from "./customer_addresses";
-import type { FxSubscriptions } from "./subscriptions";
-import type { FxTransactions } from "./transactions";
-import type { FxAttributes } from "./attributes";
-import type { FxStore } from "./store";
+import type { FxDefaultShippingAddress } from './default_shipping_address';
+import type { FxDefaultBillingAddress } from './default_billing_address';
+import type { FxDefaultPaymentMethod } from './default_payment_method';
+import type { FxCustomerAddresses } from './customer_addresses';
+import type { FxSubscriptions } from './subscriptions';
+import type { FxTransactions } from './transactions';
+import type { FxAttributes } from './attributes';
+import type { FxStore } from './store';
 
 export interface FxCustomer {
-  curie: "fx:customer";
+  curie: 'fx:customer';
 
   links: {
     /** This resource. */
-    "self": FxCustomer;
+    'self': FxCustomer;
     /** Store this customer is registered in. */
-    "fx:store": FxStore;
+    'fx:store': FxStore;
     /** Attributes for this customer. */
-    "fx:attributes": FxAttributes;
+    'fx:attributes': FxAttributes;
     /** List of customer's transactions. */
-    "fx:transactions": FxTransactions;
+    'fx:transactions': FxTransactions;
     /** List of customer's subscriptions. */
-    "fx:subscriptions": FxSubscriptions;
+    'fx:subscriptions': FxSubscriptions;
     /** List of customer's addresses. */
-    "fx:customer_addresses": FxCustomerAddresses;
+    'fx:customer_addresses': FxCustomerAddresses;
     /** Customer's default payment method. */
-    "fx:default_payment_method": FxDefaultPaymentMethod;
+    'fx:default_payment_method': FxDefaultPaymentMethod;
     /** Customer's default billing address. */
-    "fx:default_billing_address": FxDefaultBillingAddress;
+    'fx:default_billing_address': FxDefaultBillingAddress;
     /** Customer's default shipping address. */
-    "fx:default_shipping_address": FxDefaultShippingAddress;
+    'fx:default_shipping_address': FxDefaultShippingAddress;
   };
 
   props: {

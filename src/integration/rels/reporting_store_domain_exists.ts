@@ -1,16 +1,16 @@
-import type { FxReporting } from "./reporting";
-import type { FxStore } from "./store";
+import type { FxReporting } from './reporting';
+import type { FxStore } from './store';
 
 export interface FxReportingStoreDomainExists {
-  curie: "fx:reporting_store_domain_exists";
+  curie: 'fx:reporting_store_domain_exists';
 
   links: {
     /** This resource. */
-    "self": FxReportingStoreDomainExists;
+    'self': FxReportingStoreDomainExists;
     /** Link to store for the requested domain. */
-    "fx:store": FxStore;
+    'fx:store': FxStore;
     /** Reporting API home. */
-    "fx:reporting": FxReporting;
+    'fx:reporting': FxReporting;
   };
 
   props: {

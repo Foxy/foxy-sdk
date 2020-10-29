@@ -1,19 +1,19 @@
-import type { FxDefaultStore } from "./default_store";
-import type { FxAttributes } from "./attributes";
-import type { FxStores } from "./stores";
+import type { FxDefaultStore } from './default_store';
+import type { FxAttributes } from './attributes';
+import type { FxStores } from './stores';
 
 export interface FxUser {
-  curie: "fx:user";
+  curie: 'fx:user';
 
   links: {
     /** This resource. */
-    "self": FxUser;
+    'self': FxUser;
     /** List of stores this user has access to. */
-    "fx:stores": FxStores;
+    'fx:stores': FxStores;
     /** List of custom attributes on this user resource. */
-    "fx:attributes": FxAttributes;
+    'fx:attributes': FxAttributes;
     /** Default store for this user. */
-    "fx:default_store": FxDefaultStore;
+    'fx:default_store': FxDefaultStore;
   };
 
   props: {

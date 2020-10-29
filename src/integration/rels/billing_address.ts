@@ -1,25 +1,25 @@
-import type { FxBillingAddresses } from "./billing_addresses";
-import type { FxCustomerAddress } from "./customer_address";
-import type { FxTransaction } from "./transaction";
-import type { FxCustomer } from "./customer";
-import type { FxStore } from "./store";
+import type { FxBillingAddresses } from './billing_addresses';
+import type { FxCustomerAddress } from './customer_address';
+import type { FxTransaction } from './transaction';
+import type { FxCustomer } from './customer';
+import type { FxStore } from './store';
 
 export interface FxBillingAddress {
-  curie: "fx:billing_address";
+  curie: 'fx:billing_address';
 
   links: {
     /** This resource. */
-    "self": FxBillingAddress;
+    'self': FxBillingAddress;
     /** Store this billing address is registered in. */
-    "fx:store": FxStore;
+    'fx:store': FxStore;
     /** Customer this billing address belongs to. */
-    "fx:customer": FxCustomer;
+    'fx:customer': FxCustomer;
     /** Transaction associated with this billing address. */
-    "fx:transaction": FxTransaction;
+    'fx:transaction': FxTransaction;
     /** Address of the customer this billing address belongs to. */
-    "fx:customer_address": FxCustomerAddress;
+    'fx:customer_address': FxCustomerAddress;
     /** Collection of all billing addresses. */
-    "fx:billing_addresses": FxBillingAddresses;
+    'fx:billing_addresses': FxBillingAddresses;
   };
 
   props: {

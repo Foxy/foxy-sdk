@@ -1,11 +1,13 @@
-import { Response } from "cross-fetch";
-import { APINodeParameters, APIResponseNode, Graph, Query, ResponseJSON } from "./index";
+import { Response } from 'cross-fetch';
+import { APINodeParameters, APIResponseNode, Graph, Query, ResponseJSON } from './index';
 
-type APIResponseParameters = Omit<APINodeParameters, "path"> & { response: Response };
+type APIResponseParameters = Omit<APINodeParameters, 'path'> & { response: Response };
 
 class APIResponse<G extends Graph, Q extends Query<G> | undefined = undefined> extends Response {
   protected _path: [URL, ...string[]];
-  protected _fetch: Window["fetch"];
+
+  protected _fetch: Window['fetch'];
+
   protected _resolve: (path: [URL, ...string[]]) => Promise<URL>;
 
   constructor({ response, resolve, fetch }: APIResponseParameters) {

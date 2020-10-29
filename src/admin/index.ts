@@ -1,27 +1,26 @@
-import { AuthClass } from "@aws-amplify/auth/lib/Auth";
-import { fetch } from "cross-fetch";
-
 import {
+  BrowserAPI,
+  BrowserAPIAuthError,
   BrowserAPIAuthErrorCode,
   BrowserAPICredentials,
   BrowserAPIParameters,
-  BrowserAPIAuthError,
-  BrowserAPI,
-} from "../core";
+} from '../core';
 
-import { IntegrationAPIGraph } from "../integration/rels";
+import { AuthClass } from '@aws-amplify/auth/lib/Auth';
+import { IntegrationAPIGraph } from '../integration/rels';
+import { fetch } from 'cross-fetch';
 
 type AuthChallenge =
-  | "SMS_MFA"
-  | "SOFTWARE_TOKEN_MFA"
-  | "SELECT_MFA_TYPE"
-  | "MFA_SETUP"
-  | "PASSWORD_VERIFIER"
-  | "CUSTOM_CHALLENGE"
-  | "DEVICE_SRP_AUTH"
-  | "DEVICE_PASSWORD_VERIFIER"
-  | "ADMIN_NO_SRP_AUTH"
-  | "NEW_PASSWORD_REQUIRED";
+  | 'SMS_MFA'
+  | 'SOFTWARE_TOKEN_MFA'
+  | 'SELECT_MFA_TYPE'
+  | 'MFA_SETUP'
+  | 'PASSWORD_VERIFIER'
+  | 'CUSTOM_CHALLENGE'
+  | 'DEVICE_SRP_AUTH'
+  | 'DEVICE_PASSWORD_VERIFIER'
+  | 'ADMIN_NO_SRP_AUTH'
+  | 'NEW_PASSWORD_REQUIRED';
 
 class AdminAPI extends BrowserAPI<IntegrationAPIGraph> {
   readonly auth: AuthClass;
@@ -30,22 +29,22 @@ class AdminAPI extends BrowserAPI<IntegrationAPIGraph> {
     super(params);
 
     this.auth = new AuthClass({
-      region: "us-east-2", // TODO: change to production value
+      identityPoolId: 'us-east-2:6e3cb428-0e77-495e-9960-f4ab46d4dca1', // TODO: change to production value
+      region: 'us-east-2', // TODO: change to production value
       storage: params.storage,
-      userPoolId: "us-east-2_2Vw7tMmLQ", // TODO: change to production value
-      userPoolWebClientId: "2i58qs1u38kv605rm3v5t4dake", // TODO: change to production value
-      identityPoolId: "us-east-2:6e3cb428-0e77-495e-9960-f4ab46d4dca1", // TODO: change to production value
+      userPoolId: 'us-east-2_2Vw7tMmLQ', // TODO: change to production value
+      userPoolWebClientId: '2i58qs1u38kv605rm3v5t4dake', // TODO: change to production value
     });
   }
 
   async fetch(input: RequestInfo, init?: RequestInit): Promise<Response> {
     const session = await this.auth.currentSession().catch(() => null);
     const headers = new Headers(init?.headers);
-    const method = init?.method?.toUpperCase() ?? "GET";
-    const url = typeof input === "string" ? input : input.url;
+    const method = init?.method?.toUpperCase() ?? 'GET';
+    const url = typeof input === 'string' ? input : input.url;
 
-    headers.set("Content-Type", "application/json");
-    if (session !== null) headers.set("Authorization", `Bearer ${session.getAccessToken().getJwtToken()}`);
+    headers.set('Content-Type', 'application/json');
+    if (session !== null) headers.set('Authorization', `Bearer ${session.getAccessToken().getJwtToken()}`);
 
     this.console.trace(`${method} ${url}`);
     return fetch(input, { ...init, headers });
@@ -63,7 +62,7 @@ class AdminAPI extends BrowserAPI<IntegrationAPIGraph> {
       });
     }
 
-    if ((user.challengeName as AuthChallenge) === "NEW_PASSWORD_REQUIRED") {
+    if ((user.challengeName as AuthChallenge) === 'NEW_PASSWORD_REQUIRED') {
       if (credentials.newPassword) {
         try {
           await this.auth.completeNewPassword(user, credentials.newPassword, user.challengeParam.requiredAttributes);

@@ -10,7 +10,12 @@
   "scripts": {
     "test": "jest --config ./jest.config.json",
     "test:watch": "jest --watch --config ./jest.config.json",
-    "lint": "tsc --noEmit && eslint \"{src,test}/**/*.ts\" --quiet --fix",
+    "lint": "npm run lint:eslint && npm run lint:prettier",
+    "lint:eslint": "eslint --ext .ts,.html . --ignore-path .gitignore",
+    "lint:prettier": "prettier \"**/*.ts\" --check --ignore-path .gitignore",
+    "format": "npm run format:eslint && npm run format:prettier",
+    "format:eslint": "eslint --ext .ts,.html . --fix --ignore-path .gitignore",
+    "format:prettier": "prettier \"**/*.ts\" --write --ignore-path .gitignore",
     "build": "tsc",
     "build:cdn": "webpack -p",
     "build:docs": "typedoc --excludePrivate --ignoreCompilerErrors --out docs src",
@@ -35,34 +40,31 @@
   },
   "homepage": "https://github.com/foxy/foxy-api#readme",
   "devDependencies": {
-    "@babel/core": "^7.11.6",
-    "@babel/plugin-proposal-class-properties": "^7.10.4",
-    "@babel/preset-env": "^7.11.5",
-    "@babel/preset-typescript": "^7.10.4",
-    "@types/clone": "^2.1.0",
-    "@types/jest": "^26.0.14",
-    "@types/jsdom": "^16.2.4",
-    "@types/node": "^14.11.1",
-    "@typescript-eslint/eslint-plugin": "^4.2.0",
-    "@typescript-eslint/parser": "^4.2.0",
-    "babel-jest": "^26.3.0",
-    "clean-webpack-plugin": "^3.0.0",
     "cz-conventional-changelog": "^3.3.0",
-    "eslint": "^7.9.0",
-    "eslint-config-prettier": "^6.11.0",
-    "eslint-plugin-prettier": "^3.1.4",
+    "eslint": "^7.12.1",
     "husky": "^4.3.0",
-    "jest": "^26.4.2",
-    "jsdoc": "^3.6.6",
     "lint-staged": "^10.4.0",
     "prettier": "^2.1.2",
-    "ts-node": "^9.0.0",
     "typedoc": "^0.17.8",
     "typedoc-plugin-external-module-name": "^4.0.3",
-    "typescript": "^4.0.3",
-    "uglifyjs-webpack-plugin": "^2.2.0",
-    "webpack": "^4.44.2",
-    "webpack-cli": "^3.3.12"
+    "typescript": "^4.0.3"
+  },
+  "eslintConfig": {
+    "extends": "@foxy.io"
+  },
+  "lint-staged": {
+    "{src,test}/**/*.ts": "eslint --cache --fix"
+  },
+  "prettier": {
+    "quoteProps": "consistent",
+    "printWidth": 120,
+    "singleQuote": true,
+    "arrowParens": "avoid"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
   },
   "husky": {
     "hooks": {
@@ -70,26 +72,17 @@
       "pre-commit": "lint-staged"
     }
   },
-  "lint-staged": {
-    "{src,test}/**/*.ts": "eslint --cache --fix"
-  },
-  "config": {
-    "commitizen": {
-      "path": "./node_modules/cz-conventional-changelog"
-    }
-  },
   "dependencies": {
     "@aws-amplify/auth": "^3.4.4",
+    "@foxy.io/eslint-config": "file:vendor/foxy.io-eslint-config-1.0.0.tgz",
     "@types/crypto-js": "^3.1.47",
+    "@types/node": "^14.11.1",
     "@types/traverse": "^0.6.32",
     "babel-loader": "^8.1.0",
-    "clone": "^2.1.2",
     "consola": "^2.15.0",
-    "cookie-storage": "^6.1.0",
     "cross-fetch": "^3.0.6",
     "crypto-js": "^4.0.0",
     "ministorage": "^1.0.0",
-    "normalize-url": "^5.1.0",
     "ow": "^0.18.0",
     "traverse": "^0.6.6"
   }

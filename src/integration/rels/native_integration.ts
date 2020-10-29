@@ -1,13 +1,13 @@
-import type { FxStore } from "./store";
+import type { FxStore } from './store';
 
 export interface FxNativeIntegration {
-  curie: "fx:native_integration";
+  curie: 'fx:native_integration';
 
   links: {
     /** This resource. */
-    "self": FxNativeIntegration;
+    'self': FxNativeIntegration;
     /** Store this native integration is enabled on. */
-    "fx:store": FxStore;
+    'fx:store': FxStore;
   };
 
   props: {

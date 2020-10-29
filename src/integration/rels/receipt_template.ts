@@ -1,22 +1,22 @@
-import type { FxTemplateSets } from "./template_sets";
-import type { FxEncode } from "./encode";
-import type { FxCache } from "./cache";
-import type { FxStore } from "./store";
+import type { FxTemplateSets } from './template_sets';
+import type { FxEncode } from './encode';
+import type { FxCache } from './cache';
+import type { FxStore } from './store';
 
 export interface FxReceiptTemplate {
-  curie: "fx:receipt_template";
+  curie: 'fx:receipt_template';
 
   links: {
     /** This resource. */
-    "self": FxReceiptTemplate;
+    'self': FxReceiptTemplate;
     /** Related store resource. */
-    "fx:store": FxStore;
+    'fx:store': FxStore;
     /** POST here to cache your template using the `content_url`. */
-    "fx:cache": FxCache;
+    'fx:cache': FxCache;
     /** POST here to encode a body of html for use with our HMAC cart encryption. */
-    "fx:encode": FxEncode;
+    'fx:encode': FxEncode;
     /** Template sets using this template. */
-    "fx:template_sets": FxTemplateSets;
+    'fx:template_sets': FxTemplateSets;
   };
 
   props: {

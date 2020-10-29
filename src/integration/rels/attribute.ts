@@ -1,5 +1,5 @@
 export interface FxAttribute {
-  curie: "fx:attribute";
+  curie: 'fx:attribute';
 
   links: {
     /** This resource. */
@@ -8,7 +8,7 @@ export interface FxAttribute {
 
   props: {
     /** Controls who can see this attribute. Public attributes can be shown to anyone, including customers. Private attributes are more suitable for configuration or technical details which are irrelevant to the public. Restricted attributes can only be viewed by the OAuth client who creates them. */
-    visibility: "public" | "private" | "restricted";
+    visibility: 'public' | 'private' | 'restricted';
     /** The name of this attribute. */
     name: string;
     /** The value of this attribute. */

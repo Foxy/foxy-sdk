@@ -1,7 +1,7 @@
-import type { FxDefaultPaymentMethod as IntegrationAPIFxDefaultPaymentMethod } from "../../integration/rels/default_payment_method";
+import type { FxDefaultPaymentMethod as IntegrationAPIFxDefaultPaymentMethod } from '../../integration/rels/default_payment_method';
 
 export interface FxDefaultPaymentMethod {
-  curie: IntegrationAPIFxDefaultPaymentMethod["curie"];
+  curie: IntegrationAPIFxDefaultPaymentMethod['curie'];
   links: never;
-  props: IntegrationAPIFxDefaultPaymentMethod["props"];
+  props: IntegrationAPIFxDefaultPaymentMethod['props'];
 }

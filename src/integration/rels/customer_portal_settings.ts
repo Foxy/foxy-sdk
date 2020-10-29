@@ -1,13 +1,13 @@
-import type { FxStore } from "./store";
+import type { FxStore } from './store';
 
 export interface FxCustomerPortalSettings {
-  curie: "fx:customer_portal_settings";
+  curie: 'fx:customer_portal_settings';
 
   links: {
     /** This resource. */
-    "self": FxCustomerPortalSettings;
+    'self': FxCustomerPortalSettings;
     /** Store the customer portal of which this resource configures. */
-    "fx:store": FxStore;
+    'fx:store': FxStore;
   };
 
   props: {
@@ -39,13 +39,13 @@ export interface FxCustomerPortalSettings {
             allowedDays?:
               | {
                   /** Constraint type. If `day`, then this rule contains days of week only. */
-                  type: "day";
+                  type: 'day';
                   /** Days of week, 1-7, where 1 is Monday and 7 is Sunday. */
                   days: number[];
                 }
               | {
                   /** Constraint type. If `month`, then this rule contains days of month only. */
-                  type: "month";
+                  type: 'month';
                   /** Days of month, 1-31. */
                   days: number[];
                 };

@@ -1,13 +1,13 @@
-import type { FxPropertyHelpers } from "./property_helpers";
+import type { FxPropertyHelpers } from './property_helpers';
 
 export interface FxCustomerPasswordHashTypes {
-  curie: "fx:customer_password_hash_types";
+  curie: 'fx:customer_password_hash_types';
 
   links: {
     /** This resource. */
-    "self": FxCustomerPasswordHashTypes;
+    'self': FxCustomerPasswordHashTypes;
     /** Various pre-defined property values. */
-    "fx:property_helpers": FxPropertyHelpers;
+    'fx:property_helpers': FxPropertyHelpers;
   };
 
   props: {

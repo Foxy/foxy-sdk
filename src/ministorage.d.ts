@@ -1,3 +1,3 @@
-declare module "ministorage" {
+declare module 'ministorage' {
   export default Storage;
 }

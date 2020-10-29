@@ -1,21 +1,24 @@
-import { fetch } from "cross-fetch";
-import { BrowserAPI, BrowserAPIAuthError, BrowserAPIAuthErrorCode, BrowserAPICredentials } from "../core";
-import { CustomerAPISession } from "./types";
-import { CustomerAPIGraph } from "./rels";
+import { fetch } from 'cross-fetch';
+import { BrowserAPI, BrowserAPIAuthError, BrowserAPIAuthErrorCode, BrowserAPICredentials } from '../core';
+import { CustomerAPISession } from './types';
+import { CustomerAPIGraph } from './rels';
 
 class CustomerAPI extends BrowserAPI<CustomerAPIGraph> {
-  static readonly AUTH_EXPIRES = "fx.customer.expires";
-  static readonly AUTH_HEADER = "fx.customer";
-  static readonly AUTH_TOKEN = "fx.customer";
-  static readonly AUTH_JWT = "fx.customer.jwt";
+  static readonly AUTH_EXPIRES = 'fx.customer.expires';
+
+  static readonly AUTH_HEADER = 'fx.customer';
+
+  static readonly AUTH_TOKEN = 'fx.customer';
+
+  static readonly AUTH_JWT = 'fx.customer.jwt';
 
   async fetch(input: RequestInfo, init?: RequestInit): Promise<Response> {
     const headers = new Headers(init?.headers);
-    const method = init?.method?.toUpperCase() ?? "GET";
+    const method = init?.method?.toUpperCase() ?? 'GET';
     const token = this.storage.getItem(CustomerAPI.AUTH_TOKEN);
-    const url = typeof input === "string" ? input : input.url;
+    const url = typeof input === 'string' ? input : input.url;
 
-    headers.set("Content-Type", "application/json");
+    headers.set('Content-Type', 'application/json');
     if (token !== null) headers.set(CustomerAPI.AUTH_HEADER, token);
 
     this.console.trace(`${method} ${url}`);
@@ -30,9 +33,9 @@ class CustomerAPI extends BrowserAPI<CustomerAPIGraph> {
     let response: Response;
 
     try {
-      response = await fetch(new URL("authenticate", this.baseURL).toString(), {
-        headers: new Headers({ "Content-Type": "application/json" }),
-        method: "POST",
+      response = await fetch(new URL('authenticate', this.baseURL).toString(), {
+        headers: new Headers({ 'Content-Type': 'application/json' }),
+        method: 'POST',
         body: JSON.stringify(credentials),
       });
     } catch (err) {
@@ -51,7 +54,7 @@ class CustomerAPI extends BrowserAPI<CustomerAPIGraph> {
       if (jwt) this.storage.setItem(CustomerAPI.AUTH_JWT, jwt);
     } else {
       throw new BrowserAPIAuthError({
-        code: response.status.toString().startsWith("5")
+        code: response.status.toString().startsWith('5')
           ? BrowserAPIAuthErrorCode.UNKNOWN
           : BrowserAPIAuthErrorCode.UNAUTHORIZED,
       });
@@ -62,9 +65,9 @@ class CustomerAPI extends BrowserAPI<CustomerAPIGraph> {
     let response: Response;
 
     try {
-      response = await fetch(new URL("forgot_password", this.baseURL).toString(), {
-        headers: new Headers({ "Content-Type": "application/json" }),
-        method: "POST",
+      response = await fetch(new URL('forgot_password', this.baseURL).toString(), {
+        headers: new Headers({ 'Content-Type': 'application/json' }),
+        method: 'POST',
         body: JSON.stringify({ email }),
       });
     } catch (err) {

@@ -1,21 +1,21 @@
-import type { FxTransaction } from "./transaction";
-import type { FxStore } from "./store";
+import type { FxTransaction } from './transaction';
+import type { FxStore } from './store';
 
 export interface FxPayment {
-  curie: "fx:payment";
+  curie: 'fx:payment';
 
   links: {
     /** This resource. */
-    "self": FxPayment;
+    'self': FxPayment;
     /** Store that received this payment. */
-    "fx:store": FxStore;
+    'fx:store': FxStore;
     /** Related transaction resource. */
-    "fx:transaction": FxTransaction;
+    'fx:transaction': FxTransaction;
   };
 
   props: {
     /** The payment type for this payment. Values include plastic (for credit/debit cards), purchase_order, paypal, amazon_mws, hosted, ogone, and paypal_ec */
-    type: "plastic" | "purchase_order" | "paypal" | "amazon_mws" | "hosted" | "ogone" | "paypal_ec";
+    type: 'plastic' | 'purchase_order' | 'paypal' | 'amazon_mws' | 'hosted' | 'ogone' | 'paypal_ec';
     /** The payment gateway type for this payment. This should correspond to a value in {@link https://api-sandbox.foxycart.com/hal-browser/browser.html#https://api-sandbox.foxycart.com/property_helpers/hosted_payment_gateways hosted_payment_gateways} or {@link https://api-sandbox.foxycart.com/hal-browser/browser.html#https://api-sandbox.foxycart.com/property_helpers/payment_gateways payment_gateways}. */
     gateway_type: string;
     /** The processor response string from the payment gateway. This will include their transaction or reference number. */

@@ -1,13 +1,13 @@
-import type { FxPropertyHelpers } from "./property_helpers";
+import type { FxPropertyHelpers } from './property_helpers';
 
 export interface FxCheckoutTypes {
-  curie: "fx:checkout_types";
+  curie: 'fx:checkout_types';
 
   links: {
     /** This resource. */
-    "self": FxCheckoutTypes;
+    'self': FxCheckoutTypes;
     /** Various pre-defined property values. */
-    "fx:property_helpers": FxPropertyHelpers;
+    'fx:property_helpers': FxPropertyHelpers;
   };
 
   props: {

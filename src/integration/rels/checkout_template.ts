@@ -1,22 +1,22 @@
-import type { FxTemplateSets } from "./template_sets";
-import type { FxEncode } from "./encode";
-import type { FxStore } from "./store";
-import type { FxCache } from "./cache";
+import type { FxTemplateSets } from './template_sets';
+import type { FxEncode } from './encode';
+import type { FxStore } from './store';
+import type { FxCache } from './cache';
 
 export interface FxCheckoutTemplate {
-  curie: "fx:checkout_template";
+  curie: 'fx:checkout_template';
 
   links: {
     /** This resource. */
-    "self": FxCheckoutTemplate;
+    'self': FxCheckoutTemplate;
     /** Store this template belongs to. */
-    "fx:store": FxStore;
+    'fx:store': FxStore;
     /** POST here to cache your template using the `content_url`. */
-    "fx:cache": FxCache;
+    'fx:cache': FxCache;
     /** POST here to encode a body of html for use with our HMAC cart encryption. */
-    "fx:encode": FxEncode;
+    'fx:encode': FxEncode;
     /** Template sets using this template. */
-    "fx:template_sets": FxTemplateSets;
+    'fx:template_sets': FxTemplateSets;
   };
 
   props: {

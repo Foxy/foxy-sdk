@@ -1,13 +1,13 @@
-import type { FxAttributes } from "./attributes";
+import type { FxAttributes } from './attributes';
 
 export interface FxClient {
-  curie: "fx:client";
+  curie: 'fx:client';
 
   links: {
     /** This resource. */
-    "self": FxClient;
+    'self': FxClient;
     /** Custom attributes of this client. */
-    "fx:attributes": FxAttributes;
+    'fx:attributes': FxAttributes;
   };
 
   props: {

@@ -1,16 +1,16 @@
-import type { FxPropertyHelpers } from "./property_helpers";
-import type { FxStoreVersions } from "./store_versions";
+import type { FxPropertyHelpers } from './property_helpers';
+import type { FxStoreVersions } from './store_versions';
 
 export interface FxStoreVersion {
-  curie: "fx:store_version";
+  curie: 'fx:store_version';
 
   links: {
     /** This resource. */
-    "self": FxStoreVersion;
+    'self': FxStoreVersion;
     /** List of all available store versions. */
-    "fx:store_versions": FxStoreVersions;
+    'fx:store_versions': FxStoreVersions;
     /** Various predefined property values. */
-    "fx:property_helpers": FxPropertyHelpers;
+    'fx:property_helpers': FxPropertyHelpers;
   };
 
   props: {

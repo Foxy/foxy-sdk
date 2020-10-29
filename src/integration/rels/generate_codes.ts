@@ -1,5 +1,5 @@
 export interface FxGenerateCodes {
-  curie: "fx:generate_codes";
+  curie: 'fx:generate_codes';
 
   links: never;
 

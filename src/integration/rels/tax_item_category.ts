@@ -1,19 +1,19 @@
-import type { FxItemCategory } from "./item_category";
-import type { FxStore } from "./store";
-import type { FxTax } from "./tax";
+import type { FxItemCategory } from './item_category';
+import type { FxStore } from './store';
+import type { FxTax } from './tax';
 
 export interface FxTaxItemCategory {
-  curie: "fx:tax_item_category";
+  curie: 'fx:tax_item_category';
 
   links: {
     /** This resource. */
-    "self": FxTaxItemCategory;
+    'self': FxTaxItemCategory;
     /** Related tax resource. */
-    "fx:tax": FxTax;
+    'fx:tax': FxTax;
     /** Related store resource. */
-    "fx:store": FxStore;
+    'fx:store': FxStore;
     /** Related item category resource. */
-    "fx:item_category": FxItemCategory;
+    'fx:item_category': FxItemCategory;
   };
 
   props: {

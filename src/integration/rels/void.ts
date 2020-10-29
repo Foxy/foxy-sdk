@@ -1,5 +1,5 @@
 export interface FxVoid {
-  curie: "fx:void";
+  curie: 'fx:void';
   links: never;
   props: never;
 }

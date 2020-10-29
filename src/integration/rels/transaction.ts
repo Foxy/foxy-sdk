@@ -1,64 +1,64 @@
-import type { FxNativeIntegrations } from "./native_integrations";
-import type { FxBillingAddresses } from "./billing_addresses";
-import type { FxTransactionLogs } from "./transaction_logs";
-import type { FxProcessWebhook } from "./process_webhook";
-import type { FxAppliedTaxes } from "./applied_taxes";
-import type { FxCustomFields } from "./custom_fields";
-import type { FxSendEmails } from "./send_emails";
-import type { FxAttributes } from "./attributes";
-import type { FxShipments } from "./shipments";
-import type { FxDiscounts } from "./discounts";
-import type { FxCustomer } from "./customer";
-import type { FxPayments } from "./payments";
-import type { FxReceipt } from "./receipt";
-import type { FxCapture } from "./capture";
-import type { FxRefund } from "./refund";
-import type { FxStore } from "./store";
-import type { FxItems } from "./items";
-import type { FxVoid } from "./void";
+import type { FxNativeIntegrations } from './native_integrations';
+import type { FxBillingAddresses } from './billing_addresses';
+import type { FxTransactionLogs } from './transaction_logs';
+import type { FxProcessWebhook } from './process_webhook';
+import type { FxAppliedTaxes } from './applied_taxes';
+import type { FxCustomFields } from './custom_fields';
+import type { FxSendEmails } from './send_emails';
+import type { FxAttributes } from './attributes';
+import type { FxShipments } from './shipments';
+import type { FxDiscounts } from './discounts';
+import type { FxCustomer } from './customer';
+import type { FxPayments } from './payments';
+import type { FxReceipt } from './receipt';
+import type { FxCapture } from './capture';
+import type { FxRefund } from './refund';
+import type { FxStore } from './store';
+import type { FxItems } from './items';
+import type { FxVoid } from './void';
 
 export interface FxTransaction {
-  curie: "fx:transaction";
+  curie: 'fx:transaction';
 
   links: {
     /** This resource. */
-    "self": FxTransaction;
+    'self': FxTransaction;
     /** POST here to void this transaction. */
-    "fx:void": FxVoid;
+    'fx:void': FxVoid;
     /** Related store resource. */
-    "fx:store": FxStore;
+    'fx:store': FxStore;
     /** List of items in this transaction. */
-    "fx:items": FxItems;
+    'fx:items': FxItems;
     /** POST here to refund this transaction. */
-    "fx:refund": FxRefund;
+    'fx:refund': FxRefund;
     /** Open this link in a browser to see a receipt for this transaction. */
-    "fx:receipt": FxReceipt;
+    'fx:receipt': FxReceipt;
     /** POST here to capture this transaction. */
-    "fx:capture": FxCapture;
+    'fx:capture': FxCapture;
     /** List of payments for this transaction. */
-    "fx:payments": FxPayments;
+    'fx:payments': FxPayments;
     /** Related customer resource. */
-    "fx:customer": FxCustomer;
+    'fx:customer': FxCustomer;
     /** List of discounts applied to this transaction. */
-    "fx:discounts": FxDiscounts;
+    'fx:discounts': FxDiscounts;
     /** List of shipments for this transaction. */
-    "fx:shipments": FxShipments;
+    'fx:shipments': FxShipments;
     /** List of custom attributes on this transaction. */
-    "fx:attributes": FxAttributes;
+    'fx:attributes': FxAttributes;
     /** POST here to resend emails for this transaction. */
-    "fx:send_emails": FxSendEmails;
+    'fx:send_emails': FxSendEmails;
     /** List of taxes applied to this transaction. */
-    "fx:applied_taxes": FxAppliedTaxes;
+    'fx:applied_taxes': FxAppliedTaxes;
     /** List of custom fields on this transaction. */
-    "fx:custom_fields": FxCustomFields;
+    'fx:custom_fields': FxCustomFields;
     /** POST here to resend the webhook notification for this transaction. */
-    "fx:process_webhook": FxProcessWebhook;
+    'fx:process_webhook': FxProcessWebhook;
     /** Transaction logs. */
-    "fx:transaction_logs": FxTransactionLogs;
+    'fx:transaction_logs': FxTransactionLogs;
     /** List of billing addresses applicable to this transaction. */
-    "fx:billing_addresses": FxBillingAddresses;
+    'fx:billing_addresses': FxBillingAddresses;
     /** POST here to resend transaction to the webhooks. */
-    "fx:native_integrations": FxNativeIntegrations;
+    'fx:native_integrations': FxNativeIntegrations;
   };
 
   props: {
@@ -97,9 +97,9 @@ export interface FxTransaction {
     /** Total amount of this transaction including all items, taxes, shipping costs and discounts. */
     total_order: number;
     /** Used for transactions processed with a hosted payment gateway which can change the status of the transaction after it is originally posted. If the status is empty, a normal payment gateway was used and the transaction should be considered completed. */
-    status: "approved" | "authorized" | "declined" | "pending" | "rejected";
+    status: 'approved' | 'authorized' | 'declined' | 'pending' | 'rejected';
     /** The type of transaction that has occurred. */
-    type: "updateinfo" | "subscription_modification" | "subscription_renewal" | "subscription_cancellation";
+    type: 'updateinfo' | 'subscription_modification' | 'subscription_renewal' | 'subscription_cancellation';
     /** The 3 character ISO code for the currency. */
     currency_code: string;
     /** The currency symbol, such as $, £, €, etc. */

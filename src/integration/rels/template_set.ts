@@ -1,31 +1,31 @@
-import type { FxCartIncludeTemplate } from "./cart_include_template";
-import type { FxLanguageOverrides } from "./language_overrides";
-import type { FxCheckoutTemplate } from "./checkout_template";
-import type { FxReceiptTemplate } from "./receipt_template";
-import type { FxEmailTemplate } from "./email_template";
-import type { FxCartTemplate } from "./cart_template";
-import type { FxStore } from "./store";
+import type { FxCartIncludeTemplate } from './cart_include_template';
+import type { FxLanguageOverrides } from './language_overrides';
+import type { FxCheckoutTemplate } from './checkout_template';
+import type { FxReceiptTemplate } from './receipt_template';
+import type { FxEmailTemplate } from './email_template';
+import type { FxCartTemplate } from './cart_template';
+import type { FxStore } from './store';
 
 export interface FxTemplateSet {
-  curie: "fx:template_set";
+  curie: 'fx:template_set';
 
   links: {
     /** This resource. */
-    "self": FxTemplateSet;
+    'self': FxTemplateSet;
     /** Related store resource. */
-    "fx:store": FxStore;
+    'fx:store': FxStore;
     /** Cart template for this template set. */
-    "fx:cart_template": FxCartTemplate;
+    'fx:cart_template': FxCartTemplate;
     /** Email template for this template set. */
-    "fx:email_template": FxEmailTemplate;
+    'fx:email_template': FxEmailTemplate;
     /** Receipt template for this template set. */
-    "fx:receipt_template": FxReceiptTemplate;
+    'fx:receipt_template': FxReceiptTemplate;
     /** Checkout template for this template set. */
-    "fx:checkout_template": FxCheckoutTemplate;
+    'fx:checkout_template': FxCheckoutTemplate;
     /** Language overrides for this template set. */
-    "fx:language_overrides": FxLanguageOverrides;
+    'fx:language_overrides': FxLanguageOverrides;
     /** Cart include template for this template set. */
-    "fx:cart_include_template": FxCartIncludeTemplate;
+    'fx:cart_include_template': FxCartIncludeTemplate;
   };
 
   props: {

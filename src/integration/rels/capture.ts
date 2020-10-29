@@ -1,5 +1,5 @@
 export interface FxCapture {
-  curie: "fx:capture";
+  curie: 'fx:capture';
   links: never;
   props: never;
 }

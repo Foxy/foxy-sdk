@@ -1,5 +1,5 @@
 export interface FxToken {
-  curie: "fx:token";
+  curie: 'fx:token';
 
   links: never;
 

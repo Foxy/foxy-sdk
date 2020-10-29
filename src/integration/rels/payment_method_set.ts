@@ -1,25 +1,25 @@
-import type { FxPaymentMethodSetHostedPaymentGateways } from "./payment_method_set_hosted_payment_gateways";
-import type { FxPaymentMethodSetFraudProtections } from "./payment_method_set_fraud_protections";
-import type { FxPaymentMethodSets } from "./payment_method_sets";
-import type { FxPaymentGateway } from "./payment_gateway";
-import type { FxStore } from "./store";
+import type { FxPaymentMethodSetHostedPaymentGateways } from './payment_method_set_hosted_payment_gateways';
+import type { FxPaymentMethodSetFraudProtections } from './payment_method_set_fraud_protections';
+import type { FxPaymentMethodSets } from './payment_method_sets';
+import type { FxPaymentGateway } from './payment_gateway';
+import type { FxStore } from './store';
 
 export interface FxPaymentMethodSet {
-  curie: "fx:payment_method_set";
+  curie: 'fx:payment_method_set';
 
   links: {
     /** This resource. */
-    "self": FxPaymentMethodSet;
+    'self': FxPaymentMethodSet;
     /** Store this payment method set belongs to. */
-    "fx:store": FxStore;
+    'fx:store': FxStore;
     /** Payment gateway for this payment method set. */
-    "fx:payment_gateway": FxPaymentGateway;
+    'fx:payment_gateway': FxPaymentGateway;
     /** List of payment method sets for the store. */
-    "fx:payment_method_sets": FxPaymentMethodSets;
+    'fx:payment_method_sets': FxPaymentMethodSets;
     /** Payment method set and fraud protection relationships. */
-    "fx:payment_method_set_fraud_protections": FxPaymentMethodSetFraudProtections;
+    'fx:payment_method_set_fraud_protections': FxPaymentMethodSetFraudProtections;
     /** Payment method set and hosted payment gateways relationships. */
-    "fx:payment_method_set_hosted_payment_gateways": FxPaymentMethodSetHostedPaymentGateways;
+    'fx:payment_method_set_hosted_payment_gateways': FxPaymentMethodSetHostedPaymentGateways;
   };
 
   props: {

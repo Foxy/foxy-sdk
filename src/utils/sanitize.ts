@@ -1,4 +1,4 @@
-import { TraverseContext } from "traverse";
+import { TraverseContext } from 'traverse';
 
 type Mapper = (this: TraverseContext, v: any) => void;
 
@@ -15,7 +15,7 @@ type Mapper = (this: TraverseContext, v: any) => void;
  */
 export function all(...mappers: Mapper[]): Mapper {
   return function (this: TraverseContext, v: any): void {
-    mappers.forEach((mapper) => mapper.call(this, v));
+    mappers.forEach(mapper => mapper.call(this, v));
   };
 }
 
@@ -28,9 +28,9 @@ export function all(...mappers: Mapper[]): Mapper {
  * @example const sanitizedResponse = traverse(response).map(removePrivateAttributes);
  */
 export function removePrivateAttributes(this: TraverseContext, v: any): void {
-  if (this.key === "fx:attributes" && Array.isArray(v)) {
+  if (this.key === 'fx:attributes' && Array.isArray(v)) {
     this.update(
-      v.filter((attr: any) => attr.visibility === "public"),
+      v.filter((attr: any) => attr.visibility === 'public'),
       true
     );
   }
@@ -45,10 +45,10 @@ export function removePrivateAttributes(this: TraverseContext, v: any): void {
  */
 export function removeSensitiveData(this: TraverseContext): void {
   const key = this.key;
-  if (typeof key === "undefined") return;
+  if (typeof key === 'undefined') return;
 
-  const propsToRemove = ["password", "third_party_id"];
-  if (propsToRemove.find((v) => key.startsWith(v))) this.remove();
+  const propsToRemove = ['password', 'third_party_id'];
+  if (propsToRemove.find(v => key.startsWith(v))) this.remove();
 }
 
 /**
@@ -60,7 +60,7 @@ export function removeSensitiveData(this: TraverseContext): void {
  */
 export function removeAllLinksExcept(...linksToKeep: string[]): () => void {
   return function (this: TraverseContext): void {
-    if (typeof this.key !== "undefined" && this.parent?.key === "_links" && linksToKeep.includes(this.key) === false) {
+    if (typeof this.key !== 'undefined' && this.parent?.key === '_links' && linksToKeep.includes(this.key) === false) {
       this.remove();
     }
   };

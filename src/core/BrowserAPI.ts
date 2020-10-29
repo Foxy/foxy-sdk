@@ -1,5 +1,5 @@
-import MemoryStorage from "ministorage";
-import { API, Graph } from "./index";
+import MemoryStorage from 'ministorage';
+import { API, Graph } from './index';
 
 interface BrowserAPICredentials {
   email: string;
@@ -34,11 +34,11 @@ abstract class BrowserAPI<TGraph extends Graph> extends API<TGraph> {
 
 enum BrowserAPIAuthErrorCode {
   /** Credentials are valid, but the session can be created only after changing the current password. This usually happens after a server-side password reset has been initiated for security reasons. */
-  NEW_PASSWORD_REQUIRED = "NEW_PASSWORD_REQUIRED",
+  NEW_PASSWORD_REQUIRED = 'NEW_PASSWORD_REQUIRED',
   /** Credentials are invalid. That could mean empty or invalid email or password or otherwise incorrect auth data. */
-  UNAUTHORIZED = "UNAUTHORIZED",
+  UNAUTHORIZED = 'UNAUTHORIZED',
   /** Any other or internal error that interrupted authentication. */
-  UNKNOWN = "UNKNOWN",
+  UNKNOWN = 'UNKNOWN',
 }
 
 interface BrowserAPIAuthErrorParams {
@@ -48,6 +48,7 @@ interface BrowserAPIAuthErrorParams {
 
 class BrowserAPIAuthError extends Error {
   readonly originalError?: any;
+
   readonly code: BrowserAPIAuthErrorCode;
 
   constructor({ code, originalError }: BrowserAPIAuthErrorParams) {

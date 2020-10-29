@@ -1,5 +1,5 @@
 export interface FxCreateSession {
-  curie: "fx:create_session";
+  curie: 'fx:create_session';
   links: never;
   props: {
     /** Unique session identifier. */

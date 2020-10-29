@@ -1,19 +1,19 @@
-import type { FxItemCategory } from "./item_category";
-import type { FxCoupon } from "./coupon";
-import type { FxStore } from "./store";
+import type { FxItemCategory } from './item_category';
+import type { FxCoupon } from './coupon';
+import type { FxStore } from './store';
 
 export interface FxCouponItemCategory {
-  curie: "fx:coupon_item_category";
+  curie: 'fx:coupon_item_category';
 
   links: {
     /** This resource. */
-    "self": FxCouponItemCategory;
+    'self': FxCouponItemCategory;
     /** Store the coupon belongs to. */
-    "fx:store": FxStore;
+    'fx:store': FxStore;
     /** Coupon this category belongs to. */
-    "fx:coupon": FxCoupon;
+    'fx:coupon': FxCoupon;
     /** Item category this resource links to. */
-    "fx:item_category": FxItemCategory;
+    'fx:item_category': FxItemCategory;
   };
 
   props: {

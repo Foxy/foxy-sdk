@@ -1,19 +1,19 @@
-import type { FxHostedPaymentGateway } from "./hosted_payment_gateway";
-import type { FxPaymentMethodSet } from "./payment_method_set";
-import type { FxStore } from "./store";
+import type { FxHostedPaymentGateway } from './hosted_payment_gateway';
+import type { FxPaymentMethodSet } from './payment_method_set';
+import type { FxStore } from './store';
 
 export interface FxPaymentMethodSetHostedPaymentGateway {
-  curie: "fx:payment_method_set_hosted_payment_gateway";
+  curie: 'fx:payment_method_set_hosted_payment_gateway';
 
   links: {
     /** This resource. */
-    "self": FxPaymentMethodSetHostedPaymentGateway;
+    'self': FxPaymentMethodSetHostedPaymentGateway;
     /** Related store resource. */
-    "fx:store": FxStore;
+    'fx:store': FxStore;
     /** Linked payment method set.  */
-    "fx:payment_method_set": FxPaymentMethodSet;
+    'fx:payment_method_set': FxPaymentMethodSet;
     /** Linked hosted payment gateway. */
-    "fx:hosted_payment_gateway": FxHostedPaymentGateway;
+    'fx:hosted_payment_gateway': FxHostedPaymentGateway;
   };
 
   props: {

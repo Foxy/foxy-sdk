@@ -1,22 +1,22 @@
-import type { FxCouponItemCategories } from "./coupon_item_categories";
-import type { FxGenerateCodes } from "./generate_codes";
-import type { FxCouponCodes } from "./coupon_codes";
-import type { FxStore } from "./store";
+import type { FxCouponItemCategories } from './coupon_item_categories';
+import type { FxGenerateCodes } from './generate_codes';
+import type { FxCouponCodes } from './coupon_codes';
+import type { FxStore } from './store';
 
 export interface FxCoupon {
-  curie: "fx:coupon";
+  curie: 'fx:coupon';
 
   links: {
     /** This resource. */
-    "self": FxCoupon;
+    'self': FxCoupon;
     /** Store this coupon belongs to. */
-    "fx:store": FxStore;
+    'fx:store': FxStore;
     /** Codes linked to this coupon. */
-    "fx:coupon_codes": FxCouponCodes;
+    'fx:coupon_codes': FxCouponCodes;
     /** POST here to generate random coupon codes. */
-    "fx:generate_codes": FxGenerateCodes;
+    'fx:generate_codes': FxGenerateCodes;
     /** Valid item categories for this coupon. */
-    "fx:coupon_item_categories": FxCouponItemCategories;
+    'fx:coupon_item_categories': FxCouponItemCategories;
   };
 
   props: {
@@ -37,7 +37,7 @@ export interface FxCoupon {
     /** If you want to limit which products can use this coupon, you can enter a comma separated listed of product codes or partial product codes using * as a wild card at the beginning or end of the value. So abc123, fun_*, *-small would match abc123, fun_ and fun_times, and example-small. It wouldn't match abc12, abc1234, fun, or good-smalls. */
     product_code_restrictions: string;
     /** This specifies what type of discount will be applied. Will it be a percentage discount or an amount discount based on either the product price or the product quantity? */
-    coupon_discount_type: "quantity_amount" | "quantity_percentage" | "price_amount" | "price_percentage";
+    coupon_discount_type: 'quantity_amount' | 'quantity_percentage' | 'price_amount' | 'price_percentage';
     /** This is the string that determines the tiers and amounts that make up your discount. For example, 2-.50|10-3|50-5 means "between 2 and 9 is discounted by .5 per product, 10 and 49 by 3 per product and 50 and over by 5 per product. If you're doing a quantity discount, it will compare against the quantity of products in the order. If you're doing a price based discount, it will compare against the price of the products in the order. Please see the documentation for more information: {@link http://wiki.foxycart.com/v/2.0/coupons_and_discounts Coupons and Discounts} */
     coupon_discount_details: string;
     /** If this coupon can be combined with other coupons, check this check box. If this box is unchecked, the coupon will not be added to the cart if another coupon is already in the cart. Similarly, if this coupon is added first, no other coupons will be able to be added to the cart. */

@@ -1,13 +1,13 @@
-import type { FxPropertyHelpers } from "./property_helpers";
+import type { FxPropertyHelpers } from './property_helpers';
 
 export interface FxCountries {
-  curie: "fx:countries";
+  curie: 'fx:countries';
 
   links: {
     /** This resource. */
-    "self": FxCountries;
+    'self': FxCountries;
     /** Various pre-defined property values. */
-    "fx:property_helpers": FxPropertyHelpers;
+    'fx:property_helpers': FxPropertyHelpers;
   };
 
   props: {

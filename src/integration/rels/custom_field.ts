@@ -1,16 +1,16 @@
-import type { FxTransaction } from "./transaction";
-import type { FxStore } from "./store";
+import type { FxTransaction } from './transaction';
+import type { FxStore } from './store';
 
 export interface FxCustomField {
-  curie: "fx:custom_field";
+  curie: 'fx:custom_field';
 
   links: {
     /** This resource. */
-    "self": FxCustomField;
+    'self': FxCustomField;
     /** Store this custom field was created in. */
-    "fx:store": FxStore;
+    'fx:store': FxStore;
     /** Transaction this custom field is linked to. */
-    "fx:transaction": FxTransaction;
+    'fx:transaction': FxTransaction;
   };
 
   props: {

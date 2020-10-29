@@ -6,33 +6,33 @@ export interface Graph {
   child?: Graph;
 }
 
-export type Properties<G extends Graph> = G["props"];
-export type Curies<G extends Graph> = keyof G["links"];
-export type Follow<G extends Graph, C extends Curies<G>> = G["links"][C];
+export type Properties<G extends Graph> = G['props'];
+export type Curies<G extends Graph> = keyof G['links'];
+export type Follow<G extends Graph, C extends Curies<G>> = G['links'][C];
 
-type QueryZoomString<TGraph extends Graph> = keyof Required<TGraph["zooms"]>;
+type QueryZoomString<TGraph extends Graph> = keyof Required<TGraph['zooms']>;
 
 type QueryZoomRecord<TGraph extends Graph> = {
-  readonly [Rel in keyof Required<TGraph["zooms"]>]?: QueryZoom<Required<TGraph["zooms"]>[Rel]>;
+  readonly [Rel in keyof Required<TGraph['zooms']>]?: QueryZoom<Required<TGraph['zooms']>[Rel]>;
 };
 
-type QueryZoom<TGraph extends Graph> = Required<TGraph["zooms"]> extends Record<string, Graph>
+type QueryZoom<TGraph extends Graph> = Required<TGraph['zooms']> extends Record<string, Graph>
   ? QueryZoomString<TGraph> | QueryZoomRecord<TGraph> | readonly (QueryZoomString<TGraph> | QueryZoomRecord<TGraph>)[]
   : never;
 
 type QueryOrder<TGraph extends Graph> =
-  | keyof TGraph["props"]
-  | (keyof TGraph["props"] | { readonly [K in keyof TGraph["props"]]?: "asc" | "desc" })[]
-  | { readonly [K in keyof TGraph["props"]]?: "asc" | "desc" };
+  | keyof TGraph['props']
+  | (keyof TGraph['props'] | { readonly [K in keyof TGraph['props']]?: 'asc' | 'desc' })[]
+  | { readonly [K in keyof TGraph['props']]?: 'asc' | 'desc' };
 
-type QueryFields<TGraph extends Graph> = readonly (keyof TGraph["props"])[];
+type QueryFields<TGraph extends Graph> = readonly (keyof TGraph['props'])[];
 
-export type Query<TGraph extends Graph> = TGraph["child"] extends Graph
+export type Query<TGraph extends Graph> = TGraph['child'] extends Graph
   ? {
-      readonly zoom?: QueryZoom<TGraph["child"]>;
-      readonly order?: QueryOrder<TGraph["child"]>;
+      readonly zoom?: QueryZoom<TGraph['child']>;
+      readonly order?: QueryOrder<TGraph['child']>;
       readonly limit?: number;
-      readonly fields?: QueryFields<TGraph["child"]>;
+      readonly fields?: QueryFields<TGraph['child']>;
       readonly offset?: number;
       readonly filters?: string[];
     }
@@ -83,7 +83,7 @@ export type ZoomIn<TQueryZoom, TRel extends PropertyKey> = TQueryZoom extends (i
 
 type Links<TGraph extends Graph> = {
   _links: {
-    [TLink in keyof TGraph["links"]]: {
+    [TLink in keyof TGraph['links']]: {
       templated?: boolean;
       title?: string;
       name?: string;
@@ -92,29 +92,29 @@ type Links<TGraph extends Graph> = {
   };
 };
 
-type FullResponse<TGraph extends Graph> = TGraph["props"];
+type FullResponse<TGraph extends Graph> = TGraph['props'];
 
 type PartialResponse<TGraph extends Graph, TQuery> = TQuery extends Query<TGraph>
-  ? [ArrayItem<TQuery["fields"]>] extends [never]
-    ? TGraph["props"]
-    : ArrayItem<TQuery["fields"]> extends keyof TGraph["props"]
-    ? Pick<TGraph["props"], ArrayItem<TQuery["fields"]>>
-    : TGraph["props"]
-  : TGraph["props"];
+  ? [ArrayItem<TQuery['fields']>] extends [never]
+    ? TGraph['props']
+    : ArrayItem<TQuery['fields']> extends keyof TGraph['props']
+    ? Pick<TGraph['props'], ArrayItem<TQuery['fields']>>
+    : TGraph['props']
+  : TGraph['props'];
 
-type CollectionItems<TGraph extends Graph, TQuery> = TGraph["child"] extends Graph
-  ? { _embedded: Record<TGraph["curie"], ResponseJSON<TGraph["child"], TQuery>[]> }
+type CollectionItems<TGraph extends Graph, TQuery> = TGraph['child'] extends Graph
+  ? { _embedded: Record<TGraph['curie'], ResponseJSON<TGraph['child'], TQuery>[]> }
   : unknown;
 
 type ZoomedResources<TGraph extends Graph, TQuery> = TQuery extends Query<TGraph>
   ? {
       _embedded: IntersectionOfValues<
         {
-          [TRel in Flatten<TQuery["zoom"]> | RequiredPropertyOf<TGraph["zooms"]>]: Record<
-            Required<TGraph["zooms"]>[TRel]["curie"],
-            Required<TGraph["zooms"]>[TRel]["child"] extends Graph
-              ? ResponseJSON<Required<TGraph["zooms"]>[TRel]["child"], { zoom: ZoomIn<TQuery["zoom"], TRel> }>[]
-              : ResponseJSON<Required<TGraph["zooms"]>[TRel], { zoom: ZoomIn<TQuery["zoom"], TRel> }>
+          [TRel in Flatten<TQuery['zoom']> | RequiredPropertyOf<TGraph['zooms']>]: Record<
+            Required<TGraph['zooms']>[TRel]['curie'],
+            Required<TGraph['zooms']>[TRel]['child'] extends Graph
+              ? ResponseJSON<Required<TGraph['zooms']>[TRel]['child'], { zoom: ZoomIn<TQuery['zoom'], TRel> }>[]
+              : ResponseJSON<Required<TGraph['zooms']>[TRel], { zoom: ZoomIn<TQuery['zoom'], TRel> }>
           >;
         }
       >;
@@ -122,19 +122,19 @@ type ZoomedResources<TGraph extends Graph, TQuery> = TQuery extends Query<TGraph
   : {
       _embedded: IntersectionOfValues<
         {
-          [TRel in RequiredPropertyOf<TGraph["zooms"]>]: Record<
-            Required<TGraph["zooms"]>[TRel]["curie"],
-            Required<TGraph["zooms"]>[TRel]["child"] extends Graph
-              ? ResponseJSON<Required<TGraph["zooms"]>[TRel]["child"]>[]
-              : ResponseJSON<Required<TGraph["zooms"]>[TRel]>
+          [TRel in RequiredPropertyOf<TGraph['zooms']>]: Record<
+            Required<TGraph['zooms']>[TRel]['curie'],
+            Required<TGraph['zooms']>[TRel]['child'] extends Graph
+              ? ResponseJSON<Required<TGraph['zooms']>[TRel]['child']>[]
+              : ResponseJSON<Required<TGraph['zooms']>[TRel]>
           >;
         }
       >;
     };
 
 export type ResponseJSON<TGraph extends Graph, TQuery = undefined> = Links<TGraph> &
-  (TGraph["child"] extends Graph ? FullResponse<TGraph> : PartialResponse<TGraph, TQuery>) &
-  (TGraph["child"] extends Graph ? CollectionItems<TGraph, TQuery> : ZoomedResources<TGraph, TQuery>);
+  (TGraph['child'] extends Graph ? FullResponse<TGraph> : PartialResponse<TGraph, TQuery>) &
+  (TGraph['child'] extends Graph ? CollectionItems<TGraph, TQuery> : ZoomedResources<TGraph, TQuery>);
 
 export type CollectionLinks<TGraph extends Graph> = {
   /** This collection. */

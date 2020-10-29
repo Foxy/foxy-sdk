@@ -1,7 +1,7 @@
-import type { FxItem as IntegrationAPIFxItem } from "../../integration/rels/item";
+import type { FxItem as IntegrationAPIFxItem } from '../../integration/rels/item';
 
 export interface FxItem {
-  curie: IntegrationAPIFxItem["curie"];
+  curie: IntegrationAPIFxItem['curie'];
   links: never;
-  props: IntegrationAPIFxItem["props"];
+  props: IntegrationAPIFxItem['props'];
 }

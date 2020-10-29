@@ -1,8 +1,8 @@
-import consola, { Consola, LogLevel } from "consola";
-import { APINode, Graph } from "./index";
+import consola, { Consola, LogLevel } from 'consola';
+import { APINode, Graph } from './index';
 
 interface APIParameters {
-  fetch: Window["fetch"];
+  fetch: Window['fetch'];
   cache: Storage;
   baseURL: URL;
   storage: Storage;
@@ -12,7 +12,7 @@ interface APIParameters {
 interface ResolverParameters {
   path: [URL, ...string[]];
   cache: Storage;
-  fetch: Window["fetch"];
+  fetch: Window['fetch'];
   console: Consola;
 }
 
@@ -22,8 +22,15 @@ export class APIResolutionError extends Error {
   }
 }
 
-const createKey = (path: (string | URL)[]) => path.map((v) => v.toString()).join(" > ");
+const createKey = (path: (string | URL)[]) => path.map(v => v.toString()).join(' > ');
 
+/**
+ * @param root0
+ * @param root0.path
+ * @param root0.cache
+ * @param root0.fetch
+ * @param root0.console
+ */
 async function resolve({ path, cache, fetch, console }: ResolverParameters): Promise<URL> {
   if (path.length === 1) return path[0];
 
@@ -59,18 +66,20 @@ async function resolve({ path, cache, fetch, console }: ResolverParameters): Pro
 
 export class API<TGraph extends Graph> extends APINode<TGraph> {
   readonly baseURL: URL;
+
   readonly storage: Storage;
+
   readonly console: Consola;
 
   constructor({ cache, fetch, storage, baseURL, logLevel }: APIParameters) {
     super({
-      resolve: (path) => resolve({ path, fetch, cache, ...this }),
+      resolve: path => resolve({ path, fetch, cache, ...this }),
       fetch,
       path: [baseURL],
     });
 
     this.baseURL = baseURL;
     this.storage = storage;
-    this.console = consola.create({ level: logLevel }).withTag("@foxy.io/sdk");
+    this.console = consola.create({ level: logLevel }).withTag('@foxy.io/sdk');
   }
 }

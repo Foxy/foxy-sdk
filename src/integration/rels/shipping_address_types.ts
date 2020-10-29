@@ -1,13 +1,13 @@
-import type { FxPropertyHelpers } from "./property_helpers";
+import type { FxPropertyHelpers } from './property_helpers';
 
 export interface FxShippingAddressTypes {
-  curie: "fx:shipping_address_types";
+  curie: 'fx:shipping_address_types';
 
   links: {
     /** This resource. */
-    "self": FxShippingAddressTypes;
+    'self': FxShippingAddressTypes;
     /** Various predefined property values. */
-    "fx:property_helpers": FxPropertyHelpers;
+    'fx:property_helpers': FxPropertyHelpers;
   };
 
   props: {

@@ -1,37 +1,37 @@
-import type { FxStoreShippingServices } from "./store_shipping_services";
-import type { FxShippingContainers } from "./shipping_containers";
-import type { FxShippingDropTypes } from "./shipping_drop_types";
-import type { FxShippingContainer } from "./shipping_container";
-import type { FxShippingServices } from "./shipping_services";
-import type { FxShippingDropType } from "./shipping_drop_type";
-import type { FxShippingMethods } from "./shipping_methods";
-import type { FxShippingMethod } from "./shipping_method";
-import type { FxStore } from "./store";
+import type { FxStoreShippingServices } from './store_shipping_services';
+import type { FxShippingContainers } from './shipping_containers';
+import type { FxShippingDropTypes } from './shipping_drop_types';
+import type { FxShippingContainer } from './shipping_container';
+import type { FxShippingServices } from './shipping_services';
+import type { FxShippingDropType } from './shipping_drop_type';
+import type { FxShippingMethods } from './shipping_methods';
+import type { FxShippingMethod } from './shipping_method';
+import type { FxStore } from './store';
 
 export interface FxStoreShippingMethod {
-  curie: "fx:store_shipping_method";
+  curie: 'fx:store_shipping_method';
 
   links: {
     /** This resource. */
-    "self": FxStoreShippingMethod;
+    'self': FxStoreShippingMethod;
     /** Related store resource. */
-    "fx:store": FxStore;
+    'fx:store': FxStore;
     /** Related shipping method resource. */
-    "fx:shipping_method": FxShippingMethod;
+    'fx:shipping_method': FxShippingMethod;
     /** List of all available shipping methods. */
-    "fx:shipping_methods": FxShippingMethods;
+    'fx:shipping_methods': FxShippingMethods;
     /** List of all available shipping services. */
-    "fx:shipping_services": FxShippingServices;
+    'fx:shipping_services': FxShippingServices;
     /** Shipping container linked to this shipping method. */
-    "fx:shipping_container": FxShippingContainer;
+    'fx:shipping_container': FxShippingContainer;
     /** Shipping drop type linked to this shipping method. */
-    "fx:shipping_drop_type": FxShippingDropType;
+    'fx:shipping_drop_type': FxShippingDropType;
     /** List of all available shipping containers for this shipping method. */
-    "fx:shipping_containers": FxShippingContainers;
+    'fx:shipping_containers': FxShippingContainers;
     /** List of all available shipping drop types for this shipping method. */
-    "fx:shipping_drop_types": FxShippingDropTypes;
+    'fx:shipping_drop_types': FxShippingDropTypes;
     /** Available shipping services for this shipping method. */
-    "fx:store_shipping_services": FxStoreShippingServices;
+    'fx:store_shipping_services': FxStoreShippingServices;
   };
 
   props: {
@@ -56,7 +56,7 @@ export interface FxStoreShippingMethod {
     /** For the `CUSTOM-CODE` shipping method. JavaScript used to create and modify shipping rates. */
     custom_code: string;
     /** For the `CUSTOM-CODE` shipping method. Values are `deploying`, `deployed`, and `error`. */
-    deployment_status: "deploying" | "deployed" | "error";
+    deployment_status: 'deploying' | 'deployed' | 'error';
     /** The date this resource was created. */
     date_created: string;
     /** The date this resource was last modified. */

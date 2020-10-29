@@ -1,19 +1,19 @@
-import type { FxLanguageOverrides } from "./language_overrides";
-import type { FxTemplateSet } from "./template_set";
-import type { FxStore } from "./store";
+import type { FxLanguageOverrides } from './language_overrides';
+import type { FxTemplateSet } from './template_set';
+import type { FxStore } from './store';
 
 export interface FxLanguageOverride {
-  curie: "fx:language_override";
+  curie: 'fx:language_override';
 
   links: {
     /** This resource. */
-    "self": FxLanguageOverride;
+    'self': FxLanguageOverride;
     /** Store this language override is registered in. */
-    "fx:store": FxStore;
+    'fx:store': FxStore;
     /** Template set this language override belongs to. */
-    "fx:template_set": FxTemplateSet;
+    'fx:template_set': FxTemplateSet;
     /** List of all language overrides in the template set. */
-    "fx:language_overrides": FxLanguageOverrides;
+    'fx:language_overrides': FxLanguageOverrides;
   };
 
   props: {

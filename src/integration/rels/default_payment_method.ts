@@ -1,16 +1,16 @@
-import type { FxCustomer } from "./customer";
-import type { FxStore } from "./store";
+import type { FxCustomer } from './customer';
+import type { FxStore } from './store';
 
 export interface FxDefaultPaymentMethod {
-  curie: "fx:default_payment_method";
+  curie: 'fx:default_payment_method';
 
   links: {
     /** This resource. */
-    "self": FxDefaultPaymentMethod;
+    'self': FxDefaultPaymentMethod;
     /** Store the customer is registered in. */
-    "fx:store": FxStore;
+    'fx:store': FxStore;
     /** Customer using this payment method as default. */
-    "fx:customer": FxCustomer;
+    'fx:customer': FxCustomer;
   };
 
   props: {

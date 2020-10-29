@@ -1,22 +1,22 @@
-import type { FxShippingDropTypes } from "./shipping_drop_types";
-import type { FxPropertyHelpers } from "./property_helpers";
-import type { FxShippingMethods } from "./shipping_methods";
-import type { FxShippingMethod } from "./shipping_method";
+import type { FxShippingDropTypes } from './shipping_drop_types';
+import type { FxPropertyHelpers } from './property_helpers';
+import type { FxShippingMethods } from './shipping_methods';
+import type { FxShippingMethod } from './shipping_method';
 
 export interface FxShippingDropType {
-  curie: "fx:shipping_drop_type";
+  curie: 'fx:shipping_drop_type';
 
   links: {
     /** This resource. */
-    "self": FxShippingDropType;
+    'self': FxShippingDropType;
     /** Shipping method that will be used to deliver this container. */
-    "fx:shipping_method": FxShippingMethod;
+    'fx:shipping_method': FxShippingMethod;
     /** List of all available shipping methods. */
-    "fx:shipping_methods": FxShippingMethods;
+    'fx:shipping_methods': FxShippingMethods;
     /** Various predefined property values. */
-    "fx:property_helpers": FxPropertyHelpers;
+    'fx:property_helpers': FxPropertyHelpers;
     /** List of all drop types for the shipping method. */
-    "fx:shipping_drop_types": FxShippingDropTypes;
+    'fx:shipping_drop_types': FxShippingDropTypes;
   };
 
   props: {

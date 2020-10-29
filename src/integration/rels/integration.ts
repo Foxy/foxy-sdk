@@ -1,19 +1,19 @@
-import type { FxClient } from "./client";
-import type { FxStore } from "./store";
-import type { FxUser } from "./user";
+import type { FxClient } from './client';
+import type { FxStore } from './store';
+import type { FxUser } from './user';
 
 export interface FxIntegration {
-  curie: "fx:integration";
+  curie: 'fx:integration';
 
   links: {
     /** This resource. */
-    "self": FxIntegration;
+    'self': FxIntegration;
     /** Admin user who created this integration. */
-    "fx:user": FxUser;
+    'fx:user': FxUser;
     /** Store this integration is assigned to. */
-    "fx:store": FxStore;
+    'fx:store': FxStore;
     /** API client details. */
-    "fx:client": FxClient;
+    'fx:client': FxClient;
   };
 
   props: {

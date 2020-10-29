@@ -1,25 +1,25 @@
-import type { FxTransactionLogDetails } from "./transaction_log_details";
-import type { FxTransaction } from "./transaction";
-import type { FxCustomer } from "./customer";
-import type { FxStore } from "./store";
-import type { FxUser } from "./user";
+import type { FxTransactionLogDetails } from './transaction_log_details';
+import type { FxTransaction } from './transaction';
+import type { FxCustomer } from './customer';
+import type { FxStore } from './store';
+import type { FxUser } from './user';
 
 export interface FxTransactionLog {
-  curie: "fx:transaction_logs";
+  curie: 'fx:transaction_logs';
 
   links: {
     /** This resource. */
-    "self": FxTransactionLog;
+    'self': FxTransactionLog;
     /** Related user resource. */
-    "fx:user": FxUser;
+    'fx:user': FxUser;
     /** Relared store resource. */
-    "fx:store": FxStore;
+    'fx:store': FxStore;
     /** Related customer resource. */
-    "fx:customer": FxCustomer;
+    'fx:customer': FxCustomer;
     /** Related transaction resource. */
-    "fx:transaction": FxTransaction;
+    'fx:transaction': FxTransaction;
     /** List of detailed entries for this log. */
-    "fx:transaction_log_details": FxTransactionLogDetails;
+    'fx:transaction_log_details': FxTransactionLogDetails;
   };
 
   props: {

@@ -1,13 +1,13 @@
-import type { FxStore } from "./store";
+import type { FxStore } from './store';
 
 export interface FxErrorEntry {
-  curie: "fx:error_entry";
+  curie: 'fx:error_entry';
 
   links: {
     /** This resource. */
-    "self": FxErrorEntry;
+    'self': FxErrorEntry;
     /** Store this error entry was created in. */
-    "fx:store": FxStore;
+    'fx:store': FxStore;
   };
 
   props: {

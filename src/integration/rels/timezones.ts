@@ -1,13 +1,13 @@
-import type { FxPropertyHelpers } from "./property_helpers";
+import type { FxPropertyHelpers } from './property_helpers';
 
 export interface FxTimezones {
-  curie: "fx:timezones";
+  curie: 'fx:timezones';
 
   links: {
     /** This resource. */
-    "self": FxTimezones;
+    'self': FxTimezones;
     /** Various predefined property values. */
-    "fx:property_helpers": FxPropertyHelpers;
+    'fx:property_helpers': FxPropertyHelpers;
   };
 
   props: {

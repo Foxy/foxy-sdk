@@ -1,25 +1,25 @@
-import type { FxShippingServices } from "./shipping_services";
-import type { FxShippingMethods } from "./shipping_methods";
-import type { FxShippingService } from "./shipping_service";
-import type { FxShippingMethod } from "./shipping_method";
-import type { FxStore } from "./store";
+import type { FxShippingServices } from './shipping_services';
+import type { FxShippingMethods } from './shipping_methods';
+import type { FxShippingService } from './shipping_service';
+import type { FxShippingMethod } from './shipping_method';
+import type { FxStore } from './store';
 
 export interface FxStoreShippingService {
-  curie: "fx:store_shipping_service";
+  curie: 'fx:store_shipping_service';
 
   links: {
     /** This resource. */
-    "self": FxStoreShippingService;
+    'self': FxStoreShippingService;
     /** Related store resource. */
-    "fx:store": FxStore;
+    'fx:store': FxStore;
     /** Shipping method linked to this shipping service. */
-    "fx:shipping_method": FxShippingMethod;
+    'fx:shipping_method': FxShippingMethod;
     /** Related shipping service. */
-    "fx:shipping_service": FxShippingService;
+    'fx:shipping_service': FxShippingService;
     /** List of all available shipping methods. */
-    "fx:shipping_methods": FxShippingMethods;
+    'fx:shipping_methods': FxShippingMethods;
     /** List of all available shipping services for this shipping method. */
-    "fx:shipping_services": FxShippingServices;
+    'fx:shipping_services': FxShippingServices;
   };
 
   props: {

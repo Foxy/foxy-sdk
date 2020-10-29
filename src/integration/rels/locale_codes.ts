@@ -1,13 +1,13 @@
-import type { FxPropertyHelpers } from "./property_helpers";
+import type { FxPropertyHelpers } from './property_helpers';
 
 export interface FxLocaleCodes {
-  curie: "fx:locale_codes";
+  curie: 'fx:locale_codes';
 
   links: {
     /** This resource. */
-    "self": FxLocaleCodes;
+    'self': FxLocaleCodes;
     /** Various predefined property values. */
-    "fx:property_helpers": FxPropertyHelpers;
+    'fx:property_helpers': FxPropertyHelpers;
   };
 
   props: {
