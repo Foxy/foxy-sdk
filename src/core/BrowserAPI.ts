@@ -17,16 +17,29 @@ abstract class BrowserAPI<TGraph extends Graph> extends API<TGraph> {
   constructor(params: BrowserAPIParameters) {
     super({
       storage: params.storage ?? new MemoryStorage(),
-      baseURL: params.baseURL,
+      base: params.baseURL,
       fetch: (...args) => this.fetch(...args),
       cache: params.cache ?? new MemoryStorage(),
     });
   }
 
-  abstract fetch(input: RequestInfo, init?: RequestInit): Promise<Response>;
-
+  /**
+   * Authenticates a user based on the provided credentials. Child classes
+   * must implement this method to support authentication.
+   *
+   * @param credentials Email, password and optionally new password.
+   * @throws {BrowserAPIAuthError}
+   */
   abstract signIn(credentials: BrowserAPICredentials): Promise<void>;
 
+  /**
+   * Initiates password recovery process by sending a password reset
+   * email to the provided address. The user might receive a one-time
+   * code or a temporary password as a result – implementation details
+   * may vary.
+   *
+   * @param email Email address to send the password reset email to.
+   */
   abstract sendPasswordResetEmail(email: string): Promise<void>;
 
   abstract signOut(): Promise<void>;

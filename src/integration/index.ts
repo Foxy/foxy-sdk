@@ -42,10 +42,10 @@ class IntegrationAPI extends API<IntegrationAPIGraph> {
 
   constructor(params: IntegrationAPIInit) {
     super({
-      logLevel: params.logLevel,
+      level: params.logLevel,
       storage: params.storage ?? new MemoryStorage(),
-      baseURL: params.baseURL ?? IntegrationAPI.BASE_URL,
-      fetch: (...args) => this.fetch(...args),
+      base: params.baseURL ?? IntegrationAPI.BASE_URL,
+      fetch: (...args) => this.__fetch(...args),
       cache: params.cache ?? new MemoryStorage(),
     });
 
@@ -55,7 +55,7 @@ class IntegrationAPI extends API<IntegrationAPIGraph> {
     this.version = params.version ?? IntegrationAPI.VERSION;
   }
 
-  async fetch(input: RequestInfo, init?: RequestInit): Promise<Response> {
+  private async __fetch(input: RequestInfo, init?: RequestInit): Promise<Response> {
     let token = JSON.parse(this.storage.getItem(IntegrationAPI.ACCESS_TOKEN) ?? 'null') as LocalToken | null;
 
     if (token !== null) {
@@ -72,7 +72,7 @@ class IntegrationAPI extends API<IntegrationAPIGraph> {
     if (token === null) {
       const headers = new Headers();
       const body = new URLSearchParams();
-      const url = new URL('token', this.baseURL).toString();
+      const url = new URL('token', this.base).toString();
 
       headers.set('FOXY-API-VERSION', this.version);
       headers.set('Content-Type', 'application/x-www-form-urlencoded');

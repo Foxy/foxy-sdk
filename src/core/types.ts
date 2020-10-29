@@ -16,18 +16,18 @@ type QueryZoomRecord<TGraph extends Graph> = {
   readonly [Rel in keyof Required<TGraph['zooms']>]?: QueryZoom<Required<TGraph['zooms']>[Rel]>;
 };
 
-type QueryZoom<TGraph extends Graph> = Required<TGraph['zooms']> extends Record<string, Graph>
+export type QueryZoom<TGraph extends Graph = never> = Required<TGraph['zooms']> extends Record<string, Graph>
   ? QueryZoomString<TGraph> | QueryZoomRecord<TGraph> | readonly (QueryZoomString<TGraph> | QueryZoomRecord<TGraph>)[]
   : never;
 
-type QueryOrder<TGraph extends Graph> =
+export type QueryOrder<TGraph extends Graph = never> =
   | keyof TGraph['props']
   | (keyof TGraph['props'] | { readonly [K in keyof TGraph['props']]?: 'asc' | 'desc' })[]
   | { readonly [K in keyof TGraph['props']]?: 'asc' | 'desc' };
 
 type QueryFields<TGraph extends Graph> = readonly (keyof TGraph['props'])[];
 
-export type Query<TGraph extends Graph> = TGraph['child'] extends Graph
+export type Query<TGraph extends Graph = never> = TGraph['child'] extends Graph
   ? {
       readonly zoom?: QueryZoom<TGraph['child']>;
       readonly order?: QueryOrder<TGraph['child']>;

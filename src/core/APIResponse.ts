@@ -1,31 +1,34 @@
+import { APINodeInit, APIResponseNode, Graph, Query, ResponseJSON } from './index';
+import { Consola } from 'consola';
 import { Response } from 'cross-fetch';
-import { APINodeParameters, APIResponseNode, Graph, Query, ResponseJSON } from './index';
 
-type APIResponseParameters = Omit<APINodeParameters, 'path'> & { response: Response };
+export type APIResponseInit = Omit<APINodeInit, 'path'> & { response: Response };
 
-class APIResponse<G extends Graph, Q extends Query<G> | undefined = undefined> extends Response {
-  protected _path: [URL, ...string[]];
+export class APIResponse<G extends Graph, Q extends Query<G> | undefined = undefined> extends Response {
+  /** Shared [Consola](https://github.com/nuxt-contrib/consola) instance. */
+  protected readonly _console: Consola;
 
-  protected _fetch: Window['fetch'];
+  /** Custom Fetch API implementation for making authenticated requests. */
+  protected readonly _fetch: Window['fetch'];
 
-  protected _resolve: (path: [URL, ...string[]]) => Promise<URL>;
+  /** Resolver cache implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API). */
+  protected readonly _cache: Storage;
 
-  constructor({ response, resolve, fetch }: APIResponseParameters) {
+  constructor({ response, console, fetch, cache }: APIResponseInit) {
     super(response.body, response);
 
-    this._resolve = resolve;
+    this._console = console;
     this._fetch = fetch;
-    this._path = [new URL(response.url)];
+    this._cache = cache;
   }
 
   async node(): Promise<APIResponseNode<G, Q>> {
     const json = await super.json();
-    return new APIResponseNode<G, Q>({ resolve: this._resolve, fetch: this._fetch, json });
+    const config = { cache: this._cache, console: this._console, fetch: this._fetch };
+    return new APIResponseNode({ json, ...config });
   }
 
   json(): Promise<ResponseJSON<G, Q>> {
     return super.json();
   }
 }
-
-export { APIResponse };

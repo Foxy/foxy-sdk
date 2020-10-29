@@ -10,35 +10,34 @@ import { AuthClass } from '@aws-amplify/auth/lib/Auth';
 import { IntegrationAPIGraph } from '../integration/rels';
 import { fetch } from 'cross-fetch';
 
-type AuthChallenge =
-  | 'SMS_MFA'
-  | 'SOFTWARE_TOKEN_MFA'
-  | 'SELECT_MFA_TYPE'
-  | 'MFA_SETUP'
-  | 'PASSWORD_VERIFIER'
-  | 'CUSTOM_CHALLENGE'
-  | 'DEVICE_SRP_AUTH'
-  | 'DEVICE_PASSWORD_VERIFIER'
-  | 'ADMIN_NO_SRP_AUTH'
-  | 'NEW_PASSWORD_REQUIRED';
-
+/**
+ * Admin API provides a common interface for the `/s/admin` endpoints, whether
+ * it's a default setup or a custom solution for your integration. Admin API
+ * is the most feature-rich subset of Integration API available from the browser.
+ */
 class AdminAPI extends BrowserAPI<IntegrationAPIGraph> {
-  readonly auth: AuthClass;
+  private readonly __auth: AuthClass;
 
+  /**
+   * Creates an instance of {@link AdminAPI}.
+   *
+   * @param params Client configuration (same as for {@link BrowserAPI}).
+   */
   constructor(params: BrowserAPIParameters) {
     super(params);
 
-    this.auth = new AuthClass({
-      identityPoolId: 'us-east-2:6e3cb428-0e77-495e-9960-f4ab46d4dca1', // TODO: change to production value
-      region: 'us-east-2', // TODO: change to production value
+    // TODO: change to production value
+    this.__auth = new AuthClass({
+      identityPoolId: 'us-east-2:6e3cb428-0e77-495e-9960-f4ab46d4dca1',
+      region: 'us-east-2',
       storage: params.storage,
-      userPoolId: 'us-east-2_2Vw7tMmLQ', // TODO: change to production value
-      userPoolWebClientId: '2i58qs1u38kv605rm3v5t4dake', // TODO: change to production value
+      userPoolId: 'us-east-2_2Vw7tMmLQ',
+      userPoolWebClientId: '2i58qs1u38kv605rm3v5t4dake',
     });
   }
 
   async fetch(input: RequestInfo, init?: RequestInit): Promise<Response> {
-    const session = await this.auth.currentSession().catch(() => null);
+    const session = await this.__auth.currentSession().catch(() => null);
     const headers = new Headers(init?.headers);
     const method = init?.method?.toUpperCase() ?? 'GET';
     const url = typeof input === 'string' ? input : input.url;
@@ -51,10 +50,10 @@ class AdminAPI extends BrowserAPI<IntegrationAPIGraph> {
   }
 
   async signIn(credentials: BrowserAPICredentials): Promise<void> {
-    let user: any;
+    let user: { challengeName: string; challengeParam: Record<string, unknown> };
 
     try {
-      user = await this.auth.signIn(credentials.email, credentials.password);
+      user = await this.__auth.signIn(credentials.email, credentials.password);
     } catch (err) {
       throw new BrowserAPIAuthError({
         code: BrowserAPIAuthErrorCode.UNAUTHORIZED,
@@ -62,10 +61,10 @@ class AdminAPI extends BrowserAPI<IntegrationAPIGraph> {
       });
     }
 
-    if ((user.challengeName as AuthChallenge) === 'NEW_PASSWORD_REQUIRED') {
+    if (user.challengeName === 'NEW_PASSWORD_REQUIRED') {
       if (credentials.newPassword) {
         try {
-          await this.auth.completeNewPassword(user, credentials.newPassword, user.challengeParam.requiredAttributes);
+          await this.__auth.completeNewPassword(user, credentials.newPassword, user.challengeParam.requiredAttributes);
         } catch (err) {
           throw new BrowserAPIAuthError({
             code: BrowserAPIAuthErrorCode.UNKNOWN,
@@ -80,7 +79,7 @@ class AdminAPI extends BrowserAPI<IntegrationAPIGraph> {
 
   async sendPasswordResetEmail(email: string): Promise<void> {
     try {
-      await this.auth.forgotPassword(email);
+      await this.__auth.forgotPassword(email);
     } catch (err) {
       throw new BrowserAPIAuthError({
         code: BrowserAPIAuthErrorCode.UNKNOWN,
@@ -90,7 +89,7 @@ class AdminAPI extends BrowserAPI<IntegrationAPIGraph> {
   }
 
   async signOut(): Promise<void> {
-    await this.auth.signOut();
+    await this.__auth.signOut();
     this.storage.clear();
   }
 }

@@ -1,85 +1,93 @@
-import consola, { Consola, LogLevel } from 'consola';
 import { APINode, Graph } from './index';
+import consola, { Consola, LogLevel } from 'consola';
 
-interface APIParameters {
-  fetch: Window['fetch'];
-  cache: Storage;
-  baseURL: URL;
+/** Chain of curies leading to a hAPI resource starting with a base URL. */
+export type APICurieChain = [URL, ...string[]];
+
+/** API constructor parameters. */
+export type APIInit = {
+  /**
+   * Credentials storage implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API).
+   * Access tokens and other related info will be stored here.
+   */
   storage: Storage;
-  logLevel?: LogLevel;
-}
 
-interface ResolverParameters {
-  path: [URL, ...string[]];
-  cache: Storage;
+  /**
+   * Numeric [Consola](https://github.com/nuxt-contrib/consola) log level.
+   * If omitted, Consola defaults will be used.
+   */
+  level?: LogLevel;
+
+  /**
+   * Request handler implementing [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).
+   * This function will be called whenever a resource is requested (during the resolution process as well).
+   */
   fetch: Window['fetch'];
-  console: Consola;
-}
 
-export class APIResolutionError extends Error {
-  constructor(public readonly response: Response) {
-    super();
-  }
-}
+  /**
+   * Resolver cache implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API).
+   * Every resolved path will be stored here for future use.
+   */
+  cache: Storage;
 
-const createKey = (path: (string | URL)[]) => path.map(v => v.toString()).join(' > ');
+  /**
+   * Bookmark [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) for this API.
+   * This is where the tree traversal begins. We also use this URL as a base for relative paths.
+   */
+  base: URL;
+};
 
 /**
- * @param root0
- * @param root0.path
- * @param root0.cache
- * @param root0.fetch
- * @param root0.console
+ * Base API class for all custom clients in this SDK. If you're building
+ * your own client, consider extending this class for consistency.
  */
-async function resolve({ path, cache, fetch, console }: ResolverParameters): Promise<URL> {
-  if (path.length === 1) return path[0];
-
-  const [baseURL, curie] = path;
-  const key = createKey([baseURL, curie]);
-
-  console.trace(`Trying to resolve ${key}...`);
-  const cachedURL = cache.getItem(createKey([baseURL, curie]));
-
-  if (cachedURL) {
-    console.success(`Resolved ${key} to ${cachedURL.toString()} using cache.`);
-    const reducedPath = [new URL(cachedURL), ...path.slice(2)] as [URL, ...string[]];
-    return resolve({ path: reducedPath, cache, fetch, console });
-  }
-
-  const response = await fetch(baseURL.toString());
-
-  if (response.ok) {
-    const json = await response.json();
-    const url = new URL(json._links[curie].href);
-    const reducedPath = [url, ...path.slice(2)] as [URL, ...string[]];
-
-    cache.setItem(key, url.toString());
-    console.trace(`Cached ${url.toString()} for ${key}.`);
-    console.success(`Resolved ${key} to ${url.toString()} online.`);
-
-    return resolve({ path: reducedPath, cache, fetch, console });
-  } else {
-    console.error(`Failed to resolve ${key}.`);
-    throw new APIResolutionError(response);
-  }
-}
-
-export class API<TGraph extends Graph> extends APINode<TGraph> {
-  readonly baseURL: URL;
-
-  readonly storage: Storage;
-
+export class API<G extends Graph> extends APINode<G> {
+  /**
+   * [Consola](https://github.com/nuxt-contrib/consola) instance.
+   * If you extend this class and add logging in your code, use this instead of native console.
+   */
   readonly console: Consola;
 
-  constructor({ cache, fetch, storage, baseURL, logLevel }: APIParameters) {
+  /**
+   * Credentials storage implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API).
+   * Access tokens and other related info will be stored here. Clearing this storage will log you out.
+   */
+  readonly storage: Storage;
+
+  /**
+   * Resolver cache implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API).
+   * Every resolved path will be stored here for future use. You can clear this cache by calling `clear()`.
+   */
+  readonly cache: Storage;
+
+  /**
+   * Bookmark [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) for this API.
+   * This is where the tree traversal begins. We also use this URL as a base for relative paths.
+   */
+  readonly base: URL;
+
+  constructor(init: APIInit) {
     super({
-      resolve: path => resolve({ path, fetch, cache, ...this }),
-      fetch,
-      path: [baseURL],
+      cache: init.cache,
+      console: consola.create({ level: init.level }).withTag('@foxy.io/sdk'),
+      fetch: init.fetch,
+      path: [init.base],
     });
 
-    this.baseURL = baseURL;
-    this.storage = storage;
-    this.console = consola.create({ level: logLevel }).withTag('@foxy.io/sdk');
+    this.console = this._console;
+    this.storage = init.storage;
+    this.cache = this._cache;
+    this.base = init.base;
+  }
+
+  /**
+   * Makes a raw and, if possible, authenticated request to the API.
+   * This method implements native [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).
+   *
+   * @param args Fetch API arguments (url and request parameters).
+   * @returns Fetch API response.
+   */
+  async fetch(...args: Parameters<Window['fetch']>): ReturnType<Window['fetch']> {
+    return this._fetch(...args);
   }
 }

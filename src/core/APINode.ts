@@ -1,7 +1,5 @@
-import ow from 'ow';
-import { Request } from 'cross-fetch';
-
 import {
+  APICurieChain,
   APIResponse,
   Curies,
   Flatten,
@@ -13,19 +11,60 @@ import {
   RequiredPropertyOf,
   ResponseJSON,
   ZoomIn,
+  isQuery,
 } from './index';
 
-export interface APINodeParameters {
-  path: [URL, ...string[]];
+import { APIResolutionError } from './APIResolutionError';
+import { Consola } from 'consola';
+import { Request } from 'cross-fetch';
+import ow from 'ow';
+import { QueryOrder, QueryZoom } from './types';
+
+type FlatZoom<G extends Graph, Q> = Q extends Query<G> ? Flatten<Q['zoom']> : never;
+type DeepZoom<G extends Graph, Q, R extends PropertyKey> = Q extends Query<G> ? { zoom: ZoomIn<Q['zoom'], R> } : never;
+
+type EmbeddedRels<G extends Graph, Q> = FlatZoom<G, Q> | RequiredPropertyOf<G['zooms']>;
+type EmbeddedGraph<G extends Graph, R extends PropertyKey> = Required<G['zooms']>[R];
+
+type EmbeddedNodes<G extends Graph, Q = undefined> = G['child'] extends Graph
+  ? Record<G['curie'], APIResponseNode<G['child'], Q>[]>
+  : IntersectionOfValues<
+      {
+        [R in EmbeddedRels<G, Q>]: Record<
+          EmbeddedGraph<G, R>['curie'],
+          EmbeddedGraph<G, R>['child'] extends Graph
+            ? APIResponseNode<EmbeddedGraph<G, R>['child'], DeepZoom<G, Q, R>>[]
+            : APIResponseNode<EmbeddedGraph<G, R>, DeepZoom<G, Q, R>>
+        >;
+      }
+    >;
+
+/** Options of {@link APINode} constructor. */
+export type APINodeInit = {
+  /** Path to this resource node as base URL followed by a list of curies. */
+  path: APICurieChain;
+  /** Custom Fetch API implementation for making authenticated requests. */
   fetch: Window['fetch'];
-  resolve: (path: [URL, ...string[]]) => Promise<URL>;
-}
+  /** Resolver cache implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API). */
+  cache: Storage;
+  /** Shared [Consola](https://github.com/nuxt-contrib/consola) instance. */
+  console: Consola;
+};
+
+/** Options of {@link APIResponseNode} constructor. */
+export type APIResponseNodeInit<G extends Graph, Q> = Omit<APINodeInit, 'path'> & {
+  /** Resource data received with the API response. */
+  json: ResponseJSON<G, Q>;
+};
 
 /**
- * @param prefix
- * @param zoom
+ * Serializes object zoom definition using hAPI format.
+ *
+ * @param prefix Curie prefix.
+ * @param zoom Zoom definition as object.
+ * @returns Serialized zoom parameter value.
  */
-function stringifyZoom(prefix: string, zoom: any): string {
+function stringifyZoom(prefix: string, zoom: QueryZoom): string {
   const scope = prefix === '' ? '' : prefix + ':';
 
   if (typeof zoom === 'string') return scope + zoom;
@@ -37,9 +76,12 @@ function stringifyZoom(prefix: string, zoom: any): string {
 }
 
 /**
- * @param order
+ * Serializes object order definition using hAPI format.
+ *
+ * @param order Order definition as object.
+ * @returns Serialized order parameter value.
  */
-function stringifyOrder(order: any): string {
+function stringifyOrder(order: QueryOrder): string {
   if (typeof order === 'string') return order;
 
   if (Array.isArray(order)) {
@@ -51,54 +93,46 @@ function stringifyOrder(order: any): string {
     .join();
 }
 
-const isOrderRecord = ow.object.valuesOfType(ow.string.oneOf(['asc', 'desc']));
-const isOrderArray = ow.array.ofType(ow.any(ow.string, isOrderRecord));
-const isZoom = ow.any(ow.string, ow.array.is(validateZoomArray), ow.object.is(validateZoomRecord));
-
 /**
- * @param zoom
+ * Base class representing a resource node that can be fetched,
+ * created, updated or deleted. You shouldn't need to create instances
+ * of this class unless you're building a custom API client with our SDK.
  */
-function validateZoomArray(zoom: any): zoom is unknown[] {
-  return ow.isValid(zoom, ow.array.ofType(ow.any(ow.string, ow.object.is(validateZoomRecord))));
-}
-
-/**
- * @param zoom
- */
-function validateZoomRecord(zoom: any): zoom is Record<string, unknown> {
-  return ow.isValid(zoom, ow.object.valuesOfType(isZoom));
-}
-
-const isQuery = {
-  filters: ow.optional.array.ofType(ow.string),
-  fields: ow.optional.array.ofType(ow.string),
-  offset: ow.optional.number.integer.greaterThanOrEqual(0),
-  limit: ow.optional.number.integer.greaterThanOrEqual(0),
-  order: ow.any(ow.undefined, ow.string, isOrderRecord, isOrderArray),
-  zoom: ow.any(ow.undefined, isZoom),
-};
-
 export class APINode<G extends Graph> {
-  protected _path: [URL, ...string[]];
+  /** Shared [Consola](https://github.com/nuxt-contrib/consola) instance. */
+  protected readonly _console: Consola;
 
-  protected _fetch: Window['fetch'];
+  /** Custom Fetch API implementation for making authenticated requests. */
+  protected readonly _fetch: Window['fetch'];
 
-  protected _resolve: (path: [URL, ...string[]]) => Promise<URL>;
+  /** Resolver cache implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API). */
+  protected readonly _cache: Storage;
 
-  constructor({ path, fetch, resolve }: APINodeParameters) {
+  /** Path to this resource node as base URL followed by a list of curies. */
+  protected readonly _path: APICurieChain;
+
+  constructor({ path, fetch, cache, console }: APINodeInit) {
     this._path = path;
     this._fetch = fetch;
-    this._resolve = resolve;
+    this._cache = cache;
+    this._console = console;
   }
 
   async get(): Promise<APIResponse<G>>;
 
   async get<Q extends Query<G>>(query: Q): Promise<APIResponse<G, Q>>;
 
-  async get(query?: any): Promise<any> {
+  /**
+   * Resolves the URL of this node and sends a GET request
+   * using provided parameters.
+   *
+   * @param query Query parameters such as zoom, fields etc.
+   * @returns Instance of {@link APIResponse} representing this resource.
+   */
+  async get(query?: Query): Promise<APIResponse<G>> {
     ow(query, ow.optional.object.partialShape(isQuery));
 
-    const url = await this._resolve(this._path);
+    const url = await this._resolve();
     const { filters, fields, offset, limit, order, zoom } = query ?? {};
 
     if (filters !== undefined) {
@@ -115,109 +149,167 @@ export class APINode<G extends Graph> {
     if (zoom !== undefined) url.searchParams.set('zoom', stringifyZoom('', zoom));
 
     const response = await this._fetch(new Request(url.toString()));
-    return new APIResponse({ resolve: this._resolve, fetch: this._fetch, response });
+    const config = { cache: this._cache, console: this._console, fetch: this._fetch };
+
+    return new APIResponse({ ...config, response });
   }
 
+  /**
+   * Resolves the URL of this node and sends a PUT request
+   * with provided properties, replacing the existing resource.
+   *
+   * @param body Complete resource object.
+   * @returns Instance of {@link APIResponse} representing this resource.
+   */
   async put(body: Properties<G>): Promise<APIResponse<G>> {
     ow(body, ow.object);
 
-    const url = await this._resolve(this._path);
-    const request = new Request(url.toString(), { method: 'PUT', body: JSON.stringify(body) });
+    const url = await this._resolve();
+    const request = new Request(url.toString(), { body: JSON.stringify(body), method: 'PUT' });
     const response = await this._fetch(request);
+    const config = { cache: this._cache, console: this._console, fetch: this._fetch };
 
-    return new APIResponse<G>({ resolve: this._resolve, fetch: this._fetch, response });
+    return new APIResponse({ ...config, response });
   }
 
+  /**
+   * Resolves the URL of this node and sends a POST request
+   * with provided properties, creating a resource or triggering an action.
+   *
+   * @param body Complete resource object.
+   * @returns Instance of {@link APIResponse} representing this resource.
+   */
   async post(body?: Properties<G>): Promise<APIResponse<G>> {
     ow(body, ow.any(ow.undefined, ow.object));
 
-    const url = await this._resolve(this._path);
-    const request = new Request(url.toString(), { method: 'POST', body: JSON.stringify(body) });
+    const url = await this._resolve();
+    const request = new Request(url.toString(), { body: JSON.stringify(body), method: 'POST' });
     const response = await this._fetch(request);
+    const config = { cache: this._cache, console: this._console, fetch: this._fetch };
 
-    return new APIResponse<G>({ resolve: this._resolve, fetch: this._fetch, response });
+    return new APIResponse({ ...config, response });
   }
 
+  /**
+   * Resolves the URL of this node and sends a PATCH request
+   * with provided properties, updating this resource.
+   *
+   * @param body Partial resource object.
+   * @returns Instance of {@link APIResponse} representing this resource.
+   */
   async patch(body: Partial<Properties<G>>): Promise<APIResponse<G>> {
     ow(body, ow.object);
 
-    const url = await this._resolve(this._path);
-    const request = new Request(url.toString(), { method: 'POST', body: JSON.stringify(body) });
+    const url = await this._resolve();
+    const request = new Request(url.toString(), { body: JSON.stringify(body), method: 'POST' });
     const response = await this._fetch(request);
+    const config = { cache: this._cache, console: this._console, fetch: this._fetch };
 
-    return new APIResponse<G>({ resolve: this._resolve, fetch: this._fetch, response });
+    return new APIResponse({ ...config, response });
   }
 
+  /**
+   * Resolves the URL of this node and sends a DELETE request,
+   * removing this resource.
+   *
+   * @returns Instance of {@link APIResponse} representing this resource.
+   */
   async delete(): Promise<APIResponse<G>> {
-    const url = await this._resolve(this._path);
+    const url = await this._resolve();
     const request = new Request(url.toString(), { method: 'DELETE' });
     const response = await this._fetch(request);
+    const config = { cache: this._cache, console: this._console, fetch: this._fetch };
 
-    return new APIResponse<G>({ resolve: this._resolve, fetch: this._fetch, response });
+    return new APIResponse({ ...config, response });
   }
 
+  /**
+   * Resource path builder. Calling this method instructs our
+   * SDK to find the provided curie in this resource's links and
+   * navigate to its location on request.
+   *
+   * @param curie Curie to follow.
+   * @returns Instance of {@link APINode} representing the resource at curie location.
+   */
   follow<C extends Curies<G>>(curie: C): APINode<Follow<G, C>> {
-    ow(curie as any, ow.string);
+    ow(curie as unknown, ow.string);
 
-    return new APINode<Follow<G, C>>({
-      resolve: this._resolve,
-      fetch: this._fetch,
-      path: this._path.concat(curie as string) as [URL, ...string[]],
-    });
+    const config = { cache: this._cache, console: this._console, fetch: this._fetch };
+    const path = this._path.concat(curie as string) as APICurieChain;
+
+    return new APINode({ ...config, path });
+  }
+
+  /**
+   * Resolves resource URL from a curie chain. The first element in the path
+   * must be a [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL).
+   *
+   * @returns Resolved URL.
+   * @throws Throws {@link APIResolutionError} when once of the resources can't be reached.
+   */
+  protected async _resolve(): Promise<URL> {
+    if (this._path.length === 1) return this._path[0];
+
+    const [baseURL, curie] = this._path;
+    const key = `${baseURL.toString()} > ${curie}`;
+    const config = { cache: this._cache, console: this._console, fetch: this._fetch };
+
+    this._console.trace(`Trying to resolve ${key}...`);
+    const cachedURL = this._cache.getItem(key);
+
+    if (cachedURL) {
+      this._console.success(`Resolved ${key} to ${cachedURL.toString()} using cache.`);
+      const reducedPath = [new URL(cachedURL), ...this._path.slice(2)] as APICurieChain;
+      return new APINode({ ...config, path: reducedPath })._resolve();
+    }
+
+    const response = await this._fetch(baseURL.toString());
+
+    if (response.ok) {
+      const json = await response.json();
+      const url = new URL(json._links[curie].href);
+      const reducedPath = [url, ...this._path.slice(2)] as APICurieChain;
+
+      this._cache.setItem(key, url.toString());
+      this._console.trace(`Cached ${url.toString()} for ${key}.`);
+      this._console.success(`Resolved ${key} to ${url.toString()} online.`);
+
+      return new APINode({ ...config, path: reducedPath })._resolve();
+    } else {
+      this._console.error(`Failed to resolve ${key}.`);
+      throw new APIResolutionError(response);
+    }
   }
 }
 
-type APIResponseNodeParameters<G extends Graph, Q> = Omit<APINodeParameters, 'path'> & {
-  json: ResponseJSON<G, Q>;
-};
-
-type ZoomedResponseNodes<G extends Graph, Q> = Q extends Query<G>
-  ? IntersectionOfValues<
-      {
-        [TRel in Flatten<Q['zoom']> | RequiredPropertyOf<G['zooms']>]: Record<
-          Required<G['zooms']>[TRel]['curie'],
-          Required<G['zooms']>[TRel]['child'] extends Graph
-            ? APIResponseNode<Required<G['zooms']>[TRel]['child'], { zoom: ZoomIn<Q['zoom'], TRel> }>[]
-            : APIResponseNode<Required<G['zooms']>[TRel], { zoom: ZoomIn<Q['zoom'], TRel> }>
-        >;
-      }
-    >
-  : IntersectionOfValues<
-      {
-        [TRel in RequiredPropertyOf<G['zooms']>]: Record<
-          Required<G['zooms']>[TRel]['curie'],
-          Required<G['zooms']>[TRel]['child'] extends Graph
-            ? APIResponseNode<Required<G['zooms']>[TRel]['child']>[]
-            : APIResponseNode<Required<G['zooms']>[TRel]>
-        >;
-      }
-    >;
-
-type CollectionItems<G extends Graph, Q> = G['child'] extends Graph
-  ? Record<G['curie'], APIResponseNode<G['child'], Q>[]>
-  : unknown;
-
-type Zoom<G extends Graph, Q = undefined> = G['child'] extends Graph
-  ? CollectionItems<G, Q>
-  : ZoomedResponseNodes<G, Q>;
-
+/**
+ * Base class representing contents of the resource that were
+ * received with API response either on demand or after creation, update or deletion.
+ * You shouldn't need to create instances of this class unless you're
+ * building a custom API client with our SDK.
+ */
 export class APIResponseNode<G extends Graph, Q = undefined> extends APINode<G> {
-  readonly embeds: Zoom<G, Q>;
+  /** Embedded resources. Same as `json._embedded`, but enhanced with {@link APIResponseNode} features. */
+  readonly embeds: EmbeddedNodes<G, Q>;
 
+  /** Own properties of this resource (excluding `_links` and `_embedded`). */
   readonly props: G['props'];
 
-  constructor({ resolve, fetch, json }: APIResponseNodeParameters<G, Q>) {
-    super({ resolve, fetch, path: [new URL(json._links.self.href)] });
+  constructor({ json, ...nodeInit }: APIResponseNodeInit<G, Q>) {
+    super({ ...nodeInit, path: [new URL(json._links.self.href)] });
 
-    this.embeds = Object.entries(json._embedded).reduce((p, [key, value]) => {
-      return {
-        ...p,
-        [key]: Array.isArray(value)
-          ? value.map(n => new APIResponseNode({ resolve, fetch, json: n }))
-          : new APIResponseNode({ resolve, fetch, json: value }),
-      };
-    }, {}) as Zoom<G, Q>;
+    this.embeds = Object.entries(json._embedded).reduce(
+      (embeds, [embedCurie, embedJSON]) =>
+        Object.assign(embeds, {
+          [embedCurie]: Array.isArray(embedJSON)
+            ? embedJSON.map(itemJSON => new APIResponseNode({ ...nodeInit, json: itemJSON }))
+            : new APIResponseNode({ ...nodeInit, json: embedJSON }),
+        }),
+      {}
+    ) as EmbeddedNodes<G, Q>;
 
-    this.props = json;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { _embedded, _links, ...props } = json as Record<string, unknown>;
+    this.props = props;
   }
 }

@@ -33,7 +33,7 @@ class CustomerAPI extends BrowserAPI<CustomerAPIGraph> {
     let response: Response;
 
     try {
-      response = await fetch(new URL('authenticate', this.baseURL).toString(), {
+      response = await fetch(new URL('authenticate', this.base).toString(), {
         headers: new Headers({ 'Content-Type': 'application/json' }),
         method: 'POST',
         body: JSON.stringify(credentials),
@@ -65,7 +65,7 @@ class CustomerAPI extends BrowserAPI<CustomerAPIGraph> {
     let response: Response;
 
     try {
-      response = await fetch(new URL('forgot_password', this.baseURL).toString(), {
+      response = await fetch(new URL('forgot_password', this.base).toString(), {
         headers: new Headers({ 'Content-Type': 'application/json' }),
         method: 'POST',
         body: JSON.stringify({ email }),
