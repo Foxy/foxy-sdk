@@ -1,5 +1,5 @@
 {
-  "name": "@foxy.io/api",
+  "name": "@foxy.io/sdk",
   "version": "0.2.0",
   "description": "Universal client for Cart API, Admin API, Portal API, Checkout API and full hAPI access.",
   "main": "dist/index.js",

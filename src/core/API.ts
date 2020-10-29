@@ -71,6 +71,6 @@ export class API<TGraph extends Graph> extends APINode<TGraph> {
 
     this.baseURL = baseURL;
     this.storage = storage;
-    this.console = consola.create({ level: logLevel }).withTag("@foxy.io/api");
+    this.console = consola.create({ level: logLevel }).withTag("@foxy.io/sdk");
   }
 }

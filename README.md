@@ -1,4 +1,4 @@
-## Foxy API
+## Foxy SDK
 
 Universal SDK for a full server-side and a limited in-browser access to Foxy hAPI.
 
@@ -9,7 +9,7 @@ Universal SDK for a full server-side and a limited in-browser access to Foxy hAP
 ### Step 1: Install
 
 ```bash
-npm i @foxy.io/api
+npm i @foxy.io/sdk
 ```
 
 ### Step 2: Import
@@ -23,17 +23,17 @@ There are 3 types of API you can pick from:
 There's a class for each one of them, and you can import it like so:
 
 ```js
-const { ClientAPI } = require("@foxy.io/api");
-const { UserAPI } = require("@foxy.io/api");
-const { CustomerAPI } = require("@foxy.io/api");
+const { ClientAPI } = require("@foxy.io/sdk");
+const { UserAPI } = require("@foxy.io/sdk");
+const { CustomerAPI } = require("@foxy.io/sdk");
 ```
 
 With TypeScript or Node v13+ you can also use [ES Modules](http://nodejs.org/docs/latest-v13.x/api/esm.html…):
 
 ```ts
-import { ClientAPI } from "@foxy.io/api";
-import { UserAPI } from "@foxy.io/api";
-import { CustomerAPI } from "@foxy.io/api";
+import { ClientAPI } from "@foxy.io/sdk";
+import { UserAPI } from "@foxy.io/sdk";
+import { CustomerAPI } from "@foxy.io/sdk";
 ```
 
 ### Step 3: Initialize and sign in
@@ -239,10 +239,10 @@ To get started, import the element and add a tag anywhere on the page:
 
 ```js
 // Quick setup: registers <foxy-api> globally
-import "@foxy.io/api/dist/element";
+import "@foxy.io/sdk/dist/element";
 
 // Advanced setup: custom name, register when ready, extend the class etc.
-import { APIElement } from "@foxy.io/api";
+import { APIElement } from "@foxy.io/sdk";
 customElements.define("my-api", APIElement);
 ```
 
@@ -279,7 +279,7 @@ class MyCustomElement extends HTMLElement {
 #### After
 
 ```ts
-import { RequestEvent } from "@foxy.io/api";
+import { RequestEvent } from "@foxy.io/sdk";
 
 class MyCustomElement extends HTMLElement {
   getStore() {
