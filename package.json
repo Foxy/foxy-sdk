@@ -40,6 +40,7 @@
   },
   "homepage": "https://github.com/foxy/foxy-api#readme",
   "devDependencies": {
+    "@foxy.io/eslint-config": "^1.0.0",
     "cz-conventional-changelog": "^3.3.0",
     "eslint": "^7.12.1",
     "husky": "^4.3.0",
@@ -74,7 +75,6 @@
   },
   "dependencies": {
     "@aws-amplify/auth": "^3.4.4",
-    "@foxy.io/eslint-config": "file:vendor/foxy.io-eslint-config-1.0.0.tgz",
     "@types/crypto-js": "^3.1.47",
     "@types/node": "^14.11.1",
     "@types/traverse": "^0.6.32",
