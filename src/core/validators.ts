@@ -5,14 +5,20 @@ const isOrderArray = ow.array.ofType(ow.any(ow.string, isOrderRecord));
 const isZoom = ow.any(ow.string, ow.array.is(validateZoomArray), ow.object.is(validateZoomRecord));
 
 /**
- * @param zoom
+ * Validates zoom query parameter when it's presented as array.
+ *
+ * @param zoom Zoom query parameter.
+ * @returns True if provided value is valid.
  */
 function validateZoomArray(zoom: any): zoom is unknown[] {
   return ow.isValid(zoom, ow.array.ofType(ow.any(ow.string, ow.object.is(validateZoomRecord))));
 }
 
 /**
- * @param zoom
+ * Validates zoom query parameter when it's presented as object (record).
+ *
+ * @param zoom Zoom query parameter.
+ * @returns True if provided value is valid.
  */
 function validateZoomRecord(zoom: any): zoom is Record<string, unknown> {
   return ow.isValid(zoom, ow.object.valuesOfType(isZoom));

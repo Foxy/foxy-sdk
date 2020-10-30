@@ -1,9 +1,9 @@
 import { fetch } from 'cross-fetch';
-import { BrowserAPI, BrowserAPIAuthError, BrowserAPIAuthErrorCode, BrowserAPICredentials } from '../core';
+import { UniversalAPI, UniversalAPIAuthError, UniversalAPICredentials } from '../core/internal';
 import { CustomerAPISession } from './types';
 import { CustomerAPIGraph } from './rels';
 
-class CustomerAPI extends BrowserAPI<CustomerAPIGraph> {
+class CustomerAPI extends UniversalAPI<CustomerAPIGraph> {
   static readonly AUTH_EXPIRES = 'fx.customer.expires';
 
   static readonly AUTH_HEADER = 'fx.customer';
@@ -29,7 +29,7 @@ class CustomerAPI extends BrowserAPI<CustomerAPIGraph> {
     return response;
   }
 
-  async signIn(credentials: BrowserAPICredentials): Promise<void> {
+  async signIn(credentials: UniversalAPICredentials): Promise<void> {
     let response: Response;
 
     try {
@@ -39,8 +39,8 @@ class CustomerAPI extends BrowserAPI<CustomerAPIGraph> {
         body: JSON.stringify(credentials),
       });
     } catch (err) {
-      throw new BrowserAPIAuthError({
-        code: BrowserAPIAuthErrorCode.UNKNOWN,
+      throw new UniversalAPIAuthError({
+        code: UniversalAPIAuthError.UNKNOWN,
         originalError: err,
       });
     }
@@ -53,10 +53,10 @@ class CustomerAPI extends BrowserAPI<CustomerAPIGraph> {
       this.storage.setItem(CustomerAPI.AUTH_TOKEN, cookieValue);
       if (jwt) this.storage.setItem(CustomerAPI.AUTH_JWT, jwt);
     } else {
-      throw new BrowserAPIAuthError({
+      throw new UniversalAPIAuthError({
         code: response.status.toString().startsWith('5')
-          ? BrowserAPIAuthErrorCode.UNKNOWN
-          : BrowserAPIAuthErrorCode.UNAUTHORIZED,
+          ? UniversalAPIAuthError.UNKNOWN
+          : UniversalAPIAuthError.UNAUTHORIZED,
       });
     }
   }
@@ -71,13 +71,13 @@ class CustomerAPI extends BrowserAPI<CustomerAPIGraph> {
         body: JSON.stringify({ email }),
       });
     } catch (err) {
-      throw new BrowserAPIAuthError({
-        code: BrowserAPIAuthErrorCode.UNKNOWN,
+      throw new UniversalAPIAuthError({
+        code: UniversalAPIAuthError.UNKNOWN,
         originalError: err,
       });
     }
 
-    if (!response.ok) throw new BrowserAPIAuthError({ code: BrowserAPIAuthErrorCode.UNKNOWN });
+    if (!response.ok) throw new UniversalAPIAuthError({ code: UniversalAPIAuthError.UNKNOWN });
   }
 
   async signOut(): Promise<void> {

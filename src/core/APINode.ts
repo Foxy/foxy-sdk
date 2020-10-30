@@ -12,7 +12,7 @@ import {
   ResponseJSON,
   ZoomIn,
   isQuery,
-} from './index';
+} from './internal';
 
 import { APIResolutionError } from './APIResolutionError';
 import { Consola } from 'consola';

@@ -1,7 +1,7 @@
 import { LogLevel } from 'consola';
 import fetch, { Headers } from 'cross-fetch';
 import MemoryStorage from 'ministorage';
-import { API } from '../core';
+import { API } from '../core/internal';
 import { IntegrationAPIGraph } from './rels';
 import { FxToken } from './rels/token';
 

@@ -1,11 +1,4 @@
-import {
-  BrowserAPI,
-  BrowserAPIAuthError,
-  BrowserAPIAuthErrorCode,
-  BrowserAPICredentials,
-  BrowserAPIParameters,
-} from '../core';
-
+import { APIInit, UniversalAPI, UniversalAPIAuthError, UniversalAPICredentials } from '../core/internal';
 import { AuthClass } from '@aws-amplify/auth/lib/Auth';
 import { IntegrationAPIGraph } from '../integration/rels';
 import { fetch } from 'cross-fetch';
@@ -15,7 +8,7 @@ import { fetch } from 'cross-fetch';
  * it's a default setup or a custom solution for your integration. Admin API
  * is the most feature-rich subset of Integration API available from the browser.
  */
-class AdminAPI extends BrowserAPI<IntegrationAPIGraph> {
+class AdminAPI extends UniversalAPI<IntegrationAPIGraph> {
   private readonly __auth: AuthClass;
 
   /**
@@ -23,7 +16,7 @@ class AdminAPI extends BrowserAPI<IntegrationAPIGraph> {
    *
    * @param params Client configuration (same as for {@link BrowserAPI}).
    */
-  constructor(params: BrowserAPIParameters) {
+  constructor(params: APIInit) {
     super(params);
 
     // TODO: change to production value
@@ -49,14 +42,14 @@ class AdminAPI extends BrowserAPI<IntegrationAPIGraph> {
     return fetch(input, { ...init, headers });
   }
 
-  async signIn(credentials: BrowserAPICredentials): Promise<void> {
+  async signIn(credentials: UniversalAPICredentials): Promise<void> {
     let user: { challengeName: string; challengeParam: Record<string, unknown> };
 
     try {
       user = await this.__auth.signIn(credentials.email, credentials.password);
     } catch (err) {
-      throw new BrowserAPIAuthError({
-        code: BrowserAPIAuthErrorCode.UNAUTHORIZED,
+      throw new UniversalAPIAuthError({
+        code: UniversalAPIAuthError.UNAUTHORIZED,
         originalError: err,
       });
     }
@@ -66,13 +59,13 @@ class AdminAPI extends BrowserAPI<IntegrationAPIGraph> {
         try {
           await this.__auth.completeNewPassword(user, credentials.newPassword, user.challengeParam.requiredAttributes);
         } catch (err) {
-          throw new BrowserAPIAuthError({
-            code: BrowserAPIAuthErrorCode.UNKNOWN,
+          throw new UniversalAPIAuthError({
+            code: UniversalAPIAuthError.UNKNOWN,
             originalError: err,
           });
         }
       } else {
-        throw new BrowserAPIAuthError({ code: BrowserAPIAuthErrorCode.NEW_PASSWORD_REQUIRED });
+        throw new UniversalAPIAuthError({ code: UniversalAPIAuthError.NEW_PASSWORD_REQUIRED });
       }
     }
   }
@@ -81,8 +74,8 @@ class AdminAPI extends BrowserAPI<IntegrationAPIGraph> {
     try {
       await this.__auth.forgotPassword(email);
     } catch (err) {
-      throw new BrowserAPIAuthError({
-        code: BrowserAPIAuthErrorCode.UNKNOWN,
+      throw new UniversalAPIAuthError({
+        code: UniversalAPIAuthError.UNKNOWN,
         originalError: err,
       });
     }
