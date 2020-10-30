@@ -14,11 +14,11 @@ import {
   isQuery,
 } from './internal';
 
+import { QueryOrder, QueryZoom } from './types';
 import { APIResolutionError } from './APIResolutionError';
 import { Consola } from 'consola';
 import { Request } from 'cross-fetch';
 import ow from 'ow';
-import { QueryOrder, QueryZoom } from './types';
 
 type FlatZoom<G extends Graph, Q> = Q extends Query<G> ? Flatten<Q['zoom']> : never;
 type DeepZoom<G extends Graph, Q, R extends PropertyKey> = Q extends Query<G> ? { zoom: ZoomIn<Q['zoom'], R> } : never;

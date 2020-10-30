@@ -1,6 +1,6 @@
-import MemoryStorage from 'ministorage';
 import { APINode, Graph } from './internal';
 import consola, { Consola, LogLevel } from 'consola';
+import MemoryStorage from 'ministorage';
 import { fetch } from 'cross-fetch';
 
 /** Chain of curies leading to a hAPI resource starting with a base URL. */
