@@ -76,6 +76,9 @@
       "path": "./node_modules/cz-conventional-changelog"
     }
   },
+  "release": {
+    "branches": ["main", "next"]
+  },
   "dependencies": {
     "@aws-amplify/auth": "^3.4.4",
     "@types/crypto-js": "^3.1.47",
