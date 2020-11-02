@@ -1,6 +1,7 @@
+import type { APIGraph } from '../../core/types';
 import type { FxPropertyHelpers } from './property_helpers';
 
-export interface FxCustomerPasswordHashTypes {
+export interface FxCustomerPasswordHashTypes extends APIGraph {
   curie: 'fx:customer_password_hash_types';
 
   links: {

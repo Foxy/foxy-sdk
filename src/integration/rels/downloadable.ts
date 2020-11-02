@@ -1,8 +1,9 @@
+import type { APIGraph } from '../../core/types';
 import type { FxDownloadableItemCategories } from './downloadable_item_categories';
 import type { FxItemCategory } from './item_category';
 import type { FxStore } from './store';
 
-export interface FxDownloadable {
+export interface FxDownloadable extends APIGraph {
   curie: 'fx:downloadable';
 
   links: {

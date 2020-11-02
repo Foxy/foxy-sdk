@@ -1,10 +1,11 @@
+import type { APIGraph } from '../../core/types';
 import type { FxBillingAddresses } from './billing_addresses';
-import type { FxCustomerAddress } from './customer_address';
-import type { FxTransaction } from './transaction';
 import type { FxCustomer } from './customer';
+import type { FxCustomerAddress } from './customer_address';
 import type { FxStore } from './store';
+import type { FxTransaction } from './transaction';
 
-export interface FxBillingAddress {
+export interface FxBillingAddress extends APIGraph {
   curie: 'fx:billing_address';
 
   links: {

@@ -1,9 +1,10 @@
-import type { FxEmailTemplate } from './email_template';
-import type { FxTemplateSets } from './template_sets';
-import type { FxStore } from './store';
+import type { APIGraph } from '../../core/types';
 import type { FxCache } from './cache';
+import type { FxEmailTemplate } from './email_template';
+import type { FxStore } from './store';
+import type { FxTemplateSets } from './template_sets';
 
-export interface FxCustomerEmailTemplate {
+export interface FxCustomerEmailTemplate extends APIGraph {
   curie: 'fx:customer_email_template';
 
   links: {

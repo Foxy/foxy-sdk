@@ -1,7 +1,7 @@
-export interface FxGenerateCodes {
-  curie: 'fx:generate_codes';
+import type { APIGraph } from '../../core/types';
 
-  links: never;
+export interface FxGenerateCodes extends APIGraph {
+  curie: 'fx:generate_codes';
 
   props: {
     /** Optional length of the coupon code. Defaults to 6 characters. */

@@ -1,9 +1,9 @@
-import type { CollectionLinks, CollectionProps } from '../../core/types';
+import type { APICollectionGraphLinks, APICollectionGraphProps, APIGraph } from '../../core/types';
 import type { FxTax } from './tax';
 
-export interface FxTaxes {
+export interface FxTaxes extends APIGraph {
   curie: 'fx:taxes';
-  links: CollectionLinks<FxTaxes>;
-  props: CollectionProps;
+  links: APICollectionGraphLinks<FxTaxes>;
+  props: APICollectionGraphProps;
   child: FxTax;
 }

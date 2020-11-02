@@ -1,5 +1,5 @@
-export interface FxSendEmails {
+import type { APIGraph } from '../../core/types';
+
+export interface FxSendEmails extends APIGraph {
   curie: 'fx:send_emails';
-  links: never;
-  props: never;
 }

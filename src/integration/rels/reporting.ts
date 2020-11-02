@@ -1,7 +1,8 @@
-import type { FxReportingStoreDomainExists } from './reporting_store_domain_exists';
+import type { APIGraph } from '../../core/types';
 import type { FxReportingEmailExists } from './reporting_email_exists';
+import type { FxReportingStoreDomainExists } from './reporting_store_domain_exists';
 
-export interface FxReporting {
+export interface FxReporting extends APIGraph {
   curie: 'fx:reporting';
 
   links: {

@@ -1,12 +1,13 @@
+import type { APIGraph } from '../../core/types';
 import type { FxCartIncludeTemplate } from './cart_include_template';
-import type { FxLanguageOverrides } from './language_overrides';
-import type { FxCheckoutTemplate } from './checkout_template';
-import type { FxReceiptTemplate } from './receipt_template';
-import type { FxEmailTemplate } from './email_template';
 import type { FxCartTemplate } from './cart_template';
+import type { FxCheckoutTemplate } from './checkout_template';
+import type { FxEmailTemplate } from './email_template';
+import type { FxLanguageOverrides } from './language_overrides';
+import type { FxReceiptTemplate } from './receipt_template';
 import type { FxStore } from './store';
 
-export interface FxTemplateSet {
+export interface FxTemplateSet extends APIGraph {
   curie: 'fx:template_set';
 
   links: {

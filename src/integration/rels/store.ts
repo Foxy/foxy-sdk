@@ -1,30 +1,31 @@
-import type { FxProcessSubscriptionWebhook } from './process_subscription_webhook';
-import type { FxCustomerPortalSettings } from './customer_portal_settings';
-import type { FxHostedPaymentGateways } from './hosted_payment_gateways';
+import type { APIGraph } from '../../core/types';
+import type { FxAttributes } from './attributes';
 import type { FxCartIncludeTemplates } from './cart_include_templates';
-import type { FxSubscriptionSettings } from './subscription_settings';
-import type { FxPaymentMethodSets } from './payment_method_sets';
-import type { FxCheckoutTemplates } from './checkout_templates';
-import type { FxReceiptTemplates } from './receipt_templates';
-import type { FxFraudProtections } from './fraud_protections';
-import type { FxItemCategories } from './item_categories';
-import type { FxEmailTemplates } from './email_templates';
 import type { FxCartTemplates } from './cart_templates';
+import type { FxCarts } from './carts';
+import type { FxCheckoutTemplates } from './checkout_templates';
+import type { FxCoupons } from './coupons';
+import type { FxCustomerPortalSettings } from './customer_portal_settings';
+import type { FxCustomers } from './customers';
 import type { FxDownloadables } from './downloadables';
+import type { FxEmailTemplates } from './email_templates';
 import type { FxErrorEntries } from './error_entries';
-import type { FxSubscriptions } from './subscriptions';
-import type { FxUserAccesses } from './user_accesses';
+import type { FxFraudProtections } from './fraud_protections';
+import type { FxHostedPaymentGateways } from './hosted_payment_gateways';
+import type { FxItemCategories } from './item_categories';
+import type { FxPaymentMethodSets } from './payment_method_sets';
+import type { FxProcessSubscriptionWebhook } from './process_subscription_webhook';
+import type { FxReceiptTemplates } from './receipt_templates';
 import type { FxStoreVersion } from './store_version';
+import type { FxSubscriptionSettings } from './subscription_settings';
+import type { FxSubscriptions } from './subscriptions';
+import type { FxTaxes } from './taxes';
 import type { FxTemplateSets } from './template_sets';
 import type { FxTransactions } from './transactions';
-import type { FxAttributes } from './attributes';
-import type { FxCustomers } from './customers';
-import type { FxCoupons } from './coupons';
-import type { FxTaxes } from './taxes';
+import type { FxUserAccesses } from './user_accesses';
 import type { FxUsers } from './users';
-import type { FxCarts } from './carts';
 
-export interface FxStore {
+export interface FxStore extends APIGraph {
   curie: 'fx:store';
 
   links: {

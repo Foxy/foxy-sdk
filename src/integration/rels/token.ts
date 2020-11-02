@@ -1,7 +1,7 @@
-export interface FxToken {
-  curie: 'fx:token';
+import type { APIGraph } from '../../core/types';
 
-  links: never;
+export interface FxToken extends APIGraph {
+  curie: 'fx:token';
 
   props: {
     /** The OAuth refresh token. This token is returned in the response whenever creating a client, user or store or when doing an authorization code grant. */

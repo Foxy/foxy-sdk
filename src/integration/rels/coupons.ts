@@ -1,9 +1,9 @@
-import type { CollectionLinks, CollectionProps } from '../../core/types';
+import type { APICollectionGraphLinks, APICollectionGraphProps, APIGraph } from '../../core/types';
 import type { FxCoupon } from './coupon';
 
-export interface FxCoupons {
+export interface FxCoupons extends APIGraph {
   curie: 'fx:coupons';
-  links: CollectionLinks<FxCoupons>;
-  props: CollectionProps;
+  links: APICollectionGraphLinks<FxCoupons>;
+  props: APICollectionGraphProps;
   child: FxCoupon;
 }

@@ -1,6 +1,7 @@
+import type { APIGraph } from '../../core/types';
 import type { FxAttributes } from './attributes';
 
-export interface FxClient {
+export interface FxClient extends APIGraph {
   curie: 'fx:client';
 
   links: {

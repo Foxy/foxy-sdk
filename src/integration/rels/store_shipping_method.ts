@@ -1,14 +1,15 @@
-import type { FxStoreShippingServices } from './store_shipping_services';
-import type { FxShippingContainers } from './shipping_containers';
-import type { FxShippingDropTypes } from './shipping_drop_types';
+import type { APIGraph } from '../../core/types';
 import type { FxShippingContainer } from './shipping_container';
-import type { FxShippingServices } from './shipping_services';
+import type { FxShippingContainers } from './shipping_containers';
 import type { FxShippingDropType } from './shipping_drop_type';
-import type { FxShippingMethods } from './shipping_methods';
+import type { FxShippingDropTypes } from './shipping_drop_types';
 import type { FxShippingMethod } from './shipping_method';
+import type { FxShippingMethods } from './shipping_methods';
+import type { FxShippingServices } from './shipping_services';
 import type { FxStore } from './store';
+import type { FxStoreShippingServices } from './store_shipping_services';
 
-export interface FxStoreShippingMethod {
+export interface FxStoreShippingMethod extends APIGraph {
   curie: 'fx:store_shipping_method';
 
   links: {

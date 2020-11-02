@@ -1,7 +1,8 @@
-import type { FxTemplateSets } from './template_sets';
+import type { APIGraph } from '../../core/types';
 import type { FxStore } from './store';
+import type { FxTemplateSets } from './template_sets';
 
-export interface FxTemplateConfig {
+export interface FxTemplateConfig extends APIGraph {
   curie: 'fx:template_config';
 
   links: {

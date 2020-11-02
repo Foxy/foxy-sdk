@@ -1,9 +1,9 @@
-import type { CollectionLinks, CollectionProps } from '../../core/types';
+import type { APICollectionGraphLinks, APICollectionGraphProps, APIGraph } from '../../core/types';
 import type { FxFraudProtection } from './fraud_protection';
 
-export interface FxFraudProtections {
+export interface FxFraudProtections extends APIGraph {
   curie: 'fx:fraud_protections';
-  links: CollectionLinks<FxFraudProtections>;
-  props: CollectionProps;
+  links: APICollectionGraphLinks<FxFraudProtections>;
+  props: APICollectionGraphProps;
   child: FxFraudProtection;
 }

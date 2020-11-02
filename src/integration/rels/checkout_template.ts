@@ -1,9 +1,10 @@
-import type { FxTemplateSets } from './template_sets';
+import type { APIGraph } from '../../core/types';
+import type { FxCache } from './cache';
 import type { FxEncode } from './encode';
 import type { FxStore } from './store';
-import type { FxCache } from './cache';
+import type { FxTemplateSets } from './template_sets';
 
-export interface FxCheckoutTemplate {
+export interface FxCheckoutTemplate extends APIGraph {
   curie: 'fx:checkout_template';
 
   links: {

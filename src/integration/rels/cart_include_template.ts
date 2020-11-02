@@ -1,8 +1,9 @@
-import type { FxTemplateSets } from './template_sets';
-import type { FxStore } from './store';
+import type { APIGraph } from '../../core/types';
 import type { FxCache } from './cache';
+import type { FxStore } from './store';
+import type { FxTemplateSets } from './template_sets';
 
-export interface FxCartIncludeTemplate {
+export interface FxCartIncludeTemplate extends APIGraph {
   curie: 'fx:cart_include_template';
 
   links: {

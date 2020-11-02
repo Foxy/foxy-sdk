@@ -1,9 +1,9 @@
-import type { FxTransactionTemplate as IntegrationAPIFxTransactionTemplate } from '../../integration/rels/transaction_template';
+import type { APIGraph } from '../../core/types';
 import type { FxItems } from './items';
+import type { FxTransactionTemplate as IntegrationAPIFxTransactionTemplate } from '../../integration/rels/transaction_template';
 
-export interface FxTransactionTemplate {
+export interface FxTransactionTemplate extends APIGraph {
   curie: IntegrationAPIFxTransactionTemplate['curie'];
-  links: never;
   props: IntegrationAPIFxTransactionTemplate['props'];
   zooms: {
     items: FxItems;

@@ -1,9 +1,9 @@
-import type { CollectionLinks, CollectionProps } from '../../core/types';
+import type { APICollectionGraphLinks, APICollectionGraphProps, APIGraph } from '../../core/types';
 import type { FxTemplateSet } from './template_set';
 
-export interface FxTemplateSets {
+export interface FxTemplateSets extends APIGraph {
   curie: 'fx:template_sets';
-  links: CollectionLinks<FxTemplateSets>;
-  props: CollectionProps;
+  links: APICollectionGraphLinks<FxTemplateSets>;
+  props: APICollectionGraphProps;
   child: FxTemplateSet;
 }

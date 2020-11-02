@@ -1,5 +1,5 @@
-export interface FxProcessWebhook {
+import type { APIGraph } from '../../core/types';
+
+export interface FxProcessWebhook extends APIGraph {
   curie: 'fx:process_webhook';
-  links: never;
-  props: never;
 }

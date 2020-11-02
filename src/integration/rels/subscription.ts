@@ -1,13 +1,14 @@
-import type { FxTransactionTemplate } from './transaction_template';
-import type { FxOriginalTransaction } from './original_transaction';
-import type { FxLastTransaction } from './last_transaction';
-import type { FxTransactions } from './transactions';
-import type { FxSubTokenUrl } from './sub_token_url';
+import type { APIGraph } from '../../core/types';
 import type { FxAttributes } from './attributes';
 import type { FxCustomer } from './customer';
+import type { FxLastTransaction } from './last_transaction';
+import type { FxOriginalTransaction } from './original_transaction';
 import type { FxStore } from './store';
+import type { FxSubTokenUrl } from './sub_token_url';
+import type { FxTransactionTemplate } from './transaction_template';
+import type { FxTransactions } from './transactions';
 
-export interface FxSubscription {
+export interface FxSubscription extends APIGraph {
   curie: 'fx:subscription';
 
   links: {

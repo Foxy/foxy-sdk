@@ -1,8 +1,9 @@
+import type { APIGraph } from '../../core/types';
 import type { FxNativeIntegrations } from './native_integrations';
-import type { FxTaxItemCategories } from './tax_item_categories';
 import type { FxStore } from './store';
+import type { FxTaxItemCategories } from './tax_item_categories';
 
-export interface FxTax {
+export interface FxTax extends APIGraph {
   curie: 'fx:tax';
 
   links: {

@@ -1,9 +1,9 @@
-import type { CollectionLinks, CollectionProps } from '../../core/types';
+import type { APICollectionGraphLinks, APICollectionGraphProps, APIGraph } from '../../core/types';
 import type { FxCustomerAddress } from './customer_address';
 
-export interface FxCustomerAddresses {
+export interface FxCustomerAddresses extends APIGraph {
   curie: 'fx:customer_addresses';
-  links: CollectionLinks<FxCustomerAddresses>;
-  props: CollectionProps;
+  links: APICollectionGraphLinks<FxCustomerAddresses>;
+  props: APICollectionGraphProps;
   child: FxCustomerAddress;
 }

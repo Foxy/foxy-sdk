@@ -1,10 +1,11 @@
+import type { APIGraph } from '../../core/types';
+import type { FxCustomer } from './customer';
 import type { FxDefaultBillingAddress } from './default_billing_address';
 import type { FxDefaultPaymentMethod } from './default_payment_method';
-import type { FxSubscriptions } from './subscriptions';
-import type { FxCustomer } from './customer';
 import type { FxStore } from './store';
+import type { FxSubscriptions } from './subscriptions';
 
-export interface FxPaymentMethodExpiring {
+export interface FxPaymentMethodExpiring extends APIGraph {
   curie: 'fx:payment_method_expiring';
 
   links: {

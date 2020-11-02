@@ -1,6 +1,7 @@
+import type { APIGraph } from '../../core/types';
 import type { FxStore } from './store';
 
-export interface FxErrorEntry {
+export interface FxErrorEntry extends APIGraph {
   curie: 'fx:error_entry';
 
   links: {

@@ -1,9 +1,9 @@
-import type { CollectionLinks, CollectionProps } from '../../core/types';
+import type { APICollectionGraphLinks, APICollectionGraphProps, APIGraph } from '../../core/types';
 import type { FxCustomField } from './custom_field';
 
-export interface FxCustomFields {
+export interface FxCustomFields extends APIGraph {
   curie: 'fx:custom_fields';
-  links: CollectionLinks<FxCustomFields>;
-  props: CollectionProps;
+  links: APICollectionGraphLinks<FxCustomFields>;
+  props: APICollectionGraphProps;
   child: FxCustomField;
 }

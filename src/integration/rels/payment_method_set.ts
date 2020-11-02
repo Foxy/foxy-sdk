@@ -1,10 +1,11 @@
-import type { FxPaymentMethodSetHostedPaymentGateways } from './payment_method_set_hosted_payment_gateways';
-import type { FxPaymentMethodSetFraudProtections } from './payment_method_set_fraud_protections';
-import type { FxPaymentMethodSets } from './payment_method_sets';
+import type { APIGraph } from '../../core/types';
 import type { FxPaymentGateway } from './payment_gateway';
+import type { FxPaymentMethodSetFraudProtections } from './payment_method_set_fraud_protections';
+import type { FxPaymentMethodSetHostedPaymentGateways } from './payment_method_set_hosted_payment_gateways';
+import type { FxPaymentMethodSets } from './payment_method_sets';
 import type { FxStore } from './store';
 
-export interface FxPaymentMethodSet {
+export interface FxPaymentMethodSet extends APIGraph {
   curie: 'fx:payment_method_set';
 
   links: {

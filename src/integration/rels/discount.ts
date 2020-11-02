@@ -1,10 +1,11 @@
-import type { FxTransaction } from './transaction';
+import type { APIGraph } from '../../core/types';
+import type { FxCoupon } from './coupon';
 import type { FxCouponCode } from './coupon_code';
 import type { FxCustomer } from './customer';
-import type { FxCoupon } from './coupon';
 import type { FxStore } from './store';
+import type { FxTransaction } from './transaction';
 
-export interface FxDiscount {
+export interface FxDiscount extends APIGraph {
   curie: 'fx:discount';
 
   links: {

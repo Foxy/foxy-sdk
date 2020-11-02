@@ -1,4 +1,6 @@
-export interface FxAttribute {
+import type { APIGraph } from '../../core/types';
+
+export interface FxAttribute extends APIGraph {
   curie: 'fx:attribute';
 
   links: {

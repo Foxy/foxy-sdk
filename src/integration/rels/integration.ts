@@ -1,8 +1,9 @@
+import type { APIGraph } from '../../core/types';
 import type { FxClient } from './client';
 import type { FxStore } from './store';
 import type { FxUser } from './user';
 
-export interface FxIntegration {
+export interface FxIntegration extends APIGraph {
   curie: 'fx:integration';
 
   links: {

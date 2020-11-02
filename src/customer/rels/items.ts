@@ -1,9 +1,8 @@
-import type { FxItems as IntegrationAPIFxItems } from '../../integration/rels/items';
+import type { APIGraph } from '../../core/types';
 import type { FxItem } from './item';
+import type { FxItems as IntegrationAPIFxItems } from '../../integration/rels/items';
 
-export interface FxItems {
+export interface FxItems extends APIGraph {
   curie: IntegrationAPIFxItems['curie'];
-  links: never;
-  props: never;
   child: FxItem;
 }

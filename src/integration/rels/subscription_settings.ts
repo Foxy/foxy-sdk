@@ -1,6 +1,7 @@
+import type { APIGraph } from '../../core/types';
 import type { FxStore } from './store';
 
-export interface FxSubscriptionSettings {
+export interface FxSubscriptionSettings extends APIGraph {
   curie: 'fx:subscription_settings';
 
   links: {

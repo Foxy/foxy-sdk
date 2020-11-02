@@ -1,9 +1,9 @@
-import type { CollectionLinks, CollectionProps } from '../../core/types';
+import type { APICollectionGraphLinks, APICollectionGraphProps, APIGraph } from '../../core/types';
 import type { FxItemCategory } from './item_category';
 
-export interface FxItemCategories {
+export interface FxItemCategories extends APIGraph {
   curie: 'fx:item_categories';
-  links: CollectionLinks<FxItemCategories>;
-  props: CollectionProps;
+  links: APICollectionGraphLinks<FxItemCategories>;
+  props: APICollectionGraphProps;
   child: FxItemCategory;
 }

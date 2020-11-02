@@ -1,5 +1,5 @@
-export interface FxEncode {
+import type { APIGraph } from '../../core/types';
+
+export interface FxEncode extends APIGraph {
   curie: 'fx:encode';
-  links: never;
-  props: never;
 }

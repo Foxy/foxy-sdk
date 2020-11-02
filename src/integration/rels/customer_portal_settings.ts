@@ -1,6 +1,7 @@
+import type { APIGraph } from '../../core/types';
 import type { FxStore } from './store';
 
-export interface FxCustomerPortalSettings {
+export interface FxCustomerPortalSettings extends APIGraph {
   curie: 'fx:customer_portal_settings';
 
   links: {

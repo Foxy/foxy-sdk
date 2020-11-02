@@ -1,4 +1,5 @@
-import { API, Graph } from './internal';
+import { API } from './internal';
+import { APIGraph } from './types';
 
 /** User credentials for authentication. */
 export interface UniversalAPICredentials {
@@ -16,7 +17,7 @@ export interface UniversalAPICredentials {
  * must implement a number of methods to ensure that they can be used effortlessly
  * with the `<foxy-api>` element from `@foxy.io/elements`.
  */
-export abstract class UniversalAPI<TGraph extends Graph> extends API<TGraph> {
+export abstract class UniversalAPI<TGraph extends APIGraph> extends API<TGraph> {
   /**
    * Authenticates a user based on the provided credentials. Child classes
    * must implement this method to support authentication.

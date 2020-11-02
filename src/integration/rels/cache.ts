@@ -1,5 +1,5 @@
-export interface FxCache {
+import type { APIGraph } from '../../core/types';
+
+export interface FxCache extends APIGraph {
   curie: 'fx:cache';
-  links: never;
-  props: never;
 }

@@ -1,10 +1,11 @@
-import type { FxShippingServices } from './shipping_services';
+import type { APIGraph } from '../../core/types';
+import type { FxShippingMethod } from './shipping_method';
 import type { FxShippingMethods } from './shipping_methods';
 import type { FxShippingService } from './shipping_service';
-import type { FxShippingMethod } from './shipping_method';
+import type { FxShippingServices } from './shipping_services';
 import type { FxStore } from './store';
 
-export interface FxStoreShippingService {
+export interface FxStoreShippingService extends APIGraph {
   curie: 'fx:store_shipping_service';
 
   links: {

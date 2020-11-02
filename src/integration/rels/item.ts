@@ -1,13 +1,14 @@
-import type { FxDiscountDetails } from './discount_details';
+import type { APIGraph } from '../../core/types';
+import type { FxAttributes } from './attributes';
 import type { FxCouponDetails } from './coupon_details';
+import type { FxDiscountDetails } from './discount_details';
 import type { FxItemCategory } from './item_category';
 import type { FxItemOptions } from './item_options';
-import type { FxTransaction } from './transaction';
-import type { FxAttributes } from './attributes';
 import type { FxShipment } from './shipment';
 import type { FxStore } from './store';
+import type { FxTransaction } from './transaction';
 
-export interface FxItem {
+export interface FxItem extends APIGraph {
   curie: 'fx:item';
 
   links: {

@@ -1,9 +1,9 @@
-import type { CollectionLinks, CollectionProps } from '../../core/types';
+import type { APICollectionGraphLinks, APICollectionGraphProps, APIGraph } from '../../core/types';
 import type { FxTransaction } from './transaction';
 
-export interface FxTransactions {
+export interface FxTransactions extends APIGraph {
   curie: 'fx:transactions';
-  links: CollectionLinks<FxTransactions>;
-  props: CollectionProps;
+  links: APICollectionGraphLinks<FxTransactions>;
+  props: APICollectionGraphProps;
   child: FxTransaction;
 }

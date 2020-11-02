@@ -1,43 +1,40 @@
-import {
-  APICurieChain,
-  APIResponse,
-  Curies,
-  Flatten,
-  Follow,
-  Graph,
-  IntersectionOfValues,
-  Properties,
-  Query,
-  RequiredPropertyOf,
-  ResponseJSON,
-  ZoomIn,
-  isQuery,
-} from './internal';
-
-import { QueryOrder, QueryZoom } from './types';
+import { APICurieChain, APIResponse, isQuery } from './internal';
 import { APIResolutionError } from './APIResolutionError';
 import { Consola } from 'consola';
 import { Request } from 'cross-fetch';
 import ow from 'ow';
+import { APIGraph, APINodeQuery } from './types';
+import { APIResourceZooms } from './types/APIResourceZooms';
+import { IntersectionValueOf, With, ZoomIn } from './types/utils';
 
-type FlatZoom<G extends Graph, Q> = Q extends Query<G> ? Flatten<Q['zoom']> : never;
-type DeepZoom<G extends Graph, Q, R extends PropertyKey> = Q extends Query<G> ? { zoom: ZoomIn<Q['zoom'], R> } : never;
-
-type EmbeddedRels<G extends Graph, Q> = FlatZoom<G, Q> | RequiredPropertyOf<G['zooms']>;
-type EmbeddedGraph<G extends Graph, R extends PropertyKey> = Required<G['zooms']>[R];
-
-type EmbeddedNodes<G extends Graph, Q = undefined> = G['child'] extends Graph
-  ? Record<G['curie'], APIResponseNode<G['child'], Q>[]>
-  : IntersectionOfValues<
+type EmbeddedNodes<
+  TAPIGraph extends APIGraph,
+  TAPINodeQuery extends APINodeQuery<TAPIGraph> | undefined
+> = TAPIGraph extends With<APIGraph, 'child' | 'curie'> // <---------------------------------------------------| When given a collection with a curie,
+  ? Record<TAPIGraph['curie'], APIResponseNode<TAPIGraph['child'], TAPINodeQuery>[]> // <---------------------------------------| create a record like `{ [curie]: APIResponseJSONChild }`.
+  : TAPIGraph extends With<APIGraph, 'zooms'> // <--------------------------------------------------------------------| If it's a single zoomable resource
+  ? IntersectionValueOf<
       {
-        [R in EmbeddedRels<G, Q>]: Record<
-          EmbeddedGraph<G, R>['curie'],
-          EmbeddedGraph<G, R>['child'] extends Graph
-            ? APIResponseNode<EmbeddedGraph<G, R>['child'], DeepZoom<G, Q, R>>[]
-            : APIResponseNode<EmbeddedGraph<G, R>, DeepZoom<G, Q, R>>
-        >;
+        [R in APIResourceZooms<TAPIGraph, TAPINodeQuery>]: Required<TAPIGraph['zooms']>[R] extends With<
+          APIGraph,
+          'curie'
+        > // <--------------------------------------------------------------------------------------------------------| 1. For each zoomed rel that has a curie, create a record like `{ [curie]: APIResponseJSONChild }`.
+          ? {
+              [Curie in Required<TAPIGraph['zooms']>[R]['curie']]: APIResponseNode<
+                TAPIGraph['zooms'][R],
+                {
+                  zoom: TAPINodeQuery extends With<APINodeQuery<TAPIGraph>, 'zoom'>
+                    ? ZoomIn<TAPINodeQuery['zoom'], R> extends APINodeQuery<Required<TAPIGraph['zooms']>[R]>['zoom']
+                      ? ZoomIn<TAPINodeQuery['zoom'], R>
+                      : never
+                    : never; // <-------------------------------------------------------------------------------------| Otherwise pass an empty query for further resolution.
+                }
+              >;
+            }
+          : never;
       }
-    >;
+    >
+  : never; // <-------------------------------------------------------------------------------------------------------| In any other case don't include any embedded resources at all.
 
 /** Options of {@link APINode} constructor. */
 export type APINodeInit = {
@@ -52,9 +49,9 @@ export type APINodeInit = {
 };
 
 /** Options of {@link APIResponseNode} constructor. */
-export type APIResponseNodeInit<G extends Graph, Q> = Omit<APINodeInit, 'path'> & {
+export type APIResponseNodeInit = Omit<APINodeInit, 'path'> & {
   /** Resource data received with the API response. */
-  json: ResponseJSON<G, Q>;
+  json: any;
 };
 
 /**
@@ -64,13 +61,13 @@ export type APIResponseNodeInit<G extends Graph, Q> = Omit<APINodeInit, 'path'> 
  * @param zoom Zoom definition as object.
  * @returns Serialized zoom parameter value.
  */
-function stringifyZoom(prefix: string, zoom: QueryZoom): string {
+function stringifyZoom(prefix: string, zoom: unknown): string {
   const scope = prefix === '' ? '' : prefix + ':';
 
   if (typeof zoom === 'string') return scope + zoom;
   if (Array.isArray(zoom)) return zoom.map(v => stringifyZoom(prefix, v)).join();
 
-  return Object.entries(zoom)
+  return Object.entries(zoom as Record<string, unknown>)
     .map(([key, value]) => stringifyZoom(scope + key, value))
     .join();
 }
@@ -81,16 +78,25 @@ function stringifyZoom(prefix: string, zoom: QueryZoom): string {
  * @param order Order definition as object.
  * @returns Serialized order parameter value.
  */
-function stringifyOrder(order: QueryOrder): string {
+function stringifyOrder(order: unknown): string {
   if (typeof order === 'string') return order;
 
   if (Array.isArray(order)) {
     return order.map(item => stringifyOrder(item)).join();
   }
 
-  return Object.entries(order)
+  return Object.entries(order as Record<string, unknown>)
     .map(([key, value]) => `${key} ${value}`)
     .join();
+}
+
+/**
+ * @param json
+ */
+function getSelfURL(json: any) {
+  const href = json?._links?.self?.href;
+  if (typeof href === 'string') return new URL(href);
+  throw new Error('TODO');
 }
 
 /**
@@ -98,7 +104,7 @@ function stringifyOrder(order: QueryOrder): string {
  * created, updated or deleted. You shouldn't need to create instances
  * of this class unless you're building a custom API client with our SDK.
  */
-export class APINode<G extends Graph> {
+export class APINode<G extends APIGraph> {
   /** Shared [Consola](https://github.com/nuxt-contrib/consola) instance. */
   protected readonly _console: Consola;
 
@@ -120,7 +126,7 @@ export class APINode<G extends Graph> {
 
   async get(): Promise<APIResponse<G>>;
 
-  async get<Q extends Query<G>>(query: Q): Promise<APIResponse<G, Q>>;
+  async get<Q extends APINodeQuery<G>>(query: Q): Promise<APIResponse<G, Q>>;
 
   /**
    * Resolves the URL of this node and sends a GET request
@@ -129,7 +135,7 @@ export class APINode<G extends Graph> {
    * @param query Query parameters such as zoom, fields etc.
    * @returns Instance of {@link APIResponse} representing this resource.
    */
-  async get(query?: Query): Promise<APIResponse<G>> {
+  async get(query?: APINodeQuery<G>): Promise<APIResponse<G>> {
     ow(query, ow.optional.object.partialShape(isQuery));
 
     const url = await this._resolve();
@@ -161,8 +167,8 @@ export class APINode<G extends Graph> {
    * @param body Complete resource object.
    * @returns Instance of {@link APIResponse} representing this resource.
    */
-  async put(body: Properties<G>): Promise<APIResponse<G>> {
-    ow(body, ow.object);
+  async put(body?: G['props']): Promise<APIResponse<G>> {
+    ow(body as unknown, ow.optional.object);
 
     const url = await this._resolve();
     const request = new Request(url.toString(), { body: JSON.stringify(body), method: 'PUT' });
@@ -179,8 +185,8 @@ export class APINode<G extends Graph> {
    * @param body Complete resource object.
    * @returns Instance of {@link APIResponse} representing this resource.
    */
-  async post(body?: Properties<G>): Promise<APIResponse<G>> {
-    ow(body, ow.any(ow.undefined, ow.object));
+  async post(body?: G['props']): Promise<APIResponse<G>> {
+    ow(body as unknown, ow.optional.object);
 
     const url = await this._resolve();
     const request = new Request(url.toString(), { body: JSON.stringify(body), method: 'POST' });
@@ -197,8 +203,8 @@ export class APINode<G extends Graph> {
    * @param body Partial resource object.
    * @returns Instance of {@link APIResponse} representing this resource.
    */
-  async patch(body: Partial<Properties<G>>): Promise<APIResponse<G>> {
-    ow(body, ow.object);
+  async patch(body?: Partial<G['props']>): Promise<APIResponse<G>> {
+    ow(body as unknown, ow.optional.object);
 
     const url = await this._resolve();
     const request = new Request(url.toString(), { body: JSON.stringify(body), method: 'POST' });
@@ -231,7 +237,7 @@ export class APINode<G extends Graph> {
    * @param curie Curie to follow.
    * @returns Instance of {@link APINode} representing the resource at curie location.
    */
-  follow<C extends Curies<G>>(curie: C): APINode<Follow<G, C>> {
+  follow<C extends keyof G['links']>(curie: C): APINode<G['links'][C]> {
     ow(curie as unknown, ow.string);
 
     const config = { cache: this._cache, console: this._console, fetch: this._fetch };
@@ -288,17 +294,18 @@ export class APINode<G extends Graph> {
  * You shouldn't need to create instances of this class unless you're
  * building a custom API client with our SDK.
  */
-export class APIResponseNode<G extends Graph, Q = undefined> extends APINode<G> {
+export class APIResponseNode<G extends APIGraph, Q = undefined> extends APINode<G> {
   /** Embedded resources. Same as `json._embedded`, but enhanced with {@link APIResponseNode} features. */
+
   readonly embeds: EmbeddedNodes<G, Q>;
 
   /** Own properties of this resource (excluding `_links` and `_embedded`). */
   readonly props: G['props'];
 
-  constructor({ json, ...nodeInit }: APIResponseNodeInit<G, Q>) {
-    super({ ...nodeInit, path: [new URL(json._links.self.href)] });
+  constructor({ json, ...nodeInit }: APIResponseNodeInit) {
+    super({ ...nodeInit, path: [getSelfURL(json)] });
 
-    this.embeds = Object.entries(json._embedded).reduce(
+    this.embeds = Object.entries(json?._embedded ?? {}).reduce(
       (embeds, [embedCurie, embedJSON]) =>
         Object.assign(embeds, {
           [embedCurie]: Array.isArray(embedJSON)

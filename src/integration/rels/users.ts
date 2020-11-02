@@ -1,9 +1,9 @@
-import type { CollectionLinks, CollectionProps } from '../../core/types';
+import type { APICollectionGraphLinks, APICollectionGraphProps, APIGraph } from '../../core/types';
 import type { FxUser } from './user';
 
-export interface FxUsers {
+export interface FxUsers extends APIGraph {
   curie: 'fx:users';
-  links: CollectionLinks<FxUsers>;
-  props: CollectionProps;
+  links: APICollectionGraphLinks<FxUsers>;
+  props: APICollectionGraphProps;
   child: FxUser;
 }

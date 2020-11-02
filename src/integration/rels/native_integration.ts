@@ -1,6 +1,7 @@
+import type { APIGraph } from '../../core/types';
 import type { FxStore } from './store';
 
-export interface FxNativeIntegration {
+export interface FxNativeIntegration extends APIGraph {
   curie: 'fx:native_integration';
 
   links: {

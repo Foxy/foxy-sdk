@@ -1,8 +1,9 @@
-import type { FxItemCategory } from './item_category';
+import type { APIGraph } from '../../core/types';
 import type { FxCoupon } from './coupon';
+import type { FxItemCategory } from './item_category';
 import type { FxStore } from './store';
 
-export interface FxCouponItemCategory {
+export interface FxCouponItemCategory extends APIGraph {
   curie: 'fx:coupon_item_category';
 
   links: {

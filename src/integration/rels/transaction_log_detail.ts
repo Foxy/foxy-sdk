@@ -1,7 +1,8 @@
-import type { FxTransactionLog } from './transaction_log';
+import type { APIGraph } from '../../core/types';
 import type { FxStore } from './store';
+import type { FxTransactionLog } from './transaction_log';
 
-export interface FxTransactionLogDetail {
+export interface FxTransactionLogDetail extends APIGraph {
   curie: 'fx:transaction_log_detail';
 
   links: {

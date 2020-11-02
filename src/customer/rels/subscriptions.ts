@@ -1,9 +1,8 @@
-import type { FxSubscriptions as IntegrationAPIFxSubscriptions } from '../../integration/rels/subscriptions';
+import type { APIGraph } from '../../core/types';
 import type { FxSubscription } from './subscription';
+import type { FxSubscriptions as IntegrationAPIFxSubscriptions } from '../../integration/rels/subscriptions';
 
-export interface FxSubscriptions {
+export interface FxSubscriptions extends APIGraph {
   curie: IntegrationAPIFxSubscriptions['curie'];
-  links: never;
-  props: never;
   child: FxSubscription;
 }

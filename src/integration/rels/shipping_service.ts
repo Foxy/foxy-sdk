@@ -1,8 +1,9 @@
-import type { FxShippingMethods } from './shipping_methods';
+import type { APIGraph } from '../../core/types';
 import type { FxPropertyHelpers } from './property_helpers';
 import type { FxShippingMethod } from './shipping_method';
+import type { FxShippingMethods } from './shipping_methods';
 
-export interface FxShippingService {
+export interface FxShippingService extends APIGraph {
   curie: 'fx:shipping_service';
 
   links: {

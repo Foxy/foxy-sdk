@@ -1,7 +1,8 @@
+import type { APIGraph } from '../../core/types';
 import type { FxCustomer } from './customer';
 import type { FxStore } from './store';
 
-export interface FxCustomerAddress {
+export interface FxCustomerAddress extends APIGraph {
   curie: 'fx:customer_address';
 
   links: {

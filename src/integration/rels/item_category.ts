@@ -1,8 +1,9 @@
-import type { FxTaxItemCategories } from './tax_item_categories';
+import type { APIGraph } from '../../core/types';
 import type { FxEmailTemplates } from './email_templates';
 import type { FxStore } from './store';
+import type { FxTaxItemCategories } from './tax_item_categories';
 
-export interface FxItemCategory {
+export interface FxItemCategory extends APIGraph {
   curie: 'fx:item_category';
 
   links: {

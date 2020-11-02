@@ -1,9 +1,9 @@
-import type { CollectionLinks, CollectionProps } from '../../core/types';
+import type { APICollectionGraphLinks, APICollectionGraphProps, APIGraph } from '../../core/types';
 import type { FxStoreShippingService } from './store_shipping_service';
 
-export interface FxStoreShippingServices {
+export interface FxStoreShippingServices extends APIGraph {
   curie: 'fx:store_shipping_services';
-  links: CollectionLinks<FxStoreShippingServices>;
-  props: CollectionProps;
+  links: APICollectionGraphLinks<FxStoreShippingServices>;
+  props: APICollectionGraphProps;
   child: FxStoreShippingService;
 }

@@ -1,7 +1,8 @@
+import type { APIGraph } from '../../core/types';
 import type { FxPropertyHelpers } from './property_helpers';
 import type { FxStoreVersions } from './store_versions';
 
-export interface FxStoreVersion {
+export interface FxStoreVersion extends APIGraph {
   curie: 'fx:store_version';
 
   links: {

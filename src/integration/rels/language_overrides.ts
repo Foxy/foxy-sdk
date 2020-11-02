@@ -1,9 +1,9 @@
-import type { CollectionLinks, CollectionProps } from '../../core/types';
+import type { APICollectionGraphLinks, APICollectionGraphProps, APIGraph } from '../../core/types';
 import type { FxLanguageOverride } from './language_override';
 
-export interface FxLanguageOverrides {
+export interface FxLanguageOverrides extends APIGraph {
   curie: 'fx:language_overrides';
-  links: CollectionLinks<FxLanguageOverrides>;
-  props: CollectionProps;
+  links: APICollectionGraphLinks<FxLanguageOverrides>;
+  props: APICollectionGraphProps;
   child: FxLanguageOverride;
 }

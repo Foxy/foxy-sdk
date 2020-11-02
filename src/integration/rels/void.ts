@@ -1,5 +1,5 @@
-export interface FxVoid {
+import type { APIGraph } from '../../core/types';
+
+export interface FxVoid extends APIGraph {
   curie: 'fx:void';
-  links: never;
-  props: never;
 }

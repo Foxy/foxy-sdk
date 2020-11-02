@@ -1,11 +1,12 @@
-import type { FxCustomerAddress } from './customer_address';
-import type { FxTransaction } from './transaction';
-import type { FxShipments } from './shipments';
+import type { APIGraph } from '../../core/types';
 import type { FxCustomer } from './customer';
-import type { FxStore } from './store';
+import type { FxCustomerAddress } from './customer_address';
 import type { FxItems } from './items';
+import type { FxShipments } from './shipments';
+import type { FxStore } from './store';
+import type { FxTransaction } from './transaction';
 
-export interface FxShipment {
+export interface FxShipment extends APIGraph {
   curie: 'fx:shipment';
 
   links: {

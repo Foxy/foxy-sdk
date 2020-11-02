@@ -1,4 +1,5 @@
-import { APINode, Graph } from './internal';
+import { APINode } from './internal';
+import { APIGraph } from './types';
 import consola, { Consola, LogLevel } from 'consola';
 import MemoryStorage from 'ministorage';
 import { fetch } from 'cross-fetch';
@@ -43,7 +44,7 @@ export type APIInit = {
  * Base API class for all custom clients in this SDK. If you're building
  * your own client, consider extending this class for consistency.
  */
-export class API<G extends Graph> extends APINode<G> {
+export class API<G extends APIGraph> extends APINode<G> {
   /**
    * [Consola](https://github.com/nuxt-contrib/consola) instance.
    * If you extend this class and add logging in your code, use this instead of native console.

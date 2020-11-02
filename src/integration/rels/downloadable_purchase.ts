@@ -1,10 +1,11 @@
-import type { FxDownloadable } from './downloadable';
-import type { FxTransaction } from './transaction';
+import type { APIGraph } from '../../core/types';
 import type { FxCustomer } from './customer';
-import type { FxStore } from './store';
+import type { FxDownloadable } from './downloadable';
 import type { FxItem } from './item';
+import type { FxStore } from './store';
+import type { FxTransaction } from './transaction';
 
-export interface FxDownloadablePurchase {
+export interface FxDownloadablePurchase extends APIGraph {
   curie: 'fx:downloadable_purchase';
 
   links: {

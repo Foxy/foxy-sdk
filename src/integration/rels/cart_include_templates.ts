@@ -1,9 +1,9 @@
-import { CollectionLinks, CollectionProps } from '../../core/types';
+import type { APICollectionGraphLinks, APICollectionGraphProps, APIGraph } from '../../core/types';
 import type { FxCartIncludeTemplate } from './cart_include_template';
 
-export interface FxCartIncludeTemplates {
+export interface FxCartIncludeTemplates extends APIGraph {
   curie: 'fx:cart_include_templates';
-  links: CollectionLinks<FxCartIncludeTemplates>;
-  props: CollectionProps;
+  links: APICollectionGraphLinks<FxCartIncludeTemplates>;
+  props: APICollectionGraphProps;
   child: FxCartIncludeTemplate;
 }

@@ -1,7 +1,8 @@
-import type { FxTransaction } from './transaction';
+import type { APIGraph } from '../../core/types';
 import type { FxStore } from './store';
+import type { FxTransaction } from './transaction';
 
-export interface FxPayment {
+export interface FxPayment extends APIGraph {
   curie: 'fx:payment';
 
   links: {

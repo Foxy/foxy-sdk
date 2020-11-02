@@ -1,13 +1,14 @@
-import type { FxDefaultShippingAddress } from './default_shipping_address';
+import type { APIGraph } from '../../core/types';
+import type { FxAttributes } from './attributes';
+import type { FxCustomerAddresses } from './customer_addresses';
 import type { FxDefaultBillingAddress } from './default_billing_address';
 import type { FxDefaultPaymentMethod } from './default_payment_method';
-import type { FxCustomerAddresses } from './customer_addresses';
+import type { FxDefaultShippingAddress } from './default_shipping_address';
+import type { FxStore } from './store';
 import type { FxSubscriptions } from './subscriptions';
 import type { FxTransactions } from './transactions';
-import type { FxAttributes } from './attributes';
-import type { FxStore } from './store';
 
-export interface FxCustomer {
+export interface FxCustomer extends APIGraph {
   curie: 'fx:customer';
 
   links: {

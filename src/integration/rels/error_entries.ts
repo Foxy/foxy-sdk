@@ -1,9 +1,9 @@
-import type { CollectionLinks, CollectionProps } from '../../core/types';
+import type { APICollectionGraphLinks, APICollectionGraphProps, APIGraph } from '../../core/types';
 import type { FxErrorEntry } from './error_entry';
 
-export interface FxErrorEntries {
+export interface FxErrorEntries extends APIGraph {
   curie: 'fx:error_entries';
-  links: CollectionLinks<FxErrorEntries>;
-  props: CollectionProps;
+  links: APICollectionGraphLinks<FxErrorEntries>;
+  props: APICollectionGraphProps;
   child: FxErrorEntry;
 }

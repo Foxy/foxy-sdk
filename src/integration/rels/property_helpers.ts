@@ -1,19 +1,20 @@
-import type { FxCustomerPasswordHashTypes } from './customer_password_hash_types';
-import type { FxHostedPaymentGateways } from './hosted_payment_gateways';
-import type { FxShippingAddressTypes } from './shipping_address_types';
-import type { FxDefaultTemplates } from './default_templates';
-import type { FxLanguageStrings } from './language_strings';
-import type { FxPaymentGateways } from './payment_gateways';
-import type { FxShippingMethods } from './shipping_methods';
+import type { APIGraph } from '../../core/types';
 import type { FxCheckoutTypes } from './checkout_types';
-import type { FxStoreVersions } from './store_versions';
-import type { FxLocaleCodes } from './locale_codes';
-import type { FxLanguages } from './languages';
 import type { FxCountries } from './countries';
-import type { FxTimezones } from './timezones';
+import type { FxCustomerPasswordHashTypes } from './customer_password_hash_types';
+import type { FxDefaultTemplates } from './default_templates';
+import type { FxHostedPaymentGateways } from './hosted_payment_gateways';
+import type { FxLanguageStrings } from './language_strings';
+import type { FxLanguages } from './languages';
+import type { FxLocaleCodes } from './locale_codes';
+import type { FxPaymentGateways } from './payment_gateways';
 import type { FxRegions } from './regions';
+import type { FxShippingAddressTypes } from './shipping_address_types';
+import type { FxShippingMethods } from './shipping_methods';
+import type { FxStoreVersions } from './store_versions';
+import type { FxTimezones } from './timezones';
 
-export interface FxPropertyHelpers {
+export interface FxPropertyHelpers extends APIGraph {
   curie: 'fx:property_helpers';
 
   links: {

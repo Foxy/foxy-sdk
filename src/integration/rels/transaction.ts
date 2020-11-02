@@ -1,23 +1,24 @@
-import type { FxNativeIntegrations } from './native_integrations';
-import type { FxBillingAddresses } from './billing_addresses';
-import type { FxTransactionLogs } from './transaction_logs';
-import type { FxProcessWebhook } from './process_webhook';
+import type { APIGraph } from '../../core/types';
 import type { FxAppliedTaxes } from './applied_taxes';
-import type { FxCustomFields } from './custom_fields';
-import type { FxSendEmails } from './send_emails';
 import type { FxAttributes } from './attributes';
-import type { FxShipments } from './shipments';
-import type { FxDiscounts } from './discounts';
-import type { FxCustomer } from './customer';
-import type { FxPayments } from './payments';
-import type { FxReceipt } from './receipt';
+import type { FxBillingAddresses } from './billing_addresses';
 import type { FxCapture } from './capture';
-import type { FxRefund } from './refund';
-import type { FxStore } from './store';
+import type { FxCustomFields } from './custom_fields';
+import type { FxCustomer } from './customer';
+import type { FxDiscounts } from './discounts';
 import type { FxItems } from './items';
+import type { FxNativeIntegrations } from './native_integrations';
+import type { FxPayments } from './payments';
+import type { FxProcessWebhook } from './process_webhook';
+import type { FxReceipt } from './receipt';
+import type { FxRefund } from './refund';
+import type { FxSendEmails } from './send_emails';
+import type { FxShipments } from './shipments';
+import type { FxStore } from './store';
+import type { FxTransactionLogs } from './transaction_logs';
 import type { FxVoid } from './void';
 
-export interface FxTransaction {
+export interface FxTransaction extends APIGraph {
   curie: 'fx:transaction';
 
   links: {

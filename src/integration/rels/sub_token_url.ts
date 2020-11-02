@@ -1,5 +1,5 @@
-export interface FxSubTokenUrl {
+import type { APIGraph } from '../../core/types';
+
+export interface FxSubTokenUrl extends APIGraph {
   curie: 'fx:sub_token_url';
-  links: never;
-  props: never;
 }

@@ -1,7 +1,8 @@
+import type { APIGraph } from '../../core/types';
 import type { FxStore } from './store';
 import type { FxUser } from './user';
 
-export interface FxUserAccess {
+export interface FxUserAccess extends APIGraph {
   curie: 'fx:user_access';
 
   links: {

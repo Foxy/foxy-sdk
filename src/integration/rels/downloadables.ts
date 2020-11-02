@@ -1,9 +1,9 @@
-import type { CollectionLinks, CollectionProps } from '../../core/types';
+import type { APICollectionGraphLinks, APICollectionGraphProps, APIGraph } from '../../core/types';
 import type { FxDownloadable } from './downloadable';
 
-export interface FxDownloadables {
+export interface FxDownloadables extends APIGraph {
   curie: 'fx:downloadables';
-  links: CollectionLinks<FxDownloadables>;
-  props: CollectionProps;
+  links: APICollectionGraphLinks<FxDownloadables>;
+  props: APICollectionGraphProps;
   child: FxDownloadable;
 }

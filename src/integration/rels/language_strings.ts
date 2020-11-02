@@ -1,10 +1,11 @@
+import type { APIGraph } from '../../core/types';
 import type { FxPropertyHelpers } from './property_helpers';
 
 interface StringRecord {
   [key: string]: StringRecord;
 }
 
-export interface FxLanguageStrings {
+export interface FxLanguageStrings extends APIGraph {
   curie: 'fx:language_strings';
 
   links: {

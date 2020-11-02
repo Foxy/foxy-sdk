@@ -1,6 +1,7 @@
+import type { APIGraph } from '../../core/types';
 import type { FxPropertyHelpers } from './property_helpers';
 
-export interface FxShippingAddressTypes {
+export interface FxShippingAddressTypes extends APIGraph {
   curie: 'fx:shipping_address_types';
 
   links: {

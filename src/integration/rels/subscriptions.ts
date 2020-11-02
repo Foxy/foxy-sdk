@@ -1,9 +1,9 @@
-import type { CollectionLinks, CollectionProps } from '../../core/types';
+import type { APICollectionGraphLinks, APICollectionGraphProps, APIGraph } from '../../core/types';
 import type { FxSubscription } from './subscription';
 
-export interface FxSubscriptions {
+export interface FxSubscriptions extends APIGraph {
   curie: 'fx:subscriptions';
-  links: CollectionLinks<FxSubscriptions>;
-  props: CollectionProps;
+  links: APICollectionGraphLinks<FxSubscriptions>;
+  props: APICollectionGraphProps;
   child: FxSubscription;
 }

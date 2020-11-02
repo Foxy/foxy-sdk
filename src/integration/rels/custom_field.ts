@@ -1,7 +1,8 @@
-import type { FxTransaction } from './transaction';
+import type { APIGraph } from '../../core/types';
 import type { FxStore } from './store';
+import type { FxTransaction } from './transaction';
 
-export interface FxCustomField {
+export interface FxCustomField extends APIGraph {
   curie: 'fx:custom_field';
 
   links: {

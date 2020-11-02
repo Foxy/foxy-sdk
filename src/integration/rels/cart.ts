@@ -1,14 +1,15 @@
+import type { APIGraph } from '../../core/types';
 import type { FxAppliedCouponCodes } from './applied_coupon_codes';
+import type { FxAttributes } from './attributes';
 import type { FxCreateSession } from './create_session';
 import type { FxCustomFields } from './custom_fields';
-import type { FxSubscription } from './subscription';
-import type { FxAttributes } from './attributes';
-import type { FxDiscounts } from './discounts';
 import type { FxCustomer } from './customer';
-import type { FxStore } from './store';
+import type { FxDiscounts } from './discounts';
 import type { FxItems } from './items';
+import type { FxStore } from './store';
+import type { FxSubscription } from './subscription';
 
-export interface FxCart {
+export interface FxCart extends APIGraph {
   curie: 'fx:cart';
 
   links: {

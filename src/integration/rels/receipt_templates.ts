@@ -1,9 +1,9 @@
-import type { CollectionLinks, CollectionProps } from '../../core/types';
+import type { APICollectionGraphLinks, APICollectionGraphProps, APIGraph } from '../../core/types';
 import type { FxReceiptTemplate } from './receipt_template';
 
-export interface FxReceiptTemplates {
+export interface FxReceiptTemplates extends APIGraph {
   curie: 'fx:receipt_templates';
-  links: CollectionLinks<FxReceiptTemplates>;
-  props: CollectionProps;
+  links: APICollectionGraphLinks<FxReceiptTemplates>;
+  props: APICollectionGraphProps;
   child: FxReceiptTemplate;
 }

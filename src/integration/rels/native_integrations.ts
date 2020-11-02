@@ -1,9 +1,9 @@
-import type { CollectionLinks, CollectionProps } from '../../core/types';
+import type { APICollectionGraphLinks, APICollectionGraphProps, APIGraph } from '../../core/types';
 import type { FxNativeIntegration } from './native_integration';
 
-export interface FxNativeIntegrations {
+export interface FxNativeIntegrations extends APIGraph {
   curie: 'fx:native_integrations';
-  links: CollectionLinks<FxNativeIntegrations>;
-  props: CollectionProps;
+  links: APICollectionGraphLinks<FxNativeIntegrations>;
+  props: APICollectionGraphProps;
   child: FxNativeIntegration;
 }

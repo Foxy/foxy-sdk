@@ -1,6 +1,7 @@
+import type { APIGraph } from '../../core/types';
 import type { FxPropertyHelpers } from './property_helpers';
 
-export interface FxLocaleCodes {
+export interface FxLocaleCodes extends APIGraph {
   curie: 'fx:locale_codes';
 
   links: {

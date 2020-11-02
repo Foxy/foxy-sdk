@@ -1,7 +1,7 @@
+import type { APIGraph } from '../../core/types';
 import type { FxDefaultShippingAddress as IntegrationAPIFxDefaultShippingAddress } from '../../integration/rels/default_shipping_address';
 
-export interface FxDefaultShippingAddress {
+export interface FxDefaultShippingAddress extends APIGraph {
   curie: IntegrationAPIFxDefaultShippingAddress['curie'];
-  links: never;
   props: IntegrationAPIFxDefaultShippingAddress['props'];
 }

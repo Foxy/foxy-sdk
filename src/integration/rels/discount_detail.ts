@@ -1,8 +1,9 @@
-import type { FxTransaction } from './transaction';
-import type { FxStore } from './store';
+import type { APIGraph } from '../../core/types';
 import type { FxItem } from './item';
+import type { FxStore } from './store';
+import type { FxTransaction } from './transaction';
 
-export interface FxDiscountDetail {
+export interface FxDiscountDetail extends APIGraph {
   curie: 'fx:discount_detail';
 
   links: {

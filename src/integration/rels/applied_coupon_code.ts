@@ -1,9 +1,10 @@
-import type { FxCouponCode } from './coupon_code';
-import type { FxCoupon } from './coupon';
-import type { FxStore } from './store';
+import type { APIGraph } from '../../core/types';
 import type { FxCart } from './cart';
+import type { FxCoupon } from './coupon';
+import type { FxCouponCode } from './coupon_code';
+import type { FxStore } from './store';
 
-export interface FxAppliedCouponCode {
+export interface FxAppliedCouponCode extends APIGraph {
   curie: 'fx:applied_coupon_code';
 
   links: {

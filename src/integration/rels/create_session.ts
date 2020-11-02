@@ -1,6 +1,8 @@
-export interface FxCreateSession {
+import type { APIGraph } from '../../core/types';
+
+export interface FxCreateSession extends APIGraph {
   curie: 'fx:create_session';
-  links: never;
+
   props: {
     /** Unique session identifier. */
     session_id: string;

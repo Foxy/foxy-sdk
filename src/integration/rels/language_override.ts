@@ -1,8 +1,9 @@
+import type { APIGraph } from '../../core/types';
 import type { FxLanguageOverrides } from './language_overrides';
-import type { FxTemplateSet } from './template_set';
 import type { FxStore } from './store';
+import type { FxTemplateSet } from './template_set';
 
-export interface FxLanguageOverride {
+export interface FxLanguageOverride extends APIGraph {
   curie: 'fx:language_override';
 
   links: {

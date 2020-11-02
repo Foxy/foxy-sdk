@@ -1,6 +1,7 @@
+import type { APIGraph } from '../../core/types';
 import type { FxPropertyHelpers } from './property_helpers';
 
-export interface FxCountries {
+export interface FxCountries extends APIGraph {
   curie: 'fx:countries';
 
   links: {

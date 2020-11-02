@@ -1,6 +1,7 @@
+import type { APIGraph } from '../../core/types';
 import type { FxPropertyHelpers } from './property_helpers';
 
-export interface FxCheckoutTypes {
+export interface FxCheckoutTypes extends APIGraph {
   curie: 'fx:checkout_types';
 
   links: {

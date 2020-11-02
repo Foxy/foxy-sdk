@@ -1,9 +1,9 @@
-import { CollectionLinks, CollectionProps } from '../../core/types';
+import type { APICollectionGraphLinks, APICollectionGraphProps, APIGraph } from '../../core/types';
 import type { FxDiscountDetail } from './discount_detail';
 
-export interface FxDiscountDetails {
+export interface FxDiscountDetails extends APIGraph {
   curie: 'fx:discount_details';
-  links: CollectionLinks<FxDiscountDetails>;
-  props: CollectionProps;
+  links: APICollectionGraphLinks<FxDiscountDetails>;
+  props: APICollectionGraphProps;
   child: FxDiscountDetail;
 }

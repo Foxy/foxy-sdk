@@ -1,9 +1,9 @@
-import type { CollectionLinks, CollectionProps } from '../../core/types';
+import type { APICollectionGraphLinks, APICollectionGraphProps, APIGraph } from '../../core/types';
 import type { FxPaymentGateway } from './payment_gateway';
 
-export interface FxPaymentGateways {
+export interface FxPaymentGateways extends APIGraph {
   curie: 'fx:payment_gateways';
-  links: CollectionLinks<FxPaymentGateways>;
-  props: CollectionProps;
+  links: APICollectionGraphLinks<FxPaymentGateways>;
+  props: APICollectionGraphProps;
   child: FxPaymentGateway;
 }

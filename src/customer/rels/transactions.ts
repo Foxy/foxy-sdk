@@ -1,9 +1,8 @@
-import type { FxTransactions as IntegrationAPIFxTransactions } from '../../integration/rels/transactions';
+import type { APIGraph } from '../../core/types';
 import type { FxTransaction } from './transaction';
+import type { FxTransactions as IntegrationAPIFxTransactions } from '../../integration/rels/transactions';
 
-export interface FxTransactions {
+export interface FxTransactions extends APIGraph {
   curie: IntegrationAPIFxTransactions['curie'];
-  links: never;
-  props: never;
   child: FxTransaction;
 }

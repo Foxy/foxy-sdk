@@ -1,7 +1,8 @@
+import type { APIGraph } from '../../core/types';
 import type { FxReporting } from './reporting';
 import type { FxUser } from './user';
 
-export interface FxReportingEmailExists {
+export interface FxReportingEmailExists extends APIGraph {
   curie: 'fx:reporting_email_exists';
 
   links: {

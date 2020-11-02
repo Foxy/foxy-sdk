@@ -1,14 +1,13 @@
+import type { APIGraph } from '../../core/types';
+import type { FxEncode } from './encode';
 import type { FxPropertyHelpers } from './property_helpers';
 import type { FxReporting } from './reporting';
-import type { FxEncode } from './encode';
-import type { FxStores } from './stores';
 import type { FxStore } from './store';
+import type { FxStores } from './stores';
 import type { FxToken } from './token';
 import type { FxUser } from './user';
 
-export interface IntegrationAPIGraph {
-  curie: never;
-
+export interface IntegrationAPIGraph extends APIGraph {
   links: {
     /** Your API starting point. */
     'self': IntegrationAPIGraph;

@@ -1,8 +1,9 @@
-import type { FxPaymentMethodSet } from './payment_method_set';
+import type { APIGraph } from '../../core/types';
 import type { FxFraudProtection } from './fraud_protection';
+import type { FxPaymentMethodSet } from './payment_method_set';
 import type { FxStore } from './store';
 
-export interface FxPaymentMethodSetFraudProtection {
+export interface FxPaymentMethodSetFraudProtection extends APIGraph {
   curie: 'fx:payment_method_set_fraud_protection';
 
   links: {

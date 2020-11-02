@@ -1,6 +1,7 @@
-import { APIResponseNode, Graph, Query, ResponseJSON } from './internal';
+import { APIResponseNode } from './internal';
 import { Consola } from 'consola';
 import { Response } from 'cross-fetch';
+import { APIGraph, APINodeQuery, APIResource } from './types';
 
 /** Options of {@link APIResponse} constructor. */
 export type APIResponseInit = {
@@ -20,7 +21,7 @@ export type APIResponseInit = {
  * to a few custom methods. You shouldn't need to construct instances of this
  * class directly unless you're building a custom API client with this SDK.
  */
-export class APIResponse<G extends Graph, Q extends Query<G> | undefined = undefined> extends Response {
+export class APIResponse<G extends APIGraph, Q extends APINodeQuery<G> | undefined = undefined> extends Response {
   /** Shared [Consola](https://github.com/nuxt-contrib/consola) instance. */
   protected readonly _console: Consola;
 
@@ -59,7 +60,7 @@ export class APIResponse<G extends Graph, Q extends Query<G> | undefined = undef
    *
    * @returns Unmodified API response.
    */
-  async json(): Promise<ResponseJSON<G, Q>> {
+  async json(): Promise<APIResource<G, Q>> {
     return super.json();
   }
 }

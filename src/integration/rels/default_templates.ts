@@ -1,11 +1,12 @@
+import type { APIGraph } from '../../core/types';
 import type { FxCartIncludeTemplates } from './cart_include_templates';
-import type { FxCheckoutTemplates } from './checkout_templates';
-import type { FxReceiptTemplates } from './receipt_templates';
-import type { FxPropertyHelpers } from './property_helpers';
-import type { FxEmailTemplates } from './email_templates';
 import type { FxCartTemplates } from './cart_templates';
+import type { FxCheckoutTemplates } from './checkout_templates';
+import type { FxEmailTemplates } from './email_templates';
+import type { FxPropertyHelpers } from './property_helpers';
+import type { FxReceiptTemplates } from './receipt_templates';
 
-export interface FxDefaultTemplates {
+export interface FxDefaultTemplates extends APIGraph {
   curie: 'fx:default_templates';
 
   links: {

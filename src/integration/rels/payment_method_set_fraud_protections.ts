@@ -1,9 +1,9 @@
-import type { CollectionLinks, CollectionProps } from '../../core/types';
+import type { APICollectionGraphLinks, APICollectionGraphProps, APIGraph } from '../../core/types';
 import type { FxPaymentMethodSetFraudProtection } from './payment_method_set_fraud_protection';
 
-export interface FxPaymentMethodSetFraudProtections {
+export interface FxPaymentMethodSetFraudProtections extends APIGraph {
   curie: 'fx:payment_method_set_fraud_protections';
-  links: CollectionLinks<FxPaymentMethodSetFraudProtections>;
-  props: CollectionProps;
+  links: APICollectionGraphLinks<FxPaymentMethodSetFraudProtections>;
+  props: APICollectionGraphProps;
   child: FxPaymentMethodSetFraudProtection;
 }
