@@ -1,9 +1,15 @@
-export { AdminAPI } from './admin';
 export { API } from './core/API';
 export { APINode, APIResponseNode } from './core/APINode';
 export { APIResolutionError } from './core/APIResolutionError';
 export { APIResponse } from './core/APIResponse';
+export { APIGraph } from './core/types/APIGraph';
+export { APIResource } from './core/types/APIResource';
+export { APINodeQuery } from './core/types/APINodeQuery';
 export { UniversalAPI } from './core/UniversalAPI';
 export { UniversalAPIAuthError } from './core/UniversalAPIAuthError';
+export { AdminAPI } from './admin';
+export { IntegrationAPIGraph as AdminAPIGraph } from './integration/rels';
 export { CustomerAPI } from './customer';
+export { CustomerAPIGraph } from './customer/rels';
 export { IntegrationAPI } from './integration';
+export { IntegrationAPIGraph } from './integration/rels';
