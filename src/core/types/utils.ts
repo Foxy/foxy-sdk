@@ -19,6 +19,12 @@ export type IntersectionValueOf<T> = UnionToIntersection<ValueOf<T>>;
 /** From T, pick a set of properties whose keys are in the union K, and make them required. */
 export type With<T, K extends keyof T> = Pick<Required<T>, K>;
 
+/** Same as `keyof T`, but omitting keys of properties with values resolving to `never`. */
+export type AvailableKeyOf<T> = ValueOf<{ [K in keyof T]: [T[K]] extends [never] ? never : K }>;
+
+/** From T, pick a set of properties whose values are not `never`. */
+export type ExcludeNever<T> = { [K in AvailableKeyOf<T>]: T[K] };
+
 /** Takes the existing zoom query parameter value and excludes all top-level zooms, zooming in on the given relation. */
 export type ZoomIn<TAPINodeQueryZoom, TRel extends PropertyKey> = TAPINodeQueryZoom extends (infer Items)[]
   ? ValueOf<Extract<Items, Record<TRel, unknown>>>
