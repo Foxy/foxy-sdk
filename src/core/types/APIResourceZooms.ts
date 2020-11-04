@@ -9,7 +9,7 @@ export type APIResourceZooms<
 > = Extract<
   TAPIGraph extends With<APIGraph, 'zooms'>
     ?
-        | RequiredKeyOf<TAPIGraph['zooms']> // <-----------------------------------------| include all default embeds.
+        | RequiredKeyOf<TAPIGraph['zooms']> // <----------------------------------------| include all default embeds.
         | (TAPINodeQuery extends APINodeQuery<TAPIGraph> // <---------------------------| If there are query parameters,
             ? TAPINodeQuery extends With<APINodeQuery<TAPIGraph>, 'zoom'> // <----------| and one of them is zoom, also apply the following rules:
               ? TAPINodeQuery['zoom'] extends string // <-------------------------------| 1. For string values,

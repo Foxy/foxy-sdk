@@ -1,40 +1,10 @@
 import { APICurieChain, APIResponse, isQuery } from './internal';
+import { APIGraph, APINodeQuery } from './types';
 import { APIResolutionError } from './APIResolutionError';
+import { APIResponseNodeEmbeds } from './types/APIResponseNodeEmbeds';
 import { Consola } from 'consola';
 import { Request } from 'cross-fetch';
 import ow from 'ow';
-import { APIGraph, APINodeQuery } from './types';
-import { APIResourceZooms } from './types/APIResourceZooms';
-import { IntersectionValueOf, With, ZoomIn } from './types/utils';
-
-type EmbeddedNodes<
-  TAPIGraph extends APIGraph,
-  TAPINodeQuery extends APINodeQuery<TAPIGraph> | undefined
-> = TAPIGraph extends With<APIGraph, 'child' | 'curie'> // <---------------------------------------------------| When given a collection with a curie,
-  ? Record<TAPIGraph['curie'], APIResponseNode<TAPIGraph['child'], TAPINodeQuery>[]> // <---------------------------------------| create a record like `{ [curie]: APIResponseJSONChild }`.
-  : TAPIGraph extends With<APIGraph, 'zooms'> // <--------------------------------------------------------------------| If it's a single zoomable resource
-  ? IntersectionValueOf<
-      {
-        [R in APIResourceZooms<TAPIGraph, TAPINodeQuery>]: Required<TAPIGraph['zooms']>[R] extends With<
-          APIGraph,
-          'curie'
-        > // <--------------------------------------------------------------------------------------------------------| 1. For each zoomed rel that has a curie, create a record like `{ [curie]: APIResponseJSONChild }`.
-          ? {
-              [Curie in Required<TAPIGraph['zooms']>[R]['curie']]: APIResponseNode<
-                TAPIGraph['zooms'][R],
-                {
-                  zoom: TAPINodeQuery extends With<APINodeQuery<TAPIGraph>, 'zoom'>
-                    ? ZoomIn<TAPINodeQuery['zoom'], R> extends APINodeQuery<Required<TAPIGraph['zooms']>[R]>['zoom']
-                      ? ZoomIn<TAPINodeQuery['zoom'], R>
-                      : never
-                    : never; // <-------------------------------------------------------------------------------------| Otherwise pass an empty query for further resolution.
-                }
-              >;
-            }
-          : never;
-      }
-    >
-  : never; // <-------------------------------------------------------------------------------------------------------| In any other case don't include any embedded resources at all.
 
 /** Options of {@link APINode} constructor. */
 export type APINodeInit = {
@@ -296,8 +266,7 @@ export class APINode<G extends APIGraph> {
  */
 export class APIResponseNode<G extends APIGraph, Q = undefined> extends APINode<G> {
   /** Embedded resources. Same as `json._embedded`, but enhanced with {@link APIResponseNode} features. */
-
-  readonly embeds: EmbeddedNodes<G, Q>;
+  readonly embeds: APIResponseNodeEmbeds<G, Q>;
 
   /** Own properties of this resource (excluding `_links` and `_embedded`). */
   readonly props: G['props'];
@@ -313,7 +282,7 @@ export class APIResponseNode<G extends APIGraph, Q = undefined> extends APINode<
             : new APIResponseNode({ ...nodeInit, json: embedJSON }),
         }),
       {}
-    ) as EmbeddedNodes<G, Q>;
+    ) as APIResponseNodeEmbeds<G, Q>;
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { _embedded, _links, ...props } = json as Record<string, unknown>;

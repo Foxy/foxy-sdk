@@ -1,22 +1,9 @@
-import { ExcludeNever, IntersectionValueOf, With, ZoomIn } from './utils';
+import { ExcludeNever, IntersectionValueOf, With } from './utils';
 import { APIGraph } from './APIGraph';
 import { APINodeQuery } from './APINodeQuery';
+import { APINodeQueryZoomOn } from './APINodeQueryZoomOn';
 import { APIResourceChild } from './APIResourceChild';
 import { APIResourceZooms } from './APIResourceZooms';
-
-/**
- * Zooms in on the given rel and constructs a type
- * extending `APINodeQueryZoom` for use in a query.
- */
-type NestedZoom<
-  TAPIGraph extends APIGraph,
-  TAPINodeQuery extends APINodeQuery<TAPIGraph> | undefined,
-  TRel extends keyof TAPIGraph['zooms']
-> = TAPINodeQuery extends With<APINodeQuery<TAPIGraph>, 'zoom'>
-  ? ZoomIn<TAPINodeQuery['zoom'], TRel> extends APINodeQuery<Required<TAPIGraph['zooms']>[TRel]>['zoom']
-    ? ZoomIn<TAPINodeQuery['zoom'], TRel>
-    : never
-  : never;
 
 /**
  * For each zoomed rel that has a curie, creates a record
@@ -32,7 +19,7 @@ type ResourceEmbed<
       ? {
           [Curie in Required<TAPIGraph['zooms']>[R]['curie']]: APIResourceChild<
             Required<TAPIGraph['zooms']>[R],
-            Record<'zoom', NestedZoom<TAPIGraph, TAPINodeQuery, R>>
+            Record<'zoom', APINodeQueryZoomOn<TAPIGraph, TAPINodeQuery, R>>
           >;
         }
       : never;
