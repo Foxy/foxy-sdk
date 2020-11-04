@@ -75,12 +75,14 @@
   "dependencies": {
     "@aws-amplify/auth": "^3.4.4",
     "@types/crypto-js": "^3.1.47",
+    "@types/jsdom": "^16.2.5",
     "@types/node": "^14.11.1",
     "@types/traverse": "^0.6.32",
     "babel-loader": "^8.1.0",
     "consola": "^2.15.0",
     "cross-fetch": "^3.0.6",
     "crypto-js": "^4.0.0",
+    "jsdom": "^16.4.0",
     "ministorage": "^1.0.0",
     "ow": "^0.18.0",
     "traverse": "^0.6.6"
