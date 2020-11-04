@@ -1,3 +1,5 @@
 export { API } from './API';
-export { Graph } from './Graph';
-export * as Rels from './Rels';
+
+import type * as Rels from './Rels';
+export type { Graph } from './Graph';
+export type { Rels };

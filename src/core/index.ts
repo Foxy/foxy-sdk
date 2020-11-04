@@ -1,4 +1,4 @@
-export { Resource } from './Resource';
-export { Query } from './Query';
-export { Graph } from './Graph';
+export type { Resource } from './Resource';
+export type { Query } from './Query';
+export type { Graph } from './Graph';
 export { API } from './API';
