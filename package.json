@@ -84,6 +84,8 @@
       "prepare-commit-msg": "exec < /dev/tty && git cz --hook || true",
       "pre-commit": "lint-staged"
     }
+  "release": {
+    "branches": ["main"]
   },
   "dependencies": {
     "@aws-amplify/auth": "^3.4.4",
