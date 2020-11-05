@@ -2,8 +2,9 @@
   "name": "@foxy.io/sdk",
   "version": "1.0.0-beta.0",
   "description": "Foxy SDK for building custom server-side and client-side integrations.",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/types/index.d.ts",
   "files": [
     "dist"
   ],
@@ -37,9 +38,10 @@
   "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/foxy/foxy-sdk/issues"
+    "url": "https://github.com/foxy/foxy-sdk/issues",
+    "email": "hello@foxy.io"
   },
-  "homepage": "https://github.com/foxy/foxy-sdk#readme",
+  "homepage": "https://sdk.foxy.dev",
   "devDependencies": {
     "@foxy.io/eslint-config": "^1.0.0",
     "copyfiles": "^2.4.0",
@@ -56,6 +58,9 @@
     "webpack": "^5.4.0",
     "webpack-cli": "^4.2.0",
     "webpack-node-externals": "^2.5.2"
+  },
+  "engines": {
+    "node": ">=10 <=15"
   },
   "eslintConfig": {
     "extends": "@foxy.io"
