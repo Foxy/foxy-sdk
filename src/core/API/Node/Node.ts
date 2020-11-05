@@ -66,6 +66,8 @@ function stringifyOrder(order: unknown): string {
 export class Node<TGraph extends Graph> {
   static readonly ResolutionError = ResolutionError;
 
+  static readonly Response = Response;
+
   /** Shared [Consola](https://github.com/nuxt-contrib/consola) instance. */
   protected readonly _console: Consola;
 
