@@ -1,5 +1,5 @@
 import * as Core from '../core';
-import { AuthClass } from '@aws-amplify/auth/lib/Auth';
+import Auth from '@aws-amplify/auth';
 import type { Credentials } from './types';
 import type { Graph } from './Graph';
 import { fetch } from 'cross-fetch';
@@ -10,7 +10,7 @@ import { fetch } from 'cross-fetch';
  * is the most feature-rich subset of Integration API available from the browser.
  */
 export class API extends Core.API<Graph> {
-  private readonly __auth: AuthClass;
+  private readonly __auth = Auth;
 
   /**
    * Creates an instance of {@link AdminAPI}.
@@ -20,8 +20,8 @@ export class API extends Core.API<Graph> {
   constructor(...args: ConstructorParameters<typeof Core.API>) {
     super(...args);
 
-    // TODO: change to production value
-    this.__auth = new AuthClass({
+    // TODO: production config + is multi-tenancy even possible with Amplify?
+    this.__auth.configure({
       identityPoolId: 'us-east-2:6e3cb428-0e77-495e-9960-f4ab46d4dca1',
       region: 'us-east-2',
       storage: args[0].storage,
