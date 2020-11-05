@@ -6,311 +6,115 @@ Universal SDK for a full server-side and a limited in-browser access to Foxy hAP
 
 ## Setup
 
-### Step 1: Install
+Install the package:
 
 ```bash
 npm i @foxy.io/sdk
 ```
 
-### Step 2: Import
-
-There are 3 types of API you can pick from:
-
-1. **Client API** is for integrations that connect to hAPI directly from a safe server-side environment. You will need to create an OAuth **client** to work with this class.
-2. **User API** is a subset of hAPI for admin-level access to a store from a browser with the same email and password you use to sign in to Foxy Admin. This API is for FoxyCart **users**.
-3. **Customer API** is a subset of hAPI available to **customers** of a particular store from a browser. Email and password used for sign in are separate from the admin credentials and always specific to that store.
-
-There's a class for each one of them, and you can import it like so:
+Then import using CommonJS (Node 10-12):
 
 ```js
-const { ClientAPI } = require("@foxy.io/sdk");
-const { UserAPI } = require("@foxy.io/sdk");
-const { CustomerAPI } = require("@foxy.io/sdk");
+const FoxySDK = require('@foxy.io/sdk');
 ```
 
-With TypeScript or Node v13+ you can also use [ES Modules](http://nodejs.org/docs/latest-v13.x/api/esm.html…):
+or ES Modules (Node 13+, TypeScript, browsers):
 
-```ts
-import { ClientAPI } from "@foxy.io/sdk";
-import { UserAPI } from "@foxy.io/sdk";
-import { CustomerAPI } from "@foxy.io/sdk";
+```js
+import * as FoxySDK from '@foxy.io/sdk';
 ```
 
-### Step 3: Initialize and sign in
+## Getting started
 
-Initializing is same for all 3 API types, and all params are optional, so you can create an instance with defaults and start right away.
+Our SDK consists of 4 main parts available via the main file:
 
-```ts
-const clientAPI = new ClientAPI();
-const userAPI = new UserAPI();
-const customerAPI = new CustomerAPI();
-```
+1. **Integration** is for building integrations that connect to hAPI directly from a safe **server-side** environment. Apart from the API client, you'll also find a number of useful utilities for HMAC signing, removing sensitive info from responses and webhook verification under this export alias.
+2. **Customer** is for building **universal** apps and websites that interact with a subset of hAPI available to customers of a particular store. This export is also available as a pre-built library on our CDN.
+3. **Admin** is for building **universal** apps and websites that interact with a subset of hAPI available to store admins. This export is also available as a pre-built library on our CDN.
+4. **Core**: is for building custom API clients that interact with Hypermedia API endpoints. This is the most advanced part of the SDK that every other built-in API client depends on. You can run it server and client-side.
 
-One of the options you'll most likely want to configure right away when using User API and Customer API is the endpoint:
+Integration, Customer and Admin all export API client classes for working with the respective endpoints. If you're using TypeScript, you'll also see the type exports for API-specific hypermedia relations and graphs named `Rels` and `Graph`. Let's connect to hAPI using `FoxySDK.Integration.API` class:
 
-```ts
-const userAPI = new UserAPI({
-  endpoint: "https://example.com/s/admin",
-});
-
-const customerAPI = new CustomerAPI({
-  endpoint: "https://example.com/s/customer",
+```js
+const api = new FoxySDK.Integration.API({
+  refreshToken: 'your refresh token',
+  clientSecret: 'your client secret',
+  clientId: 'your client id',
 });
 ```
 
-Signing in, on the other hand, is different for each one of the APIs. You'll need OAuth client credentials for the ClientAPI and an email + password pair for User and Customer API:
+This will create a hAPI version 1 client connecting to `https://api.foxycart.com/` with the given credentials, using in-memory storage for access token and URL resolution, logging errors, warnings and informational messages to console. You can customize each one of these defaults in constructor params and you'll see similar options for Customer and Admin API as well.
 
-```ts
-await clientAPI.signIn({
-  clientId: "client-id-for-your-integration",
-  clientSecret: "client-secret-for-your-integration",
-  refreshToken: "refresh-token-for-your-integration",
-});
+Regardless of the API type you're working with, you'll see the same methods on each node: `.follow()`, `.get()`, `.put()`, `.post()`, `.patch()` and `.delete()`. Here's how you can use them in 3 steps:
 
-await userAPI.signIn({
-  email: "admin@example.com",
-  password: "your-admin-password",
-});
+### 1. Find a node
 
-await customerAPI.signIn({
-  email: "customer@example.com",
-  password: "customer-password",
-});
+To access a hAPI endpoint, you don't type in a URL – instead you traverse the API graph via links until you reach your target. For example, to see your transactions, you need to load the bookmark URL (`https://api.foxycart.com/`), load your store at `bookmark._links['fx:store'].href` and only then get to the transactions at `store._links['fx:transactions'].href`. With our SDK this lengthy process becomes a one-liner:
+
+```js
+const transactionsNode = api.follow('fx:store').follow('fx:transactions');
 ```
 
-Once you're in, you can start making requests to the API. The SDK will keep the session open as long as the NodeJS process is active or a browser tab is open. If you'd like to persist the session, you'll need to specify a different storage implementing the `Storage` interface of the Web Storage API when creating your instance:
+String bits that start with `fx:` are called Compact URIs (or curies for short), and if you're using an editor that supports code autocompletion based on TypeScript definitions, we'll provide suggestions for available curies where possible.
 
-```ts
-// NodeJS doesn't have a built-in `Storage` implementation,
-// but you can always provide your own:
-new ClientAPI({ storage: new MyCustomStorage() });
+Now that we have our node, let's get some data from it:
 
-// Session Storage will keep you logged in for
-// as long as your browser is open:
-new UserAPI({ storage: window.sessionStorage });
+### 2. Get some data
 
-// Local Storage will persist your session for as long
-// as possible. Keep in mind that some browsers clear
-// local storage after 7 days and most of them wipe it
-// upon exiting the private mode:
-new CustomerAPI({ storage: window.localStorage });
+Each node has a class method corresponding to a supported HTTP method. For example, to make a `GET` request, we can call `.get()`:
+
+```js
+const transactionsResponse = await transactionsNode.get();
 ```
 
-Signing out is as simple as calling the `.signOut()` method. It's always async:
+The method we've just called returns a Promise (hence the use of the `await` keyword) that resolves with an enhanced version of a native [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) object, giving you an ability to access response status, headers and more. But for now we just want our JSON:
 
-```ts
-await clientAPI.signOut();
-await userAPI.signOut();
-await customerAPI.signOut();
+```js
+const transactions = await transactionsResponse.json();
 ```
 
-## Usage
+Done! Now you have the API response with the same schema as in the [docs](https://api.foxycart.com/) at your disposal. And yes, we have type definitions for it too, meaning that you'll get type checking with TypeScript and rich autosuggestions with inline docs in every editor that supports them. But what if we could go even further?
 
-Regardless of the API type you're working with, the interface will always be the same. To make the examples a bit more lightweight, we'll refer to the API instance as to `api` in the following examples.
+### 3. Making complex queries
 
-### Obtain a reference
+Quite often you'll need to fetch a specific set of items, maybe apply some filters, skip a few entries, speed things up by requesting a partial resource – and you can do that with hAPI using query parameters from our [cheatsheet](https://api.foxycart.com/docs/cheat-sheet). Our SDK provides convenient shortcuts for these parameters in the `.get()` method (all optional):
 
-```ts
-const store = api.follow("fx:stores").follow(8);
-
-// for store there's also a root rel:
-const store = api.follow("fx:store");
-```
-
-### Make a raw request (no url builder/resolver)
-
-```ts
-const store = await api.fetchRaw({
-  url: new URL("stores/8", api.endpoint),
-});
-```
-
-### GET, where available
-
-```ts
-await store.fetch({ method: "GET" });
-// or simply:
-await store.fetch();
-```
-
-There's many `.fetch()` options available depending on the resource type you're working with. One of them is zooming:
-
-```ts
-await store.fetch({
-  zoom: ["transactions", { customer: ["default_billing_address"] }],
-});
-```
-
-The other two are the standard `order`, `limit` and `offset` options available for collections:
-
-```ts
-await store.follow("fx:transactions").fetch({
-  order: [{ date_created: "desc" }, "transaction_date"],
-  limit: 10,
+```js
+const transactionsResponse = await transactionsNode.get({
+  zoom: { customer: ['default_billing_address'] },
+  filters: ['total_order:greaterthan=50', 'attributes:name[color]=red'],
+  fields: ['id', 'total_order', 'currency_code'],
   offset: 25,
+  limit: 10,
 });
 ```
 
-You can also speed up the download by requesting only the data you need:
+The response type will also match your query as close as possible, giving you the ability to eliminate possible errors before hitting the API. For example, for the above request each transaction will have only those 3 fields and only those 2 nested embeds (+ attributes where supported as they're included by default).
 
-```ts
-await store.fetch({
-  fields: ["store_name", "logo_url"],
-});
-```
+### Bonus: followable responses
 
-For any other advanced hAPI functionality you feel free use the `query` property or add your parameters directly to the `url`. Let's fetch transactions that have an attribute with name "color":
-
-```ts
-// using a plain object
-await transactions.fetch({
-  query: { "name[color]": "red" },
-});
-
-// the same, but wrapped in URLSearchParams
-await transactions.fetch({
-  query: new URLSearchParams({ "name[color]": "red" }),
-});
-
-// with a different syntax
-await transactions.fetch({
-  query: new URLSearchParams([["name[color]", "red"]]),
-});
-
-// and even like this
-await transactions.fetch({
-  query: new URLSearchParams("name[color]=red"),
-});
-
-// or in a url
-await transactions.fetch({
-  url: "path/to/transactions?name[color]=red",
-});
-
-// now mix them all together and add another constraint
-await transactions.fetch({
-  url: "path/to/transactions?name[color]=red",
-  query: { total_order: 50 },
-});
-```
-
-The last example shows that no matter how you pass the request options in, the SDK will do its best to merge them into a single query. The specificity of the parameters will be respected: `query` will overwrite the conflicting params in `url`, and options like `zoom` or `fields` will overwrite the respective values in both `query` and `url`.
-
-### PUT / POST / PATCH, where available
-
-```ts
-await store.fetch({
-  method: "PATCH",
-  body: { store_name: "New Store Name" },
-});
-
-// or using a serialized payload:
-
-await store.fetch({
-  method: "PATCH",
-  body: '{ "store_name": "New Store Name" }',
-});
-```
-
-### DELETE, where available
-
-```ts
-await store.fetch({ method: "DELETE" });
-```
-
-### Opting out of smart path resolution
-
-By default our client will try to leverage the built-in resolvers to make as few network calls as possible when following relations. These resolvers aren't perfect yet and even though we have a failsafe mechanism that runs a full tree traversal on failure, silent errors are still a possibility (e.g. when the resolved path is valid, but points to a wrong resource). In that case you can set `FetchInit.skipCache` option to `true` to disable smart path resolution:
-
-```ts
-await store.fetch({
-  // ...
-  skipCache: true,
-});
-```
-
-## Custom element
-
-This package includes a custom element for APIs that can be used in a browser (currently Customer API and User API). You'll most likely need it to connect components from `@foxy.io/elements` to hAPI, but you can also use it with your own elements.
-
-To get started, import the element and add a tag anywhere on the page:
-
-**JS**
+Each link in the `_links` object received from our SDK includes the same methods as a regular node, so you can do something like this:
 
 ```js
-// Quick setup: registers <foxy-api> globally
-import "@foxy.io/sdk/dist/element";
-
-// Advanced setup: custom name, register when ready, extend the class etc.
-import { APIElement } from "@foxy.io/sdk";
-customElements.define("my-api", APIElement);
+const nextTransactionsPage = await transactions._links.next.get();
 ```
 
-**HTML**
+It also works with embedded resources and following, and you'll get autocompletion and type checking all the way through:
 
-```html
-<foxy-api><!-- put your components here --></foxy-api>
+```js
+const recentSubscriptions = await transactions._embedded['fx:customer']._links['fx:subscriptions'].follow('last').get();
 ```
-
-API element creates a `UserAPI` instance linked to `${location.origin}/s/admin` by default. You'll most likely want to customize the endpoint or be explicit about the API you use:
-
-```html
-<foxy-api href="https://api.example.com/admin" rel="user">...</foxy-api>
-```
-
-For `CustomerAPI` you'll need to provide both the `href` the `rel` attribute values:
-
-```html
-<foxy-api href="https://api.example.com/customer" rel="customer">...</foxy-api>
-```
-
-That's it! From this point our custom element will listen to the `request` events emitted by the child elements and send them to the chosen API with the correct auth headers. If you'd like to make your element compatible with `<foxy-api>`, replace `fetch` with `RequestEvent.emit` like so:
-
-#### Before
-
-```ts
-class MyCustomElement extends HTMLElement {
-  getStore() {
-    return fetch("https://api.example.com/s/admin/stores/8");
-  }
-}
-```
-
-#### After
-
-```ts
-import { RequestEvent } from "@foxy.io/sdk";
-
-class MyCustomElement extends HTMLElement {
-  getStore() {
-    return RequestEvent.emit({
-      source: this,
-      init: ["https://api.example.com/s/admin/stores/8"],
-    });
-  }
-}
-```
-
-The `init` option accepts exactly the same parameters as `fetch`, so your code should be instantly compatible if you're already relying on Fetch API to make API requests.
 
 ## Development
 
 To get started, clone this repo locally and install the dependencies:
 
 ```bash
-git clone https://github.com/foxy/foxy-api.git
-npm install
+git clone https://github.com/foxy/foxy-sdk.git && cd foxy-sdk && npm i
 ```
 
-Running tests:
+You can also build this package and test it locally in another project by running the following in the project folder:
 
 ```bash
-npm run test       # runs all tests and exits
-npm run test:watch # looks for changes and re-runs tests as you code
-```
-
-Committing changes with [commitizen](https://github.com/commitizen/cz-cli):
-
-```bash
-git commit # precommit hooks will lint the staged files and help you format your message correctly
+npm pack
 ```
