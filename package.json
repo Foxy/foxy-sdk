@@ -1,29 +1,29 @@
 {
   "name": "@foxy.io/sdk",
-  "version": "0.2.0",
-  "description": "Universal client for Cart API, Admin API, Portal API, Checkout API and full hAPI access.",
+  "version": "1.0.0-beta.0",
+  "description": "Foxy SDK for building custom server-side and client-side integrations.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist"
   ],
   "scripts": {
-    "test": "jest --config ./jest.config.json",
-    "test:watch": "jest --watch --config ./jest.config.json",
     "lint": "npm run lint:eslint && npm run lint:prettier",
     "lint:eslint": "eslint --ext .ts,.html . --ignore-path .gitignore",
     "lint:prettier": "prettier \"**/*.ts\" --check --ignore-path .gitignore",
     "format": "npm run format:eslint && npm run format:prettier",
     "format:eslint": "eslint --ext .ts,.html . --fix --ignore-path .gitignore",
     "format:prettier": "prettier \"**/*.ts\" --write --ignore-path .gitignore",
-    "build": "tsc",
-    "build:cdn": "webpack -p",
+    "build:cdn": "webpack",
+    "build:cjs": "tsc --module commonjs  --outdir \"dist/cjs\"",
+    "build:esm": "tsc --module es2015  --outdir \"dist/esm\"",
     "build:docs": "typedoc --excludePrivate --ignoreCompilerErrors --mode library --out docs src/index.ts",
-    "prepack": "npm run build && npm run build:cdn"
+    "build:types": "tsc --declarationdir \"dist/types\" --declaration --emitdeclarationonly && copyfiles --up 1 \"./src/**/*.d.ts\" \"./dist/types\"",
+    "prepack": "rimraf dist && run-p build:**"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/foxy/foxy-api.git"
+    "url": "git+https://github.com/foxy/foxy-sdk.git"
   },
   "keywords": [
     "foxycart",
@@ -31,23 +31,31 @@
     "foxy",
     "serverless",
     "nodejs",
-    "api"
+    "api",
+    "sdk"
   ],
   "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/foxy/foxy-api/issues"
+    "url": "https://github.com/foxy/foxy-sdk/issues"
   },
-  "homepage": "https://github.com/foxy/foxy-api#readme",
+  "homepage": "https://github.com/foxy/foxy-sdk#readme",
   "devDependencies": {
     "@foxy.io/eslint-config": "^1.0.0",
+    "copyfiles": "^2.4.0",
     "cz-conventional-changelog": "^3.3.0",
     "eslint": "^7.12.1",
     "husky": "^4.3.0",
     "lint-staged": "^10.4.0",
+    "npm-run-all": "^4.1.5",
     "prettier": "^2.1.2",
+    "rimraf": "^3.0.2",
+    "ts-loader": "^8.0.9",
     "typedoc": "^0.17.0-3",
-    "typescript": "^4.0.3"
+    "typescript": "^4.0.3",
+    "webpack": "^5.4.0",
+    "webpack-cli": "^4.2.0",
+    "webpack-node-externals": "^2.5.2"
   },
   "eslintConfig": {
     "extends": "@foxy.io"
@@ -84,7 +92,6 @@
     "crypto-js": "^4.0.0",
     "jsdom": "^16.4.0",
     "ministorage": "^1.0.0",
-    "ow": "^0.18.0",
     "traverse": "^0.6.6"
   }
 }
