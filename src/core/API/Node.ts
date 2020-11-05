@@ -1,11 +1,9 @@
 import { Consola } from 'consola';
-import { Graph } from '../../Graph';
-import { Query } from '../../Query';
+import { Graph } from '../Graph';
+import { Query } from '../Query';
 import { Request } from 'cross-fetch';
-import { ResolutionError } from '../ResolutionError';
-import { Response } from '../Response';
-import { isQuery } from './validators';
-import ow from 'ow';
+import { ResolutionError } from './ResolutionError';
+import { Response } from './Response';
 
 /** Chain of curies leading to a hAPI resource starting with a base URL. */
 type CurieChain = [URL, ...string[]];
@@ -99,8 +97,6 @@ export class Node<TGraph extends Graph> {
    * @returns Instance of {@link APIResponse} representing this resource.
    */
   async get(query?: Query<TGraph>): Promise<Response<TGraph>> {
-    ow(query, ow.optional.object.partialShape(isQuery));
-
     const url = await this._resolve();
     const { filters, fields, offset, limit, order, zoom } = query ?? {};
 
@@ -131,8 +127,6 @@ export class Node<TGraph extends Graph> {
    * @returns Instance of {@link APIResponse} representing this resource.
    */
   async put(body?: TGraph['props']): Promise<Response<TGraph>> {
-    ow(body as unknown, ow.optional.object);
-
     const url = await this._resolve();
     const request = new Request(url.toString(), { body: JSON.stringify(body), method: 'PUT' });
     const response = await this._fetch(request);
@@ -149,8 +143,6 @@ export class Node<TGraph extends Graph> {
    * @returns Instance of {@link APIResponse} representing this resource.
    */
   async post(body?: TGraph['props']): Promise<Response<TGraph>> {
-    ow(body as unknown, ow.optional.object);
-
     const url = await this._resolve();
     const request = new Request(url.toString(), { body: JSON.stringify(body), method: 'POST' });
     const response = await this._fetch(request);
@@ -167,8 +159,6 @@ export class Node<TGraph extends Graph> {
    * @returns Instance of {@link APIResponse} representing this resource.
    */
   async patch(body?: Partial<TGraph['props']>): Promise<Response<TGraph>> {
-    ow(body as unknown, ow.optional.object);
-
     const url = await this._resolve();
     const request = new Request(url.toString(), { body: JSON.stringify(body), method: 'POST' });
     const response = await this._fetch(request);
@@ -201,8 +191,6 @@ export class Node<TGraph extends Graph> {
    * @returns Instance of {@link APINode} representing the resource at curie location.
    */
   follow<C extends keyof TGraph['links']>(curie: C): Node<TGraph['links'][C]> {
-    ow(curie as unknown, ow.string);
-
     const config = { cache: this._cache, console: this._console, fetch: this._fetch };
     const path = this._path.concat(curie as string) as CurieChain;
 
