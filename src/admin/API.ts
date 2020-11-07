@@ -4,6 +4,13 @@ import type { Credentials } from './types';
 import type { Graph } from './Graph';
 import { fetch } from 'cross-fetch';
 
+type Init = ConstructorParameters<typeof Core.API>[0] & {
+  identityPoolId: string;
+  region: string;
+  userPoolId: string;
+  userPoolWebClientId: string;
+};
+
 /**
  * Admin API provides a common interface for the `/s/admin` endpoints, whether
  * it's a default setup or a custom solution for your integration. Admin API
@@ -15,18 +22,17 @@ export class API extends Core.API<Graph> {
   /**
    * Creates an instance of {@link AdminAPI}.
    *
-   * @param args Client configuration (same as for {@link BrowserAPI}).
+   * @param init Client configuration (same as for {@link BrowserAPI}).
    */
-  constructor(...args: ConstructorParameters<typeof Core.API>) {
-    super(...args);
+  constructor(init: Init) {
+    super(init);
 
-    // TODO: production config + is multi-tenancy even possible with Amplify?
     this.__auth.configure({
-      identityPoolId: 'us-east-2:6e3cb428-0e77-495e-9960-f4ab46d4dca1',
-      region: 'us-east-2',
-      storage: args[0].storage,
-      userPoolId: 'us-east-2_2Vw7tMmLQ',
-      userPoolWebClientId: '2i58qs1u38kv605rm3v5t4dake',
+      identityPoolId: init.identityPoolId,
+      region: init.region,
+      storage: init.storage,
+      userPoolId: init.userPoolId,
+      userPoolWebClientId: init.userPoolWebClientId,
     });
   }
 
