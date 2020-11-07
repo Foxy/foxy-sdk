@@ -25,7 +25,7 @@ export class API extends Core.API<Graph> {
    * @param init Client configuration (same as for {@link BrowserAPI}).
    */
   constructor(init: Init) {
-    super(init);
+    super({ ...init, fetch: (...args) => this.__fetch(...args) });
 
     this.__auth.configure({
       identityPoolId: init.identityPoolId,
@@ -34,19 +34,6 @@ export class API extends Core.API<Graph> {
       userPoolId: init.userPoolId,
       userPoolWebClientId: init.userPoolWebClientId,
     });
-  }
-
-  async fetch(input: RequestInfo, init?: RequestInit): Promise<Response> {
-    const session = await this.__auth.currentSession().catch(() => null);
-    const headers = new Headers(init?.headers);
-    const method = init?.method?.toUpperCase() ?? 'GET';
-    const url = typeof input === 'string' ? input : input.url;
-
-    headers.set('Content-Type', 'application/json');
-    if (session !== null) headers.set('Authorization', `Bearer ${session.getAccessToken().getJwtToken()}`);
-
-    this.console.trace(`${method} ${url}`);
-    return fetch(input, { ...init, headers });
   }
 
   async signIn(credentials: Credentials): Promise<void> {
@@ -91,5 +78,18 @@ export class API extends Core.API<Graph> {
   async signOut(): Promise<void> {
     await this.__auth.signOut();
     this.storage.clear();
+  }
+
+  private async __fetch(input: RequestInfo, init?: RequestInit): Promise<Response> {
+    const session = await this.__auth.currentSession().catch(() => null);
+    const headers = new Headers(init?.headers);
+    const method = init?.method?.toUpperCase() ?? 'GET';
+    const url = typeof input === 'string' ? input : input.url;
+
+    headers.set('Content-Type', 'application/json');
+    if (session !== null) headers.set('Authorization', `Bearer ${session.getAccessToken().getJwtToken()}`);
+
+    this.console.trace(`${method} ${url}`);
+    return fetch(input, { ...init, headers });
   }
 }

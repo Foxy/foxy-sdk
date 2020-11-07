@@ -1,7 +1,7 @@
 import * as Core from '../core';
 import type { Credentials, Session } from './types';
+import { Headers, fetch } from 'cross-fetch';
 import type { Graph } from './Graph';
-import { fetch } from 'cross-fetch';
 
 export class API extends Core.API<Graph> {
   static readonly AUTH_EXPIRES = 'fx.customer.expires';
@@ -12,21 +12,8 @@ export class API extends Core.API<Graph> {
 
   static readonly AUTH_JWT = 'fx.customer.jwt';
 
-  async fetch(input: RequestInfo, init?: RequestInit): Promise<Response> {
-    const headers = new Headers(init?.headers);
-    const method = init?.method?.toUpperCase() ?? 'GET';
-    const token = this.storage.getItem(API.AUTH_TOKEN);
-    const url = typeof input === 'string' ? input : input.url;
-
-    headers.set('Content-Type', 'application/json');
-    if (token !== null) headers.set(API.AUTH_HEADER, token);
-
-    this.console.trace(`${method} ${url}`);
-    const response = await fetch(input, { ...init, headers });
-    const freshToken = response.headers.get(API.AUTH_HEADER);
-    if (freshToken !== null) this.storage.setItem(API.AUTH_TOKEN, freshToken);
-
-    return response;
+  constructor(params: ConstructorParameters<typeof Core.API>[0]) {
+    super({ ...params, fetch: (...args) => this.__fetch(...args) });
   }
 
   async signIn(credentials: Credentials): Promise<void> {
@@ -80,5 +67,22 @@ export class API extends Core.API<Graph> {
 
   async signOut(): Promise<void> {
     this.storage.clear();
+  }
+
+  private async __fetch(input: RequestInfo, init?: RequestInit): Promise<Response> {
+    const headers = new Headers(init?.headers);
+    const method = init?.method?.toUpperCase() ?? 'GET';
+    const token = this.storage.getItem(API.AUTH_TOKEN);
+    const url = typeof input === 'string' ? input : input.url;
+
+    headers.set('Content-Type', 'application/json');
+    if (token !== null) headers.set(API.AUTH_HEADER, token);
+
+    this.console.trace(`${method} ${url}`);
+    const response = await fetch(url, { ...init, headers });
+    const freshToken = response.headers.get(API.AUTH_HEADER);
+    if (freshToken !== null) this.storage.setItem(API.AUTH_TOKEN, freshToken);
+
+    return response;
   }
 }
