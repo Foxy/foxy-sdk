@@ -9,15 +9,15 @@ import type { Query } from '../Query';
 import type { Resource } from '../Resource';
 
 /** Options of {@link Response} constructor. */
-type Init = {
+type Init = ConstructorParameters<typeof globalThis.Response>[1] & {
   /** Custom Fetch API implementation for making authenticated requests. */
   fetch: Window['fetch'];
   /** Resolver cache implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API). */
   cache: Storage;
   /** Shared [Consola](https://github.com/nuxt-contrib/consola) instance. */
   console: Consola;
-  /** Original API [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) object. */
-  response: globalThis.Response;
+  /** Response body. Streams aren't supported at the moment: https://github.com/github/fetch/issues/746#issuecomment-573701120. */
+  body: Blob | BufferSource | FormData | URLSearchParams | string | null;
 };
 
 /**
@@ -49,7 +49,7 @@ function getEmbeds(json: object) {
  * @returns Enriched JSON including followable links.
  */
 function addFollowableLinks<TGraph extends Graph, TQuery extends Query<TGraph> | undefined>(
-  params: Omit<Init, 'response'> & { json: unknown }
+  params: Pick<Init, 'cache' | 'console' | 'fetch'> & { json: unknown }
 ): Resource<TGraph, TQuery> {
   const { json, ...nodeInit } = params;
   if (typeof json !== 'object' || !json) return json as Resource<TGraph, TQuery>;
@@ -102,8 +102,8 @@ export class Response<
   /** Resolver cache implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API). */
   protected readonly _cache: Storage;
 
-  constructor({ response, console, fetch, cache }: Init) {
-    super(response.body, response);
+  constructor({ console, fetch, cache, body, ...responseInit }: Init) {
+    super(body, responseInit);
 
     this._console = console;
     this._fetch = fetch;

@@ -116,7 +116,7 @@ export class Node<TGraph extends Graph> {
     const response = await this._fetch(new Request(url.toString()));
     const config = { cache: this._cache, console: this._console, fetch: this._fetch };
 
-    return new Response({ ...config, response });
+    return new Response({ ...config, ...response, body: await response.text() });
   }
 
   /**
@@ -132,7 +132,7 @@ export class Node<TGraph extends Graph> {
     const response = await this._fetch(request);
     const config = { cache: this._cache, console: this._console, fetch: this._fetch };
 
-    return new Response({ ...config, response });
+    return new Response({ ...config, ...response, body: await response.text() });
   }
 
   /**
@@ -148,7 +148,7 @@ export class Node<TGraph extends Graph> {
     const response = await this._fetch(request);
     const config = { cache: this._cache, console: this._console, fetch: this._fetch };
 
-    return new Response({ ...config, response });
+    return new Response({ ...config, ...response, body: await response.text() });
   }
 
   /**
@@ -164,7 +164,7 @@ export class Node<TGraph extends Graph> {
     const response = await this._fetch(request);
     const config = { cache: this._cache, console: this._console, fetch: this._fetch };
 
-    return new Response({ ...config, response });
+    return new Response({ ...config, ...response, body: await response.text() });
   }
 
   /**
@@ -179,7 +179,7 @@ export class Node<TGraph extends Graph> {
     const response = await this._fetch(request);
     const config = { cache: this._cache, console: this._console, fetch: this._fetch };
 
-    return new Response({ ...config, response });
+    return new Response({ ...config, ...response, body: await response.text() });
   }
 
   /**
