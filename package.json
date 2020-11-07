@@ -2,7 +2,26 @@
   "name": "@foxy.io/sdk",
   "version": "0.0.0",
   "description": "Universal SDK for a full server-side and a limited in-browser access to Foxy hAPI.",
-  "main": "index.js",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/types/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "lint": "npm run lint:eslint && npm run lint:prettier",
+    "lint:eslint": "eslint --ext .ts,.html . --ignore-path .gitignore",
+    "lint:prettier": "prettier \"**/*.ts\" --check --ignore-path .gitignore",
+    "format": "npm run format:eslint && npm run format:prettier",
+    "format:eslint": "eslint --ext .ts,.html . --fix --ignore-path .gitignore",
+    "format:prettier": "prettier \"**/*.ts\" --write --ignore-path .gitignore",
+    "build:cdn": "webpack",
+    "build:cjs": "tsc --module commonjs  --outdir \"dist/cjs\"",
+    "build:esm": "tsc --module es2015  --outdir \"dist/esm\"",
+    "build:docs": "typedoc --excludePrivate --ignoreCompilerErrors --mode library --out docs src/index.ts",
+    "build:types": "tsc --declarationdir \"dist/types\" --declaration --emitdeclarationonly && copyfiles --up 1 \"./src/**/*.d.ts\" \"./dist/types\"",
+    "prepack": "rimraf dist && run-p \"build:!(docs)\""
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/foxy/foxy-sdk.git"
@@ -16,6 +35,7 @@
     "api",
     "sdk"
   ],
+  "author": "",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/foxy/foxy-sdk/issues",
@@ -23,12 +43,37 @@
   },
   "homepage": "https://sdk.foxy.dev",
   "devDependencies": {
+    "@foxy.io/eslint-config": "^1.0.0",
+    "copyfiles": "^2.4.0",
     "cz-conventional-changelog": "^3.3.0",
+    "eslint": "^7.12.1",
     "husky": "^4.3.0",
-    "semantic-release": "^17.2.2"
+    "lint-staged": "^10.4.0",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^2.1.2",
+    "rimraf": "^3.0.2",
+    "semantic-release": "^17.2.2",
+    "ts-loader": "^8.0.9",
+    "typedoc": "0.17.0-3",
+    "typescript": "^4.0.3",
+    "webpack": "^5.4.0",
+    "webpack-cli": "^4.2.0",
+    "webpack-node-externals": "^2.5.2"
   },
   "engines": {
     "node": ">=10 <=15"
+  },
+  "eslintConfig": {
+    "extends": "@foxy.io"
+  },
+  "lint-staged": {
+    "{src,test}/**/*.ts": "eslint --cache --fix"
+  },
+  "prettier": {
+    "quoteProps": "consistent",
+    "printWidth": 120,
+    "singleQuote": true,
+    "arrowParens": "avoid"
   },
   "config": {
     "commitizen": {
@@ -37,7 +82,8 @@
   },
   "husky": {
     "hooks": {
-      "prepare-commit-msg": "exec < /dev/tty && git cz --hook || true"
+      "prepare-commit-msg": "exec < /dev/tty && git cz --hook || true",
+      "pre-commit": "lint-staged"
     }
   },
   "release": {
@@ -48,5 +94,19 @@
         "prerelease": true
       }
     ]
+  },
+  "dependencies": {
+    "@aws-amplify/auth": "^3.4.4",
+    "@types/crypto-js": "^3.1.47",
+    "@types/jsdom": "^16.2.5",
+    "@types/node": "^14.11.1",
+    "@types/traverse": "^0.6.32",
+    "babel-loader": "^8.1.0",
+    "consola": "^2.15.0",
+    "cross-fetch": "^3.0.6",
+    "crypto-js": "^4.0.0",
+    "jsdom": "^16.4.0",
+    "ministorage": "^1.0.0",
+    "traverse": "^0.6.6"
   }
 }
