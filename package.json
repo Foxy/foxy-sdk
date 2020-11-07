@@ -1,0 +1,52 @@
+{
+  "name": "@foxy.io/sdk",
+  "version": "0.0.0",
+  "description": "Universal SDK for a full server-side and a limited in-browser access to Foxy hAPI.",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/foxy/foxy-sdk.git"
+  },
+  "keywords": [
+    "foxycart",
+    "foxy.io",
+    "foxy",
+    "serverless",
+    "nodejs",
+    "api",
+    "sdk"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/foxy/foxy-sdk/issues",
+    "email": "hello@foxy.io"
+  },
+  "homepage": "https://sdk.foxy.dev",
+  "devDependencies": {
+    "cz-conventional-changelog": "^3.3.0",
+    "husky": "^4.3.0",
+    "semantic-release": "^17.2.2"
+  },
+  "engines": {
+    "node": ">=10 <=15"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  },
+  "husky": {
+    "hooks": {
+      "prepare-commit-msg": "exec < /dev/tty && git cz --hook || true"
+    }
+  },
+  "release": {
+    "branches": [
+      "main",
+      {
+        "name": "beta",
+        "prerelease": true
+      }
+    ]
+  }
+}
