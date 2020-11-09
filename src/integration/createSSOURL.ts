@@ -1,6 +1,7 @@
 import * as crypto from 'crypto';
 
 import { URL } from 'url';
+import v8n from 'v8n';
 
 interface Options {
   /**
@@ -50,6 +51,14 @@ interface Options {
   domain: string;
 }
 
+const optionsV8N = v8n().schema({
+  customer: v8n().number(),
+  domain: v8n().string(),
+  secret: v8n().string(),
+  session: v8n().optional(v8n().string()),
+  timestamp: v8n().optional(v8n().number()),
+});
+
 /**
  * Generates an SSO url for the given configuration.
  *
@@ -66,6 +75,8 @@ interface Options {
  * @returns SSO URL as string.
  */
 export function createSSOURL(options: Options): string {
+  optionsV8N.check(options);
+
   const timestamp = options.timestamp ?? Date.now();
   const decodedToken = `${options.customer}|${timestamp}|${options.secret}`;
   const encodedToken = crypto.createHash('sha1').update(decodedToken);
