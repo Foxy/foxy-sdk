@@ -1,3 +1,6 @@
+import { Response } from 'cross-fetch';
+import v8n from 'v8n';
+
 /**
  * This error is thrown when one of the requests for a resource
  * in a path returns a non-2XX status code during the URL resolution process.
@@ -10,6 +13,7 @@ export class ResolutionError extends Error {
 
   constructor(response: Response) {
     super();
+    v8n().instanceOf(Response).check(response);
     this.response = response;
   }
 }
