@@ -1,5 +1,6 @@
-import { URL } from 'url';
 import * as crypto from 'crypto';
+
+import { URL } from 'url';
 
 interface Options {
   /**
@@ -62,8 +63,9 @@ interface Options {
  *
  * @param options sso url configuration
  * @tutorial https://docs.foxycart.com/v/2.0/sso#the_details
+ * @returns SSO URL as string.
  */
-export function createSSOURL(options: Options) {
+export function createSSOURL(options: Options): string {
   const timestamp = options.timestamp ?? Date.now();
   const decodedToken = `${options.customer}|${timestamp}|${options.secret}`;
   const encodedToken = crypto.createHash('sha1').update(decodedToken);
