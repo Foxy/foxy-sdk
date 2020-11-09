@@ -119,4 +119,11 @@ You can also build this package and test it locally in another project by runnin
 npm pack
 ```
 
+Use the following commands to run tests:
+
+```bash
+npm test # run all tests
+npm run test:watch # watch files for changes and re-run relevant tests
+```
+
 All the latest features are published from the [beta](https://github.com/Foxy/foxy-sdk/tree/beta) branch to the `beta` distribution channel. If you submit a PR, please target `beta` as well. Releases are published from [main](https://github.com/Foxy/foxy-sdk/tree/main).
