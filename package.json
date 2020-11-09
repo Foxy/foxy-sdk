@@ -18,8 +18,8 @@
     "format:eslint": "eslint --ext .ts,.html . --fix --ignore-path .gitignore",
     "format:prettier": "prettier \"**/*.ts\" --write --ignore-path .gitignore",
     "build:cdn": "webpack",
-    "build:cjs": "tsc --module commonjs  --outdir \"dist/cjs\"",
-    "build:esm": "tsc --module es2015  --outdir \"dist/esm\"",
+    "build:cjs": "tsc --module commonjs --outdir \"dist/cjs\"",
+    "build:esm": "tsc --module es2015 --outdir \"dist/esm\"",
     "build:docs": "typedoc --excludePrivate --ignoreCompilerErrors --mode library --out docs src/index.ts",
     "build:types": "tsc --declarationdir \"dist/types\" --declaration --emitdeclarationonly && copyfiles --up 1 \"./src/**/*.d.ts\" \"./dist/types\"",
     "prepack": "rimraf dist && run-p \"build:!(docs)\""
