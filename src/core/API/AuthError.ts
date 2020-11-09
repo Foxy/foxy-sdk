@@ -1,3 +1,5 @@
+import v8n from 'v8n';
+
 /** Constructor parameters of the  {@link UniversalAPIAuthError} class. */
 type AuthErrorParams = {
   code: UniversalAPIAuthErrorCode;
@@ -26,16 +28,28 @@ export class AuthError extends Error {
   /** Any other or internal error that interrupted authentication. */
   static readonly UNKNOWN = 'UNKNOWN';
 
+  /** Available class member validators. */
+  static readonly v8n = {
+    constructor: v8n().schema({
+      code: v8n().passesAnyOf(
+        v8n().exact(AuthError.NEW_PASSWORD_REQUIRED),
+        v8n().exact(AuthError.UNAUTHORIZED),
+        v8n().exact(AuthError.UNKNOWN)
+      ),
+    }),
+  };
+
   /** Exception that triggered this error, if present. */
   readonly originalError?: unknown;
 
   /** Error code (see static constants on this class for possible values). */
   readonly code: UniversalAPIAuthErrorCode;
 
-  constructor({ code, originalError }: AuthErrorParams) {
-    super(`authentication failed with code ${code}`);
+  constructor(params: AuthErrorParams) {
+    AuthError.v8n.constructor.check(params);
+    super(`authentication failed with code ${params.code}`);
 
-    this.originalError = originalError;
-    this.code = code;
+    this.originalError = params.originalError;
+    this.code = params.code;
   }
 }
