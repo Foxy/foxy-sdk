@@ -8,12 +8,17 @@ import v8n from 'v8n';
  * to indicate resolution errors.
  */
 export class ResolutionError extends Error {
+  /** Available class member validators. */
+  static readonly v8n = {
+    constructor: v8n().instanceOf(Response),
+  };
+
   /** API response object with a non-2XX status code. */
   readonly response: Response;
 
   constructor(response: Response) {
     super();
-    v8n().instanceOf(Response).check(response);
+    ResolutionError.v8n.constructor.check(response);
     this.response = response;
   }
 }
