@@ -1,9 +1,4 @@
 {
-  "ts-node": {
-    "compilerOptions": {
-      "module": "commonjs"
-    }
-  },
   "compilerOptions": {
     "esModuleInterop": true,
     "isolatedModules": true,
@@ -14,5 +9,5 @@
     "moduleResolution": "node",
     "lib": ["ES2015", "DOM", "DOM.Iterable"]
   },
-  "include": ["src"]
+  "include": ["src", "tests"]
 }

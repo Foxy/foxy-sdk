@@ -9,6 +9,8 @@
     "dist"
   ],
   "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
     "lint": "npm run lint:eslint && npm run lint:prettier",
     "lint:eslint": "eslint --ext .ts,.html . --ignore-path .gitignore",
     "lint:prettier": "prettier \"**/*.ts\" --check --ignore-path .gitignore",
@@ -44,15 +46,20 @@
   "homepage": "https://sdk.foxy.dev",
   "devDependencies": {
     "@foxy.io/eslint-config": "^1.0.0",
+    "@types/jest": "^26.0.15",
+    "@types/node": "^14.14.6",
     "copyfiles": "^2.4.0",
     "cz-conventional-changelog": "^3.3.0",
     "eslint": "^7.12.1",
+    "eslint-plugin-jest": "^24.1.0",
     "husky": "^4.3.0",
+    "jest": "^26.6.3",
     "lint-staged": "^10.4.0",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.1.2",
     "rimraf": "^3.0.2",
     "semantic-release": "^17.2.2",
+    "ts-jest": "^26.4.4",
     "ts-loader": "^8.0.9",
     "typedoc": "0.17.0-3",
     "typescript": "^4.0.3",
@@ -64,7 +71,11 @@
     "node": ">=10 <=15"
   },
   "eslintConfig": {
-    "extends": "@foxy.io"
+    "extends": [
+      "@foxy.io",
+      "plugin:jest/recommended",
+      "plugin:jest/style"
+    ]
   },
   "lint-staged": {
     "{src,test}/**/*.ts": "eslint --cache --fix"
@@ -89,6 +100,29 @@
       "pre-commit": "lint-staged"
     }
   },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/*.test.ts"
+    ],
+    "collectCoverage": true,
+    "coverageProvider": "v8",
+    "coveragePathIgnorePatterns": [
+      "\\.d\\.ts"
+    ],
+    "collectCoverageFrom": [
+      "src/**/*.ts"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 80,
+        "functions": 80,
+        "statements": 80,
+        "lines": 80
+      }
+    }
+  },
   "release": {
     "branches": [
       "main",
@@ -102,7 +136,6 @@
     "@aws-amplify/auth": "^3.4.4",
     "@types/crypto-js": "^3.1.47",
     "@types/jsdom": "^16.2.5",
-    "@types/node": "^14.11.1",
     "@types/traverse": "^0.6.32",
     "babel-loader": "^8.1.0",
     "consola": "^2.15.0",

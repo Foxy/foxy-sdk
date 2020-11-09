@@ -1,6 +1,6 @@
 !dist/
 src/
-test/
+tests/
 .vscode/
 .coverage/
 .eslintrc.json
