@@ -9,5 +9,5 @@
     "moduleResolution": "node",
     "lib": ["ES2015", "DOM", "DOM.Iterable"]
   },
-  "include": ["src", "tests"]
+  "include": ["src"]
 }
