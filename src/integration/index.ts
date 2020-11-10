@@ -1,6 +1,9 @@
 export { API } from './API';
 export { Signer } from './Signer';
-export { removeAllLinksExcept, removePrivateAttributes, removeSensitiveData, removeProperties } from './sanitizers';
+export { removeProperties } from './removeProperties';
+export { removeSensitiveData } from './removeSensitiveData';
+export { removeAllLinksExcept } from './removeAllLinksExcept';
+export { removePrivateAttributes } from './removePrivateAttributes';
 export { verifyWebhookSignature } from './verifyWebhookSignature';
 export { createSSOURL } from './createSSOURL';
 
