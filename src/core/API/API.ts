@@ -1,7 +1,7 @@
 import consola, { Consola, LogLevel } from 'consola';
 import { AuthError } from './AuthError';
 import { Graph } from '../Graph';
-import MemoryStorage from 'ministorage';
+import MemoryStorage from 'fake-storage';
 import { Node } from './Node';
 import { fetch } from 'cross-fetch';
 

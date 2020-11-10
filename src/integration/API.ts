@@ -3,7 +3,7 @@ import * as Rels from './Rels';
 import fetch, { Headers } from 'cross-fetch';
 import { Graph } from './Graph';
 import { LogLevel } from 'consola';
-import MemoryStorage from 'ministorage';
+import MemoryStorage from 'fake-storage';
 
 type LocalToken = Rels.FxToken['props'] & { date_created: string };
 
