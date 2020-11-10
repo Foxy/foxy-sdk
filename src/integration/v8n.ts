@@ -8,5 +8,6 @@ v8n.extend({
 
 export const thisV8N = v8n().schema({
   key: v8n().optional(v8n().string()),
+  parent: v8n().optional(v8n().object()),
   update: v8n().typeOf('function'),
 });
