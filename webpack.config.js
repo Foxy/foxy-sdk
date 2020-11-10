@@ -5,7 +5,6 @@ const path = require('path');
 
 module.exports = {
   entry: {
-    Admin: './src/admin/index.ts',
     Customer: './src/customer/index.ts',
   },
 

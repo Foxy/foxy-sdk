@@ -26,14 +26,13 @@ import * as FoxySDK from '@foxy.io/sdk';
 
 ## Getting started
 
-Our SDK consists of 4 main parts available via the main file:
+Our SDK consists of 3 main parts available via the main file:
 
 1. **Integration** is for building integrations that connect to hAPI directly from a safe **server-side** environment. Apart from the API client, you'll also find a number of useful utilities for HMAC signing, removing sensitive info from responses and webhook verification under this export alias.
 2. **Customer** is for building **universal** apps and websites that interact with a subset of hAPI available to customers of a particular store. This export is also available as a pre-built library on our CDN.
-3. **Admin** is for building **universal** apps and websites that interact with a subset of hAPI available to store admins. This export is also available as a pre-built library on our CDN.
-4. **Core**: is for building custom API clients that interact with Hypermedia API endpoints. This is the most advanced part of the SDK that every other built-in API client depends on. You can run it server and client-side.
+3. **Core**: is for building custom API clients that interact with Hypermedia API endpoints. This is the most advanced part of the SDK that every other built-in API client depends on. You can run it server and client-side.
 
-Integration, Customer and Admin all export API client classes for working with the respective endpoints. If you're using TypeScript, you'll also see the type exports for API-specific hypermedia relations and graphs named `Rels` and `Graph`. Let's connect to hAPI using `FoxySDK.Integration.API` class:
+Integration and Customer export API client classes for working with the respective endpoints. If you're using TypeScript, you'll also see the type exports for API-specific hypermedia relations and graphs named `Rels` and `Graph`. Let's connect to hAPI using `FoxySDK.Integration.API` class:
 
 ```js
 const api = new FoxySDK.Integration.API({
@@ -43,7 +42,7 @@ const api = new FoxySDK.Integration.API({
 });
 ```
 
-This will create a hAPI version 1 client connecting to `https://api.foxycart.com/` with the given credentials, using in-memory storage for access token and URL resolution, logging errors, warnings and informational messages to console. You can customize each one of these defaults in constructor params and you'll see similar options for Customer and Admin API as well.
+This will create a hAPI version 1 client connecting to `https://api.foxycart.com/` with the given credentials, using in-memory storage for access token and URL resolution, logging errors, warnings and informational messages to console. You can customize each one of these defaults in constructor params and you'll see similar options for Customer API as well.
 
 Regardless of the API type you're working with, you'll see the same methods on each node: `.follow()`, `.get()`, `.put()`, `.post()`, `.patch()` and `.delete()`. Here's how you can use them in 3 steps:
 
