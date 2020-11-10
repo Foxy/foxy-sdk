@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import '../v8n';
+import { storageV8N, v8n } from '../v8n';
 
 import { Consola } from 'consola';
 import { Response as GlobalThisResponse } from 'cross-fetch';
@@ -9,7 +9,6 @@ import type { Graph } from '../Graph';
 import { Node } from './Node';
 import type { Query } from '../Query';
 import type { Resource } from '../Resource';
-import v8n from 'v8n';
 
 /** Options of {@link Response} constructor. */
 type Init = ConstructorParameters<typeof globalThis.Response>[1] & {
@@ -83,14 +82,7 @@ export class Response<
 > extends GlobalThisResponse {
   static readonly v8n = {
     constructor: v8n().schema({
-      cache: v8n().schema({
-        clear: v8n().typeOf('function'),
-        getItem: v8n().typeOf('function'),
-        key: v8n().typeOf('function'),
-        length: v8n().number(),
-        removeItem: v8n().typeOf('function'),
-        setItem: v8n().typeOf('function'),
-      }),
+      cache: storageV8N,
       console: v8n().instanceOf(Consola),
       fetch: v8n().typeOf('function'),
     }),

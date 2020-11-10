@@ -1,3 +1,5 @@
+import { storageV8N, v8n } from '../v8n';
+
 import { Consola } from 'consola';
 import { Graph } from '../Graph';
 import { Query } from '../Query';
@@ -62,6 +64,26 @@ function stringifyOrder(order: unknown): string {
  * of this class unless you're building a custom API client with our SDK.
  */
 export class Node<TGraph extends Graph> {
+  static readonly v8n = {
+    constructor: v8n().schema({
+      cache: storageV8N,
+      console: v8n().instanceOf(Consola),
+      fetch: v8n().typeOf('function'),
+      path: v8n().curieChain(),
+    }),
+    follow: v8n().string(),
+    get: v8n().optional(
+      v8n().schema({
+        fields: v8n().optional(v8n().array().every.string()),
+        filters: v8n().optional(v8n().array().every.string()),
+        limit: v8n().optional(v8n().number()),
+        offset: v8n().optional(v8n().number()),
+        order: v8n().optional(v8n().passesAnyOf(v8n().string(), v8n().object(), v8n().array())),
+        zoom: v8n().optional(v8n().passesAnyOf(v8n().string(), v8n().object(), v8n().array())),
+      })
+    ),
+  };
+
   static readonly ResolutionError = ResolutionError;
 
   static readonly Response = Response;
@@ -78,11 +100,13 @@ export class Node<TGraph extends Graph> {
   /** Path to this resource node as base URL followed by a list of curies. */
   protected readonly _path: CurieChain;
 
-  constructor({ path, fetch, cache, console }: NodeInit) {
-    this._path = path;
-    this._fetch = fetch;
-    this._cache = cache;
-    this._console = console;
+  constructor(init: NodeInit) {
+    Node.v8n.constructor.check(init);
+
+    this._path = init.path;
+    this._fetch = init.fetch;
+    this._cache = init.cache;
+    this._console = init.console;
   }
 
   async get(): Promise<Response<TGraph>>;
@@ -97,6 +121,8 @@ export class Node<TGraph extends Graph> {
    * @returns Instance of {@link APIResponse} representing this resource.
    */
   async get(query?: Query<TGraph>): Promise<Response<TGraph>> {
+    Node.v8n.get.check(query);
+
     const url = await this._resolve();
     const { filters, fields, offset, limit, order, zoom } = query ?? {};
 
@@ -191,6 +217,8 @@ export class Node<TGraph extends Graph> {
    * @returns Instance of {@link APINode} representing the resource at curie location.
    */
   follow<C extends keyof TGraph['links']>(curie: C): Node<TGraph['links'][C]> {
+    Node.v8n.follow.check(curie);
+
     const config = { cache: this._cache, console: this._console, fetch: this._fetch };
     const path = this._path.concat(curie as string) as CurieChain;
 
