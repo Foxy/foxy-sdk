@@ -14,12 +14,8 @@ const linksToKeepV8N = v8n().every.string();
  */
 export function removeAllLinksExcept(...linksToKeep: string[]): () => void {
   linksToKeepV8N.check(linksToKeep);
-
   return function (this: TraverseContext): void {
     thisV8N.check(this);
-
-    if (typeof this.key !== 'undefined' && this.parent?.key === '_links' && linksToKeep.includes(this.key) === false) {
-      this.remove();
-    }
+    if (this.parent?.key === '_links' && linksToKeep.includes(this.key as string) === false) this.remove();
   };
 }
