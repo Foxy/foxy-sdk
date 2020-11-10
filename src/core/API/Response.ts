@@ -1,12 +1,15 @@
 /* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import type { Consola } from 'consola';
+import '../v8n';
+
+import { Consola } from 'consola';
 import { Response as GlobalThisResponse } from 'cross-fetch';
 import type { Graph } from '../Graph';
 import { Node } from './Node';
 import type { Query } from '../Query';
 import type { Resource } from '../Resource';
+import v8n from 'v8n';
 
 /** Options of {@link Response} constructor. */
 type Init = ConstructorParameters<typeof globalThis.Response>[1] & {
@@ -35,34 +38,34 @@ function addFollowableLinks<TGraph extends Graph, TQuery extends Query<TGraph> |
     const links = (json as { _links: Record<string, { href: string }> })._links;
 
     json._links = Object.entries(links).reduce((links, [curie, link]) => {
-    if (Array.isArray(link)) return { ...links, [curie]: link };
+      if (Array.isArray(link)) return { ...links, [curie]: link };
 
-    const node = new Node({ ...nodeInit, path: [new URL(link.href)] });
-    const methods = {
-      delete: node.delete.bind(node),
-      follow: node.follow.bind(node),
-      get: node.get.bind(node),
-      patch: node.patch.bind(node),
-      post: node.post.bind(node),
-      put: node.put.bind(node),
-    };
+      const node = new Node({ ...nodeInit, path: [new URL(link.href)] });
+      const methods = {
+        delete: node.delete.bind(node),
+        follow: node.follow.bind(node),
+        get: node.get.bind(node),
+        patch: node.patch.bind(node),
+        post: node.post.bind(node),
+        put: node.put.bind(node),
+      };
 
-    return { ...links, [curie]: { ...link, ...methods } };
-  }, {});
+      return { ...links, [curie]: { ...link, ...methods } };
+    }, {});
   }
 
   if ('_embedded' in json) {
     const embeds = (json as { _embedded: Record<string, unknown> })._embedded;
 
     json._embedded = Object.entries(embeds).reduce(
-    (embeds, [embedCurie, embedJSON]) =>
-      Object.assign(embeds, {
-        [embedCurie]: Array.isArray(embedJSON)
-          ? embedJSON.map(itemJSON => addFollowableLinks({ ...nodeInit, json: itemJSON }))
+      (embeds, [embedCurie, embedJSON]) =>
+        Object.assign(embeds, {
+          [embedCurie]: Array.isArray(embedJSON)
+            ? embedJSON.map(itemJSON => addFollowableLinks({ ...nodeInit, json: itemJSON }))
             : addFollowableLinks({ ...nodeInit, json: embedJSON as Record<string, unknown> }),
-      }),
-    {}
-  );
+        }),
+      {}
+    );
   }
 
   return json as Resource<TGraph, TQuery>;
@@ -78,6 +81,21 @@ export class Response<
   TGraph extends Graph,
   TQuery extends Query<TGraph> | undefined = undefined
 > extends GlobalThisResponse {
+  static readonly v8n = {
+    constructor: v8n().schema({
+      cache: v8n().schema({
+        clear: v8n().typeOf('function'),
+        getItem: v8n().typeOf('function'),
+        key: v8n().typeOf('function'),
+        length: v8n().number(),
+        removeItem: v8n().typeOf('function'),
+        setItem: v8n().typeOf('function'),
+      }),
+      console: v8n().instanceOf(Consola),
+      fetch: v8n().typeOf('function'),
+    }),
+  };
+
   /** Shared [Consola](https://github.com/nuxt-contrib/consola) instance. */
   protected readonly _console: Consola;
 
@@ -87,12 +105,13 @@ export class Response<
   /** Resolver cache implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API). */
   protected readonly _cache: Storage;
 
-  constructor({ console, fetch, cache, body, ...responseInit }: Init) {
-    super(body, responseInit);
+  constructor(init: Init) {
+    Response.v8n.constructor.check(init);
+    super(init.body, init);
 
-    this._console = console;
-    this._fetch = fetch;
-    this._cache = cache;
+    this._console = init.console;
+    this._fetch = init.fetch;
+    this._cache = init.cache;
   }
 
   /**

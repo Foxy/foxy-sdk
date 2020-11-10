@@ -1,10 +1,6 @@
-import v8n from 'v8n';
+import '../core/v8n';
 
-v8n.extend({
-  typeOf: (expected: string) => {
-    return (value: unknown) => typeof value === expected;
-  },
-});
+import v8n from 'v8n';
 
 export const thisV8N = v8n().schema({
   key: v8n().optional(v8n().string()),
