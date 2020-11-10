@@ -1,24 +1,5 @@
 import { TraverseContext } from 'traverse';
 
-type Mapper = (this: TraverseContext, v: any) => void;
-
-/**
- * Runs multiple https://www.npmjs.com/package/traverse mappers
- * during the node visit.
- *
- * @param mappers list of mapper functions to run
- * @example
- * const sanitizedResponse = traverse(response).map(all(
- *   removePrivateAttributes,
- *   removeProperties("third_party_id")
- * ));
- */
-export function all(...mappers: Mapper[]): Mapper {
-  return function (this: TraverseContext, v: any): void {
-    mappers.forEach(mapper => mapper.call(this, v));
-  };
-}
-
 /**
  * A https://www.npmjs.com/package/traverse mapper that removes all
  * private attributes from the response object.
