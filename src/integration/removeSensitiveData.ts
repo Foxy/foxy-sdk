@@ -1,4 +1,5 @@
 import { TraverseContext } from 'traverse';
+import { thisV8N } from './v8n';
 
 /**
  * A https://www.npmjs.com/package/traverse mapper that removes all
@@ -8,6 +9,8 @@ import { TraverseContext } from 'traverse';
  * @example const sanitizedResponse = traverse(response).map(removeSensitiveData);
  */
 export function removeSensitiveData(this: TraverseContext): void {
+  thisV8N.check(this);
+
   const key = this.key;
   if (typeof key === 'undefined') return;
 
