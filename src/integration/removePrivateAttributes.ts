@@ -1,4 +1,5 @@
 import { TraverseContext } from 'traverse';
+import { thisV8N } from './v8n';
 
 /**
  * A https://www.npmjs.com/package/traverse mapper that removes all
@@ -9,6 +10,8 @@ import { TraverseContext } from 'traverse';
  * @example const sanitizedResponse = traverse(response).map(removePrivateAttributes);
  */
 export function removePrivateAttributes(this: TraverseContext, value: unknown): void {
+  thisV8N.check(this);
+
   if (this.key !== 'fx:attributes' || !Array.isArray(value)) return;
 
   const newValue = value.filter((attribute: unknown) => {
