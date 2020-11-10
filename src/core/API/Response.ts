@@ -21,40 +21,20 @@ type Init = ConstructorParameters<typeof globalThis.Response>[1] & {
 };
 
 /**
- * Gets `json._links` if available.
- *
- * @param json Raw resource JSON.
- * @returns The `_links` record or an empty object if unavailable.
- */
-function getLinks(json: object) {
-  const links = (json as Record<string, unknown>)._links;
-  return typeof links !== 'object' || !links ? {} : (links as Record<string, { href: string } | unknown[]>);
-}
-
-/**
- * Gets `json._embedded` if available.
- *
- * @param json Raw resource JSON.
- * @returns The `_embedded` record or an empty object if unavailable.
- */
-function getEmbeds(json: object) {
-  const embeds = (json as Record<string, unknown>)._embedded;
-  return typeof embeds !== 'object' || !embeds ? {} : (embeds as Record<string, unknown>);
-}
-
-/**
  * Adds {@link Node} methods such as `.get()` or `.follow()` to each value in resource `_links`.
  *
  * @param params Response parameters and JSON.
  * @returns Enriched JSON including followable links.
  */
 function addFollowableLinks<TGraph extends Graph, TQuery extends Query<TGraph> | undefined>(
-  params: Pick<Init, 'cache' | 'console' | 'fetch'> & { json: unknown }
+  params: Pick<Init, 'cache' | 'console' | 'fetch'> & { json: Record<string, unknown> }
 ): Resource<TGraph, TQuery> {
   const { json, ...nodeInit } = params;
-  if (typeof json !== 'object' || !json) return json as Resource<TGraph, TQuery>;
 
-  const _links = Object.entries(getLinks(json)).reduce((links, [curie, link]) => {
+  if ('_links' in json) {
+    const links = (json as { _links: Record<string, { href: string }> })._links;
+
+    json._links = Object.entries(links).reduce((links, [curie, link]) => {
     if (Array.isArray(link)) return { ...links, [curie]: link };
 
     const node = new Node({ ...nodeInit, path: [new URL(link.href)] });
@@ -69,18 +49,23 @@ function addFollowableLinks<TGraph extends Graph, TQuery extends Query<TGraph> |
 
     return { ...links, [curie]: { ...link, ...methods } };
   }, {});
+  }
 
-  const _embedded = Object.entries(getEmbeds(json)).reduce(
+  if ('_embedded' in json) {
+    const embeds = (json as { _embedded: Record<string, unknown> })._embedded;
+
+    json._embedded = Object.entries(embeds).reduce(
     (embeds, [embedCurie, embedJSON]) =>
       Object.assign(embeds, {
         [embedCurie]: Array.isArray(embedJSON)
           ? embedJSON.map(itemJSON => addFollowableLinks({ ...nodeInit, json: itemJSON }))
-          : addFollowableLinks({ ...nodeInit, json: embedJSON }),
+            : addFollowableLinks({ ...nodeInit, json: embedJSON as Record<string, unknown> }),
       }),
     {}
   );
+  }
 
-  return ({ ...json, _embedded, _links } as unknown) as Resource<TGraph, TQuery>;
+  return json as Resource<TGraph, TQuery>;
 }
 
 /**
