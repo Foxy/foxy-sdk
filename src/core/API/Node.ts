@@ -233,7 +233,7 @@ export class Node<TGraph extends Graph> {
    * @throws Throws {@link APIResolutionError} when once of the resources can't be reached.
    */
   protected async _resolve(): Promise<URL> {
-    if (this._path.length === 1) return this._path[0];
+    if (this._path.length === 1) return new URL(this._path[0].toString());
 
     const [baseURL, curie] = this._path;
     const key = `${baseURL.toString()} > ${curie}`;
