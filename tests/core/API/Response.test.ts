@@ -15,7 +15,7 @@ describe('Core', () => {
         const response = new Response({
           body: null,
           cache: new MemoryStorage(),
-          console: consola.create({ level: Infinity }).withTag('@foxy.io/sdk'),
+          console: consola.create({ level: -1 }).withTag('@foxy.io/sdk'),
           fetch: () => Promise.resolve(new CrossFetchResponse(null)),
         });
 
@@ -27,7 +27,7 @@ describe('Core', () => {
         const response = new Response({
           body: JSON.stringify(data),
           cache: new MemoryStorage(),
-          console: consola.create({ level: Infinity }).withTag('@foxy.io/sdk'),
+          console: consola.create({ level: -1 }).withTag('@foxy.io/sdk'),
           fetch: () => Promise.resolve(new CrossFetchResponse(null)),
         });
 
@@ -48,7 +48,7 @@ describe('Core', () => {
         const response = new Response({
           body: JSON.stringify(data),
           cache: new MemoryStorage(),
-          console: consola.create({ level: Infinity }).withTag('@foxy.io/sdk'),
+          console: consola.create({ level: -1 }).withTag('@foxy.io/sdk'),
           fetch: () => Promise.resolve(new CrossFetchResponse(null)),
         });
 

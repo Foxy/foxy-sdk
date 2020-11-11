@@ -26,7 +26,7 @@ describe('Core', () => {
         expect(Node).toHaveProperty('Response', Response);
       });
 
-      const console = consola.create({ level: Infinity }).withTag('@foxy.io/sdk');
+      const console = consola.create({ level: -1 }).withTag('@foxy.io/sdk');
       const cache = new MemoryStorage();
       const path = [new URL('https://example.com/')] as [URL, ...string[]];
 
