@@ -186,7 +186,7 @@ export class Node<TGraph extends Graph> {
    */
   async patch(body?: Partial<TGraph['props']>): Promise<Response<TGraph>> {
     const url = await this._resolve();
-    const request = new Request(url.toString(), { body: JSON.stringify(body), method: 'POST' });
+    const request = new Request(url.toString(), { body: JSON.stringify(body), method: 'PATCH' });
     const response = await this._fetch(request);
     const config = { cache: this._cache, console: this._console, fetch: this._fetch };
 
