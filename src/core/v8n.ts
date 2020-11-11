@@ -1,4 +1,3 @@
-import { URL } from 'url';
 import v8n from 'v8n';
 
 v8n.extend({
