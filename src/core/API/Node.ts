@@ -1,4 +1,4 @@
-import { storageV8N, v8n } from '../v8n';
+import { V8N, storageV8N, v8n } from '../v8n';
 
 import { Consola } from 'consola';
 import { Graph } from '../Graph';
@@ -64,8 +64,8 @@ function stringifyOrder(order: unknown): string {
  * of this class unless you're building a custom API client with our SDK.
  */
 export class Node<TGraph extends Graph> {
-  static readonly v8n = {
-    constructor: v8n().schema({
+  static readonly v8n: Record<string, V8N> = {
+    classConstructor: v8n().schema({
       cache: storageV8N,
       console: v8n().instanceOf(Consola),
       fetch: v8n().typeOf('function'),
@@ -101,7 +101,7 @@ export class Node<TGraph extends Graph> {
   protected readonly _path: CurieChain;
 
   constructor(init: NodeInit) {
-    Node.v8n.constructor.check(init);
+    Node.v8n.classConstructor.check(init);
 
     this._path = init.path;
     this._fetch = init.fetch;

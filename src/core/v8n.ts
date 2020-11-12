@@ -12,6 +12,9 @@ v8n.extend({
 
 export { v8n };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type V8N = { check: (...args: any[]) => boolean };
+
 export const storageV8N = v8n().schema({
   clear: v8n().typeOf('function'),
   getItem: v8n().typeOf('function'),

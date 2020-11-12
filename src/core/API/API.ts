@@ -1,4 +1,6 @@
 import consola, { Consola, LogLevel } from 'consola';
+import { storageV8N, v8n } from '../v8n';
+
 import { AuthError } from './AuthError';
 import { Graph } from '../Graph';
 import MemoryStorage from 'fake-storage';
@@ -47,6 +49,16 @@ export class API<TGraph extends Graph> extends Node<TGraph> {
 
   static readonly Node = Node;
 
+  static readonly v8n = {
+    classConstructor: v8n().schema({
+      base: v8n().instanceOf(URL),
+      cache: v8n().optional(storageV8N),
+      fetch: v8n().optional(v8n().typeOf('function')),
+      level: v8n().optional(v8n().integer()),
+      storage: v8n().optional(storageV8N),
+    }),
+  };
+
   /**
    * [Consola](https://github.com/nuxt-contrib/consola) instance.
    * If you extend this class and add logging in your code, use this instead of native console.
@@ -72,6 +84,8 @@ export class API<TGraph extends Graph> extends Node<TGraph> {
   readonly base: URL;
 
   constructor(init: Init) {
+    API.v8n.classConstructor.check(init);
+
     super({
       cache: init.cache ?? new MemoryStorage(),
       console: consola.create({ level: init.level }).withTag('@foxy.io/sdk'),
