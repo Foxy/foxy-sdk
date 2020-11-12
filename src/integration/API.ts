@@ -2,6 +2,7 @@ import * as Core from '../core';
 import * as Rels from './Rels';
 
 import fetch, { Headers } from 'cross-fetch';
+import { storageV8N, v8n } from '../core/v8n';
 
 import { Graph } from './Graph';
 import { LogLevel } from 'consola';
@@ -34,6 +35,19 @@ export class API extends Core.API<Graph> {
 
   static readonly VERSION: IntegrationAPIVersion = '1';
 
+  static readonly v8n = {
+    classConstructor: v8n().schema({
+      base: v8n().optional(v8n().instanceOf(URL)),
+      cache: v8n().optional(storageV8N),
+      clientId: v8n().string(),
+      clientSecret: v8n().string(),
+      level: v8n().optional(v8n().integer()),
+      refreshToken: v8n().string(),
+      storage: v8n().optional(storageV8N),
+      version: v8n().optional(v8n().passesAnyOf(v8n().exact('1'))),
+    }),
+  };
+
   readonly refreshToken: string;
 
   readonly clientSecret: string;
@@ -43,6 +57,8 @@ export class API extends Core.API<Graph> {
   readonly version: IntegrationAPIVersion;
 
   constructor(params: IntegrationAPIInit) {
+    API.v8n.classConstructor.check(params);
+
     super({
       base: params.base ?? API.BASE_URL,
       cache: params.cache ?? new MemoryStorage(),
