@@ -1,7 +1,7 @@
 import * as Core from '../core';
 import * as Rels from './Rels';
 
-import fetch, { Headers } from 'cross-fetch';
+import { Headers, fetch } from 'cross-fetch';
 import { storageV8N, v8n } from '../core/v8n';
 
 import { Graph } from './Graph';
@@ -95,10 +95,10 @@ export class API extends Core.API<Graph> {
       headers.set('FOXY-API-VERSION', this.version);
       headers.set('Content-Type', 'application/x-www-form-urlencoded');
 
-      body.set('refresh_token', this.refreshToken);
+      body.set('client_id', this.clientId);
       body.set('client_secret', this.clientSecret);
       body.set('grant_type', 'refresh_token');
-      body.set('client_id', this.clientId);
+      body.set('refresh_token', this.refreshToken);
 
       this.console.trace("Access token isn't present in the storage. Fetching a new one...");
       const response = await fetch(url, { body, headers, method: 'POST' });
