@@ -1,6 +1,8 @@
 import * as Core from '../core';
 import * as Rels from './Rels';
+
 import fetch, { Headers } from 'cross-fetch';
+
 import { Graph } from './Graph';
 import { LogLevel } from 'consola';
 import MemoryStorage from 'fake-storage';
@@ -42,11 +44,11 @@ export class API extends Core.API<Graph> {
 
   constructor(params: IntegrationAPIInit) {
     super({
+      base: params.baseURL ?? API.BASE_URL,
+      cache: params.cache ?? new MemoryStorage(),
+      fetch: (...args) => this.__fetch(...args),
       level: params.logLevel,
       storage: params.storage ?? new MemoryStorage(),
-      base: params.baseURL ?? API.BASE_URL,
-      fetch: (...args) => this.__fetch(...args),
-      cache: params.cache ?? new MemoryStorage(),
     });
 
     this.refreshToken = params.refreshToken;
@@ -83,7 +85,7 @@ export class API extends Core.API<Graph> {
       body.set('client_id', this.clientId);
 
       this.console.trace("Access token isn't present in the storage. Fetching a new one...");
-      const response = await fetch(url, { method: 'POST', headers, body });
+      const response = await fetch(url, { body, headers, method: 'POST' });
 
       if (response.ok) {
         const props = (await response.json()) as Rels.FxToken['props'];
