@@ -17,10 +17,10 @@ type IntegrationAPIInit = {
   refreshToken: string;
   clientSecret: string;
   clientId: string;
-  logLevel?: LogLevel;
+  level?: LogLevel;
   storage?: Storage;
   version?: IntegrationAPIVersion;
-  baseURL?: URL; // pathname ending with "/" !!!
+  base?: URL; // pathname ending with "/" !!!
   cache?: Storage;
 };
 
@@ -44,10 +44,10 @@ export class API extends Core.API<Graph> {
 
   constructor(params: IntegrationAPIInit) {
     super({
-      base: params.baseURL ?? API.BASE_URL,
+      base: params.base ?? API.BASE_URL,
       cache: params.cache ?? new MemoryStorage(),
       fetch: (...args) => this.__fetch(...args),
-      level: params.logLevel,
+      level: params.level,
       storage: params.storage ?? new MemoryStorage(),
     });
 
