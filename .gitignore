@@ -119,4 +119,4 @@ docs
 .pnp.*
 
 # misc
-**/.DS_Store
+.DS_Store
