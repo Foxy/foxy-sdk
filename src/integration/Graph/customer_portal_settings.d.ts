@@ -54,13 +54,22 @@ export interface FxCustomerPortalSettings extends Graph {
     };
     /** If this field is true we get legacy API key or sso key from store and save it in settings. For false value we drop it. */
     sso: boolean;
-    /** Shared secret key. */
-    jwtSharedSecret: string;
+    /** SSO secret for SSO URLs.  */
+    ssoSecret?: string;
     /** Life span of session in minutes. Maximum 40320 (4 weeks). */
     sessionLifespanInMinutes: number;
     /** The date this resource was created. */
     date_created: string;
     /** The date this resource was last modified. */
     date_modified: string;
-  };
+  } & (
+    | {
+        /** Shared secret key. */
+        jwtSharedSecret: string;
+      }
+    | {
+        /** Private key for JWT signing. */
+        jwtPrivateKey: string;
+      }
+  );
 }
