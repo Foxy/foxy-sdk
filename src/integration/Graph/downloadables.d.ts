@@ -1,10 +1,10 @@
 import type { CollectionGraphLinks, CollectionGraphProps } from '../../core/defaults';
-import type { FxDownloadable } from './downloadable';
+import type { Downloadable } from './downloadable';
 import type { Graph } from '../../core';
 
-export interface FxDownloadables extends Graph {
+export interface Downloadables extends Graph {
   curie: 'fx:downloadables';
-  links: CollectionGraphLinks<FxDownloadables>;
+  links: CollectionGraphLinks<Downloadables>;
   props: CollectionGraphProps;
-  child: FxDownloadable;
+  child: Downloadable;
 }

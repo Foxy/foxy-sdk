@@ -1,10 +1,10 @@
 import type { CollectionGraphLinks, CollectionGraphProps } from '../../core/defaults';
-import type { FxShippingService } from './shipping_service';
+import type { ShippingService } from './shipping_service';
 import type { Graph } from '../../core';
 
-export interface FxShippingServices extends Graph {
+export interface ShippingServices extends Graph {
   curie: 'fx:shipping_services';
-  links: CollectionGraphLinks<FxShippingServices>;
+  links: CollectionGraphLinks<ShippingServices>;
   props: CollectionGraphProps;
-  child: FxShippingService;
+  child: ShippingService;
 }

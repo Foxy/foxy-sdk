@@ -1,18 +1,18 @@
-import type { FxPropertyHelpers } from './property_helpers';
+import type { PropertyHelpers } from './property_helpers';
 import type { Graph } from '../../core';
 
 interface StringRecord {
   [key: string]: StringRecord;
 }
 
-export interface FxLanguageStrings extends Graph {
+export interface LanguageStrings extends Graph {
   curie: 'fx:language_strings';
 
   links: {
     /** This resource. */
-    'self': FxLanguageStrings;
+    'self': LanguageStrings;
     /** Various predefined property values. */
-    'fx:property_helpers': FxPropertyHelpers;
+    'fx:property_helpers': PropertyHelpers;
   };
 
   props: {

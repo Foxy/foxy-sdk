@@ -1,10 +1,10 @@
 import type { CollectionGraphLinks, CollectionGraphProps } from '../../core/defaults';
-import type { FxPayment } from './payment';
+import type { Payment } from './payment';
 import type { Graph } from '../../core';
 
-export interface FxPayments extends Graph {
+export interface Payments extends Graph {
   curie: 'fx:payments';
-  links: CollectionGraphLinks<FxPayments>;
+  links: CollectionGraphLinks<Payments>;
   props: CollectionGraphProps;
-  child: FxPayment;
+  child: Payment;
 }

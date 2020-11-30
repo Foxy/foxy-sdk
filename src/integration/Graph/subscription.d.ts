@@ -1,33 +1,33 @@
-import type { FxAttributes } from './attributes';
-import type { FxCustomer } from './customer';
-import type { FxLastTransaction } from './last_transaction';
-import type { FxOriginalTransaction } from './original_transaction';
-import type { FxStore } from './store';
-import type { FxSubTokenUrl } from './sub_token_url';
-import type { FxTransactionTemplate } from './transaction_template';
-import type { FxTransactions } from './transactions';
+import type { Attributes } from './attributes';
+import type { Customer } from './customer';
+import type { LastTransaction } from './last_transaction';
+import type { OriginalTransaction } from './original_transaction';
+import type { Store } from './store';
+import type { SubTokenUrl } from './sub_token_url';
+import type { TransactionTemplate } from './transaction_template';
+import type { Transactions } from './transactions';
 import type { Graph } from '../../core';
 
-export interface FxSubscription extends Graph {
+export interface Subscription extends Graph {
   curie: 'fx:subscription';
 
   links: {
     /** This resource. */
-    'self': FxSubscription;
+    'self': Subscription;
     /** List of attributes for this subscription. */
-    'fx:attributes': FxAttributes;
+    'fx:attributes': Attributes;
     /** Related store resource. */
-    'fx:store': FxStore;
+    'fx:store': Store;
     /** Customer who created this subscription. */
-    'fx:customer': FxCustomer;
+    'fx:customer': Customer;
     /** Last transaction for this subscription. */
-    'fx:last_transaction': FxLastTransaction;
+    'fx:last_transaction': LastTransaction;
     /** List of transactions for this subscription. */
-    'fx:transactions': FxTransactions;
+    'fx:transactions': Transactions;
     /** Transaction template for this subscription. */
-    'fx:transaction_template': FxTransactionTemplate;
+    'fx:transaction_template': TransactionTemplate;
     /** Open this link in browser to load up the subscription template into a full HTML cart for the store. */
-    'fx:sub_token_url': FxSubTokenUrl;
+    'fx:sub_token_url': SubTokenUrl;
   };
 
   props: {
@@ -56,11 +56,11 @@ export interface FxSubscription extends Graph {
   };
 
   zooms: {
-    original_transaction?: FxOriginalTransaction;
-    transaction_template?: FxTransactionTemplate;
-    last_transaction?: FxLastTransaction;
-    transactions?: FxTransactions;
-    attributes: FxAttributes;
-    customer?: FxCustomer;
+    original_transaction?: OriginalTransaction;
+    transaction_template?: TransactionTemplate;
+    last_transaction?: LastTransaction;
+    transactions?: Transactions;
+    attributes: Attributes;
+    customer?: Customer;
   };
 }

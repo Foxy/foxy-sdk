@@ -1,10 +1,10 @@
 import type { CollectionGraphLinks, CollectionGraphProps } from '../../core/defaults';
-import type { FxCouponCode } from './coupon_code';
+import type { CouponCode } from './coupon_code';
 import type { Graph } from '../../core';
 
-export interface FxCouponCodes extends Graph {
+export interface CouponCodes extends Graph {
   curie: 'fx:coupon_codes';
-  links: CollectionGraphLinks<FxCouponCodes>;
+  links: CollectionGraphLinks<CouponCodes>;
   props: CollectionGraphProps;
-  child: FxCouponCode;
+  child: CouponCode;
 }

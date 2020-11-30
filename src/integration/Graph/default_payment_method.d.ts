@@ -1,17 +1,17 @@
-import type { FxCustomer } from './customer';
-import type { FxStore } from './store';
+import type { Customer } from './customer';
+import type { Store } from './store';
 import type { Graph } from '../../core';
 
-export interface FxDefaultPaymentMethod extends Graph {
+export interface DefaultPaymentMethod extends Graph {
   curie: 'fx:default_payment_method';
 
   links: {
     /** This resource. */
-    'self': FxDefaultPaymentMethod;
+    'self': DefaultPaymentMethod;
     /** Store the customer is registered in. */
-    'fx:store': FxStore;
+    'fx:store': Store;
     /** Customer using this payment method as default. */
-    'fx:customer': FxCustomer;
+    'fx:customer': Customer;
   };
 
   props: {

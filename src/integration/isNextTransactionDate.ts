@@ -1,8 +1,8 @@
-import { FxCustomerPortalSettings } from './Graph/customer_portal_settings';
+import { CustomerPortalSettings } from './Graph/customer_portal_settings';
 import jsonata from 'jsonata';
 import parse from 'parse-duration';
 
-type Config = FxCustomerPortalSettings['props']['subscriptions']['allowNextDateModification'];
+type Config = CustomerPortalSettings['props']['subscriptions']['allowNextDateModification'];
 
 type Options = {
   value: string;

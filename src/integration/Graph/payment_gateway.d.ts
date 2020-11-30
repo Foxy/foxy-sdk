@@ -1,17 +1,17 @@
-import type { FxPaymentMethodSets } from './payment_method_sets';
-import type { FxStore } from './store';
+import type { PaymentMethodSets } from './payment_method_sets';
+import type { Store } from './store';
 import type { Graph } from '../../core';
 
-export interface FxPaymentGateway extends Graph {
+export interface PaymentGateway extends Graph {
   curie: 'fx:payment_gateway';
 
   links: {
     /** This resource. */
-    'self': FxPaymentGateway;
+    'self': PaymentGateway;
     /** Store using this gateway. */
-    'fx:store': FxStore;
+    'fx:store': Store;
     /** Payment method sets using this gateway. */
-    'fx:payment_method_sets': FxPaymentMethodSets;
+    'fx:payment_method_sets': PaymentMethodSets;
   };
 
   props: {

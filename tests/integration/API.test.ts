@@ -9,7 +9,7 @@ jest.mock('cross-fetch', () => ({
 import { Headers, Request, Response, fetch } from 'cross-fetch';
 
 import { API as CoreAPI } from '../../src/core/API';
-import { FxToken } from '../../src/integration/Rels';
+import { Token } from '../../src/integration/Rels';
 import { API as IntegrationAPI } from '../../src/integration/API';
 import MemoryCache from 'fake-storage';
 
@@ -27,7 +27,7 @@ const commonInit = {
   refreshToken: '65redfghyuyjthgrhyjthrgdfghytredtyuytredrtyuy6trtyuhgfdr',
 };
 
-const sampleToken: FxToken['props'] = {
+const sampleToken: Token['props'] = {
   access_token: 'w8a49rbvuznxmzs39xliwfa943fda84klkvniutgh34q1fjmnfma90iubl',
   expires_in: IntegrationAPI.REFRESH_THRESHOLD * 3,
   refresh_token: '65redfghyuyjthgrhyjthrgdfghytredtyuytredrtyuy6trtyuhgfdr',

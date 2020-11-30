@@ -1,10 +1,10 @@
 import type { CollectionGraphLinks, CollectionGraphProps } from '../../core/defaults';
-import type { FxDiscountDetail } from './discount_detail';
+import type { DiscountDetail } from './discount_detail';
 import type { Graph } from '../../core';
 
-export interface FxDiscountDetails extends Graph {
+export interface DiscountDetails extends Graph {
   curie: 'fx:discount_details';
-  links: CollectionGraphLinks<FxDiscountDetails>;
+  links: CollectionGraphLinks<DiscountDetails>;
   props: CollectionGraphProps;
-  child: FxDiscountDetail;
+  child: DiscountDetail;
 }

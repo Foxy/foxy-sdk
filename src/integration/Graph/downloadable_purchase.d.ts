@@ -1,26 +1,26 @@
-import type { FxCustomer } from './customer';
-import type { FxDownloadable } from './downloadable';
-import type { FxItem } from './item';
-import type { FxStore } from './store';
-import type { FxTransaction } from './transaction';
+import type { Customer } from './customer';
+import type { Downloadable } from './downloadable';
+import type { Item } from './item';
+import type { Store } from './store';
+import type { Transaction } from './transaction';
 import type { Graph } from '../../core';
 
-export interface FxDownloadablePurchase extends Graph {
+export interface DownloadablePurchase extends Graph {
   curie: 'fx:downloadable_purchase';
 
   links: {
     /** This resource. */
-    'self': FxDownloadablePurchase;
+    'self': DownloadablePurchase;
     /** Related cart item. */
-    'fx:item': FxItem;
+    'fx:item': Item;
     /** Store that provided the downloadable product. */
-    'fx:store': FxStore;
+    'fx:store': Store;
     /** Customer who purchased the downloadable product. */
-    'fx:customer': FxCustomer;
+    'fx:customer': Customer;
     /** Related transaction. */
-    'fx:transaction': FxTransaction;
+    'fx:transaction': Transaction;
     /** Downloadable product. */
-    'fx:downloadable': FxDownloadable;
+    'fx:downloadable': Downloadable;
   };
 
   props: {

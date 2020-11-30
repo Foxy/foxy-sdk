@@ -1,10 +1,10 @@
 import type { CollectionGraphLinks, CollectionGraphProps } from '../../core/defaults';
-import type { FxHostedPaymentGateway } from './hosted_payment_gateway';
+import type { HostedPaymentGateway } from './hosted_payment_gateway';
 import type { Graph } from '../../core';
 
-export interface FxHostedPaymentGateways extends Graph {
+export interface HostedPaymentGateways extends Graph {
   curie: 'fx:hosted_payment_gateways';
-  links: CollectionGraphLinks<FxHostedPaymentGateways>;
+  links: CollectionGraphLinks<HostedPaymentGateways>;
   props: CollectionGraphProps;
-  child: FxHostedPaymentGateway;
+  child: HostedPaymentGateway;
 }

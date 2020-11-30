@@ -1,20 +1,20 @@
-import type { FxLanguageOverrides } from './language_overrides';
-import type { FxStore } from './store';
-import type { FxTemplateSet } from './template_set';
+import type { LanguageOverrides } from './language_overrides';
+import type { Store } from './store';
+import type { TemplateSet } from './template_set';
 import type { Graph } from '../../core';
 
-export interface FxLanguageOverride extends Graph {
+export interface LanguageOverride extends Graph {
   curie: 'fx:language_override';
 
   links: {
     /** This resource. */
-    'self': FxLanguageOverride;
+    'self': LanguageOverride;
     /** Store this language override is registered in. */
-    'fx:store': FxStore;
+    'fx:store': Store;
     /** Template set this language override belongs to. */
-    'fx:template_set': FxTemplateSet;
+    'fx:template_set': TemplateSet;
     /** List of all language overrides in the template set. */
-    'fx:language_overrides': FxLanguageOverrides;
+    'fx:language_overrides': LanguageOverrides;
   };
 
   props: {

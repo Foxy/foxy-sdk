@@ -1,86 +1,86 @@
-import type { FxAttributes } from './attributes';
-import type { FxCartIncludeTemplates } from './cart_include_templates';
-import type { FxCartTemplates } from './cart_templates';
-import type { FxCarts } from './carts';
-import type { FxCheckoutTemplates } from './checkout_templates';
-import type { FxCoupons } from './coupons';
-import type { FxCustomerPortalSettings } from './customer_portal_settings';
-import type { FxCustomers } from './customers';
-import type { FxDownloadables } from './downloadables';
-import type { FxEmailTemplates } from './email_templates';
-import type { FxErrorEntries } from './error_entries';
-import type { FxFraudProtections } from './fraud_protections';
-import type { FxHostedPaymentGateways } from './hosted_payment_gateways';
-import type { FxItemCategories } from './item_categories';
-import type { FxPaymentMethodSets } from './payment_method_sets';
-import type { FxProcessSubscriptionWebhook } from './process_subscription_webhook';
-import type { FxReceiptTemplates } from './receipt_templates';
-import type { FxStoreVersion } from './store_version';
-import type { FxSubscriptionSettings } from './subscription_settings';
-import type { FxSubscriptions } from './subscriptions';
-import type { FxTaxes } from './taxes';
-import type { FxTemplateSets } from './template_sets';
-import type { FxTransactions } from './transactions';
-import type { FxUserAccesses } from './user_accesses';
-import type { FxUsers } from './users';
+import type { Attributes } from './attributes';
+import type { CartIncludeTemplates } from './cart_include_templates';
+import type { CartTemplates } from './cart_templates';
+import type { Carts } from './carts';
+import type { CheckoutTemplates } from './checkout_templates';
+import type { Coupons } from './coupons';
+import type { CustomerPortalSettings } from './customer_portal_settings';
+import type { Customers } from './customers';
+import type { Downloadables } from './downloadables';
+import type { EmailTemplates } from './email_templates';
+import type { ErrorEntries } from './error_entries';
+import type { FraudProtections } from './fraud_protections';
+import type { HostedPaymentGateways } from './hosted_payment_gateways';
+import type { ItemCategories } from './item_categories';
+import type { PaymentMethodSets } from './payment_method_sets';
+import type { ProcessSubscriptionWebhook } from './process_subscription_webhook';
+import type { ReceiptTemplates } from './receipt_templates';
+import type { StoreVersion } from './store_version';
+import type { SubscriptionSettings } from './subscription_settings';
+import type { Subscriptions } from './subscriptions';
+import type { Taxes } from './taxes';
+import type { TemplateSets } from './template_sets';
+import type { Transactions } from './transactions';
+import type { UserAccesses } from './user_accesses';
+import type { Users } from './users';
 import type { Graph } from '../../core';
 
-export interface FxStore extends Graph {
+export interface Store extends Graph {
   curie: 'fx:store';
 
   links: {
     /** This resource. */
-    'self': FxStore;
+    'self': Store;
     /** List of carts in this store. */
-    'fx:carts': FxCarts;
+    'fx:carts': Carts;
     /** List of users with access to this store. */
-    'fx:users': FxUsers;
+    'fx:users': Users;
     /** List of taxes configured for this store. */
-    'fx:taxes': FxTaxes;
+    'fx:taxes': Taxes;
     /** List of coupons available in this store. */
-    'fx:coupons': FxCoupons;
+    'fx:coupons': Coupons;
     /** List of customers of this store. */
-    'fx:customers': FxCustomers;
+    'fx:customers': Customers;
     /** List of custom attributes of this store. */
-    'fx:attributes': FxAttributes;
+    'fx:attributes': Attributes;
     /** List of transactions performed in this store. */
-    'fx:transactions': FxTransactions;
+    'fx:transactions': Transactions;
     /** List of template sets configured for this store. */
-    'fx:template_sets': FxTemplateSets;
+    'fx:template_sets': TemplateSets;
     /** Version of this store. */
-    'fx:store_version': FxStoreVersion;
+    'fx:store_version': StoreVersion;
     /** List of user access resources for this store. */
-    'fx:user_accesses': FxUserAccesses;
+    'fx:user_accesses': UserAccesses;
     /** List of subscriptions created in this store. */
-    'fx:subscriptions': FxSubscriptions;
+    'fx:subscriptions': Subscriptions;
     /** List of error entries for this store. */
-    'fx:error_entries': FxErrorEntries;
+    'fx:error_entries': ErrorEntries;
     /** List of downloadable products available in this store. */
-    'fx:downloadables': FxDownloadables;
+    'fx:downloadables': Downloadables;
     /** List of cart templates available in this store. */
-    'fx:cart_templates': FxCartTemplates;
+    'fx:cart_templates': CartTemplates;
     /** List of email templates for this store. */
-    'fx:email_templates': FxEmailTemplates;
+    'fx:email_templates': EmailTemplates;
     /** List of item categories configured in this store. */
-    'fx:item_categories': FxItemCategories;
+    'fx:item_categories': ItemCategories;
     /** List of fraud protection measures enabled on this store. */
-    'fx:fraud_protections': FxFraudProtections;
+    'fx:fraud_protections': FraudProtections;
     /** List of receipt templates for this store. */
-    'fx:receipt_templates': FxReceiptTemplates;
+    'fx:receipt_templates': ReceiptTemplates;
     /** List of checkout templates for this store. */
-    'fx:checkout_templates': FxCheckoutTemplates;
+    'fx:checkout_templates': CheckoutTemplates;
     /** List of payment method sets configured for this store. */
-    'fx:payment_method_sets': FxPaymentMethodSets;
+    'fx:payment_method_sets': PaymentMethodSets;
     /** Subscription settings for this store. */
-    'fx:subscription_settings': FxSubscriptionSettings;
+    'fx:subscription_settings': SubscriptionSettings;
     /** List of cart include templates available in this store. */
-    'fx:cart_include_templates': FxCartIncludeTemplates;
+    'fx:cart_include_templates': CartIncludeTemplates;
     /** List of hosted payment gateways enabled for this store. */
-    'fx:hosted_payment_gateways': FxHostedPaymentGateways;
+    'fx:hosted_payment_gateways': HostedPaymentGateways;
     /** Configuration of this store's customer portal. */
-    'fx:customer_portal_settings': FxCustomerPortalSettings;
+    'fx:customer_portal_settings': CustomerPortalSettings;
     /** POST here to resend the daily subscription webhook notification for this store. */
-    'fx:process_subscription_webhook': FxProcessSubscriptionWebhook;
+    'fx:process_subscription_webhook': ProcessSubscriptionWebhook;
   };
 
   props: {

@@ -1,32 +1,32 @@
-import type { FxCartIncludeTemplate } from './cart_include_template';
-import type { FxCartTemplate } from './cart_template';
-import type { FxCheckoutTemplate } from './checkout_template';
-import type { FxEmailTemplate } from './email_template';
-import type { FxLanguageOverrides } from './language_overrides';
-import type { FxReceiptTemplate } from './receipt_template';
-import type { FxStore } from './store';
+import type { CartIncludeTemplate } from './cart_include_template';
+import type { CartTemplate } from './cart_template';
+import type { CheckoutTemplate } from './checkout_template';
+import type { EmailTemplate } from './email_template';
+import type { LanguageOverrides } from './language_overrides';
+import type { ReceiptTemplate } from './receipt_template';
+import type { Store } from './store';
 import type { Graph } from '../../core';
 
-export interface FxTemplateSet extends Graph {
+export interface TemplateSet extends Graph {
   curie: 'fx:template_set';
 
   links: {
     /** This resource. */
-    'self': FxTemplateSet;
+    'self': TemplateSet;
     /** Related store resource. */
-    'fx:store': FxStore;
+    'fx:store': Store;
     /** Cart template for this template set. */
-    'fx:cart_template': FxCartTemplate;
+    'fx:cart_template': CartTemplate;
     /** Email template for this template set. */
-    'fx:email_template': FxEmailTemplate;
+    'fx:email_template': EmailTemplate;
     /** Receipt template for this template set. */
-    'fx:receipt_template': FxReceiptTemplate;
+    'fx:receipt_template': ReceiptTemplate;
     /** Checkout template for this template set. */
-    'fx:checkout_template': FxCheckoutTemplate;
+    'fx:checkout_template': CheckoutTemplate;
     /** Language overrides for this template set. */
-    'fx:language_overrides': FxLanguageOverrides;
+    'fx:language_overrides': LanguageOverrides;
     /** Cart include template for this template set. */
-    'fx:cart_include_template': FxCartIncludeTemplate;
+    'fx:cart_include_template': CartIncludeTemplate;
   };
 
   props: {
@@ -59,10 +59,10 @@ export interface FxTemplateSet extends Graph {
   };
 
   zooms: {
-    cart_include_template?: FxCartIncludeTemplate;
-    checkout_template?: FxCheckoutTemplate;
-    receipt_template?: FxReceiptTemplate;
-    email_template?: FxEmailTemplate;
-    cart_template?: FxCartTemplate;
+    cart_include_template?: CartIncludeTemplate;
+    checkout_template?: CheckoutTemplate;
+    receipt_template?: ReceiptTemplate;
+    email_template?: EmailTemplate;
+    cart_template?: CartTemplate;
   };
 }

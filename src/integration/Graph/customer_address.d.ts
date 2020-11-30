@@ -1,17 +1,17 @@
-import type { FxCustomer } from './customer';
-import type { FxStore } from './store';
+import type { Customer } from './customer';
+import type { Store } from './store';
 import type { Graph } from '../../core';
 
-export interface FxCustomerAddress extends Graph {
+export interface CustomerAddress extends Graph {
   curie: 'fx:customer_address';
 
   links: {
     /** This resource. */
-    'self': FxCustomerAddress;
+    'self': CustomerAddress;
     /** Store the customer account belongs to. */
-    'fx:store': FxStore;
+    'fx:store': Store;
     /** Customer this address is linked to. */
-    'fx:customer': FxCustomer;
+    'fx:customer': Customer;
   };
 
   props: {

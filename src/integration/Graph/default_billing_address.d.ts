@@ -1,8 +1,8 @@
-import type { FxCustomerAddress } from './customer_address';
+import type { CustomerAddress } from './customer_address';
 import type { Graph } from '../../core';
 
-export interface FxDefaultBillingAddress extends Graph {
+export interface DefaultBillingAddress extends Graph {
   curie: 'fx:default_billing_address';
-  links: FxCustomerAddress['links'];
-  props: FxCustomerAddress['props'];
+  links: CustomerAddress['links'];
+  props: CustomerAddress['props'];
 }

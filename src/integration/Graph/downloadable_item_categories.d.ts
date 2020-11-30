@@ -1,10 +1,10 @@
 import type { CollectionGraphLinks, CollectionGraphProps } from '../../core/defaults';
-import type { FxItemCategory } from './item_category';
+import type { ItemCategory } from './item_category';
 import type { Graph } from '../../core';
 
-export interface FxDownloadableItemCategories extends Graph {
+export interface DownloadableItemCategories extends Graph {
   curie: 'fx:downloadable_item_categories';
-  links: CollectionGraphLinks<FxDownloadableItemCategories>;
+  links: CollectionGraphLinks<DownloadableItemCategories>;
   props: CollectionGraphProps;
-  child: FxItemCategory;
+  child: ItemCategory;
 }

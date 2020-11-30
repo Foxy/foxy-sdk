@@ -1,10 +1,10 @@
 import type { CollectionGraphLinks, CollectionGraphProps } from '../../core/defaults';
-import type { FxSubscription } from './subscription';
+import type { Subscription } from './subscription';
 import type { Graph } from '../../core';
 
-export interface FxSubscriptions extends Graph {
+export interface Subscriptions extends Graph {
   curie: 'fx:subscriptions';
-  links: CollectionGraphLinks<FxSubscriptions>;
+  links: CollectionGraphLinks<Subscriptions>;
   props: CollectionGraphProps;
-  child: FxSubscription;
+  child: Subscription;
 }

@@ -1,20 +1,20 @@
-import type { FxItem } from './item';
-import type { FxStore } from './store';
-import type { FxTransaction } from './transaction';
+import type { Item } from './item';
+import type { Store } from './store';
+import type { Transaction } from './transaction';
 import type { Graph } from '../../core';
 
-export interface FxDiscountDetail extends Graph {
+export interface DiscountDetail extends Graph {
   curie: 'fx:discount_detail';
 
   links: {
     /** This resource. */
-    'self': FxDiscountDetail;
+    'self': DiscountDetail;
     /** Item the discount was applied to. */
-    'fx:item': FxItem;
+    'fx:item': Item;
     /** Store that provided the discount. */
-    'fx:store': FxStore;
+    'fx:store': Store;
     /** Transaction the discount was applied to. */
-    'fx:transaction': FxTransaction;
+    'fx:transaction': Transaction;
   };
 
   props: {

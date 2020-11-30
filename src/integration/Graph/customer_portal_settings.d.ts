@@ -1,14 +1,14 @@
-import type { FxStore } from './store';
+import type { Store } from './store';
 import type { Graph } from '../../core';
 
-export interface FxCustomerPortalSettings extends Graph {
+export interface CustomerPortalSettings extends Graph {
   curie: 'fx:customer_portal_settings';
 
   links: {
     /** This resource. */
-    'self': FxCustomerPortalSettings;
+    'self': CustomerPortalSettings;
     /** Store the customer portal of which this resource configures. */
-    'fx:store': FxStore;
+    'fx:store': Store;
   };
 
   props: {

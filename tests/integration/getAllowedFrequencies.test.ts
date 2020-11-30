@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable jsdoc/require-jsdoc */
 
-import { FxCustomerPortalSettings } from '../../src/integration/Graph/customer_portal_settings';
+import { CustomerPortalSettings } from '../../src/integration/Graph/customer_portal_settings';
 import { getAllowedFrequencies } from '../../src/integration/getAllowedFrequencies';
 
 function mockSubscription(frequency = '1m') {
@@ -20,7 +20,7 @@ function mockSubscription(frequency = '1m') {
   };
 }
 
-type Rules = FxCustomerPortalSettings['props']['subscriptions']['allowFrequencyModification'];
+type Rules = CustomerPortalSettings['props']['subscriptions']['allowFrequencyModification'];
 
 function mockSettings(rules: Rules = []) {
   return { subscriptions: { allowFrequencyModification: rules } };

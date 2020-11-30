@@ -1,10 +1,10 @@
 import type { CollectionGraphLinks, CollectionGraphProps } from '../../core/defaults';
-import type { FxStoreVersion } from './store_version';
+import type { StoreVersion } from './store_version';
 import type { Graph } from '../../core';
 
-export interface FxStoreVersions extends Graph {
+export interface StoreVersions extends Graph {
   curie: 'fx:store_versions';
-  links: CollectionGraphLinks<FxStoreVersions>;
+  links: CollectionGraphLinks<StoreVersions>;
   props: CollectionGraphProps;
-  child: FxStoreVersion;
+  child: StoreVersion;
 }

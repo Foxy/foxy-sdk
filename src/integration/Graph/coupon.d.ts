@@ -1,23 +1,23 @@
-import type { FxCouponCodes } from './coupon_codes';
-import type { FxCouponItemCategories } from './coupon_item_categories';
-import type { FxGenerateCodes } from './generate_codes';
-import type { FxStore } from './store';
+import type { CouponCodes } from './coupon_codes';
+import type { CouponItemCategories } from './coupon_item_categories';
+import type { GenerateCodes } from './generate_codes';
+import type { Store } from './store';
 import type { Graph } from '../../core';
 
-export interface FxCoupon extends Graph {
+export interface Coupon extends Graph {
   curie: 'fx:coupon';
 
   links: {
     /** This resource. */
-    'self': FxCoupon;
+    'self': Coupon;
     /** Store this coupon belongs to. */
-    'fx:store': FxStore;
+    'fx:store': Store;
     /** Codes linked to this coupon. */
-    'fx:coupon_codes': FxCouponCodes;
+    'fx:coupon_codes': CouponCodes;
     /** POST here to generate random coupon codes. */
-    'fx:generate_codes': FxGenerateCodes;
+    'fx:generate_codes': GenerateCodes;
     /** Valid item categories for this coupon. */
-    'fx:coupon_item_categories': FxCouponItemCategories;
+    'fx:coupon_item_categories': CouponItemCategories;
   };
 
   props: {
@@ -58,7 +58,7 @@ export interface FxCoupon extends Graph {
   };
 
   zooms: {
-    coupon_item_categories?: FxCouponItemCategories;
-    coupon_codes?: FxCouponCodes;
+    coupon_item_categories?: CouponItemCategories;
+    coupon_codes?: CouponCodes;
   };
 }

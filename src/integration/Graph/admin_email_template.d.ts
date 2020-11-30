@@ -1,8 +1,8 @@
-import type { FxEmailTemplate } from './email_template';
+import type { EmailTemplate } from './email_template';
 import type { Graph } from '../../core';
 
-export interface FxAdminEmailTemplate extends Graph {
+export interface AdminEmailTemplate extends Graph {
   curie: 'fx:admin_email_template';
-  links: FxEmailTemplate['links'];
-  props: FxEmailTemplate['props'];
+  links: EmailTemplate['links'];
+  props: EmailTemplate['props'];
 }

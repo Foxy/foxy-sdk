@@ -1,17 +1,17 @@
-import type { FxPropertyHelpers } from './property_helpers';
-import type { FxStoreVersions } from './store_versions';
+import type { PropertyHelpers } from './property_helpers';
+import type { StoreVersions } from './store_versions';
 import type { Graph } from '../../core';
 
-export interface FxStoreVersion extends Graph {
+export interface StoreVersion extends Graph {
   curie: 'fx:store_version';
 
   links: {
     /** This resource. */
-    'self': FxStoreVersion;
+    'self': StoreVersion;
     /** List of all available store versions. */
-    'fx:store_versions': FxStoreVersions;
+    'fx:store_versions': StoreVersions;
     /** Various predefined property values. */
-    'fx:property_helpers': FxPropertyHelpers;
+    'fx:property_helpers': PropertyHelpers;
   };
 
   props: {

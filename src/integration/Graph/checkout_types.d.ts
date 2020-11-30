@@ -1,14 +1,14 @@
-import type { FxPropertyHelpers } from './property_helpers';
+import type { PropertyHelpers } from './property_helpers';
 import type { Graph } from '../../core';
 
-export interface FxCheckoutTypes extends Graph {
+export interface CheckoutTypes extends Graph {
   curie: 'fx:checkout_types';
 
   links: {
     /** This resource. */
-    'self': FxCheckoutTypes;
+    'self': CheckoutTypes;
     /** Various pre-defined property values. */
-    'fx:property_helpers': FxPropertyHelpers;
+    'fx:property_helpers': PropertyHelpers;
   };
 
   props: {

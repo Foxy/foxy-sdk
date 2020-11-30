@@ -1,20 +1,20 @@
-import type { FxDownloadableItemCategories } from './downloadable_item_categories';
-import type { FxItemCategory } from './item_category';
-import type { FxStore } from './store';
+import type { DownloadableItemCategories } from './downloadable_item_categories';
+import type { ItemCategory } from './item_category';
+import type { Store } from './store';
 import type { Graph } from '../../core';
 
-export interface FxDownloadable extends Graph {
+export interface Downloadable extends Graph {
   curie: 'fx:downloadable';
 
   links: {
     /** This resource. */
-    'self': FxDownloadable;
+    'self': Downloadable;
     /** Store this downloadable product belongs to. */
-    'fx:store': FxStore;
+    'fx:store': Store;
     /** Item category this downloadable product belongs to. */
-    'fx:item_category': FxItemCategory;
+    'fx:item_category': ItemCategory;
     /** List of all downloadable item categories in the store. */
-    'fx:downloadable_item_categories': FxDownloadableItemCategories;
+    'fx:downloadable_item_categories': DownloadableItemCategories;
   };
 
   props: {

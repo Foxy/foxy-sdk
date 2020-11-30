@@ -1,14 +1,14 @@
-import type { FxPropertyHelpers } from './property_helpers';
+import type { PropertyHelpers } from './property_helpers';
 import type { Graph } from '../../core';
 
-export interface FxLocaleCodes extends Graph {
+export interface LocaleCodes extends Graph {
   curie: 'fx:locale_codes';
 
   links: {
     /** This resource. */
-    'self': FxLocaleCodes;
+    'self': LocaleCodes;
     /** Various predefined property values. */
-    'fx:property_helpers': FxPropertyHelpers;
+    'fx:property_helpers': PropertyHelpers;
   };
 
   props: {

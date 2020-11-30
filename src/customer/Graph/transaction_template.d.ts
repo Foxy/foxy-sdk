@@ -1,11 +1,11 @@
 import type * as Core from '../../core';
 import type * as Integration from '../../integration';
-import type { FxItems } from './items';
+import type { Items } from './items';
 
-export interface FxTransactionTemplate extends Core.Graph {
-  curie: Integration.Rels.FxTransactionTemplate['curie'];
-  props: Integration.Rels.FxTransactionTemplate['props'];
+export interface TransactionTemplate extends Core.Graph {
+  curie: Integration.Rels.TransactionTemplate['curie'];
+  props: Integration.Rels.TransactionTemplate['props'];
   zooms: {
-    items: FxItems;
+    items: Items;
   };
 }

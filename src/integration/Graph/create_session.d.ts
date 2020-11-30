@@ -1,6 +1,6 @@
 import type { Graph } from '../../core';
 
-export interface FxCreateSession extends Graph {
+export interface CreateSession extends Graph {
   curie: 'fx:create_session';
 
   props: {

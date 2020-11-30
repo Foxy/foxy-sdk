@@ -1,14 +1,14 @@
-import type { FxStore } from './store';
+import type { Store } from './store';
 import type { Graph } from '../../core';
 
-export interface FxNativeIntegration extends Graph {
+export interface NativeIntegration extends Graph {
   curie: 'fx:native_integration';
 
   links: {
     /** This resource. */
-    'self': FxNativeIntegration;
+    'self': NativeIntegration;
     /** Store this native integration is enabled on. */
-    'fx:store': FxStore;
+    'fx:store': Store;
   };
 
   props: {

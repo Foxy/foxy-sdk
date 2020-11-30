@@ -1,20 +1,20 @@
-import type { FxItem } from './item';
-import type { FxStore } from './store';
-import type { FxTransaction } from './transaction';
+import type { Item } from './item';
+import type { Store } from './store';
+import type { Transaction } from './transaction';
 import type { Graph } from '../../core';
 
-export interface FxItemOption extends Graph {
+export interface ItemOption extends Graph {
   curie: 'fx:item_option';
 
   links: {
     /** This resource. */
-    'self': FxItemOption;
+    'self': ItemOption;
     /** Item this option is attached to. */
-    'fx:item': FxItem;
+    'fx:item': Item;
     /** Store the item belongs to. */
-    'fx:store': FxStore;
+    'fx:store': Store;
     /** Related transaction resource. */
-    'fx:transaction': FxTransaction;
+    'fx:transaction': Transaction;
   };
 
   props: {

@@ -1,20 +1,20 @@
-import type { FxStore } from './store';
-import type { FxTax } from './tax';
-import type { FxTransaction } from './transaction';
+import type { Store } from './store';
+import type { Tax } from './tax';
+import type { Transaction } from './transaction';
 import type { Graph } from '../../core';
 
-export interface FxAppliedTax extends Graph {
+export interface AppliedTax extends Graph {
   curie: 'fx:applied_tax';
 
   links: {
     /** This resource. */
-    'self': FxAppliedTax;
+    'self': AppliedTax;
     /** Tax configuration. */
-    'fx:tax': FxTax;
+    'fx:tax': Tax;
     /** Store that handled the transaction this tax applies to. */
-    'fx:store': FxStore;
+    'fx:store': Store;
     /** Transaction this tax applies to. */
-    'fx:transaction': FxTransaction;
+    'fx:transaction': Transaction;
   };
 
   props: {

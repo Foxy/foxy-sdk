@@ -1,20 +1,20 @@
-import type { FxItemCategory } from './item_category';
-import type { FxStore } from './store';
-import type { FxTax } from './tax';
+import type { ItemCategory } from './item_category';
+import type { Store } from './store';
+import type { Tax } from './tax';
 import type { Graph } from '../../core';
 
-export interface FxTaxItemCategory extends Graph {
+export interface TaxItemCategory extends Graph {
   curie: 'fx:tax_item_category';
 
   links: {
     /** This resource. */
-    'self': FxTaxItemCategory;
+    'self': TaxItemCategory;
     /** Related tax resource. */
-    'fx:tax': FxTax;
+    'fx:tax': Tax;
     /** Related store resource. */
-    'fx:store': FxStore;
+    'fx:store': Store;
     /** Related item category resource. */
-    'fx:item_category': FxItemCategory;
+    'fx:item_category': ItemCategory;
   };
 
   props: {

@@ -1,20 +1,20 @@
-import type { FxCoupon } from './coupon';
-import type { FxItemCategory } from './item_category';
-import type { FxStore } from './store';
+import type { Coupon } from './coupon';
+import type { ItemCategory } from './item_category';
+import type { Store } from './store';
 import type { Graph } from '../../core';
 
-export interface FxCouponItemCategory extends Graph {
+export interface CouponItemCategory extends Graph {
   curie: 'fx:coupon_item_category';
 
   links: {
     /** This resource. */
-    'self': FxCouponItemCategory;
+    'self': CouponItemCategory;
     /** Store the coupon belongs to. */
-    'fx:store': FxStore;
+    'fx:store': Store;
     /** Coupon this category belongs to. */
-    'fx:coupon': FxCoupon;
+    'fx:coupon': Coupon;
     /** Item category this resource links to. */
-    'fx:item_category': FxItemCategory;
+    'fx:item_category': ItemCategory;
   };
 
   props: {

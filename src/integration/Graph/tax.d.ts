@@ -1,20 +1,20 @@
-import type { FxNativeIntegrations } from './native_integrations';
-import type { FxStore } from './store';
-import type { FxTaxItemCategories } from './tax_item_categories';
+import type { NativeIntegrations } from './native_integrations';
+import type { Store } from './store';
+import type { TaxItemCategories } from './tax_item_categories';
 import type { Graph } from '../../core';
 
-export interface FxTax extends Graph {
+export interface Tax extends Graph {
   curie: 'fx:tax';
 
   links: {
     /** This resource. */
-    'self': FxTax;
+    'self': Tax;
     /** Related store resource. */
-    'fx:store': FxStore;
+    'fx:store': Store;
     /** List of tax item category relationships. */
-    'fx:tax_item_categories': FxTaxItemCategories;
+    'fx:tax_item_categories': TaxItemCategories;
     /** List of native integrations for this service provider. */
-    'fx:native_integrations': FxNativeIntegrations;
+    'fx:native_integrations': NativeIntegrations;
   };
 
   props: {

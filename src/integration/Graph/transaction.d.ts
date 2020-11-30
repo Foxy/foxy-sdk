@@ -1,65 +1,65 @@
-import type { FxAppliedTaxes } from './applied_taxes';
-import type { FxAttributes } from './attributes';
-import type { FxBillingAddresses } from './billing_addresses';
-import type { FxCapture } from './capture';
-import type { FxCustomFields } from './custom_fields';
-import type { FxCustomer } from './customer';
-import type { FxDiscounts } from './discounts';
-import type { FxItems } from './items';
-import type { FxNativeIntegrations } from './native_integrations';
-import type { FxPayments } from './payments';
-import type { FxProcessWebhook } from './process_webhook';
-import type { FxReceipt } from './receipt';
-import type { FxRefund } from './refund';
-import type { FxSendEmails } from './send_emails';
-import type { FxShipments } from './shipments';
-import type { FxStore } from './store';
-import type { FxTransactionLogs } from './transaction_logs';
-import type { FxVoid } from './void';
+import type { AppliedTaxes } from './applied_taxes';
+import type { Attributes } from './attributes';
+import type { BillingAddresses } from './billing_addresses';
+import type { Capture } from './capture';
+import type { CustomFields } from './custom_fields';
+import type { Customer } from './customer';
+import type { Discounts } from './discounts';
+import type { Items } from './items';
+import type { NativeIntegrations } from './native_integrations';
+import type { Payments } from './payments';
+import type { ProcessWebhook } from './process_webhook';
+import type { Receipt } from './receipt';
+import type { Refund } from './refund';
+import type { SendEmails } from './send_emails';
+import type { Shipments } from './shipments';
+import type { Store } from './store';
+import type { TransactionLogs } from './transaction_logs';
+import type { Void } from './void';
 import type { Graph } from '../../core';
 
-export interface FxTransaction extends Graph {
+export interface Transaction extends Graph {
   curie: 'fx:transaction';
 
   links: {
     /** This resource. */
-    'self': FxTransaction;
+    'self': Transaction;
     /** POST here to void this transaction. */
-    'fx:void': FxVoid;
+    'fx:void': Void;
     /** Related store resource. */
-    'fx:store': FxStore;
+    'fx:store': Store;
     /** List of items in this transaction. */
-    'fx:items': FxItems;
+    'fx:items': Items;
     /** POST here to refund this transaction. */
-    'fx:refund': FxRefund;
+    'fx:refund': Refund;
     /** Open this link in a browser to see a receipt for this transaction. */
-    'fx:receipt': FxReceipt;
+    'fx:receipt': Receipt;
     /** POST here to capture this transaction. */
-    'fx:capture': FxCapture;
+    'fx:capture': Capture;
     /** List of payments for this transaction. */
-    'fx:payments': FxPayments;
+    'fx:payments': Payments;
     /** Related customer resource. */
-    'fx:customer': FxCustomer;
+    'fx:customer': Customer;
     /** List of discounts applied to this transaction. */
-    'fx:discounts': FxDiscounts;
+    'fx:discounts': Discounts;
     /** List of shipments for this transaction. */
-    'fx:shipments': FxShipments;
+    'fx:shipments': Shipments;
     /** List of custom attributes on this transaction. */
-    'fx:attributes': FxAttributes;
+    'fx:attributes': Attributes;
     /** POST here to resend emails for this transaction. */
-    'fx:send_emails': FxSendEmails;
+    'fx:send_emails': SendEmails;
     /** List of taxes applied to this transaction. */
-    'fx:applied_taxes': FxAppliedTaxes;
+    'fx:applied_taxes': AppliedTaxes;
     /** List of custom fields on this transaction. */
-    'fx:custom_fields': FxCustomFields;
+    'fx:custom_fields': CustomFields;
     /** POST here to resend the webhook notification for this transaction. */
-    'fx:process_webhook': FxProcessWebhook;
+    'fx:process_webhook': ProcessWebhook;
     /** Transaction logs. */
-    'fx:transaction_logs': FxTransactionLogs;
+    'fx:transaction_logs': TransactionLogs;
     /** List of billing addresses applicable to this transaction. */
-    'fx:billing_addresses': FxBillingAddresses;
+    'fx:billing_addresses': BillingAddresses;
     /** POST here to resend transaction to the webhooks. */
-    'fx:native_integrations': FxNativeIntegrations;
+    'fx:native_integrations': NativeIntegrations;
   };
 
   props: {
@@ -112,14 +112,14 @@ export interface FxTransaction extends Graph {
   };
 
   zooms: {
-    billing_addresses?: FxBillingAddresses;
-    applied_taxes?: FxAppliedTaxes;
-    custom_fields?: FxCustomFields;
-    attributes: FxAttributes;
-    discounts?: FxDiscounts;
-    shipments?: FxShipments;
-    customer?: FxCustomer;
-    payments?: FxPayments;
-    items?: FxItems;
+    billing_addresses?: BillingAddresses;
+    applied_taxes?: AppliedTaxes;
+    custom_fields?: CustomFields;
+    attributes: Attributes;
+    discounts?: Discounts;
+    shipments?: Shipments;
+    customer?: Customer;
+    payments?: Payments;
+    items?: Items;
   };
 }

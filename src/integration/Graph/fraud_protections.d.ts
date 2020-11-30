@@ -1,10 +1,10 @@
 import type { CollectionGraphLinks, CollectionGraphProps } from '../../core/defaults';
-import type { FxFraudProtection } from './fraud_protection';
+import type { FraudProtection } from './fraud_protection';
 import type { Graph } from '../../core';
 
-export interface FxFraudProtections extends Graph {
+export interface FraudProtections extends Graph {
   curie: 'fx:fraud_protections';
-  links: CollectionGraphLinks<FxFraudProtections>;
+  links: CollectionGraphLinks<FraudProtections>;
   props: CollectionGraphProps;
-  child: FxFraudProtection;
+  child: FraudProtection;
 }

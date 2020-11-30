@@ -1,35 +1,35 @@
-import type { FxAttributes } from './attributes';
-import type { FxCouponDetails } from './coupon_details';
-import type { FxDiscountDetails } from './discount_details';
-import type { FxItemCategory } from './item_category';
-import type { FxItemOptions } from './item_options';
-import type { FxShipment } from './shipment';
-import type { FxStore } from './store';
-import type { FxTransaction } from './transaction';
+import type { Attributes } from './attributes';
+import type { CouponDetails } from './coupon_details';
+import type { DiscountDetails } from './discount_details';
+import type { ItemCategory } from './item_category';
+import type { ItemOptions } from './item_options';
+import type { Shipment } from './shipment';
+import type { Store } from './store';
+import type { Transaction } from './transaction';
 import type { Graph } from '../../core';
 
-export interface FxItem extends Graph {
+export interface Item extends Graph {
   curie: 'fx:item';
 
   links: {
     /** This resource. */
-    'self': FxItem;
+    'self': Item;
     /** Store this item belongs to. */
-    'fx:store': FxStore;
+    'fx:store': Store;
     /** Related shipment info. */
-    'fx:shipment': FxShipment;
+    'fx:shipment': Shipment;
     /** Custom attributes linked to this item. */
-    'fx:attributes': FxAttributes;
+    'fx:attributes': Attributes;
     /** Related transaction info. */
-    'fx:transaction': FxTransaction;
+    'fx:transaction': Transaction;
     /** Various custom options for this item. */
-    'fx:item_options': FxItemOptions;
+    'fx:item_options': ItemOptions;
     /** Category this item belongs in. */
-    'fx:item_category': FxItemCategory;
+    'fx:item_category': ItemCategory;
     /** Details about coupons linked to this item. */
-    'fx:coupon_details': FxCouponDetails;
+    'fx:coupon_details': CouponDetails;
     /** Details about discounts linked to this item. */
-    'fx:discount_details': FxDiscountDetails;
+    'fx:discount_details': DiscountDetails;
   };
 
   props: {
@@ -88,9 +88,9 @@ export interface FxItem extends Graph {
   };
 
   zooms: {
-    discount_details?: FxDiscountDetails;
-    coupon_details?: FxCouponDetails;
-    item_category?: FxItemCategory;
-    item_options?: FxItemOptions;
+    discount_details?: DiscountDetails;
+    coupon_details?: CouponDetails;
+    item_category?: ItemCategory;
+    item_options?: ItemOptions;
   };
 }

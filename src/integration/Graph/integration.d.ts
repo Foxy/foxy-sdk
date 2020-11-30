@@ -1,20 +1,20 @@
-import type { FxClient } from './client';
-import type { FxStore } from './store';
-import type { FxUser } from './user';
+import type { Client } from './client';
+import type { Store } from './store';
+import type { User } from './user';
 import type { Graph } from '../../core';
 
-export interface FxIntegration extends Graph {
+export interface Integration extends Graph {
   curie: 'fx:integration';
 
   links: {
     /** This resource. */
-    'self': FxIntegration;
+    'self': Integration;
     /** Admin user who created this integration. */
-    'fx:user': FxUser;
+    'fx:user': User;
     /** Store this integration is assigned to. */
-    'fx:store': FxStore;
+    'fx:store': Store;
     /** API client details. */
-    'fx:client': FxClient;
+    'fx:client': Client;
   };
 
   props: {

@@ -1,15 +1,15 @@
 import type * as Core from '../../core';
 import type * as Integration from '../../integration';
-import type { FxAttributes } from './attributes';
-import type { FxDefaultBillingAddress } from './default_billing_address';
-import type { FxDefaultPaymentMethod } from './default_payment_method';
-import type { FxDefaultShippingAddress } from './default_shipping_address';
-import type { FxSubscriptions } from './subscriptions';
-import type { FxTransactions } from './transactions';
+import type { Attributes } from './attributes';
+import type { DefaultBillingAddress } from './default_billing_address';
+import type { DefaultPaymentMethod } from './default_payment_method';
+import type { DefaultShippingAddress } from './default_shipping_address';
+import type { Subscriptions } from './subscriptions';
+import type { Transactions } from './transactions';
 
 export interface Graph extends Core.Graph {
   props: Pick<
-    Integration.Rels.FxCustomer['props'],
+    Integration.Rels.Customer['props'],
     | 'date_created'
     | 'date_modified'
     | 'email'
@@ -22,11 +22,11 @@ export interface Graph extends Core.Graph {
   >;
 
   zooms: {
-    default_shipping_address?: FxDefaultShippingAddress;
-    default_billing_address?: FxDefaultBillingAddress;
-    default_payment_method?: FxDefaultPaymentMethod;
-    subscriptions?: FxSubscriptions;
-    transactions?: FxTransactions;
-    attributes: FxAttributes;
+    default_shipping_address?: DefaultShippingAddress;
+    default_billing_address?: DefaultBillingAddress;
+    default_payment_method?: DefaultPaymentMethod;
+    subscriptions?: Subscriptions;
+    transactions?: Transactions;
+    attributes: Attributes;
   };
 }

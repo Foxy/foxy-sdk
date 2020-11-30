@@ -1,26 +1,26 @@
-import type { FxCustomer } from './customer';
-import type { FxDefaultBillingAddress } from './default_billing_address';
-import type { FxDefaultPaymentMethod } from './default_payment_method';
-import type { FxStore } from './store';
-import type { FxSubscriptions } from './subscriptions';
+import type { Customer } from './customer';
+import type { DefaultBillingAddress } from './default_billing_address';
+import type { DefaultPaymentMethod } from './default_payment_method';
+import type { Store } from './store';
+import type { Subscriptions } from './subscriptions';
 import type { Graph } from '../../core';
 
-export interface FxPaymentMethodExpiring extends Graph {
+export interface PaymentMethodExpiring extends Graph {
   curie: 'fx:payment_method_expiring';
 
   links: {
     /** This resource. */
-    'self': FxPaymentMethodExpiring;
+    'self': PaymentMethodExpiring;
     /** Related store resource. */
-    'fx:store': FxStore;
+    'fx:store': Store;
     /** Customer who this payment method belongs to. */
-    'fx:customer': FxCustomer;
+    'fx:customer': Customer;
     /** List of customer's subscriptions. */
-    'fx:subscriptions': FxSubscriptions;
+    'fx:subscriptions': Subscriptions;
     /** Customer's default payment method. */
-    'fx:default_payment_method': FxDefaultPaymentMethod;
+    'fx:default_payment_method': DefaultPaymentMethod;
     /** Customer's default billing address. */
-    'fx:default_billing_address': FxDefaultBillingAddress;
+    'fx:default_billing_address': DefaultBillingAddress;
   };
 
   props: {

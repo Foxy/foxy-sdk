@@ -1,17 +1,17 @@
-import type { FxStore } from './store';
-import type { FxTransaction } from './transaction';
+import type { Store } from './store';
+import type { Transaction } from './transaction';
 import type { Graph } from '../../core';
 
-export interface FxPayment extends Graph {
+export interface Payment extends Graph {
   curie: 'fx:payment';
 
   links: {
     /** This resource. */
-    'self': FxPayment;
+    'self': Payment;
     /** Store that received this payment. */
-    'fx:store': FxStore;
+    'fx:store': Store;
     /** Related transaction resource. */
-    'fx:transaction': FxTransaction;
+    'fx:transaction': Transaction;
   };
 
   props: {

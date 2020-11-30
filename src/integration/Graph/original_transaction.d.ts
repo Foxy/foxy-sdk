@@ -1,9 +1,9 @@
-import type { FxTransaction } from './transaction';
+import type { Transaction } from './transaction';
 import type { Graph } from '../../core';
 
-export interface FxOriginalTransaction extends Graph {
+export interface OriginalTransaction extends Graph {
   curie: 'fx:original_transaction';
-  links: FxTransaction['links'];
-  props: FxTransaction['props'];
-  zooms: FxTransaction['zooms'];
+  links: Transaction['links'];
+  props: Transaction['props'];
+  zooms: Transaction['zooms'];
 }

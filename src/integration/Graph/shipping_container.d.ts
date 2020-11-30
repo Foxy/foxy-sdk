@@ -1,23 +1,23 @@
-import type { FxPropertyHelpers } from './property_helpers';
-import type { FxShippingContainers } from './shipping_containers';
-import type { FxShippingMethod } from './shipping_method';
-import type { FxShippingMethods } from './shipping_methods';
+import type { PropertyHelpers } from './property_helpers';
+import type { ShippingContainers } from './shipping_containers';
+import type { ShippingMethod } from './shipping_method';
+import type { ShippingMethods } from './shipping_methods';
 import type { Graph } from '../../core';
 
-export interface FxShippingContainer extends Graph {
+export interface ShippingContainer extends Graph {
   curie: 'fx:shipping_container';
 
   links: {
     /** This resource. */
-    'self': FxShippingContainer;
+    'self': ShippingContainer;
     /** Shipping method that will be used to deliver this container. */
-    'fx:shipping_method': FxShippingMethod;
+    'fx:shipping_method': ShippingMethod;
     /** List of all available shipping methods. */
-    'fx:shipping_methods': FxShippingMethods;
+    'fx:shipping_methods': ShippingMethods;
     /** Various predefined property values. */
-    'fx:property_helpers': FxPropertyHelpers;
+    'fx:property_helpers': PropertyHelpers;
     /** List of all shipping containers for the shipping method. */
-    'fx:shipping_containers': FxShippingContainers;
+    'fx:shipping_containers': ShippingContainers;
   };
 
   props: {

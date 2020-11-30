@@ -1,6 +1,6 @@
 import type { Graph } from '../../core';
 
-export interface FxGenerateCodes extends Graph {
+export interface GenerateCodes extends Graph {
   curie: 'fx:generate_codes';
 
   props: {

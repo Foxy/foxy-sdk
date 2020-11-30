@@ -1,17 +1,17 @@
-import type { FxReporting } from './reporting';
-import type { FxUser } from './user';
+import type { Reporting } from './reporting';
+import type { User } from './user';
 import type { Graph } from '../../core';
 
-export interface FxReportingEmailExists extends Graph {
+export interface ReportingEmailExists extends Graph {
   curie: 'fx:reporting_email_exists';
 
   links: {
     /** This resource. */
-    'self': FxReportingEmailExists;
+    'self': ReportingEmailExists;
     /** Link to user resource for the requested email. */
-    'fx:user': FxUser;
+    'fx:user': User;
     /** Reporting API home. */
-    'fx:reporting': FxReporting;
+    'fx:reporting': Reporting;
   };
 
   props: {

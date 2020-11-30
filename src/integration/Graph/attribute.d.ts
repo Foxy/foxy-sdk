@@ -1,11 +1,11 @@
 import type { Graph } from '../../core';
 
-export interface FxAttribute extends Graph {
+export interface Attribute extends Graph {
   curie: 'fx:attribute';
 
   links: {
     /** This resource. */
-    self: FxAttribute;
+    self: Attribute;
   };
 
   props: {

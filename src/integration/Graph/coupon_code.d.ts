@@ -1,20 +1,20 @@
-import type { FxCoupon } from './coupon';
-import type { FxCouponCodeTransactions } from './coupon_code_transactions';
-import type { FxStore } from './store';
+import type { Coupon } from './coupon';
+import type { CouponCodeTransactions } from './coupon_code_transactions';
+import type { Store } from './store';
 import type { Graph } from '../../core';
 
-export interface FxCouponCode extends Graph {
+export interface CouponCode extends Graph {
   curie: 'fx:coupon_code';
 
   links: {
     /** This resource. */
-    'self': FxCouponCode;
+    'self': CouponCode;
     /** Store this coupon code belongs to. */
-    'fx:store': FxStore;
+    'fx:store': Store;
     /** Coupon this code corresponds to. */
-    'fx:coupon': FxCoupon;
+    'fx:coupon': Coupon;
     /** Transactions using this coupon code. */
-    'fx:coupon_code_transactions': FxCouponCodeTransactions;
+    'fx:coupon_code_transactions': CouponCodeTransactions;
   };
 
   props: {

@@ -1,10 +1,10 @@
 import type { CollectionGraphLinks, CollectionGraphProps } from '../../core/defaults';
-import type { FxCustomerAddress } from './customer_address';
+import type { CustomerAddress } from './customer_address';
 import type { Graph } from '../../core';
 
-export interface FxCustomerAddresses extends Graph {
+export interface CustomerAddresses extends Graph {
   curie: 'fx:customer_addresses';
-  links: CollectionGraphLinks<FxCustomerAddresses>;
+  links: CollectionGraphLinks<CustomerAddresses>;
   props: CollectionGraphProps;
-  child: FxCustomerAddress;
+  child: CustomerAddress;
 }

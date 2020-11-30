@@ -1,8 +1,8 @@
-import type { FxClient } from './client';
+import type { Client } from './client';
 import type { Graph } from '../../core';
 
-export interface FxCreateClient extends Graph {
+export interface CreateClient extends Graph {
   curie: 'fx:create_client';
-  links: FxClient['links'];
-  props: FxClient['props'];
+  links: Client['links'];
+  props: Client['props'];
 }

@@ -1,10 +1,10 @@
 import type { CollectionGraphLinks, CollectionGraphProps } from '../../core/defaults';
-import type { FxNativeIntegration } from './native_integration';
+import type { NativeIntegration } from './native_integration';
 import type { Graph } from '../../core';
 
-export interface FxNativeIntegrations extends Graph {
+export interface NativeIntegrations extends Graph {
   curie: 'fx:native_integrations';
-  links: CollectionGraphLinks<FxNativeIntegrations>;
+  links: CollectionGraphLinks<NativeIntegrations>;
   props: CollectionGraphProps;
-  child: FxNativeIntegration;
+  child: NativeIntegration;
 }

@@ -1,38 +1,38 @@
-import type { FxAppliedCouponCodes } from './applied_coupon_codes';
-import type { FxAttributes } from './attributes';
-import type { FxCreateSession } from './create_session';
-import type { FxCustomFields } from './custom_fields';
-import type { FxCustomer } from './customer';
-import type { FxDiscounts } from './discounts';
-import type { FxItems } from './items';
-import type { FxStore } from './store';
-import type { FxSubscription } from './subscription';
+import type { AppliedCouponCodes } from './applied_coupon_codes';
+import type { Attributes } from './attributes';
+import type { CreateSession } from './create_session';
+import type { CustomFields } from './custom_fields';
+import type { Customer } from './customer';
+import type { Discounts } from './discounts';
+import type { Items } from './items';
+import type { Store } from './store';
+import type { Subscription } from './subscription';
 import type { Graph } from '../../core';
 
-export interface FxCart extends Graph {
+export interface Cart extends Graph {
   curie: 'fx:cart';
 
   links: {
     /** This resource. */
-    'self': FxCart;
+    'self': Cart;
     /** Store this cart was created in. */
-    'fx:store': FxStore;
+    'fx:store': Store;
     /** Items in this cart. */
-    'fx:items': FxItems;
+    'fx:items': Items;
     /** Customer who created this cart. */
-    'fx:customer': FxCustomer;
+    'fx:customer': Customer;
     /** Discounts applied to the products in this cart. */
-    'fx:discounts': FxDiscounts;
+    'fx:discounts': Discounts;
     /** Various attributes of this cart. */
-    'fx:attributes': FxAttributes;
+    'fx:attributes': Attributes;
     /** Subscription linked to this cart. */
-    'fx:subscription': FxSubscription;
+    'fx:subscription': Subscription;
     /** Custom fields applied to this cart. */
-    'fx:custom_fields': FxCustomFields;
+    'fx:custom_fields': CustomFields;
     /** POST here to create a browser session link. */
-    'fx:create_session': FxCreateSession;
+    'fx:create_session': CreateSession;
     /** Coupon codes applied to the items in this cart. */
-    'fx:applied_coupon_codes': FxAppliedCouponCodes;
+    'fx:applied_coupon_codes': AppliedCouponCodes;
   };
 
   props: {
@@ -130,10 +130,10 @@ export interface FxCart extends Graph {
   };
 
   zooms: {
-    custom_fields?: FxCustomFields;
-    attributes: FxAttributes;
-    discounts?: FxDiscounts;
-    customer?: FxCustomer;
-    items?: FxItems;
+    custom_fields?: CustomFields;
+    attributes: Attributes;
+    discounts?: Discounts;
+    customer?: Customer;
+    items?: Items;
   };
 }

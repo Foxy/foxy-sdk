@@ -1,8 +1,8 @@
-import type { FxStore } from './store';
+import type { Store } from './store';
 import type { Graph } from '../../core';
 
-export interface FxDefaultStore extends Graph {
+export interface DefaultStore extends Graph {
   curie: 'fx:default_store';
-  links: FxStore['links'];
-  props: FxStore['props'];
+  links: Store['links'];
+  props: Store['props'];
 }

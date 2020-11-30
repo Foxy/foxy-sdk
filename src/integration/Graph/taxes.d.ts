@@ -1,10 +1,10 @@
 import type { CollectionGraphLinks, CollectionGraphProps } from '../../core/defaults';
-import type { FxTax } from './tax';
+import type { Tax } from './tax';
 import type { Graph } from '../../core';
 
-export interface FxTaxes extends Graph {
+export interface Taxes extends Graph {
   curie: 'fx:taxes';
-  links: CollectionGraphLinks<FxTaxes>;
+  links: CollectionGraphLinks<Taxes>;
   props: CollectionGraphProps;
-  child: FxTax;
+  child: Tax;
 }

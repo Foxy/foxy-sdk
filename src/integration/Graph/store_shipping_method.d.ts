@@ -1,38 +1,38 @@
-import type { FxShippingContainer } from './shipping_container';
-import type { FxShippingContainers } from './shipping_containers';
-import type { FxShippingDropType } from './shipping_drop_type';
-import type { FxShippingDropTypes } from './shipping_drop_types';
-import type { FxShippingMethod } from './shipping_method';
-import type { FxShippingMethods } from './shipping_methods';
-import type { FxShippingServices } from './shipping_services';
-import type { FxStore } from './store';
-import type { FxStoreShippingServices } from './store_shipping_services';
+import type { ShippingContainer } from './shipping_container';
+import type { ShippingContainers } from './shipping_containers';
+import type { ShippingDropType } from './shipping_drop_type';
+import type { ShippingDropTypes } from './shipping_drop_types';
+import type { ShippingMethod } from './shipping_method';
+import type { ShippingMethods } from './shipping_methods';
+import type { ShippingServices } from './shipping_services';
+import type { Store } from './store';
+import type { StoreShippingServices } from './store_shipping_services';
 import type { Graph } from '../../core';
 
-export interface FxStoreShippingMethod extends Graph {
+export interface StoreShippingMethod extends Graph {
   curie: 'fx:store_shipping_method';
 
   links: {
     /** This resource. */
-    'self': FxStoreShippingMethod;
+    'self': StoreShippingMethod;
     /** Related store resource. */
-    'fx:store': FxStore;
+    'fx:store': Store;
     /** Related shipping method resource. */
-    'fx:shipping_method': FxShippingMethod;
+    'fx:shipping_method': ShippingMethod;
     /** List of all available shipping methods. */
-    'fx:shipping_methods': FxShippingMethods;
+    'fx:shipping_methods': ShippingMethods;
     /** List of all available shipping services. */
-    'fx:shipping_services': FxShippingServices;
+    'fx:shipping_services': ShippingServices;
     /** Shipping container linked to this shipping method. */
-    'fx:shipping_container': FxShippingContainer;
+    'fx:shipping_container': ShippingContainer;
     /** Shipping drop type linked to this shipping method. */
-    'fx:shipping_drop_type': FxShippingDropType;
+    'fx:shipping_drop_type': ShippingDropType;
     /** List of all available shipping containers for this shipping method. */
-    'fx:shipping_containers': FxShippingContainers;
+    'fx:shipping_containers': ShippingContainers;
     /** List of all available shipping drop types for this shipping method. */
-    'fx:shipping_drop_types': FxShippingDropTypes;
+    'fx:shipping_drop_types': ShippingDropTypes;
     /** Available shipping services for this shipping method. */
-    'fx:store_shipping_services': FxStoreShippingServices;
+    'fx:store_shipping_services': StoreShippingServices;
   };
 
   props: {
@@ -65,9 +65,9 @@ export interface FxStoreShippingMethod extends Graph {
   };
 
   zooms: {
-    store_shipping_services: FxStoreShippingServices;
-    shipping_container: FxShippingContainer;
-    shipping_drop_type: FxShippingDropType;
-    shipping_method: FxShippingMethod;
+    store_shipping_services: StoreShippingServices;
+    shipping_container: ShippingContainer;
+    shipping_drop_type: ShippingDropType;
+    shipping_method: ShippingMethod;
   };
 }

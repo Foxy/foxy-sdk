@@ -1,29 +1,29 @@
-import type { FxCustomer } from './customer';
-import type { FxCustomerAddress } from './customer_address';
-import type { FxItems } from './items';
-import type { FxShipments } from './shipments';
-import type { FxStore } from './store';
-import type { FxTransaction } from './transaction';
+import type { Customer } from './customer';
+import type { CustomerAddress } from './customer_address';
+import type { Items } from './items';
+import type { Shipments } from './shipments';
+import type { Store } from './store';
+import type { Transaction } from './transaction';
 import type { Graph } from '../../core';
 
-export interface FxShipment extends Graph {
+export interface Shipment extends Graph {
   curie: 'fx:shipment';
 
   links: {
     /** This resource. */
-    'self': FxShipment;
+    'self': Shipment;
     /** Related store resource. */
-    'fx:store': FxStore;
+    'fx:store': Store;
     /** Items in this shipment. */
-    'fx:items': FxItems;
+    'fx:items': Items;
     /** Customer who this shipment is intented for. */
-    'fx:customer': FxCustomer;
+    'fx:customer': Customer;
     /** List of all shipments in the transaction. */
-    'fx:shipments': FxShipments;
+    'fx:shipments': Shipments;
     /** Related transaction resource. */
-    'fx:transaction': FxTransaction;
+    'fx:transaction': Transaction;
     /** Customer's address. */
-    'fx:customer_address': FxCustomerAddress;
+    'fx:customer_address': CustomerAddress;
   };
 
   props: {

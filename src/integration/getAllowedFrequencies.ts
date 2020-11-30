@@ -1,7 +1,7 @@
-import { FxCustomerPortalSettings } from './Graph/customer_portal_settings';
+import { CustomerPortalSettings } from './Graph/customer_portal_settings';
 import jsonata from 'jsonata';
 
-type Rules = FxCustomerPortalSettings['props']['subscriptions']['allowFrequencyModification'];
+type Rules = CustomerPortalSettings['props']['subscriptions']['allowFrequencyModification'];
 
 type Options = {
   settings: { subscriptions: { allowFrequencyModification: Rules } };

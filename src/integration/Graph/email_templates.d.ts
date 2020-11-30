@@ -1,10 +1,10 @@
 import type { CollectionGraphLinks, CollectionGraphProps } from '../../core/defaults';
-import type { FxEmailTemplate } from './email_template';
+import type { EmailTemplate } from './email_template';
 import type { Graph } from '../../core';
 
-export interface FxEmailTemplates extends Graph {
+export interface EmailTemplates extends Graph {
   curie: 'fx:email_templates';
-  links: CollectionGraphLinks<FxEmailTemplates>;
+  links: CollectionGraphLinks<EmailTemplates>;
   props: CollectionGraphProps;
-  child: FxEmailTemplate;
+  child: EmailTemplate;
 }

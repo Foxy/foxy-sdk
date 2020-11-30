@@ -1,20 +1,20 @@
-import type { FxAttributes } from './attributes';
-import type { FxDefaultStore } from './default_store';
-import type { FxStores } from './stores';
+import type { Attributes } from './attributes';
+import type { DefaultStore } from './default_store';
+import type { Stores } from './stores';
 import type { Graph } from '../../core';
 
-export interface FxUser extends Graph {
+export interface User extends Graph {
   curie: 'fx:user';
 
   links: {
     /** This resource. */
-    'self': FxUser;
+    'self': User;
     /** List of stores this user has access to. */
-    'fx:stores': FxStores;
+    'fx:stores': Stores;
     /** List of custom attributes on this user resource. */
-    'fx:attributes': FxAttributes;
+    'fx:attributes': Attributes;
     /** Default store for this user. */
-    'fx:default_store': FxDefaultStore;
+    'fx:default_store': DefaultStore;
   };
 
   props: {

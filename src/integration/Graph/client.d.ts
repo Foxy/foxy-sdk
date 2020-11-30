@@ -1,14 +1,14 @@
-import type { FxAttributes } from './attributes';
+import type { Attributes } from './attributes';
 import type { Graph } from '../../core';
 
-export interface FxClient extends Graph {
+export interface Client extends Graph {
   curie: 'fx:client';
 
   links: {
     /** This resource. */
-    'self': FxClient;
+    'self': Client;
     /** Custom attributes of this client. */
-    'fx:attributes': FxAttributes;
+    'fx:attributes': Attributes;
   };
 
   props: {

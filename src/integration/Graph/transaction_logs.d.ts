@@ -1,10 +1,10 @@
 import type { CollectionGraphLinks, CollectionGraphProps } from '../../core/defaults';
-import type { FxTransactionLog } from './transaction_log';
+import type { TransactionLog } from './transaction_log';
 import type { Graph } from '../../core';
 
-export interface FxTransactionLogs extends Graph {
+export interface TransactionLogs extends Graph {
   curie: 'fx:transaction_logs';
-  links: CollectionGraphLinks<FxTransactionLogs>;
+  links: CollectionGraphLinks<TransactionLogs>;
   props: CollectionGraphProps;
-  child: FxTransactionLog;
+  child: TransactionLog;
 }

@@ -1,8 +1,8 @@
-import { FxPaymentGateway } from './payment_gateway';
+import { PaymentGateway } from './payment_gateway';
 import type { Graph } from '../../core';
 
-export interface FxHostedPaymentGateway extends Graph {
+export interface HostedPaymentGateway extends Graph {
   curie: 'fx:hosted_payment_gateway';
-  links: FxPaymentGateway['links'];
-  props: FxPaymentGateway['props'];
+  links: PaymentGateway['links'];
+  props: PaymentGateway['props'];
 }

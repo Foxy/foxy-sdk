@@ -1,10 +1,10 @@
 import type { CollectionGraphLinks, CollectionGraphProps } from '../../core/defaults';
-import type { FxCustomField } from './custom_field';
+import type { CustomField } from './custom_field';
 import type { Graph } from '../../core';
 
-export interface FxCustomFields extends Graph {
+export interface CustomFields extends Graph {
   curie: 'fx:custom_fields';
-  links: CollectionGraphLinks<FxCustomFields>;
+  links: CollectionGraphLinks<CustomFields>;
   props: CollectionGraphProps;
-  child: FxCustomField;
+  child: CustomField;
 }

@@ -1,5 +1,5 @@
 import type { Graph } from '../../core';
 
-export interface FxRefund extends Graph {
+export interface Refund extends Graph {
   curie: 'fx:refund';
 }

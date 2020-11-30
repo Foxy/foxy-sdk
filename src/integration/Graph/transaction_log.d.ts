@@ -1,26 +1,26 @@
-import type { FxCustomer } from './customer';
-import type { FxStore } from './store';
-import type { FxTransaction } from './transaction';
-import type { FxTransactionLogDetails } from './transaction_log_details';
-import type { FxUser } from './user';
+import type { Customer } from './customer';
+import type { Store } from './store';
+import type { Transaction } from './transaction';
+import type { TransactionLogDetails } from './transaction_log_details';
+import type { User } from './user';
 import type { Graph } from '../../core';
 
-export interface FxTransactionLog extends Graph {
+export interface TransactionLog extends Graph {
   curie: 'fx:transaction_logs';
 
   links: {
     /** This resource. */
-    'self': FxTransactionLog;
+    'self': TransactionLog;
     /** Related user resource. */
-    'fx:user': FxUser;
+    'fx:user': User;
     /** Relared store resource. */
-    'fx:store': FxStore;
+    'fx:store': Store;
     /** Related customer resource. */
-    'fx:customer': FxCustomer;
+    'fx:customer': Customer;
     /** Related transaction resource. */
-    'fx:transaction': FxTransaction;
+    'fx:transaction': Transaction;
     /** List of detailed entries for this log. */
-    'fx:transaction_log_details': FxTransactionLogDetails;
+    'fx:transaction_log_details': TransactionLogDetails;
   };
 
   props: {

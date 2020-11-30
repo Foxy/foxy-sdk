@@ -1,20 +1,20 @@
-import type { FxEmailTemplates } from './email_templates';
-import type { FxStore } from './store';
-import type { FxTaxItemCategories } from './tax_item_categories';
+import type { EmailTemplates } from './email_templates';
+import type { Store } from './store';
+import type { TaxItemCategories } from './tax_item_categories';
 import type { Graph } from '../../core';
 
-export interface FxItemCategory extends Graph {
+export interface ItemCategory extends Graph {
   curie: 'fx:item_category';
 
   links: {
     /** This resource. */
-    'self': FxItemCategory;
+    'self': ItemCategory;
     /** Store this category is registered in. */
-    'fx:store': FxStore;
+    'fx:store': Store;
     /** Email templates for the store. */
-    'fx:email_templates': FxEmailTemplates;
+    'fx:email_templates': EmailTemplates;
     /** Related tax item categories. */
-    'fx:tax_item_categories': FxTaxItemCategories;
+    'fx:tax_item_categories': TaxItemCategories;
   };
 
   props: {

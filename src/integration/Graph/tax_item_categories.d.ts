@@ -1,10 +1,10 @@
 import type { CollectionGraphLinks, CollectionGraphProps } from '../../core/defaults';
-import type { FxTaxItemCategory } from './tax_item_category';
+import type { TaxItemCategory } from './tax_item_category';
 import type { Graph } from '../../core';
 
-export interface FxTaxItemCategories extends Graph {
+export interface TaxItemCategories extends Graph {
   curie: 'fx:tax_item_categories';
-  links: CollectionGraphLinks<FxTaxItemCategories>;
+  links: CollectionGraphLinks<TaxItemCategories>;
   props: CollectionGraphProps;
-  child: FxTaxItemCategory;
+  child: TaxItemCategory;
 }

@@ -1,35 +1,35 @@
-import type { FxAttributes } from './attributes';
-import type { FxCustomerAddresses } from './customer_addresses';
-import type { FxDefaultBillingAddress } from './default_billing_address';
-import type { FxDefaultPaymentMethod } from './default_payment_method';
-import type { FxDefaultShippingAddress } from './default_shipping_address';
-import type { FxStore } from './store';
-import type { FxSubscriptions } from './subscriptions';
-import type { FxTransactions } from './transactions';
+import type { Attributes } from './attributes';
+import type { CustomerAddresses } from './customer_addresses';
+import type { DefaultBillingAddress } from './default_billing_address';
+import type { DefaultPaymentMethod } from './default_payment_method';
+import type { DefaultShippingAddress } from './default_shipping_address';
+import type { Store } from './store';
+import type { Subscriptions } from './subscriptions';
+import type { Transactions } from './transactions';
 import type { Graph } from '../../core';
 
-export interface FxCustomer extends Graph {
+export interface Customer extends Graph {
   curie: 'fx:customer';
 
   links: {
     /** This resource. */
-    'self': FxCustomer;
+    'self': Customer;
     /** Store this customer is registered in. */
-    'fx:store': FxStore;
+    'fx:store': Store;
     /** Attributes for this customer. */
-    'fx:attributes': FxAttributes;
+    'fx:attributes': Attributes;
     /** List of customer's transactions. */
-    'fx:transactions': FxTransactions;
+    'fx:transactions': Transactions;
     /** List of customer's subscriptions. */
-    'fx:subscriptions': FxSubscriptions;
+    'fx:subscriptions': Subscriptions;
     /** List of customer's addresses. */
-    'fx:customer_addresses': FxCustomerAddresses;
+    'fx:customer_addresses': CustomerAddresses;
     /** Customer's default payment method. */
-    'fx:default_payment_method': FxDefaultPaymentMethod;
+    'fx:default_payment_method': DefaultPaymentMethod;
     /** Customer's default billing address. */
-    'fx:default_billing_address': FxDefaultBillingAddress;
+    'fx:default_billing_address': DefaultBillingAddress;
     /** Customer's default shipping address. */
-    'fx:default_shipping_address': FxDefaultShippingAddress;
+    'fx:default_shipping_address': DefaultShippingAddress;
   };
 
   props: {
@@ -68,10 +68,10 @@ export interface FxCustomer extends Graph {
   };
 
   zooms: {
-    default_shipping_address?: FxDefaultShippingAddress;
-    default_billing_address?: FxDefaultBillingAddress;
-    default_payment_method?: FxDefaultPaymentMethod;
-    customer_addresses?: FxCustomerAddresses;
-    attributes: FxAttributes;
+    default_shipping_address?: DefaultShippingAddress;
+    default_billing_address?: DefaultBillingAddress;
+    default_payment_method?: DefaultPaymentMethod;
+    customer_addresses?: CustomerAddresses;
+    attributes: Attributes;
   };
 }

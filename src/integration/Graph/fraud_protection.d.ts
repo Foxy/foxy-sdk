@@ -1,17 +1,17 @@
-import type { FxPaymentMethodSets } from './payment_method_sets';
-import type { FxStore } from './store';
+import type { PaymentMethodSets } from './payment_method_sets';
+import type { Store } from './store';
 import type { Graph } from '../../core';
 
-export interface FxFraudProtection extends Graph {
+export interface FraudProtection extends Graph {
   curie: 'fx:fraud_protection';
 
   links: {
     /** This resource. */
-    'self': FxFraudProtection;
+    'self': FraudProtection;
     /** Store this fraud protection policy was set on. */
-    'fx:store': FxStore;
+    'fx:store': Store;
     /** Payment method sets these fraud protection measures are enabled on. */
-    'fx:payment_method_sets': FxPaymentMethodSets;
+    'fx:payment_method_sets': PaymentMethodSets;
   };
 
   props: {

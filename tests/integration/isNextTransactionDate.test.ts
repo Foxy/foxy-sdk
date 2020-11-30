@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable jsdoc/require-jsdoc */
 
-import { FxCustomerPortalSettings } from '../../src/integration/Graph/customer_portal_settings';
+import { CustomerPortalSettings } from '../../src/integration/Graph/customer_portal_settings';
 import { isNextTransactionDate } from '../../src/integration/isNextTransactionDate';
 
 function mockSubscription(frequency = '1m') {
@@ -20,7 +20,7 @@ function mockSubscription(frequency = '1m') {
   };
 }
 
-type Config = FxCustomerPortalSettings['props']['subscriptions']['allowNextDateModification'];
+type Config = CustomerPortalSettings['props']['subscriptions']['allowNextDateModification'];
 
 function mockSettings(rules: Config) {
   return { subscriptions: { allowNextDateModification: rules } };

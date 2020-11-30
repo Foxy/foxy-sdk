@@ -1,17 +1,17 @@
-import type { FxStore } from './store';
-import type { FxUser } from './user';
+import type { Store } from './store';
+import type { User } from './user';
 import type { Graph } from '../../core';
 
-export interface FxUserAccess extends Graph {
+export interface UserAccess extends Graph {
   curie: 'fx:user_access';
 
   links: {
     /** This resource. */
-    'self': FxUserAccess;
+    'self': UserAccess;
     /** Related user resource. */
-    'fx:user': FxUser;
+    'fx:user': User;
     /** Related store resource. */
-    'fx:store': FxStore;
+    'fx:store': Store;
   };
 
   props: {

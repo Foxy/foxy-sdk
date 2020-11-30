@@ -1,14 +1,14 @@
-import type { FxPropertyHelpers } from './property_helpers';
+import type { PropertyHelpers } from './property_helpers';
 import type { Graph } from '../../core';
 
-export interface FxShippingAddressTypes extends Graph {
+export interface ShippingAddressTypes extends Graph {
   curie: 'fx:shipping_address_types';
 
   links: {
     /** This resource. */
-    'self': FxShippingAddressTypes;
+    'self': ShippingAddressTypes;
     /** Various predefined property values. */
-    'fx:property_helpers': FxPropertyHelpers;
+    'fx:property_helpers': PropertyHelpers;
   };
 
   props: {

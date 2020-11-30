@@ -1,10 +1,10 @@
 import type { CollectionGraphLinks, CollectionGraphProps } from '../../core/defaults';
-import type { FxShippingDropType } from './shipping_drop_type';
+import type { ShippingDropType } from './shipping_drop_type';
 import type { Graph } from '../../core';
 
-export interface FxShippingDropTypes extends Graph {
+export interface ShippingDropTypes extends Graph {
   curie: 'fx:shipping_drop_types';
-  links: CollectionGraphLinks<FxShippingDropTypes>;
+  links: CollectionGraphLinks<ShippingDropTypes>;
   props: CollectionGraphProps;
-  child: FxShippingDropType;
+  child: ShippingDropType;
 }

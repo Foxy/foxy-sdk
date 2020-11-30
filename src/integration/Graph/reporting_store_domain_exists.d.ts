@@ -1,17 +1,17 @@
-import type { FxReporting } from './reporting';
-import type { FxStore } from './store';
+import type { Reporting } from './reporting';
+import type { Store } from './store';
 import type { Graph } from '../../core';
 
-export interface FxReportingStoreDomainExists extends Graph {
+export interface ReportingStoreDomainExists extends Graph {
   curie: 'fx:reporting_store_domain_exists';
 
   links: {
     /** This resource. */
-    'self': FxReportingStoreDomainExists;
+    'self': ReportingStoreDomainExists;
     /** Link to store for the requested domain. */
-    'fx:store': FxStore;
+    'fx:store': Store;
     /** Reporting API home. */
-    'fx:reporting': FxReporting;
+    'fx:reporting': Reporting;
   };
 
   props: {

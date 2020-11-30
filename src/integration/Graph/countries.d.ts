@@ -1,14 +1,14 @@
-import type { FxPropertyHelpers } from './property_helpers';
+import type { PropertyHelpers } from './property_helpers';
 import type { Graph } from '../../core';
 
-export interface FxCountries extends Graph {
+export interface Countries extends Graph {
   curie: 'fx:countries';
 
   links: {
     /** This resource. */
-    'self': FxCountries;
+    'self': Countries;
     /** Various pre-defined property values. */
-    'fx:property_helpers': FxPropertyHelpers;
+    'fx:property_helpers': PropertyHelpers;
   };
 
   props: {

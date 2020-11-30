@@ -1,10 +1,10 @@
 import type { CollectionGraphLinks, CollectionGraphProps } from '../../core/defaults';
-import type { FxCart } from './cart';
+import type { Cart } from './cart';
 import type { Graph } from '../../core';
 
-export interface FxCarts extends Graph {
+export interface Carts extends Graph {
   curie: 'fx:carts';
-  links: CollectionGraphLinks<FxCarts>;
+  links: CollectionGraphLinks<Carts>;
   props: CollectionGraphProps;
-  child: FxCart;
+  child: Cart;
 }

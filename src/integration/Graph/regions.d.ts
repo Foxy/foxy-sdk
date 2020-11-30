@@ -1,14 +1,14 @@
-import type { FxPropertyHelpers } from './property_helpers';
+import type { PropertyHelpers } from './property_helpers';
 import type { Graph } from '../../core';
 
-export interface FxRegions extends Graph {
+export interface Regions extends Graph {
   curie: 'fx:regions';
 
   links: {
     /** This resource. */
-    'self': FxRegions;
+    'self': Regions;
     /** Various predefined property values. */
-    'fx:property_helpers': FxPropertyHelpers;
+    'fx:property_helpers': PropertyHelpers;
   };
 
   props: {

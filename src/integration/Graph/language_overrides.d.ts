@@ -1,10 +1,10 @@
 import type { CollectionGraphLinks, CollectionGraphProps } from '../../core/defaults';
-import type { FxLanguageOverride } from './language_override';
+import type { LanguageOverride } from './language_override';
 import type { Graph } from '../../core';
 
-export interface FxLanguageOverrides extends Graph {
+export interface LanguageOverrides extends Graph {
   curie: 'fx:language_overrides';
-  links: CollectionGraphLinks<FxLanguageOverrides>;
+  links: CollectionGraphLinks<LanguageOverrides>;
   props: CollectionGraphProps;
-  child: FxLanguageOverride;
+  child: LanguageOverride;
 }

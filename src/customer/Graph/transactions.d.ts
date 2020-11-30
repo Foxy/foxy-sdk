@@ -1,8 +1,8 @@
 import type * as Core from '../../core';
 import type * as Integration from '../../integration';
-import { FxTransaction } from './transaction';
+import { Transaction } from './transaction';
 
-export interface FxTransactions extends Core.Graph {
-  curie: Integration.Rels.FxTransactions['curie'];
-  child: FxTransaction;
+export interface Transactions extends Core.Graph {
+  curie: Integration.Rels.Transactions['curie'];
+  child: Transaction;
 }

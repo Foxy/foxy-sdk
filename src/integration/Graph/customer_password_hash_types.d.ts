@@ -1,14 +1,14 @@
-import type { FxPropertyHelpers } from './property_helpers';
+import type { PropertyHelpers } from './property_helpers';
 import type { Graph } from '../../core';
 
-export interface FxCustomerPasswordHashTypes extends Graph {
+export interface CustomerPasswordHashTypes extends Graph {
   curie: 'fx:customer_password_hash_types';
 
   links: {
     /** This resource. */
-    'self': FxCustomerPasswordHashTypes;
+    'self': CustomerPasswordHashTypes;
     /** Various pre-defined property values. */
-    'fx:property_helpers': FxPropertyHelpers;
+    'fx:property_helpers': PropertyHelpers;
   };
 
   props: {

@@ -8,7 +8,7 @@ import { Graph } from './Graph';
 import { LogLevel } from 'consola';
 import MemoryStorage from 'fake-storage';
 
-type LocalToken = Rels.FxToken['props'] & { date_created: string };
+type LocalToken = Rels.Token['props'] & { date_created: string };
 
 /** In order to facilitate any major, unforeseen breaking changes in the future, we require each request to include API version. We hope to rarely (never?) change it but by requiring it up front, we can ensure what you get today is what you’ll get tomorrow. */
 type IntegrationAPIVersion = '1';
@@ -104,7 +104,7 @@ export class API extends Core.API<Graph> {
       const response = await fetch(url, { body, headers, method: 'POST' });
 
       if (response.ok) {
-        const props = (await response.json()) as Rels.FxToken['props'];
+        const props = (await response.json()) as Rels.Token['props'];
         token = { ...props, date_created: new Date().toISOString() };
         this.storage.setItem(API.ACCESS_TOKEN, JSON.stringify(token));
         this.console.info('Access token updated.');

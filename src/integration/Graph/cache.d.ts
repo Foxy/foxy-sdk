@@ -1,5 +1,5 @@
 import type { Graph } from '../../core';
 
-export interface FxCache extends Graph {
+export interface Cache extends Graph {
   curie: 'fx:cache';
 }

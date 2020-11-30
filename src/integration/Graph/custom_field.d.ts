@@ -1,17 +1,17 @@
-import type { FxStore } from './store';
-import type { FxTransaction } from './transaction';
+import type { Store } from './store';
+import type { Transaction } from './transaction';
 import type { Graph } from '../../core';
 
-export interface FxCustomField extends Graph {
+export interface CustomField extends Graph {
   curie: 'fx:custom_field';
 
   links: {
     /** This resource. */
-    'self': FxCustomField;
+    'self': CustomField;
     /** Store this custom field was created in. */
-    'fx:store': FxStore;
+    'fx:store': Store;
     /** Transaction this custom field is linked to. */
-    'fx:transaction': FxTransaction;
+    'fx:transaction': Transaction;
   };
 
   props: {

@@ -1,14 +1,14 @@
-import type { FxPropertyHelpers } from './property_helpers';
+import type { PropertyHelpers } from './property_helpers';
 import type { Graph } from '../../core';
 
-export interface FxTimezones extends Graph {
+export interface Timezones extends Graph {
   curie: 'fx:timezones';
 
   links: {
     /** This resource. */
-    'self': FxTimezones;
+    'self': Timezones;
     /** Various predefined property values. */
-    'fx:property_helpers': FxPropertyHelpers;
+    'fx:property_helpers': PropertyHelpers;
   };
 
   props: {

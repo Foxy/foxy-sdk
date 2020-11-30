@@ -1,8 +1,8 @@
-import type { FxUser } from './user';
+import type { User } from './user';
 import type { Graph } from '../../core';
 
-export interface FxCreateUser extends Graph {
+export interface CreateUser extends Graph {
   curie: 'fx:create_user';
-  links: FxUser['links'];
-  props: FxUser['props'];
+  links: User['links'];
+  props: User['props'];
 }

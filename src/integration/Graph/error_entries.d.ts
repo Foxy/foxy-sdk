@@ -1,10 +1,10 @@
 import type { CollectionGraphLinks, CollectionGraphProps } from '../../core/defaults';
-import type { FxErrorEntry } from './error_entry';
+import type { ErrorEntry } from './error_entry';
 import type { Graph } from '../../core';
 
-export interface FxErrorEntries extends Graph {
+export interface ErrorEntries extends Graph {
   curie: 'fx:error_entries';
-  links: CollectionGraphLinks<FxErrorEntries>;
+  links: CollectionGraphLinks<ErrorEntries>;
   props: CollectionGraphProps;
-  child: FxErrorEntry;
+  child: ErrorEntry;
 }

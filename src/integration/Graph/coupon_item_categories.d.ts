@@ -1,10 +1,10 @@
 import type { CollectionGraphLinks, CollectionGraphProps } from '../../core/defaults';
-import type { FxCouponItemCategory } from './coupon_item_category';
+import type { CouponItemCategory } from './coupon_item_category';
 import type { Graph } from '../../core';
 
-export interface FxCouponItemCategories extends Graph {
+export interface CouponItemCategories extends Graph {
   curie: 'fx:coupon_item_categories';
-  links: CollectionGraphLinks<FxCouponItemCategories>;
+  links: CollectionGraphLinks<CouponItemCategories>;
   props: CollectionGraphProps;
-  child: FxCouponItemCategory;
+  child: CouponItemCategory;
 }

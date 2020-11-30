@@ -1,14 +1,14 @@
-import type { FxStore } from './store';
+import type { Store } from './store';
 import type { Graph } from '../../core';
 
-export interface FxErrorEntry extends Graph {
+export interface ErrorEntry extends Graph {
   curie: 'fx:error_entry';
 
   links: {
     /** This resource. */
-    'self': FxErrorEntry;
+    'self': ErrorEntry;
     /** Store this error entry was created in. */
-    'fx:store': FxStore;
+    'fx:store': Store;
   };
 
   props: {

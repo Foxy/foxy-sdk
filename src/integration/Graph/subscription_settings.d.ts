@@ -1,14 +1,14 @@
-import type { FxStore } from './store';
+import type { Store } from './store';
 import type { Graph } from '../../core';
 
-export interface FxSubscriptionSettings extends Graph {
+export interface SubscriptionSettings extends Graph {
   curie: 'fx:subscription_settings';
 
   links: {
     /** This resource. */
-    'self': FxSubscriptionSettings;
+    'self': SubscriptionSettings;
     /** Related store resource. */
-    'fx:store': FxStore;
+    'fx:store': Store;
   };
 
   props: {

@@ -1,5 +1,5 @@
 import type { Graph } from '../../core';
 
-export interface FxProcessWebhook extends Graph {
+export interface ProcessWebhook extends Graph {
   curie: 'fx:process_webhook';
 }

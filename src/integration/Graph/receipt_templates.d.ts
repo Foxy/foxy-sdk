@@ -1,10 +1,10 @@
 import type { CollectionGraphLinks, CollectionGraphProps } from '../../core/defaults';
-import type { FxReceiptTemplate } from './receipt_template';
+import type { ReceiptTemplate } from './receipt_template';
 import type { Graph } from '../../core';
 
-export interface FxReceiptTemplates extends Graph {
+export interface ReceiptTemplates extends Graph {
   curie: 'fx:receipt_templates';
-  links: CollectionGraphLinks<FxReceiptTemplates>;
+  links: CollectionGraphLinks<ReceiptTemplates>;
   props: CollectionGraphProps;
-  child: FxReceiptTemplate;
+  child: ReceiptTemplate;
 }

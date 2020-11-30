@@ -1,6 +1,6 @@
 import type { Graph } from '../../core';
 
-export interface FxToken extends Graph {
+export interface Token extends Graph {
   curie: 'fx:token';
 
   props: {
