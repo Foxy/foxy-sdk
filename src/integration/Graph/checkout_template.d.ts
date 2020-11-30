@@ -1,8 +1,8 @@
 import type { Cache } from './cache';
 import type { Encode } from './encode';
+import type { Graph } from '../../core';
 import type { Store } from './store';
 import type { TemplateSets } from './template_sets';
-import type { Graph } from '../../core';
 
 export interface CheckoutTemplate extends Graph {
   curie: 'fx:checkout_template';

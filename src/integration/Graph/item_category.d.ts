@@ -1,7 +1,7 @@
 import type { EmailTemplates } from './email_templates';
+import type { Graph } from '../../core';
 import type { Store } from './store';
 import type { TaxItemCategories } from './tax_item_categories';
-import type { Graph } from '../../core';
 
 export interface ItemCategory extends Graph {
   curie: 'fx:item_category';

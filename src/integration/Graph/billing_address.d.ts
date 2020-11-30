@@ -1,9 +1,9 @@
 import type { BillingAddresses } from './billing_addresses';
 import type { Customer } from './customer';
 import type { CustomerAddress } from './customer_address';
+import type { Graph } from '../../core';
 import type { Store } from './store';
 import type { Transaction } from './transaction';
-import type { Graph } from '../../core';
 
 export interface BillingAddress extends Graph {
   curie: 'fx:billing_address';

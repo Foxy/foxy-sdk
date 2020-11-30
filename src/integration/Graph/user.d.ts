@@ -1,7 +1,7 @@
 import type { Attributes } from './attributes';
 import type { DefaultStore } from './default_store';
-import type { Stores } from './stores';
 import type { Graph } from '../../core';
+import type { Stores } from './stores';
 
 export interface User extends Graph {
   curie: 'fx:user';

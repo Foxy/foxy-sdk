@@ -1,7 +1,7 @@
+import type { Graph } from '../../core';
 import type { Item } from './item';
 import type { Store } from './store';
 import type { Transaction } from './transaction';
-import type { Graph } from '../../core';
 
 export interface DiscountDetail extends Graph {
   curie: 'fx:discount_detail';

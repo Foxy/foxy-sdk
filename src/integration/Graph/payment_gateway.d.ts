@@ -1,6 +1,6 @@
+import type { Graph } from '../../core';
 import type { PaymentMethodSets } from './payment_method_sets';
 import type { Store } from './store';
-import type { Graph } from '../../core';
 
 export interface PaymentGateway extends Graph {
   curie: 'fx:payment_gateway';

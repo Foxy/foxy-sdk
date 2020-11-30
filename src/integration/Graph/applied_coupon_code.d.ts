@@ -1,8 +1,8 @@
 import type { Cart } from './cart';
 import type { Coupon } from './coupon';
 import type { CouponCode } from './coupon_code';
-import type { Store } from './store';
 import type { Graph } from '../../core';
+import type { Store } from './store';
 
 export interface AppliedCouponCode extends Graph {
   curie: 'fx:applied_coupon_code';

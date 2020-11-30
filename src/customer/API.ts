@@ -1,6 +1,8 @@
 import * as Core from '../core';
+
 import type { Credentials, Session } from './types';
 import { Headers, fetch } from 'cross-fetch';
+
 import type { Graph } from './Graph';
 
 export class API extends Core.API<Graph> {
@@ -21,9 +23,9 @@ export class API extends Core.API<Graph> {
 
     try {
       response = await fetch(new URL('authenticate', this.base).toString(), {
+        body: JSON.stringify(credentials),
         headers: new Headers({ 'Content-Type': 'application/json' }),
         method: 'POST',
-        body: JSON.stringify(credentials),
       });
     } catch (err) {
       throw new Core.API.AuthError({
@@ -51,9 +53,9 @@ export class API extends Core.API<Graph> {
 
     try {
       response = await fetch(new URL('forgot_password', this.base).toString(), {
+        body: JSON.stringify({ email }),
         headers: new Headers({ 'Content-Type': 'application/json' }),
         method: 'POST',
-        body: JSON.stringify({ email }),
       });
     } catch (err) {
       throw new Core.API.AuthError({

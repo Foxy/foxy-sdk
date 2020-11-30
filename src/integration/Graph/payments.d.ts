@@ -1,6 +1,6 @@
 import type { CollectionGraphLinks, CollectionGraphProps } from '../../core/defaults';
-import type { Payment } from './payment';
 import type { Graph } from '../../core';
+import type { Payment } from './payment';
 
 export interface Payments extends Graph {
   curie: 'fx:payments';

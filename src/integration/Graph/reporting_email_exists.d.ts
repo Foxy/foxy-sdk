@@ -1,6 +1,6 @@
+import type { Graph } from '../../core';
 import type { Reporting } from './reporting';
 import type { User } from './user';
-import type { Graph } from '../../core';
 
 export interface ReportingEmailExists extends Graph {
   curie: 'fx:reporting_email_exists';

@@ -4,10 +4,10 @@ import type { CreateSession } from './create_session';
 import type { CustomFields } from './custom_fields';
 import type { Customer } from './customer';
 import type { Discounts } from './discounts';
+import type { Graph } from '../../core';
 import type { Items } from './items';
 import type { Store } from './store';
 import type { Subscription } from './subscription';
-import type { Graph } from '../../core';
 
 export interface Cart extends Graph {
   curie: 'fx:cart';

@@ -1,7 +1,7 @@
 import type { DownloadableItemCategories } from './downloadable_item_categories';
+import type { Graph } from '../../core';
 import type { ItemCategory } from './item_category';
 import type { Store } from './store';
-import type { Graph } from '../../core';
 
 export interface Downloadable extends Graph {
   curie: 'fx:downloadable';

@@ -3,10 +3,10 @@ import type { CustomerAddresses } from './customer_addresses';
 import type { DefaultBillingAddress } from './default_billing_address';
 import type { DefaultPaymentMethod } from './default_payment_method';
 import type { DefaultShippingAddress } from './default_shipping_address';
+import type { Graph } from '../../core';
 import type { Store } from './store';
 import type { Subscriptions } from './subscriptions';
 import type { Transactions } from './transactions';
-import type { Graph } from '../../core';
 
 export interface Customer extends Graph {
   curie: 'fx:customer';

@@ -2,9 +2,9 @@ import type { CartIncludeTemplates } from './cart_include_templates';
 import type { CartTemplates } from './cart_templates';
 import type { CheckoutTemplates } from './checkout_templates';
 import type { EmailTemplates } from './email_templates';
+import type { Graph } from '../../core';
 import type { PropertyHelpers } from './property_helpers';
 import type { ReceiptTemplates } from './receipt_templates';
-import type { Graph } from '../../core';
 
 export interface DefaultTemplates extends Graph {
   curie: 'fx:default_templates';

@@ -1,7 +1,7 @@
 import type { FraudProtection } from './fraud_protection';
+import type { Graph } from '../../core';
 import type { PaymentMethodSet } from './payment_method_set';
 import type { Store } from './store';
-import type { Graph } from '../../core';
 
 export interface PaymentMethodSetFraudProtection extends Graph {
   curie: 'fx:payment_method_set_fraud_protection';

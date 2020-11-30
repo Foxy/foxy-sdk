@@ -1,9 +1,9 @@
 import type { Customer } from './customer';
 import type { DefaultBillingAddress } from './default_billing_address';
 import type { DefaultPaymentMethod } from './default_payment_method';
+import type { Graph } from '../../core';
 import type { Store } from './store';
 import type { Subscriptions } from './subscriptions';
-import type { Graph } from '../../core';
 
 export interface PaymentMethodExpiring extends Graph {
   curie: 'fx:payment_method_expiring';

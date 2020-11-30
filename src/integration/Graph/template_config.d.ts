@@ -1,6 +1,6 @@
+import type { Graph } from '../../core';
 import type { Store } from './store';
 import type { TemplateSets } from './template_sets';
-import type { Graph } from '../../core';
 
 export interface TemplateConfig extends Graph {
   curie: 'fx:template_config';

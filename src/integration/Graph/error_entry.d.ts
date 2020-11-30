@@ -1,5 +1,5 @@
-import type { Store } from './store';
 import type { Graph } from '../../core';
+import type { Store } from './store';
 
 export interface ErrorEntry extends Graph {
   curie: 'fx:error_entry';

@@ -1,6 +1,6 @@
+import type { Graph } from '../../core';
 import type { Store } from './store';
 import type { TransactionLog } from './transaction_log';
-import type { Graph } from '../../core';
 
 export interface TransactionLogDetail extends Graph {
   curie: 'fx:transaction_log_detail';

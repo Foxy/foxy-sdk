@@ -10,6 +10,7 @@ import type { Downloadables } from './downloadables';
 import type { EmailTemplates } from './email_templates';
 import type { ErrorEntries } from './error_entries';
 import type { FraudProtections } from './fraud_protections';
+import type { Graph } from '../../core';
 import type { HostedPaymentGateways } from './hosted_payment_gateways';
 import type { ItemCategories } from './item_categories';
 import type { PaymentMethodSets } from './payment_method_sets';
@@ -23,7 +24,6 @@ import type { TemplateSets } from './template_sets';
 import type { Transactions } from './transactions';
 import type { UserAccesses } from './user_accesses';
 import type { Users } from './users';
-import type { Graph } from '../../core';
 
 export interface Store extends Graph {
   curie: 'fx:store';

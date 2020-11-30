@@ -1,5 +1,5 @@
-import type { Transaction } from './transaction';
 import type { Graph } from '../../core';
+import type { Transaction } from './transaction';
 
 export interface OriginalTransaction extends Graph {
   curie: 'fx:original_transaction';

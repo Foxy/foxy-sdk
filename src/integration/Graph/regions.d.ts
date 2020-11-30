@@ -1,5 +1,5 @@
-import type { PropertyHelpers } from './property_helpers';
 import type { Graph } from '../../core';
+import type { PropertyHelpers } from './property_helpers';
 
 export interface Regions extends Graph {
   curie: 'fx:regions';

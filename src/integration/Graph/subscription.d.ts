@@ -1,12 +1,12 @@
 import type { Attributes } from './attributes';
 import type { Customer } from './customer';
+import type { Graph } from '../../core';
 import type { LastTransaction } from './last_transaction';
 import type { OriginalTransaction } from './original_transaction';
 import type { Store } from './store';
 import type { SubTokenUrl } from './sub_token_url';
 import type { TransactionTemplate } from './transaction_template';
 import type { Transactions } from './transactions';
-import type { Graph } from '../../core';
 
 export interface Subscription extends Graph {
   curie: 'fx:subscription';

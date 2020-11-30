@@ -1,6 +1,6 @@
 import type { CollectionGraphLinks, CollectionGraphProps } from '../../core/defaults';
-import type { User } from './user';
 import type { Graph } from '../../core';
+import type { User } from './user';
 
 export interface Users extends Graph {
   curie: 'fx:users';

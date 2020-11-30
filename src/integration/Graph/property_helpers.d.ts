@@ -2,6 +2,7 @@ import type { CheckoutTypes } from './checkout_types';
 import type { Countries } from './countries';
 import type { CustomerPasswordHashTypes } from './customer_password_hash_types';
 import type { DefaultTemplates } from './default_templates';
+import type { Graph } from '../../core';
 import type { HostedPaymentGateways } from './hosted_payment_gateways';
 import type { LanguageStrings } from './language_strings';
 import type { Languages } from './languages';
@@ -12,7 +13,6 @@ import type { ShippingAddressTypes } from './shipping_address_types';
 import type { ShippingMethods } from './shipping_methods';
 import type { StoreVersions } from './store_versions';
 import type { Timezones } from './timezones';
-import type { Graph } from '../../core';
 
 export interface PropertyHelpers extends Graph {
   curie: 'fx:property_helpers';

@@ -1,6 +1,6 @@
+import type { Graph } from '../../core';
 import type { Store } from './store';
 import type { User } from './user';
-import type { Graph } from '../../core';
 
 export interface UserAccess extends Graph {
   curie: 'fx:user_access';

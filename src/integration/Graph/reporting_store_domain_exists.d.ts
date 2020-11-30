@@ -1,6 +1,6 @@
+import type { Graph } from '../../core';
 import type { Reporting } from './reporting';
 import type { Store } from './store';
-import type { Graph } from '../../core';
 
 export interface ReportingStoreDomainExists extends Graph {
   curie: 'fx:reporting_store_domain_exists';

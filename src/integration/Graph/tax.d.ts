@@ -1,7 +1,7 @@
+import type { Graph } from '../../core';
 import type { NativeIntegrations } from './native_integrations';
 import type { Store } from './store';
 import type { TaxItemCategories } from './tax_item_categories';
-import type { Graph } from '../../core';
 
 export interface Tax extends Graph {
   curie: 'fx:tax';

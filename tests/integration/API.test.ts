@@ -9,9 +9,9 @@ jest.mock('cross-fetch', () => ({
 import { Headers, Request, Response, fetch } from 'cross-fetch';
 
 import { API as CoreAPI } from '../../src/core/API';
-import { Token } from '../../src/integration/Rels';
 import { API as IntegrationAPI } from '../../src/integration/API';
 import MemoryCache from 'fake-storage';
+import { Token } from '../../src/integration/Rels';
 
 const fetchMock = (fetch as unknown) as jest.MockInstance<unknown, unknown[]>;
 

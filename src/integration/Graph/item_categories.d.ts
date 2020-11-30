@@ -1,6 +1,6 @@
 import type { CollectionGraphLinks, CollectionGraphProps } from '../../core/defaults';
-import type { ItemCategory } from './item_category';
 import type { Graph } from '../../core';
+import type { ItemCategory } from './item_category';
 
 export interface ItemCategories extends Graph {
   curie: 'fx:item_categories';

@@ -2,10 +2,10 @@ import type { CartIncludeTemplate } from './cart_include_template';
 import type { CartTemplate } from './cart_template';
 import type { CheckoutTemplate } from './checkout_template';
 import type { EmailTemplate } from './email_template';
+import type { Graph } from '../../core';
 import type { LanguageOverrides } from './language_overrides';
 import type { ReceiptTemplate } from './receipt_template';
 import type { Store } from './store';
-import type { Graph } from '../../core';
 
 export interface TemplateSet extends Graph {
   curie: 'fx:template_set';

@@ -5,6 +5,7 @@ import type { Capture } from './capture';
 import type { CustomFields } from './custom_fields';
 import type { Customer } from './customer';
 import type { Discounts } from './discounts';
+import type { Graph } from '../../core';
 import type { Items } from './items';
 import type { NativeIntegrations } from './native_integrations';
 import type { Payments } from './payments';
@@ -16,7 +17,6 @@ import type { Shipments } from './shipments';
 import type { Store } from './store';
 import type { TransactionLogs } from './transaction_logs';
 import type { Void } from './void';
-import type { Graph } from '../../core';
 
 export interface Transaction extends Graph {
   curie: 'fx:transaction';

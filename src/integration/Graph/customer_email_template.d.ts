@@ -1,8 +1,8 @@
 import type { Cache } from './cache';
 import type { EmailTemplate } from './email_template';
+import type { Graph } from '../../core';
 import type { Store } from './store';
 import type { TemplateSets } from './template_sets';
-import type { Graph } from '../../core';
 
 export interface CustomerEmailTemplate extends Graph {
   curie: 'fx:customer_email_template';

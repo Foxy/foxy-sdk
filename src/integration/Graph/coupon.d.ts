@@ -1,8 +1,8 @@
 import type { CouponCodes } from './coupon_codes';
 import type { CouponItemCategories } from './coupon_item_categories';
 import type { GenerateCodes } from './generate_codes';
-import type { Store } from './store';
 import type { Graph } from '../../core';
+import type { Store } from './store';
 
 export interface Coupon extends Graph {
   curie: 'fx:coupon';

@@ -1,9 +1,9 @@
+import type { Graph } from '../../core';
 import type { ShippingMethod } from './shipping_method';
 import type { ShippingMethods } from './shipping_methods';
 import type { ShippingService } from './shipping_service';
 import type { ShippingServices } from './shipping_services';
 import type { Store } from './store';
-import type { Graph } from '../../core';
 
 export interface StoreShippingService extends Graph {
   curie: 'fx:store_shipping_service';

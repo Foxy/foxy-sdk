@@ -1,6 +1,6 @@
 import type { Customer } from './customer';
-import type { Store } from './store';
 import type { Graph } from '../../core';
+import type { Store } from './store';
 
 export interface DefaultPaymentMethod extends Graph {
   curie: 'fx:default_payment_method';

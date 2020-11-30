@@ -1,7 +1,7 @@
 import type { Coupon } from './coupon';
+import type { Graph } from '../../core';
 import type { ItemCategory } from './item_category';
 import type { Store } from './store';
-import type { Graph } from '../../core';
 
 export interface CouponItemCategory extends Graph {
   curie: 'fx:coupon_item_category';

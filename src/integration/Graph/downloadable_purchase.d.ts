@@ -1,9 +1,9 @@
 import type { Customer } from './customer';
 import type { Downloadable } from './downloadable';
+import type { Graph } from '../../core';
 import type { Item } from './item';
 import type { Store } from './store';
 import type { Transaction } from './transaction';
-import type { Graph } from '../../core';
 
 export interface DownloadablePurchase extends Graph {
   curie: 'fx:downloadable_purchase';

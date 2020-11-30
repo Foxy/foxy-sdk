@@ -1,8 +1,8 @@
+import type { Graph } from '../../core';
 import type { PropertyHelpers } from './property_helpers';
 import type { ShippingContainers } from './shipping_containers';
 import type { ShippingMethod } from './shipping_method';
 import type { ShippingMethods } from './shipping_methods';
-import type { Graph } from '../../core';
 
 export interface ShippingContainer extends Graph {
   curie: 'fx:shipping_container';

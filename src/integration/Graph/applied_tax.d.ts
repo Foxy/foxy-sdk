@@ -1,7 +1,7 @@
+import type { Graph } from '../../core';
 import type { Store } from './store';
 import type { Tax } from './tax';
 import type { Transaction } from './transaction';
-import type { Graph } from '../../core';
 
 export interface AppliedTax extends Graph {
   curie: 'fx:applied_tax';

@@ -1,7 +1,7 @@
+import type { Graph } from '../../core';
 import type { LanguageOverrides } from './language_overrides';
 import type { Store } from './store';
 import type { TemplateSet } from './template_set';
-import type { Graph } from '../../core';
 
 export interface LanguageOverride extends Graph {
   curie: 'fx:language_override';

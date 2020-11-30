@@ -1,6 +1,6 @@
 import type { CollectionGraphLinks, CollectionGraphProps } from '../../core/defaults';
-import type { TemplateSet } from './template_set';
 import type { Graph } from '../../core';
+import type { TemplateSet } from './template_set';
 
 export interface TemplateSets extends Graph {
   curie: 'fx:template_sets';

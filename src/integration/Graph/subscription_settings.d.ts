@@ -1,5 +1,5 @@
-import type { Store } from './store';
 import type { Graph } from '../../core';
+import type { Store } from './store';
 
 export interface SubscriptionSettings extends Graph {
   curie: 'fx:subscription_settings';

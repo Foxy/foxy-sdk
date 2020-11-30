@@ -1,6 +1,6 @@
+import type { Graph } from '../../core';
 import type { Store } from './store';
 import type { Transaction } from './transaction';
-import type { Graph } from '../../core';
 
 export interface CustomField extends Graph {
   curie: 'fx:custom_field';

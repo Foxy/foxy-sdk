@@ -1,6 +1,6 @@
+import type { Graph } from '../../core';
 import type { PropertyHelpers } from './property_helpers';
 import type { StoreVersions } from './store_versions';
-import type { Graph } from '../../core';
 
 export interface StoreVersion extends Graph {
   curie: 'fx:store_version';

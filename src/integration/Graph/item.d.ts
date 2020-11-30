@@ -1,12 +1,12 @@
 import type { Attributes } from './attributes';
 import type { CouponDetails } from './coupon_details';
 import type { DiscountDetails } from './discount_details';
+import type { Graph } from '../../core';
 import type { ItemCategory } from './item_category';
 import type { ItemOptions } from './item_options';
 import type { Shipment } from './shipment';
 import type { Store } from './store';
 import type { Transaction } from './transaction';
-import type { Graph } from '../../core';
 
 export interface Item extends Graph {
   curie: 'fx:item';

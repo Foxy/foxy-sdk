@@ -1,10 +1,10 @@
 import type { Customer } from './customer';
 import type { CustomerAddress } from './customer_address';
+import type { Graph } from '../../core';
 import type { Items } from './items';
 import type { Shipments } from './shipments';
 import type { Store } from './store';
 import type { Transaction } from './transaction';
-import type { Graph } from '../../core';
 
 export interface Shipment extends Graph {
   curie: 'fx:shipment';

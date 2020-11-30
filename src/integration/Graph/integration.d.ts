@@ -1,7 +1,7 @@
 import type { Client } from './client';
+import type { Graph } from '../../core';
 import type { Store } from './store';
 import type { User } from './user';
-import type { Graph } from '../../core';
 
 export interface Integration extends Graph {
   curie: 'fx:integration';

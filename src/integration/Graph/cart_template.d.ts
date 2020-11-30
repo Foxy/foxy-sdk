@@ -1,7 +1,7 @@
 import type { Cache } from './cache';
+import type { Graph } from '../../core';
 import type { Store } from './store';
 import type { TemplateSets } from './template_sets';
-import type { Graph } from '../../core';
 
 export interface CartTemplate extends Graph {
   curie: 'fx:cart_template';
