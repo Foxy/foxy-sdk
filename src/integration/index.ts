@@ -6,6 +6,7 @@ export { removeAllLinksExcept } from './removeAllLinksExcept';
 export { removePrivateAttributes } from './removePrivateAttributes';
 export { verifyWebhookSignature } from './verifyWebhookSignature';
 export { getAllowedFrequencies } from './getAllowedFrequencies';
+export { isNextTransactionDate } from './isNextTransactionDate';
 export { createSSOURL } from './createSSOURL';
 
 import type * as Rels from './Rels';
