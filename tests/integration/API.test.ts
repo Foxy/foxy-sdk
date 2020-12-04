@@ -11,7 +11,6 @@ import { Headers, Request, Response, fetch } from 'cross-fetch';
 import { API as CoreAPI } from '../../src/core/API';
 import { API as IntegrationAPI } from '../../src/integration/API';
 import MemoryCache from 'fake-storage';
-import { Token } from '../../src/integration/Rels';
 
 const fetchMock = (fetch as unknown) as jest.MockInstance<unknown, unknown[]>;
 
@@ -27,7 +26,7 @@ const commonInit = {
   refreshToken: '65redfghyuyjthgrhyjthrgdfghytredtyuytredrtyuy6trtyuhgfdr',
 };
 
-const sampleToken: Token['props'] = {
+const sampleToken = {
   access_token: 'w8a49rbvuznxmzs39xliwfa943fda84klkvniutgh34q1fjmnfma90iubl',
   expires_in: IntegrationAPI.REFRESH_THRESHOLD * 3,
   refresh_token: '65redfghyuyjthgrhyjthrgdfghytredtyuytredrtyuy6trtyuhgfdr',
@@ -59,6 +58,100 @@ describe('Integration', () => {
     it('exposes default version as static property', () => {
       expect(IntegrationAPI).toHaveProperty('VERSION');
       expect(typeof IntegrationAPI.VERSION).toBe('string');
+    });
+
+    it('errors when API.getToken() is called with incorrect arguments', async () => {
+      const incorrectOpts = ({
+        base: 'fax',
+        cOdE: 'why',
+        clientId: 0,
+        client_secret: {},
+        refreshToken: null,
+        version: -1,
+      } as unknown) as Parameters<typeof IntegrationAPI['getToken']>[0];
+
+      await expect(() => IntegrationAPI.getToken(incorrectOpts)).rejects.toThrow();
+    });
+
+    it('returns null on auth failure in API.getToken()', async () => {
+      fetchMock.mockImplementation(() => Promise.resolve(new Response(null, { status: 500 })));
+      expect(await IntegrationAPI.getToken({ ...commonInit })).toBeNull();
+      fetchMock.mockClear();
+    });
+
+    it('supports authorization_code grant in API.getToken()', async () => {
+      fetchMock.mockImplementation(() => Promise.resolve(new Response(JSON.stringify(sampleToken))));
+
+      const { clientId, clientSecret } = commonInit;
+      const url = new URL('token', IntegrationAPI.BASE_URL).toString();
+      const code = '1234567890';
+      const token = await IntegrationAPI.getToken({ clientId, clientSecret, code });
+
+      expect(token).toEqual(sampleToken);
+      expect(fetchMock).toHaveBeenNthCalledWith(1, url, {
+        body: new URLSearchParams({
+          client_id: clientId,
+          client_secret: clientSecret,
+          code,
+          grant_type: 'authorization_code',
+        }),
+        headers: new Headers({ ...commonHeaders, 'Content-Type': 'application/x-www-form-urlencoded' }),
+        method: 'POST',
+      });
+
+      fetchMock.mockClear();
+    });
+
+    it('supports refresh_token grant in API.getToken()', async () => {
+      fetchMock.mockImplementation(() => Promise.resolve(new Response(JSON.stringify(sampleToken))));
+
+      const { clientId, clientSecret, refreshToken } = commonInit;
+      const url = new URL('token', IntegrationAPI.BASE_URL).toString();
+      const token = await IntegrationAPI.getToken({ clientId, clientSecret, refreshToken });
+
+      expect(token).toEqual(sampleToken);
+      expect(fetchMock).toHaveBeenNthCalledWith(1, url, {
+        body: new URLSearchParams({
+          client_id: clientId,
+          client_secret: clientSecret,
+          grant_type: 'refresh_token',
+          refresh_token: refreshToken,
+        }),
+        headers: new Headers({ ...commonHeaders, 'Content-Type': 'application/x-www-form-urlencoded' }),
+        method: 'POST',
+      });
+
+      fetchMock.mockClear();
+    });
+
+    it('supports custom version and base in API.getToken()', async () => {
+      fetchMock.mockImplementation(() => Promise.resolve(new Response(JSON.stringify(sampleToken))));
+
+      const { clientId, clientSecret } = commonInit;
+      const version = '1';
+      const base = new URL('https://api-development.foxycart.com/');
+      const url = new URL('token', base).toString();
+      const code = '1234567890';
+      const token = await IntegrationAPI.getToken({ base, clientId, clientSecret, code, version });
+
+      expect(token).toEqual(sampleToken);
+      expect(fetchMock).toHaveBeenNthCalledWith(1, url, {
+        body: new URLSearchParams({
+          client_id: clientId,
+          client_secret: clientSecret,
+          code,
+          grant_type: 'authorization_code',
+        }),
+
+        headers: new Headers({
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'FOXY-API-VERSION': version,
+        }),
+
+        method: 'POST',
+      });
+
+      fetchMock.mockClear();
     });
 
     it('errors when constructed with incorrect arguments', () => {

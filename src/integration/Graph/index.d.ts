@@ -4,7 +4,6 @@ import type { PropertyHelpers } from './property_helpers';
 import type { Reporting } from './reporting';
 import type { Store } from './store';
 import type { Stores } from './stores';
-import type { Token } from './token';
 import type { User } from './user';
 
 export interface Graph extends Core.Graph {
@@ -21,8 +20,8 @@ export interface Graph extends Core.Graph {
     'fx:stores': Stores;
     /** The current store for your authentication token. */
     'fx:store': Store;
-    /** The OAuth endpoint for obtaining a new access_token using an existing refresh_token. POST `www-form-url-encoded` data as follows: `grant_type=refresh_token&refresh_token={refresh_token}&client_id={client_id}&client_secret={client_secret}`. */
-    'fx:token': Token;
+    /** OAuth endpoint for obtaining an access + refresh token pair. Please use the `FoxySDK.Integration.API.getAccessToken()` method to work with this endpoint. */
+    'fx:token': never;
     /** Your API home page. */
     'fx:user': User;
   };
