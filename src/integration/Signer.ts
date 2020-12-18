@@ -36,6 +36,7 @@ export class Signer {
    * It won't be possible to sign anything without this secret.
    *
    * @param secret OAuth2 client secret for your integration.
+   * @returns Signer to allow for convenient concatenation.
    */
   public setSecret(secret: string): Signer {
     this._secret = secret;
@@ -46,8 +47,9 @@ export class Signer {
    * Signs a whole HTML snippet.
    *
    * @param htmlStr HTML snippet to sign.
+   * @returns the HTML snippet signed.
    */
-  public htmlString(htmlStr: string) {
+  public htmlString(htmlStr: string): string {
     const dom = new JSDOM(htmlStr);
     this._fragment(dom.window.document);
     return dom.serialize();
@@ -58,8 +60,9 @@ export class Signer {
    *
    * @param inputPath Path of the file to sign.
    * @param outputPath Path of the file where the signed result will be stored.
+   * @returns a ParentNode object of the signed HTML.
    */
-  public htmlFile(inputPath: string, outputPath: string) {
+  public htmlFile(inputPath: string, outputPath: string): Promise<ParentNode> {
     return new Promise((resolve, reject) => {
       JSDOM.fromFile(inputPath).then(dom => {
         const signed = this._fragment(dom.window.document);
@@ -76,6 +79,7 @@ export class Signer {
    * All query fields withing the query string will be signed, provided it is a proper URL and there is a code field
    *
    * @param urlStr Full URL including the query string that needs to be signed.
+   * @returns the signed query string.
    */
   public url(urlStr: string): string {
     // Build a URL object
@@ -118,6 +122,7 @@ export class Signer {
    * @param code Product code.
    * @param parentCode Parent product code.
    * @param value Input value.
+   * @returns the signed input name.
    */
   public name(name: string, code: string, parentCode = '', value?: string | number): string {
     name = name.replace(/ /g, '_');
@@ -134,6 +139,7 @@ export class Signer {
    * @param code Product code.
    * @param parentCode Parent product code.
    * @param value Input value.
+   * @returns the signed value.
    */
   public value(name: string, code: string, parentCode = '', value?: string | number): string {
     name = name.replace(/ /g, '_');
@@ -145,9 +151,10 @@ export class Signer {
   /**
    * Signs a product composed of code, name and value.
    *
-   * @param code
-   * @param name
-   * @param value
+   * @param code of the product.
+   * @param name name of the product.
+   * @param value of the product.
+   * @returns the signed product.
    * @private
    */
   private _product(code: string, name: string, value?: string | number): string {
@@ -157,9 +164,10 @@ export class Signer {
   /**
    * Signs a single query argument to be used in `GET` requests.
    *
-   * @param name
-   * @param code
-   * @param value
+   * @param name of the argument.
+   * @param code of the product.
+   * @param value of the argument.
+   * @returns the signed query argument.
    * @private
    */
   private _queryArg(name: string, code: string, value?: string): string {
@@ -168,19 +176,19 @@ export class Signer {
     const signature = this._product(code, name, value);
     const encodedName = encodeURIComponent(name).replace(/%20/g, '+');
     const encodedValue = encodeURIComponent(Signer._valueOrOpen(value)).replace(/%20/g, '+');
-    const nameAttr = Signer._buildSignedQueryArg(encodedName, signature, encodedValue);
-    return nameAttr;
+    return Signer._buildSignedQueryArg(encodedName, signature, encodedValue);
   }
 
   /**
    * Signs an input element.
    *
-   * @param el
-   * @param codes
+   * @param el the input element
+   * @param codes the codes dict object containing the code and parent code
+   * @returns the signed element
    * @private
    */
   private _input(el: HTMLInputElement, codes: CodesDict): HTMLInputElement {
-    const splitted = this._splitNamePrefix(el.name);
+    const splitted = Signer._splitNamePrefix(el.name);
     const nameString = splitted[1];
     const prefix = splitted[0];
     const code = codes[prefix].code;
@@ -194,12 +202,13 @@ export class Signer {
   /**
    * Signs a texArea element.
    *
-   * @param el
-   * @param codes
+   * @param el the textArea element.
+   * @param codes the codes dict object containing the code and parent code
+   * @returns the signed textarea element.
    * @private
    */
   private _textArea(el: HTMLTextAreaElement, codes: CodesDict): HTMLTextAreaElement {
-    const splitted = this._splitNamePrefix(el.name);
+    const splitted = Signer._splitNamePrefix(el.name);
     const nameString = splitted[1];
     const prefix = splitted[0];
     const code = codes[prefix].code;
@@ -213,8 +222,9 @@ export class Signer {
   /**
    * Signs all option elements within a Select element.
    *
-   * @param el
-   * @param codes
+   * @param el the select element.
+   * @param codes the codes dict object containing the code and parent code.
+   * @returns the signed select element.
    * @private
    */
   private _select(el: HTMLSelectElement, codes: CodesDict): HTMLSelectElement {
@@ -229,8 +239,9 @@ export class Signer {
    * Signatures are added to the value attribute on options.
    * This function may also be used to sign radio buttons.
    *
-   * @param el
-   * @param codes
+   * @param el the option element to be signed.
+   * @param codes the codes dict object containing the code and parent code.
+   * @returns the signed option element.
    * @private
    */
   private _option(el: HTMLOptionElement | HTMLInputElement, codes: CodesDict): HTMLOptionElement | HTMLInputElement {
@@ -242,7 +253,7 @@ export class Signer {
       const p = el.parentElement as HTMLSelectElement;
       n = p.name;
     }
-    const splitted = this._splitNamePrefix(n);
+    const splitted = Signer._splitNamePrefix(n);
     const nameString = splitted[1];
     const prefix = splitted[0];
     const code = codes[prefix].code;
@@ -256,8 +267,9 @@ export class Signer {
   /**
    * Signs a radio button. Radio buttons use the value attribute to hold their signatures.
    *
-   * @param el
-   * @param codes
+   * @param el the radio button element.
+   * @param codes the codes dict object containing the code and parent code.
+   * @returns the signed radio button.
    * @private
    */
   private _radio(el: HTMLInputElement, codes: CodesDict): HTMLInputElement {
@@ -268,10 +280,11 @@ export class Signer {
    * Splits a string using the prefix pattern for foxy store.
    * The prefix pattern allows for including more than a single product in a given GET or POST request.
    *
-   * @param name
+   * @param name the name to be splitted.
+   * @returns an array with [prefix, name]
    * @private
    */
-  private _splitNamePrefix(name: string): [number, string] {
+  private static _splitNamePrefix(name: string): [number, string] {
     const splitted = name.split(':');
     if (splitted.length == 2) {
       return [parseInt(splitted[0], 10), splitted[1]];
@@ -282,16 +295,14 @@ export class Signer {
   /**
    * Retrieve a parent code value from a form, given a prefix.
    *
-   * @param formElement
-   * @param prefix
+   * @param formElement the element with the code and parent code values.
+   * @param prefix the prefix used in hte element.
+   * @returns the parentCode
    * @private
    */
-  private _retrieveParentCode(formElement: Element, prefix: string | number = ''): string {
+  private static _retrieveParentCode(formElement: Element, prefix: string | number = ''): string {
     let result = ''; // A blank string indicates no parent
-    let separator = '';
-    if (prefix) {
-      separator = ':';
-    }
+    const separator = prefix ?  ':' : '';
     const parentCodeEl = formElement.querySelector(`[name='${prefix}${separator}parent_code']`);
     if (parentCodeEl) {
       const parentCode = parentCodeEl.getAttribute('value');
@@ -305,10 +316,10 @@ export class Signer {
   /**
    * Signs a whole form element.
    *
-   * @param formElement
+   * @param formElement the form element to be signed.
    * @private
    */
-  private _form(formElement: Element) {
+  private _form(formElement: Element): void {
     // Grab all codes within the form element
     const codeList: NodeList = formElement.querySelectorAll('[name$=code]');
     // Store all codes in a object
@@ -323,13 +334,13 @@ export class Signer {
           // Store prefix in codes list
           codes[prefix] = {
             code: codeValue,
-            parent: this._retrieveParentCode(formElement, prefix),
+            parent: Signer._retrieveParentCode(formElement, prefix),
           };
         } else if (codes[0] === undefined) {
           // Allow to push a single code without prefix
           codes[0] = {
             code: codeValue,
-            parent: this._retrieveParentCode(formElement),
+            parent: Signer._retrieveParentCode(formElement),
           };
         } else {
           const documentationURL = 'https://wiki.foxycart.com/v/2.0/hmac_validation#multiple_products_in_one_form';
@@ -370,8 +381,9 @@ export class Signer {
   /**
    * Builds a signed name given it components.
    *
-   * @param signature
-   * @param value
+   * @param signature the resulting signature.
+   * @param value the value signed.
+   * @returns the built signed value
    * @private
    */
   private static _buildSignedValue(signature: string, value?: string | number) {
@@ -383,9 +395,10 @@ export class Signer {
   /**
    * Builds a signed query argument given its components.
    *
-   * @param name
-   * @param signature
-   * @param value
+   * @param name the argument name.
+   * @param signature the resulting signature.
+   * @param value the value signed.
+   * @returns the built query string argument.
    * @private
    */
   private static _buildSignedQueryArg(name: string, signature: string, value: string | number) {
@@ -393,10 +406,11 @@ export class Signer {
   }
 
   /**
-   * Retuns the value of a field on the `--OPEN--` string if the value is not defined.
+   * Returns the value of a field on the `--OPEN--` string if the value is not defined.
    * Please, notice that `0` is an acceptable value.
    *
-   * @param value
+   * @param value of the field.
+   * @returns '--OPEN--' or the given value.
    * @private
    */
   private static _valueOrOpen(value: string | number | undefined): string | number {
@@ -410,7 +424,11 @@ export class Signer {
    * Check if a href string is already signed. Signed strings contain two consecutive pipes
    * followed by 64 hexadecimal characters.
    *
-   * @param url
+   * This method **does not validates the signature**.
+   * It only checks if the format of the string is evidence that it is signed.
+   *
+   * @param url the potentially signed URL.
+   * @returns true if the string format is evidence that it is already signed.
    * @private
    */
   private static _isSigned(url: string): boolean {
@@ -420,7 +438,8 @@ export class Signer {
   /**
    * Returns the code from a URL or undefined if it does not contain a code.
    *
-   * @param url
+   * @param url the URL to retrieve the code from.
+   * @returns the code found, or undefined if no code was found.
    * @private
    */
   private static _getCodeFromURL(url: URL): string | undefined {
@@ -434,17 +453,19 @@ export class Signer {
   /**
    * Find all cart forms in a document fragment that contain an input named `code`.
    *
-   * @param doc
+   * @param doc the document fragment potentially containing cart forms.
+   * @returns an array of the form elements found.
    * @private
    */
-  private static _findCartForms(doc: ParentNode) {
+  private static _findCartForms(doc: ParentNode): HTMLFormElement[] {
     return Array.from(doc.querySelectorAll('form')).filter(e => e.querySelector('[name=code]'));
   }
 
   /**
    * Replace some of the characters encoded by `encodeURIComponent()`.
    *
-   * @param urlStr
+   * @param urlStr the URL string.
+   * @returns a cleaned URL string.
    * @private
    */
   private static _replaceURLchars(urlStr: string): string {
@@ -454,7 +475,8 @@ export class Signer {
   /**
    * Signs a document fragment. This method is used to sign HTML snippets.
    *
-   * @param doc
+   * @param doc an HTML doc fragment
+   * @returns the signed HTML snippet
    * @private
    */
   private _fragment(doc: ParentNode): ParentNode {
@@ -468,7 +490,9 @@ export class Signer {
   /**
    * Signs a simple message. This function can only be invoked after the secret has been defined. The secret can be defined either in the construction method as in `new FoxySigner(mySecret)` or by invoking the setSecret method, as in `signer.setSecret(mySecret)`
    *
-   * @param message
+   *
+   * @param message the message to be signed.
+   * @returns signed message.
    * @private
    */
   private _message(message: string): string {
