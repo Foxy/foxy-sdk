@@ -79,7 +79,7 @@ export class Signer {
    */
   public url(urlStr: string): string {
     // Build a URL object
-    if (this._isSigned(urlStr)) {
+    if (Signer._isSigned(urlStr)) {
       console.error('Attempt to sign a signed URL', urlStr);
       return urlStr;
     }
@@ -95,7 +95,7 @@ export class Signer {
     }
     const originalParams = url.searchParams;
     const newParams = stripped.searchParams;
-    const code = this._getCodeFromURL(url);
+    const code = Signer._getCodeFromURL(url);
     // If there is no code, return the same URL
     if (!code) {
       return urlStr;
@@ -108,7 +108,7 @@ export class Signer {
       newParams.set(signed[0], signed[1]);
     }
     url.search = newParams.toString();
-    return this._replaceURLchars(url.toString());
+    return Signer._replaceURLchars(url.toString());
   }
 
   /**
@@ -123,7 +123,7 @@ export class Signer {
     name = name.replace(/ /g, '_');
     const signature = this._product(code + parentCode, name, value);
     const encodedName = encodeURIComponent(name);
-    const nameAttr = this._buildSignedName(encodedName, signature, value);
+    const nameAttr = Signer._buildSignedName(encodedName, signature, value);
     return nameAttr;
   }
 
@@ -138,7 +138,7 @@ export class Signer {
   public value(name: string, code: string, parentCode = '', value?: string | number): string {
     name = name.replace(/ /g, '_');
     const signature = this._product(code + parentCode, name, value);
-    const valueAttr = this._buildSignedValue(signature, value);
+    const valueAttr = Signer._buildSignedValue(signature, value);
     return valueAttr;
   }
 
@@ -151,7 +151,7 @@ export class Signer {
    * @private
    */
   private _product(code: string, name: string, value?: string | number): string {
-    return this._message(code + name + this._valueOrOpen(value));
+    return this._message(code + name + Signer._valueOrOpen(value));
   }
 
   /**
@@ -167,8 +167,8 @@ export class Signer {
     code = code.replace(/ /g, '_');
     const signature = this._product(code, name, value);
     const encodedName = encodeURIComponent(name).replace(/%20/g, '+');
-    const encodedValue = encodeURIComponent(this._valueOrOpen(value)).replace(/%20/g, '+');
-    const nameAttr = this._buildSignedQueryArg(encodedName, signature, encodedValue);
+    const encodedValue = encodeURIComponent(Signer._valueOrOpen(value)).replace(/%20/g, '+');
+    const nameAttr = Signer._buildSignedQueryArg(encodedName, signature, encodedValue);
     return nameAttr;
   }
 
@@ -353,16 +353,17 @@ export class Signer {
   }
 
   /**
-   * Builds a signed name given it components.
+   * Builds the value for the signed "name" attribute value given it components.
    *
-   * @param name
-   * @param signature
-   * @param value
+   * @param name that was signed
+   * @param signature the resulting signature
+   * @param value of the field that, if equal to --OPEN-- identifies an editable field.
+   * @returns the signed value for the "name" attribute
    * @private
    */
-  private _buildSignedName(name: string, signature: string, value?: string | number) {
-    let open = this._valueOrOpen(value);
-    open = this._valueOrOpen(value) == '--OPEN--' ? '||open' : '';
+  private static _buildSignedName(name: string, signature: string, value?: string | number) {
+    let open = Signer._valueOrOpen(value);
+    open = Signer._valueOrOpen(value) == '--OPEN--' ? '||open' : '';
     return `${name}||${signature}${open}`;
   }
 
@@ -373,9 +374,9 @@ export class Signer {
    * @param value
    * @private
    */
-  private _buildSignedValue(signature: string, value?: string | number) {
-    let open = this._valueOrOpen(value);
-    open = this._valueOrOpen(value) == '--OPEN--' ? '||open' : (value as string);
+  private static _buildSignedValue(signature: string, value?: string | number) {
+    let open = Signer._valueOrOpen(value);
+    open = Signer._valueOrOpen(value) == '--OPEN--' ? '||open' : (value as string);
     return `${open}||${signature}`;
   }
 
@@ -387,7 +388,7 @@ export class Signer {
    * @param value
    * @private
    */
-  private _buildSignedQueryArg(name: string, signature: string, value: string | number) {
+  private static _buildSignedQueryArg(name: string, signature: string, value: string | number) {
     return `${name}||${signature}=${value}`;
   }
 
@@ -398,7 +399,7 @@ export class Signer {
    * @param value
    * @private
    */
-  private _valueOrOpen(value: string | number | undefined): string | number {
+  private static _valueOrOpen(value: string | number | undefined): string | number {
     if (value === undefined || value === null || value === '') {
       return '--OPEN--';
     }
@@ -412,7 +413,7 @@ export class Signer {
    * @param url
    * @private
    */
-  private _isSigned(url: string): boolean {
+  private static _isSigned(url: string): boolean {
     return url.match(/^.*\|\|[0-9a-fA-F]{64}/) != null;
   }
 
@@ -422,7 +423,7 @@ export class Signer {
    * @param url
    * @private
    */
-  private _getCodeFromURL(url: URL): string | undefined {
+  private static _getCodeFromURL(url: URL): string | undefined {
     for (const p of url.searchParams) {
       if (p[0] == 'code') {
         return p[1];
@@ -436,7 +437,7 @@ export class Signer {
    * @param doc
    * @private
    */
-  private _findCartForms(doc: ParentNode) {
+  private static _findCartForms(doc: ParentNode) {
     return Array.from(doc.querySelectorAll('form')).filter(e => e.querySelector('[name=code]'));
   }
 
@@ -446,7 +447,7 @@ export class Signer {
    * @param urlStr
    * @private
    */
-  private _replaceURLchars(urlStr: string): string {
+  private static _replaceURLchars(urlStr: string): string {
     return urlStr.replace(/%7C/g, '|').replace(/%3D/g, '=').replace(/%2B/g, '+');
   }
 
@@ -460,7 +461,7 @@ export class Signer {
     doc.querySelectorAll('a').forEach(l => {
       l.href = this.url(l.href);
     });
-    this._findCartForms(doc).forEach(this._form.bind(this));
+    Signer._findCartForms(doc).forEach(this._form.bind(this));
     return doc;
   }
 
