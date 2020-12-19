@@ -262,9 +262,9 @@ export class Signer {
       const p = el.parentElement as HTMLSelectElement;
       n = p.name;
     }
-    const splitted = Signer.__splitNamePrefix(n);
-    const nameString = splitted[1];
-    const prefix = splitted[0];
+    const namePrefix = Signer.__splitNamePrefix(n);
+    const nameString = namePrefix[1];
+    const prefix = namePrefix[0];
     const code = codes[prefix].code;
     const parentCode = codes[prefix].parent;
     const value = el.value;
@@ -289,7 +289,7 @@ export class Signer {
    * Splits a string using the prefix pattern for foxy store.
    * The prefix pattern allows for including more than a single product in a given GET or POST request.
    *
-   * @param name the name to be splitted.
+   * @param name the name to be separated into prefix and name.
    * @returns an array with [prefix, name]
    * @private
    */
@@ -337,9 +337,9 @@ export class Signer {
       const nameAttr = (node as Element).getAttribute('name');
       const codeValue = (node as Element).getAttribute('value');
       if (nameAttr && nameAttr.match(/^([0-9]{1,3}:)?code/)) {
-        const splitted = nameAttr.split(':');
-        const prefix = splitted[0];
-        if (splitted.length == 2) {
+        const namePrefix = nameAttr.split(':');
+        const prefix = namePrefix[0];
+        if (namePrefix.length == 2) {
           // Store prefix in codes list
           codes[prefix] = {
             code: codeValue,
