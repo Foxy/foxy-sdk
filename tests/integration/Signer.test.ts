@@ -73,9 +73,9 @@ describe("Signer", () => {
       [namePrefixRegex, /name/, 5],
       [namePrefixRegex, /price/, 5],
       [namePrefixRegex, /code/, 5],
-      [valuePrefixRegex, /small\{p-2\}/, 5],
+      [valuePrefixRegex, /small{p-2}/, 5],
       [valuePrefixRegex, /medium/, 5],
-      [valuePrefixRegex, /large\{p\+3\}/, 5],
+      [valuePrefixRegex, /large{p\+3}/, 5],
       [namePrefixRegex, /quantity/, 5],
     ];
     for (const p of expectedAttributeMatches) {
@@ -105,9 +105,9 @@ describe("Signer", () => {
       [valuePrefixRegex, /express/, 3],
       [valuePrefixRegex, /regular/, 3],
       [valuePrefixRegex, /pickup/, 3],
-      [valuePrefixRegex, /small\{p-2\}/, 5],
+      [valuePrefixRegex, /small{p-2}/, 5],
       [valuePrefixRegex, /medium/, 5],
-      [valuePrefixRegex, /large\{p\+3\}/, 5],
+      [valuePrefixRegex, /large{p\+3}/, 5],
       [namePrefixRegex, /quantity/, 5],
     ];
     for (const p of expectedAttributeMatches) {
