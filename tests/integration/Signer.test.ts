@@ -12,10 +12,10 @@ describe("Signer", () => {
     const code = "ABC123";
     const name = "name";
     const value = "My Example Product";
-    expect(signer.name(name, code, "", value)).toBe(
+    expect(signer.signName(name, code, "", value)).toBe(
       "name||dbaa042ec8018e342058417e058d7a479226976c7cb287664197fd67970c4715"
     );
-    expect(signer.name(name, code, "", 100)).toBe(
+    expect(signer.signName(name, code, "", 100)).toBe(
       "name||bd87a3e47a20a60c9c5d7d2a026605310f20753b80535e56336cfd5502f61143"
     );
   });
@@ -23,10 +23,10 @@ describe("Signer", () => {
   it("Signs an input name with user edited values", () => {
     const code = "ABC123";
     const name = "name";
-    expect(signer.name(name, code, "")).toBe(
+    expect(signer.signName(name, code, "")).toBe(
       "name||3f2075135e3455131bd0d6ce8643551e9e2e43bc09dd0474fa3effbe4e588c9e||open"
     );
-    expect(signer.name(name, code)).toBe(
+    expect(signer.signName(name, code)).toBe(
       "name||3f2075135e3455131bd0d6ce8643551e9e2e43bc09dd0474fa3effbe4e588c9e||open"
     );
   });
@@ -34,10 +34,10 @@ describe("Signer", () => {
   it("Signs a value with user edited values", () => {
     const code = "ABC123";
     const name = "name";
-    expect(signer.value(name, code, "")).toBe(
+    expect(signer.signValue(name, code, "")).toBe(
       "||open||3f2075135e3455131bd0d6ce8643551e9e2e43bc09dd0474fa3effbe4e588c9e"
     );
-    expect(signer.value(name, code)).toBe(
+    expect(signer.signValue(name, code)).toBe(
       "||open||3f2075135e3455131bd0d6ce8643551e9e2e43bc09dd0474fa3effbe4e588c9e"
     );
   });
@@ -51,11 +51,11 @@ describe("Signer", () => {
       "name||07f23df6159ba32f01de36db07bf998d7661bda812a7c0d597cfacdefe0f0064=testname&" +
       "price||aed2692b1b278b04b974c3c9822e597dc5da880561cf256ab20b2873a5346b66=123.00&" +
       "other_atribute||98700cf679c5d7394e3e33b883f18683664b4843707f916a0739ba1c9adeabab=Some+Other+Thing";
-    expect(signer.url(fullURL)).toBe(signedURL);
+    expect(signer.signUrl(fullURL)).toBe(signedURL);
   });
 
   it("Signs a whole HTML string", () => {
-    const signedHTML = signer.htmlString(htmlContent);
+    const signedHTML = signer.signHtml(htmlContent);
     // e.g: ||aed2692b1b278b04b974c3c9822e597dc5da880561cf256ab20b2873a5346b66=
     const signatureRegex = /\|\|[0-9a-fA-F]{64}=/;
     const expectedAttributeMatches = [/name/, /price/, /quantity/];
@@ -67,7 +67,7 @@ describe("Signer", () => {
   });
 
   it("Signs an HTML string", () => {
-    const signedHTML = signer.htmlString(htmlPageWithForm);
+    const signedHTML = signer.signHtml(htmlPageWithForm);
     // e.g: ||aed2692b1b278b04b974c3c9822e597dc5da880561cf256ab20b2873a5346b66=
     const namePrefixRegex = /name="\d{1,3}:/;
     const valuePrefixRegex = /value="\d{1,3}:/;
@@ -97,7 +97,7 @@ describe("Signer", () => {
       result = content;
       callback(null)
     };
-    await signer.htmlFile(inputPath, outputPath, readFunc, writeFunc);
+    await signer.signFile(inputPath, outputPath, readFunc, writeFunc);
     const namePrefixRegex = /name="\d{1,3}:/;
     const valuePrefixRegex = /value="\d{1,3}:/;
     const signatureRegex = /\|\|[0-9a-fA-F]{64}\W/;
@@ -120,7 +120,7 @@ describe("Signer", () => {
     }
 
     const notAFile = await signer
-      .htmlFile(inputPath, "/shouldNotHavePermissionHere", readFuncFail, writeFunc)
+      .signFile(inputPath, "/shouldNotHavePermissionHere", readFuncFail, writeFunc)
       .then(() => false)
       .catch(() => true);
     expect(notAFile).toBe(true);
@@ -138,10 +138,8 @@ describe("Signer", () => {
   });
 
   it("Preserves different products", () => {
-    const inputPath = "./test/mocks/html/onepagewithforms.html";
-    const before = fs.readFileSync(inputPath).toString();
-    // Reuse previously generated signed html
-    const result = fs.readFileSync(outputPath).toString();
+    const before = htmlPageWithForm;
+    const result = signer.signHtml(before);
     const names1before = before.match(/name="1:/g)?.length;
     const names1after = result.match(/name="1:/g)?.length;
     const names2before = before.match(/name="2:/g)?.length;
@@ -151,7 +149,7 @@ describe("Signer", () => {
   });
 
   it("Properly signs signs bundled products", () => {
-    expect(signer.name("name", "abc124", "abc123", "Different T-Shirt")).toBe(
+    expect(signer.signName("name", "abc124", "abc123", "Different T-Shirt")).toBe(
       "name||ca2df56d0a72b3637b688d519939f7f00551f054cede1e35aa57602201e2b75f"
     );
     // Reuse previously generated signed html
@@ -169,19 +167,19 @@ describe("Signer", () => {
     expect(result.match(/name="honeypot"/)?.length).toBe(1);
     // Do not affect html without code attribute
     let simpleHTML = `<html><head></head><body><h1>Test form</h1><div><p>There is no form to be found here</p></div></body></html>`;
-    let signed = signer.htmlString(simpleHTML);
+    let signed = signer.signHtml(simpleHTML);
     expect(signed).toBe(simpleHTML);
     // Do not affect forms html without code attribute
     simpleHTML = `<html><head></head><body><h1>Test
     form</h1><div><form>There is no code to be found here
     <input name="test" type="text"></form></div></body></html>`;
-    signed = signer.htmlString(simpleHTML);
+    signed = signer.signHtml(simpleHTML);
     expect(signed).toBe(simpleHTML);
     // Do not change a form element without a code
     const dom = new JSDOM(simpleHTML).window.document;
     const f = dom.querySelector("form");
     const prev = f!.outerHTML;
-    signer.htmlString(f!.outerHTML);
+    signer.signHtml(f!.outerHTML);
     expect(f!.outerHTML).toBe(prev);
   });
 
@@ -192,28 +190,28 @@ describe("Signer", () => {
        <input name="code" value="test2">
        </form>
        </body></html>`;
-    expect(() => signer.htmlString(simpleHTML)).toThrow();
+    expect(() => signer.signHtml(simpleHTML)).toThrow();
   });
 
   it("Does not resigns a url", async () => {
     const url = "http://storename?code=ABC123&name=name&value=My Example Product";
     const consoleError = console.error;
     console.error = jest.fn();
-    const signed = signer.url(url);
-    const reSigned = signer.url(signed);
+    const signed = signer.signUrl(url);
+    const reSigned = signer.signUrl(signed);
     expect(signed).toBe(reSigned);
     console.error = consoleError;
   });
 
   it("Does not sign without a secret", () => {
     const woSecretFoxy = new Signer();
-    const woSign = () => woSecretFoxy.url("http://signthis?code=test&price=5");
+    const woSign = () => woSecretFoxy.signUrl("http://signthis?code=test&price=5");
     expect(woSign).toThrow();
   });
 
   it("Does not sign invalid URL", () => {
     const badURL = `href="what://code=test"`;
-    const attemptSigned = signer.url(badURL);
+    const attemptSigned = signer.signUrl(badURL);
     expect(badURL).toBe(attemptSigned);
   });
 
@@ -224,7 +222,7 @@ describe("Signer", () => {
     <input name="parent_code" >
     </form>
     `;
-    const signed = signer.htmlString(noParent);
+    const signed = signer.signHtml(noParent);
     expect(
       signed.match(/3ce339bde0689065ad4f18698603d5f957581bc8ef819e1a6d5a11ddefddc46a/)
     ).toHaveLength(1);
