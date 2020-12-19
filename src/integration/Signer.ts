@@ -382,8 +382,7 @@ export class Signer {
    * @private
    */
   private static __buildSignedName(name: string, signature: string, value?: string | number) {
-    let open = Signer.__valueOrOpen(value);
-    open = Signer.__valueOrOpen(value) == '--OPEN--' ? '||open' : '';
+    const open = Signer.__valueOrOpen(value) == '--OPEN--' ? '||open' : '';
     return `${name}||${signature}${open}`;
   }
 
@@ -396,8 +395,7 @@ export class Signer {
    * @private
    */
   private static __buildSignedValue(signature: string, value?: string | number) {
-    let open = Signer.__valueOrOpen(value);
-    open = Signer.__valueOrOpen(value) == '--OPEN--' ? '||open' : (value as string);
+    const open = Signer.__valueOrOpen(value) == '--OPEN--' ? '||open' : (value as string);
     return `${open}||${signature}`;
   }
 

@@ -1,4 +1,3 @@
-import * as fs from "fs";
 import { JSDOM } from "jsdom";
 import { Signer } from '../../src/integration';
 
