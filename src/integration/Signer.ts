@@ -49,9 +49,9 @@ export class Signer {
    * @param htmlStr HTML snippet to sign.
    * @returns the HTML snippet signed.
    */
-  public htmlString(htmlStr: string): string {
+  public signHtml(htmlStr: string): string {
     const dom = new JSDOM(htmlStr);
-    this._fragment(dom.window.document);
+    this.__fragment(dom.window.document);
     return dom.serialize();
   }
 
@@ -64,14 +64,14 @@ export class Signer {
    * @param writeFunc a function that should write to to file
    * @returns a ParentNode object of the signed HTML.
    */
-  public htmlFile(
+  public signFile(
       inputPath: string, outputPath: string,
       readFunc: (arg0: string) => Promise<JSDOM> = JSDOM.fromFile,
       writeFunc: (path: string, content: string, callback: (err: any)=>void)=>void = fs.writeFile
   ): Promise<ParentNode> {
     return new Promise((resolve, reject) => {
       readFunc(inputPath).then(dom => {
-        const signed = this._fragment(dom.window.document);
+        const signed = this.__fragment(dom.window.document);
         writeFunc(outputPath, dom.serialize(), err => {
           if (err) reject(err);
           else resolve(signed);
@@ -87,9 +87,9 @@ export class Signer {
    * @param urlStr Full URL including the query string that needs to be signed.
    * @returns the signed query string.
    */
-  public url(urlStr: string): string {
+  public signUrl(urlStr: string): string {
     // Build a URL object
-    if (Signer._isSigned(urlStr)) {
+    if (Signer.__isSigned(urlStr)) {
       console.error('Attempt to sign a signed URL', urlStr);
       return urlStr;
     }
@@ -105,20 +105,20 @@ export class Signer {
     }
     const originalParams = url.searchParams;
     const newParams = stripped.searchParams;
-    const code = Signer._getCodeFromURL(url);
+    const code = Signer.__getCodeFromURL(url);
     // If there is no code, return the same URL
     if (!code) {
       return urlStr;
     }
     // sign the url object
     for (const p of originalParams.entries()) {
-      const signed = this._queryArg(decodeURIComponent(p[0]), decodeURIComponent(code), decodeURIComponent(p[1])).split(
+      const signed = this.__signQueryArg(decodeURIComponent(p[0]), decodeURIComponent(code), decodeURIComponent(p[1])).split(
         '='
       );
       newParams.set(signed[0], signed[1]);
     }
     url.search = newParams.toString();
-    return Signer._replaceURLchars(url.toString());
+    return Signer.__replaceUrlCharacters(url.toString());
   }
 
   /**
@@ -130,11 +130,11 @@ export class Signer {
    * @param value Input value.
    * @returns the signed input name.
    */
-  public name(name: string, code: string, parentCode = '', value?: string | number): string {
+  public signName(name: string, code: string, parentCode = '', value?: string | number): string {
     name = name.replace(/ /g, '_');
-    const signature = this._product(code + parentCode, name, value);
+    const signature = this.__signProduct(code + parentCode, name, value);
     const encodedName = encodeURIComponent(name);
-    const nameAttr = Signer._buildSignedName(encodedName, signature, value);
+    const nameAttr = Signer.__buildSignedName(encodedName, signature, value);
     return nameAttr;
   }
 
@@ -147,10 +147,10 @@ export class Signer {
    * @param value Input value.
    * @returns the signed value.
    */
-  public value(name: string, code: string, parentCode = '', value?: string | number): string {
+  public signValue(name: string, code: string, parentCode = '', value?: string | number): string {
     name = name.replace(/ /g, '_');
-    const signature = this._product(code + parentCode, name, value);
-    const valueAttr = Signer._buildSignedValue(signature, value);
+    const signature = this.__signProduct(code + parentCode, name, value);
+    const valueAttr = Signer.__buildSignedValue(signature, value);
     return valueAttr;
   }
 
@@ -163,8 +163,8 @@ export class Signer {
    * @returns the signed product.
    * @private
    */
-  private _product(code: string, name: string, value?: string | number): string {
-    return this._message(code + name + Signer._valueOrOpen(value));
+  private __signProduct(code: string, name: string, value?: string | number): string {
+    return this.__message(code + name + Signer.__valueOrOpen(value));
   }
 
   /**
@@ -176,13 +176,13 @@ export class Signer {
    * @returns the signed query argument.
    * @private
    */
-  private _queryArg(name: string, code: string, value?: string): string {
+  private __signQueryArg(name: string, code: string, value?: string): string {
     name = name.replace(/ /g, '_');
     code = code.replace(/ /g, '_');
-    const signature = this._product(code, name, value);
+    const signature = this.__signProduct(code, name, value);
     const encodedName = encodeURIComponent(name).replace(/%20/g, '+');
-    const encodedValue = encodeURIComponent(Signer._valueOrOpen(value)).replace(/%20/g, '+');
-    return Signer._buildSignedQueryArg(encodedName, signature, encodedValue);
+    const encodedValue = encodeURIComponent(Signer.__valueOrOpen(value)).replace(/%20/g, '+');
+    return Signer.__buildSignedQueryArg(encodedName, signature, encodedValue);
   }
 
   /**
@@ -193,14 +193,14 @@ export class Signer {
    * @returns the signed element
    * @private
    */
-  private _input(el: HTMLInputElement, codes: CodesDict): HTMLInputElement {
-    const splitted = Signer._splitNamePrefix(el.name);
-    const nameString = splitted[1];
-    const prefix = splitted[0];
+  private __signInput(el: HTMLInputElement, codes: CodesDict): HTMLInputElement {
+    const namePrefix = Signer.__splitNamePrefix(el.name);
+    const nameString = namePrefix[1];
+    const prefix = namePrefix[0];
     const code = codes[prefix].code;
     const parentCode = codes[prefix].parent;
     const value = el.value;
-    const signedName = this.name(nameString, code, parentCode, value);
+    const signedName = this.signName(nameString, code, parentCode, value);
     el.setAttribute('name', prefix + ':' + signedName);
     return el;
   }
@@ -213,14 +213,14 @@ export class Signer {
    * @returns the signed textarea element.
    * @private
    */
-  private _textArea(el: HTMLTextAreaElement, codes: CodesDict): HTMLTextAreaElement {
-    const splitted = Signer._splitNamePrefix(el.name);
-    const nameString = splitted[1];
-    const prefix = splitted[0];
+  private __signTextArea(el: HTMLTextAreaElement, codes: CodesDict): HTMLTextAreaElement {
+    const namePrefix = Signer.__splitNamePrefix(el.name);
+    const nameString = namePrefix[1];
+    const prefix = namePrefix[0];
     const code = codes[prefix].code;
     const parentCode = codes[prefix].parent;
     const value = '';
-    const signedName = this.name(nameString, code, parentCode, value);
+    const signedName = this.signName(nameString, code, parentCode, value);
     el.setAttribute('name', prefix + ':' + signedName);
     return el;
   }
@@ -233,9 +233,9 @@ export class Signer {
    * @returns the signed select element.
    * @private
    */
-  private _select(el: HTMLSelectElement, codes: CodesDict): HTMLSelectElement {
+  private __signSelect(el: HTMLSelectElement, codes: CodesDict): HTMLSelectElement {
     el.querySelectorAll('option').forEach(opt => {
-      this._option(opt, codes);
+      this.__signOption(opt, codes);
     });
     return el;
   }
@@ -250,7 +250,7 @@ export class Signer {
    * @returns the signed option element.
    * @private
    */
-  private _option(el: HTMLOptionElement | HTMLInputElement, codes: CodesDict): HTMLOptionElement | HTMLInputElement {
+  private __signOption(el: HTMLOptionElement | HTMLInputElement, codes: CodesDict): HTMLOptionElement | HTMLInputElement {
     // Get the name parameter, either from the "select"
     // parent element of an option tag or from the name
     // attribute of the input element itself
@@ -259,13 +259,13 @@ export class Signer {
       const p = el.parentElement as HTMLSelectElement;
       n = p.name;
     }
-    const splitted = Signer._splitNamePrefix(n);
+    const splitted = Signer.__splitNamePrefix(n);
     const nameString = splitted[1];
     const prefix = splitted[0];
     const code = codes[prefix].code;
     const parentCode = codes[prefix].parent;
     const value = el.value;
-    const signedValue = this.value(nameString, code, parentCode, value);
+    const signedValue = this.signValue(nameString, code, parentCode, value);
     el.setAttribute('value', prefix + ':' + signedValue);
     return el;
   }
@@ -278,8 +278,8 @@ export class Signer {
    * @returns the signed radio button.
    * @private
    */
-  private _radio(el: HTMLInputElement, codes: CodesDict): HTMLInputElement {
-    return this._option(el, codes) as HTMLInputElement;
+  private __signRadio(el: HTMLInputElement, codes: CodesDict): HTMLInputElement {
+    return this.__signOption(el, codes) as HTMLInputElement;
   }
 
   /**
@@ -290,10 +290,10 @@ export class Signer {
    * @returns an array with [prefix, name]
    * @private
    */
-  private static _splitNamePrefix(name: string): [number, string] {
-    const splitted = name.split(':');
-    if (splitted.length == 2) {
-      return [parseInt(splitted[0], 10), splitted[1]];
+  private static __splitNamePrefix(name: string): [number, string] {
+    const namePrefix = name.split(':');
+    if (namePrefix.length == 2) {
+      return [parseInt(namePrefix[0], 10), namePrefix[1]];
     }
     return [0, name];
   }
@@ -306,7 +306,7 @@ export class Signer {
    * @returns the parentCode
    * @private
    */
-  private static _retrieveParentCode(formElement: Element, prefix: string | number = ''): string {
+  private static __retrieveParentCode(formElement: Element, prefix: string | number = ''): string {
     let result = ''; // A blank string indicates no parent
     const separator = prefix ?  ':' : '';
     const parentCodeEl = formElement.querySelector(`[name='${prefix}${separator}parent_code']`);
@@ -325,7 +325,7 @@ export class Signer {
    * @param formElement the form element to be signed.
    * @private
    */
-  private _form(formElement: Element): void {
+  private __signForm(formElement: Element): void {
     // Grab all codes within the form element
     const codeList: NodeList = formElement.querySelectorAll('[name$=code]');
     // Store all codes in a object
@@ -340,13 +340,13 @@ export class Signer {
           // Store prefix in codes list
           codes[prefix] = {
             code: codeValue,
-            parent: Signer._retrieveParentCode(formElement, prefix),
+            parent: Signer.__retrieveParentCode(formElement, prefix),
           };
         } else if (codes[0] === undefined) {
           // Allow to push a single code without prefix
           codes[0] = {
             code: codeValue,
-            parent: Signer._retrieveParentCode(formElement),
+            parent: Signer.__retrieveParentCode(formElement),
           };
         } else {
           const documentationURL = 'https://wiki.foxycart.com/v/2.0/hmac_validation#multiple_products_in_one_form';
@@ -358,15 +358,15 @@ export class Signer {
     // Sign inputs
     formElement.querySelectorAll('input[name]').forEach(i => {
       if (i.getAttribute('type') === 'radio') {
-        this._radio(i as HTMLInputElement, codes);
+        this.__signRadio(i as HTMLInputElement, codes);
       } else {
-        this._input(i as HTMLInputElement, codes);
+        this.__signInput(i as HTMLInputElement, codes);
       }
     });
     // Sign selects
-    formElement.querySelectorAll('select[name]').forEach(s => this._select(s as HTMLSelectElement, codes));
+    formElement.querySelectorAll('select[name]').forEach(s => this.__signSelect(s as HTMLSelectElement, codes));
     // Sign textAreas
-    formElement.querySelectorAll('textarea[name]').forEach(s => this._textArea(s as HTMLTextAreaElement, codes));
+    formElement.querySelectorAll('textarea[name]').forEach(s => this.__signTextArea(s as HTMLTextAreaElement, codes));
   }
 
   /**
@@ -378,9 +378,9 @@ export class Signer {
    * @returns the signed value for the "name" attribute
    * @private
    */
-  private static _buildSignedName(name: string, signature: string, value?: string | number) {
-    let open = Signer._valueOrOpen(value);
-    open = Signer._valueOrOpen(value) == '--OPEN--' ? '||open' : '';
+  private static __buildSignedName(name: string, signature: string, value?: string | number) {
+    let open = Signer.__valueOrOpen(value);
+    open = Signer.__valueOrOpen(value) == '--OPEN--' ? '||open' : '';
     return `${name}||${signature}${open}`;
   }
 
@@ -392,9 +392,9 @@ export class Signer {
    * @returns the built signed value
    * @private
    */
-  private static _buildSignedValue(signature: string, value?: string | number) {
-    let open = Signer._valueOrOpen(value);
-    open = Signer._valueOrOpen(value) == '--OPEN--' ? '||open' : (value as string);
+  private static __buildSignedValue(signature: string, value?: string | number) {
+    let open = Signer.__valueOrOpen(value);
+    open = Signer.__valueOrOpen(value) == '--OPEN--' ? '||open' : (value as string);
     return `${open}||${signature}`;
   }
 
@@ -407,7 +407,7 @@ export class Signer {
    * @returns the built query string argument.
    * @private
    */
-  private static _buildSignedQueryArg(name: string, signature: string, value: string | number) {
+  private static __buildSignedQueryArg(name: string, signature: string, value: string | number) {
     return `${name}||${signature}=${value}`;
   }
 
@@ -419,7 +419,7 @@ export class Signer {
    * @returns '--OPEN--' or the given value.
    * @private
    */
-  private static _valueOrOpen(value: string | number | undefined): string | number {
+  private static __valueOrOpen(value: string | number | undefined): string | number {
     if (value === undefined || value === null || value === '') {
       return '--OPEN--';
     }
@@ -437,7 +437,7 @@ export class Signer {
    * @returns true if the string format is evidence that it is already signed.
    * @private
    */
-  private static _isSigned(url: string): boolean {
+  private static __isSigned(url: string): boolean {
     return url.match(/^.*\|\|[0-9a-fA-F]{64}/) != null;
   }
 
@@ -448,7 +448,7 @@ export class Signer {
    * @returns the code found, or undefined if no code was found.
    * @private
    */
-  private static _getCodeFromURL(url: URL): string | undefined {
+  private static __getCodeFromURL(url: URL): string | undefined {
     for (const p of url.searchParams) {
       if (p[0] == 'code') {
         return p[1];
@@ -463,7 +463,7 @@ export class Signer {
    * @returns an array of the form elements found.
    * @private
    */
-  private static _findCartForms(doc: ParentNode): HTMLFormElement[] {
+  private static __findCartForms(doc: ParentNode): HTMLFormElement[] {
     return Array.from(doc.querySelectorAll('form')).filter(e => e.querySelector('[name=code]'));
   }
 
@@ -474,7 +474,7 @@ export class Signer {
    * @returns a cleaned URL string.
    * @private
    */
-  private static _replaceURLchars(urlStr: string): string {
+  private static __replaceUrlCharacters(urlStr: string): string {
     return urlStr.replace(/%7C/g, '|').replace(/%3D/g, '=').replace(/%2B/g, '+');
   }
 
@@ -485,11 +485,11 @@ export class Signer {
    * @returns the signed HTML snippet
    * @private
    */
-  private _fragment(doc: ParentNode): ParentNode {
+  private __fragment(doc: ParentNode): ParentNode {
     doc.querySelectorAll('a').forEach(l => {
-      l.href = this.url(l.href);
+      l.href = this.signUrl(l.href);
     });
-    Signer._findCartForms(doc).forEach(this._form.bind(this));
+    Signer.__findCartForms(doc).forEach(this.__signForm.bind(this));
     return doc;
   }
 
@@ -501,7 +501,7 @@ export class Signer {
    * @returns signed message.
    * @private
    */
-  private _message(message: string): string {
+  private __message(message: string): string {
     if (this._secret === undefined) {
       throw new Error('No secret was provided to build the hmac');
     }
