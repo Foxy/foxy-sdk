@@ -15,7 +15,10 @@ type CodesDict = {
  * allow for an easy to read code in the user application.
  *
  * @tutorial https://wiki.foxycart.com/v/2.0/hmac_validation
- * @example foxy.hmacSign.url("http://...") // signs a URL
+ * @example const signer = new Signer(mySecret); // or const signer = new Signer(); signer.setSecret(mySecret);
+ *          signer.signHtml('<html lang="en">...</html>'); // signs a URL
+ *          signer.signFile("/var/www/html/src/.../index.html", "/var/www/html/target/.../index.html"); // signs an HTML file
+ *          signer.signUrl("http://..."); // signs a URL
  */
 export class Signer {
   private _secret?: string;
