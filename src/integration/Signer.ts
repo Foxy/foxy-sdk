@@ -60,13 +60,19 @@ export class Signer {
    *
    * @param inputPath Path of the file to sign.
    * @param outputPath Path of the file where the signed result will be stored.
+   * @param readFunc a function that should read from file
+   * @param writeFunc a function that should write to to file
    * @returns a ParentNode object of the signed HTML.
    */
-  public htmlFile(inputPath: string, outputPath: string): Promise<ParentNode> {
+  public htmlFile(
+      inputPath: string, outputPath: string,
+      readFunc: (arg0: string) => Promise<JSDOM> = JSDOM.fromFile,
+      writeFunc: (path: string, content: string, callback: (err: any)=>void)=>void = fs.writeFile
+  ): Promise<ParentNode> {
     return new Promise((resolve, reject) => {
-      JSDOM.fromFile(inputPath).then(dom => {
+      readFunc(inputPath).then(dom => {
         const signed = this._fragment(dom.window.document);
-        fs.writeFile(outputPath, dom.serialize(), err => {
+        writeFunc(outputPath, dom.serialize(), err => {
           if (err) reject(err);
           else resolve(signed);
         });
