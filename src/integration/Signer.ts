@@ -1,5 +1,6 @@
 import * as crypto from 'crypto';
 import * as fs from 'fs';
+
 import { JSDOM } from 'jsdom';
 import { URL } from 'url';
 
@@ -68,9 +69,10 @@ export class Signer {
    * @returns a ParentNode object of the signed HTML.
    */
   public signFile(
-      inputPath: string, outputPath: string,
-      readFunc: (arg0: string) => Promise<JSDOM> = JSDOM.fromFile,
-      writeFunc: (path: string, content: string, callback: (err: any)=>void)=>void = fs.writeFile
+    inputPath: string,
+    outputPath: string,
+    readFunc: (arg0: string) => Promise<JSDOM> = JSDOM.fromFile,
+    writeFunc: (path: string, content: string, callback: (err: unknown) => void) => void = fs.writeFile
   ): Promise<ParentNode> {
     return new Promise((resolve, reject) => {
       readFunc(inputPath).then(dom => {
@@ -115,9 +117,11 @@ export class Signer {
     }
     // sign the url object
     for (const p of originalParams.entries()) {
-      const signed = this.__signQueryArg(decodeURIComponent(p[0]), decodeURIComponent(code), decodeURIComponent(p[1])).split(
-        '='
-      );
+      const signed = this.__signQueryArg(
+        decodeURIComponent(p[0]),
+        decodeURIComponent(code),
+        decodeURIComponent(p[1])
+      ).split('=');
       newParams.set(signed[0], signed[1]);
     }
     url.search = newParams.toString();
@@ -253,11 +257,14 @@ export class Signer {
    * @returns the signed option element.
    * @private
    */
-  private __signOption(el: HTMLOptionElement | HTMLInputElement, codes: CodesDict): HTMLOptionElement | HTMLInputElement {
+  private __signOption(
+    el: HTMLOptionElement | HTMLInputElement,
+    codes: CodesDict
+  ): HTMLOptionElement | HTMLInputElement {
     // Get the name parameter, either from the "select"
     // parent element of an option tag or from the name
     // attribute of the input element itself
-    let n = (el as any).name;
+    let n = (el as HTMLInputElement).name;
     if (n === undefined) {
       const p = el.parentElement as HTMLSelectElement;
       n = p.name;
@@ -311,7 +318,7 @@ export class Signer {
    */
   private static __retrieveParentCode(formElement: Element, prefix: string | number = ''): string {
     let result = ''; // A blank string indicates no parent
-    const separator = prefix ?  ':' : '';
+    const separator = prefix ? ':' : '';
     const parentCodeEl = formElement.querySelector(`[name='${prefix}${separator}parent_code']`);
     if (parentCodeEl) {
       const parentCode = parentCodeEl.getAttribute('value');
@@ -332,13 +339,13 @@ export class Signer {
     // Grab all codes within the form element
     const codeList: NodeList = formElement.querySelectorAll('[name$=code]');
     // Store all codes in a object
-    const codes: any = {};
+    const codes: CodesDict = {};
     for (const node of codeList) {
       const nameAttr = (node as Element).getAttribute('name');
-      const codeValue = (node as Element).getAttribute('value');
+      const codeValue = (node as Element).getAttribute('value') ?? '';
       if (nameAttr && nameAttr.match(/^([0-9]{1,3}:)?code/)) {
         const namePrefix = nameAttr.split(':');
-        const prefix = namePrefix[0];
+        const prefix = parseInt(namePrefix[0]);
         if (namePrefix.length == 2) {
           // Store prefix in codes list
           codes[prefix] = {
