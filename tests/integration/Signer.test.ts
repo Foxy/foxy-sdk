@@ -41,9 +41,9 @@ describe("Signer", () => {
 
   it("Signs a whole URL", () => {
     const fullURL =
-      "http://mockdomain.mock/?code=mycode&name=testname&price=123.00&other atribute=Some Other Thing";
+      "http://mockdomain.foxycart.com/cart/?code=mycode&name=testname&price=123.00&other atribute=Some Other Thing";
     const signedURL =
-      "http://mockdomain.mock/?" +
+      "http://mockdomain.foxycart.com/cart/?" +
       "code||43f429e41303929871266b879a880efce32b35bda757e70f527bc5c8e1353c0a=mycode&" +
       "name||07f23df6159ba32f01de36db07bf998d7661bda812a7c0d597cfacdefe0f0064=testname&" +
       "price||aed2692b1b278b04b974c3c9822e597dc5da880561cf256ab20b2873a5346b66=123.00&" +
@@ -198,9 +198,21 @@ describe("Signer", () => {
     console.error = consoleError;
   });
 
+  it("Does not signs an invalid URL", async () => {
+    const url = "http://invalidURL?code=ABC123&name=name&value=My Example Product";
+    const consoleError = console.error;
+    console.error = jest.fn();
+    let signed = signer.signUrl(url);
+    expect(signed).toBe(url);
+    const simpleHTML = `<html><head></head><body> <h1>Test HTML</h1> <li> <a href="#donate" data-href="#donate" title="Help support us">DONATE</a> </li> </body></html>`;
+    signed = signer.signHtml(simpleHTML);
+    expect(signed).toBe(simpleHTML);
+    console.error = consoleError;
+  });
+
   it("Does not sign without a secret", () => {
     const woSecretFoxy = new Signer();
-    const woSign = () => woSecretFoxy.signUrl("http://signthis?code=test&price=5");
+    const woSign = () => woSecretFoxy.signUrl("http://signthis.foxycart.com/cart?code=test&price=5");
     expect(woSign).toThrow();
   });
 

@@ -21,7 +21,8 @@ type CodesDict = {
  *          signer.signUrl("http://..."); // signs a URL
  */
 export class Signer {
-  private _secret?: string;
+  private __cartURL = "foxycart.com/cart";
+  private __secret?: string;
 
   /**
    * Creates an instance of this class.
@@ -42,7 +43,7 @@ export class Signer {
    * @returns Signer to allow for convenient concatenation.
    */
   public setSecret(secret: string): Signer {
-    this._secret = secret;
+    this.__secret = secret;
     return this;
   }
 
@@ -94,6 +95,10 @@ export class Signer {
     // Build a URL object
     if (Signer.__isSigned(urlStr)) {
       console.error('Attempt to sign a signed URL', urlStr);
+      return urlStr;
+    }
+    const cartURLpattern  = new RegExp(this.__cartURL, 'i');
+    if (!cartURLpattern.test(urlStr)) {
       return urlStr;
     }
     // Do not change invalid URLs
@@ -487,8 +492,9 @@ export class Signer {
    * @private
    */
   private __fragment(doc: ParentNode): ParentNode {
-    doc.querySelectorAll('a').forEach(l => {
-      l.href = this.signUrl(l.href);
+    doc.querySelectorAll(`a[href*='${this.__cartURL}']`).forEach(l => {
+      const anchor = l as HTMLAnchorElement;
+      anchor.href = this.signUrl(anchor.href);
     });
     Signer.__findCartForms(doc).forEach(this.__signForm.bind(this));
     return doc;
@@ -503,10 +509,10 @@ export class Signer {
    * @private
    */
   private __message(message: string): string {
-    if (this._secret === undefined) {
+    if (this.__secret === undefined) {
       throw new Error('No secret was provided to build the hmac');
     }
-    const hmac = crypto.createHmac('sha256', this._secret);
+    const hmac = crypto.createHmac('sha256', this.__secret);
     hmac.update(message);
     return hmac.digest('hex');
   }
