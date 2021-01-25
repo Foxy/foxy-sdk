@@ -30,9 +30,10 @@ Our SDK consists of 3 main parts available via the main file:
 
 1. **Integration** is for building integrations that connect to hAPI directly from a safe **server-side** environment. Apart from the API client, you'll also find a number of useful utilities for HMAC signing, removing sensitive info from responses and webhook verification under this export alias.
 2. **Customer** is for building **universal** apps and websites that interact with a subset of hAPI available to customers of a particular store. This export is also available as a pre-built library on our CDN.
-3. **Core**: is for building custom API clients that interact with Hypermedia API endpoints. This is the most advanced part of the SDK that every other built-in API client depends on. You can run it server and client-side.
+3. **Nucleon** is for building **custom elements** that work with our APIs and integrate into our apps and widgets. Our own `@foxy.io/elements` are built with Nucleon.
+4. **Core**: is for building custom API clients that interact with Hypermedia API endpoints. This is the most advanced part of the SDK that every other built-in API client depends on. You can run it server and client-side.
 
-Integration and Customer export API client classes for working with the respective endpoints. If you're using TypeScript, you'll also see the type exports for API-specific hypermedia relations and graphs named `Rels` and `Graph`. Let's connect to hAPI using `FoxySDK.Integration.API` class:
+Integration and Customer export API client classes for working with the respective endpoints. Nucleon exports a universal API client that uses request events to communicate with different backends. If you're using TypeScript, you'll also see the type exports for API-specific hypermedia relations and graphs named `Rels` and `Graph` if available. But for now, let's connect to hAPI using `FoxySDK.Integration.API` class:
 
 ```js
 const api = new FoxySDK.Integration.API({

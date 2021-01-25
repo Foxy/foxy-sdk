@@ -6,6 +6,7 @@ const path = require('path');
 module.exports = {
   entry: {
     Customer: './src/customer/index.ts',
+    Nucleon: './src/nucleon/index.ts',
   },
 
   mode: 'production',

@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Playground</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css" />
+    <link href="./nucleon.css" rel="stylesheet" />
+  </head>
+
+  <body>
+    <h1>FoxySDK.Nucleon.Element</h1>
+
+    <p>
+      Base class providing opt-in internationalization, validation, container-based styling and CRUD capabilities to the
+      custom elements extending it.
+    </p>
+
+    <h2>Getting started</h2>
+
+    <p>
+      By extending
+      <code>FoxySDK.Nucleon.Element</code> you automatically get access to all the features of
+      <a href="https://lit-element.polymer-project.org">LitElement</a> and
+      <a href="https://www.npmjs.com/package/@open-wc/scoped-elements">ScopedElementsMixin</a>, so if you're familiar
+      with them, you already know how to build upon our base class. For example, let's add some content:
+    </p>
+
+    <details open>
+      <summary>Demo</summary>
+      <demo-hello></demo-hello>
+    </details>
+
+    <details>
+      <summary>Code</summary>
+      <pre class="language-js"><code><!--
+        import { Nucleon } from '@foxy.io/sdk';
+        import { html } from 'lit-html';
+
+        class DemoHelloElement extends Nucleon.Element {
+          render() {
+            return html`Hello!`;
+          }
+        }
+
+        customElements.define('demo-hello', DemoHelloElement);
+        document.body.innerHTML = '<demo-hello></demo-hello>';
+      --></code></pre>
+    </details>
+
+    <h2>i18n</h2>
+
+    <p>
+      To make that message translatable, we can use <a href="https://www.i18next.com">i18next</a> with the
+      <code>lang</code> attribute. You are free to configure it as you like before passing it into the base constructor
+      as parameter:
+    </p>
+
+    <details open>
+      <summary>Demo</summary>
+      <demo-i18n lang="en"></demo-i18n>
+      <demo-i18n lang="ru"></demo-i18n>
+    </details>
+
+    <details>
+      <summary>Code</summary>
+      <pre class="language-js"><code><!--
+        import { Nucleon } from '@foxy.io/sdk';
+        import { html } from 'lit-html';
+        import i18next from 'i18next';
+
+        const whenI18NReady = i18next.init({
+          resources: {
+            en: { translation: { hello: 'Hello!' } },
+            ru: { translation: { hello: 'Привет!' } },
+          },
+        });
+
+        class DemoI18NElement extends Nucleon.Element {
+          constructor() {
+            super({
+              i18n: {
+                instance: i18next,
+                whenReady: whenI18NReady,
+              },
+            });
+          }
+
+          render() {
+            return html`${this._t('hello')}`;
+          }
+        }
+
+        customElements.define('demo-i18n', DemoI18NElement);
+
+        document.body.innerHTML = `
+          <demo-i18n lang="en"></demo-i18n>
+          <demo-i18n lang="ru"></demo-i18n>
+        `;
+      --></code></pre>
+    </details>
+
+    <p>
+      Our base class will automatically load new languages and namespaces into the provided i18next instance when the
+      respective attributes change. You can react to the current state in the render function like so:
+    </p>
+
+    <pre class="language-js"><code><!--
+      if (this._is('i18n.error')) return html`Failed to load translations`;
+      if (this._is('i18n.busy')) return html`Loading translations...`;
+      if (this._is('i18n.idle')) return html`${this._t('ready')}`;
+    --></code></pre>
+
+    <h2>Responsiveness</h2>
+
+    <p>
+      We can also change element styles based on its size using
+      <a href="https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver">ResizeObserver</a>. Once enabled on
+      construction, our base class will track changes in element width and update the <code>breakpoint</code> attribute
+      that you can use to conditionally toggle styles in your CSS. Here's an example:
+    </p>
+
+    <details open>
+      <summary>Demo</summary>
+      <demo-breakpoints style="width: 50px"></demo-breakpoints>
+      <demo-breakpoints style="width: 150px"></demo-breakpoints>
+      <demo-breakpoints style="width: 250px"></demo-breakpoints>
+    </details>
+
+    <details>
+      <summary>Code</summary>
+      <pre class="language-js"><code><!--
+        import { Nucleon } from '@foxy.io/sdk';
+        import { html, css } from 'lit-element';
+
+        class DemoBreakpointsElement extends Nucleon.Element {
+          static get styles() {
+            return css`
+              .sm-and-up,
+              .md-and-up {
+                display: none;
+              }
+
+              :host([breakpoint~='sm']) .sm-and-up {
+                display: inline;
+              }
+
+              :host([breakpoint~='md']) .md-and-up {
+                display: inline;
+              }
+            `;
+          }
+
+          constructor() {
+            super({ breakpoints: { sm: 100, md: 200 } });
+          }
+
+          render() {
+            return html`
+              <span class="xs-and-up">XS+</span>
+              <span class="sm-and-up">SM+</span>
+              <span class="md-and-up">MD+</span>
+            `;
+          }
+        }
+
+        customElements.define('demo-breakpoints', DemoBreakpointsElement);
+
+        document.body.innerHTML = `
+          <demo-breakpoints style="width: 50px"></demo-breakpoints>
+          <demo-breakpoints style="width: 150px"></demo-breakpoints>
+          <demo-breakpoints style="width: 250px"></demo-breakpoints>
+        `;
+      --></code></pre>
+    </details>
+
+    <h2>CRUD</h2>
+
+    <p>
+      Our base element class includes a powerful feature set allowing you to create, read, update and delete hypermedia
+      resources with ease. Let's start with reading and displaying data.
+    </p>
+
+    <h3>Reading</h3>
+
+    <p>
+      Since every hypermedia resource is identified by a URI, all you need to do to fetch a resource is to set the
+      <code>href</code> attribute or property. Let's display a post from the
+      <a href="https://api.test">JSONPlaceholder API</a>:
+    </p>
+
+    <details open>
+      <summary>Demo</summary>
+      <demo-card href="https://api.test/posts/123"></demo-card>
+    </details>
+
+    <details>
+      <summary>Code</summary>
+      <pre class="language-js"><code><!--
+        import { Nucleon } from '@foxy.io/sdk';
+        import { html } from 'lit-element';
+
+        class DemoCardElement extends Nucleon.Element {
+          render() {
+            return html`
+              <h1>Title: ${this.resource?.title ?? ''}</h1>
+              <p>Text: ${this.resource?.body ?? ''}</p>
+            `;
+          }
+        }
+
+        customElements.define('demo-card', DemoCardElement);
+        document.body.innerHTML = `<demo-card href="https://api.test/posts/123"></demo-card>`;
+      --></code></pre>
+    </details>
+
+    <p>
+      The resource at that URI becomes available via the <code>resource</code> property as soon as it's downloaded.
+      Since our example is very basic, we use optional chaining and nullish coalescing to display empty text while
+      loading the resource. However, if we wanted to show a spinner or an error message depending on the outcome, we
+      could always use the same method as with i18n:
+    </p>
+
+    <pre class="language-js"><code><!--
+      if (this._is('form.error')) return html`Post not found`;
+      if (this._is('form.busy')) return html`Loading post...`;
+      if (this._is('form.idle')) return html`Title: ${this.resource.title}`;
+    --></code></pre>
+
+    <p>
+      But what if we needed to access private content, for example, a <i>draft</i> of that blog post? Those aren't
+      supposed to be public. In that case we can intercept the <code>request</code> event emitted by our element and
+      inject auth token. Here's how:
+    </p>
+
+    <pre class="language-js"><code><!--
+      addEventListener('request', evt => {
+        if (evt instanceof Nucleon.RequestEvent) {
+          evt.detail.headers.set('Authorization', 'Bearer <YOUR-TOKEN-HERE>');
+        }
+      });
+    --></code></pre>
+
+    <p>
+      The object in <code>evt.detail</code> is an instance of the built-in
+      <a href="https://developer.mozilla.org/en-US/docs/Web/API/Request">Request</a> class, and you're free to modify it
+      as needed. Alternatively, you can cancel the default behaviour altogether and implement a custom request handler,
+      which might be useful for testing or development:
+    </p>
+
+    <pre class="language-js"><code><!--
+      addEventListener('request', evt => {
+        if (evt instanceof Nucleon.RequestEvent) {
+          evt.preventDefault();
+          evt.resolve(new Response('{ "foo": "bar" }'));
+        }
+      });
+    --></code></pre>
+
+    <p>We can also emulate network errors this way if we need to:</p>
+
+    <pre class="language-js"><code><!--
+      addEventListener('request', evt => {
+        if (evt instanceof Nucleon.RequestEvent) {
+          evt.preventDefault();
+          evt.reject(new TypeError('Page is offline'));
+        }
+      });
+    --></code></pre>
+
+    <p>
+      In this example we have added our event listener to the window object, however you can also listen to the request
+      event directly on the target (your custom element) or create a special custom element that will handle those
+      events for all of its descendants. The request events are cancelable, can participate in bubbling stage and cross
+      the shadow dom boundaries.
+    </p>
+
+    <h3>Updating</h3>
+
+    <p>
+      Updating is possible only for already existing and loaded resources. For this purpose our base class exposes a
+      number of useful protected methods: <code>this._setProperty({ key: value })</code> for updating,
+      <code>this._submit()</code> for sending changes to the server and <code>this._restore()</code> for discarding all
+      local changes. Let's create a simple form for updating our blog post:
+    </p>
+
+    <details open>
+      <summary>Demo</summary>
+      <demo-form href="https://api.test/posts/123"></demo-form>
+    </details>
+
+    <details>
+      <summary>Code</summary>
+      <pre class="language-js"><code><!--
+        import { Nucleon } from '@foxy.io/sdk';
+        import { html } from 'lit-html';
+
+        class DemoFormElement extends Nucleon.Element {
+          render() {
+            const title = this.resource?.title ?? '';
+            const body = this.resource?.body ?? '';
+
+            return html`
+              <form @submit=${evt => [evt.preventDefault(), this._submit()]}>
+                <label for="title">Title</label>
+                <input id="title" .value=${title} @input=${evt => this._setProperty({ title: evt.target.value })} />
+
+                <label for="body"> Text </label>
+                <textarea id="body" .value=${body} @input=${evt => this._setProperty({ body: evt.target.value })}></textarea>
+
+                <button ?disabled=${!this._is('form.idle.snapshot')}>Save</button>
+              </form>
+            `;
+          }
+        }
+
+        customElements.define('demo-form', DemoFormElement);
+        document.body.innerHTML = `<demo-form href="https://api.test/posts/123"></demo-form>`;
+      --></code></pre>
+    </details>
+
+    <h3>Creating</h3>
+
+    <p>
+      To create a post instead of updating it, we can reuse the <code>&lt;demo-form&gt;</code> element we've just made.
+      In fact, the only thing we'll need to change is the attributes: remove <code>href</code> pointing to a single
+      resource and add <code>parent</code> attribute pointing to collection instead:
+    </p>
+
+    <details open>
+      <summary>Demo</summary>
+      <demo-form parent="https://api.test/posts"></demo-form>
+    </details>
+
+    <details>
+      <summary>Code</summary>
+      <pre class="language-js"><code><!--
+        document.body.innerHTML = `<demo-form parent="https://api.test/posts"></demo-form>`;
+      --></code></pre>
+    </details>
+
+    <h3>Deleting</h3>
+
+    <p>
+      Finally, to delete a resource, we can call <code>this._delete()</code> as soon as we have a snapshot of the
+      resource available:
+    </p>
+
+    <details open>
+      <summary>Demo</summary>
+      <demo-remover href="https://api.test/posts/123"></demo-remover>
+    </details>
+
+    <details>
+      <summary>Code</summary>
+      <pre class="language-js"><code><!--
+        import { Nucleon } from '@foxy.io/sdk';
+        import { html } from 'lit-html';
+
+        class DemoRemoverElement extends Nucleon.Element {
+          render() {
+            return html`
+              <button
+                ?disabled=${!this._is('form.idle')}
+                @click=${() => confirm(`Delete ${this.resource.title}?`) && this._delete()}
+              >
+                Delete
+              </button>
+            `;
+          }
+        }
+
+        customElements.define('demo-remover', DemoRemoverElement);
+        document.body.innerHTML = `<demo-remover href="https://api.test/posts/123"></demo-remover>`;
+      --></code></pre>
+    </details>
+
+    <h2>Form validation</h2>
+
+    <p>
+      In addition to the built-in validations, we can add custom ones for as many resource properties as we like.
+      Assertions are stored in a static readonly property called <code>resourceV8N</code>, grouped by a unique arbitrary
+      label. Each assertion is a function that receives partial resource as input and expects either
+      <code>true</code> or <code>string</code> error code in return if the condition it validates is met or violated
+      respectively.
+    </p>
+
+    <p>
+      Once assertions are in place, we'll have access to 4 new states:
+      <code>form.idle.snapshot.modified.valid</code> and <code>form.idle.template.valid</code> for valid resource or
+      draft, and <code>form.idle.snapshot.modified.invalid</code> and <code>form.idle.template.invalid</code> for
+      invalid resource or draft respectively. Localized error messages will be available via
+      <code>this._getErrorMessages()</code>. Let's try it out by making title required and limited to 100 characters:
+    </p>
+
+    <details open>
+      <summary>Demo</summary>
+      <demo-v8n parent="https://api.test/posts"></demo-v8n>
+    </details>
+
+    <details>
+      <summary>Code</summary>
+      <pre class="language-js"><code><!--
+        import { Nucleon } from '@foxy.io/sdk';
+        import { html } from 'lit-html';
+
+        class DemoV8NElement extends Nucleon.Element {
+          static get resourceV8N() {
+            return {
+              title: [
+                ({ title }) => (title && title.length > 0) || 'Title is required',
+                ({ title }) => (title && title.length <= 100) || 'Title is limited to 100 characters',
+              ],
+            };
+          }
+
+          render() {
+            return html`
+              <form @submit=${evt => [evt.preventDefault(), this._submit()]}>
+                <p>
+                  <label for="title">Title</label>
+                  <input id="title" value=${this.resource?.title ?? ''} @input=${evt => this._setProperty({ title: evt.target.value })} />
+                  <small aria-live="polite">${this._getErrorMessages().title ?? ''}</small>
+                </p>
+
+                <button ?disabled=${!this._is('form.idle.snapshot.modified.valid') && !this._is('form.idle.template.valid')}>Submit</button>
+              </form>
+            `;
+          }
+        }
+
+        customElements.define('demo-v8n', DemoV8NElement);
+        document.body.innerHTML = `<demo-v8n parent="https://api.test/posts"></demo-v8n>`;
+      --></code></pre>
+    </details>
+
+    <h2>Resource sync</h2>
+
+    <p>
+      Consider two elements: one in the nav bar, displaying user's profile picture and name, and another in the main
+      document, rendering a form that allows changing these values. When user submits the form, we need to reflect
+      changes in the nav bar. How do we do that? There's a variety of methods – e.g. if you're into Vue, you'd use Vuex,
+      or Redux for React etc. – or just wire the two elements together with event listeners.
+    </p>
+
+    <p>
+      With our base element class there's no need for extra code because our resource sync feature will automatically
+      update every element on the page as soon as one of them makes a <code>PATCH</code>, <code>PUT</code> or
+      <code>DELETE</code> request and receives a <code>2XX</code> response in return. If a new item is added to a
+      collection via <code>POST</code>, all elements displaying that collection will be notified as well.
+    </p>
+
+    <p>
+      Here's a quick demo for which we can reuse our previous elements. Try changing title in the form and see how it
+      gets updated in the card message above without any extra wiring:
+    </p>
+
+    <details open>
+      <summary>Demo</summary>
+      <demo-card href="https://api.test/posts/123"></demo-card>
+      <demo-form href="https://api.test/posts/123"></demo-form>
+    </details>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.23.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.23.0/plugins/unescaped-markup/prism-unescaped-markup.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.23.0/plugins/normalize-whitespace/prism-normalize-whitespace.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.23.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="./nucleon.js"></script>
+
+    <style>
+      demo-breakpoints {
+        display: block;
+        border: 1px solid red;
+        margin: 4px 0;
+      }
+    </style>
+  </body>
+</html>
