@@ -109,7 +109,6 @@ export class NucleonAPI<TGraph> extends API<TGraph> {
         const action = newResource ? 'updating' : 'deleting';
 
         this._console.info(`NucleonAPI: ${tag} ${action} ${link} in ${this.__group} group`);
-        console.log(newResource);
         resource.set(newResource);
       }
     }
