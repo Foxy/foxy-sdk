@@ -11,6 +11,10 @@ export type Resource = {
       readonly href: string;
     };
   };
+
+  readonly _embedded?: {
+    readonly [key: string]: Resource | ReadonlyArray<Resource>;
+  };
 };
 
 export type NucleonElementRestoreEvent = {
