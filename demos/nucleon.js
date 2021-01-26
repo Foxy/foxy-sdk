@@ -69,8 +69,8 @@ class DemoBreakpointsElement extends DemoElement {
 class DemoCardElement extends DemoElement {
   render() {
     return html`
-      <h1>Title: ${this.resource?.title ?? ''}</h1>
-      <p>Text: ${this.resource?.body ?? ''}</p>
+      <h1>${this.resource?.title ?? ''}</h1>
+      <p>${this.resource?.body ?? ''}</p>
     `;
   }
 }
@@ -147,6 +147,19 @@ class DemoV8NElement extends DemoElement {
   }
 }
 
+class DemoListElement extends DemoElement {
+  render() {
+    return html`
+      ${this.resource?._embedded.posts.map(
+        post => html`
+          <h4>${post.title}</h4>
+          <p>${post.body ?? ''}</p>
+        `
+      )}
+    `;
+  }
+}
+
 customElements.define('demo-hello', DemoHelloElement);
 customElements.define('demo-i18n', DemoI18NElement);
 customElements.define('demo-breakpoints', DemoBreakpointsElement);
@@ -154,11 +167,35 @@ customElements.define('demo-card', DemoCardElement);
 customElements.define('demo-form', DemoFormElement);
 customElements.define('demo-remover', DemoRemoverElement);
 customElements.define('demo-v8n', DemoV8NElement);
+customElements.define('demo-list', DemoListElement);
 
 const post = {
   _links: { self: { href: 'https://api.test/posts/123' } },
   body: 'Quia et suscipit suscipit recusandae consequuntur expedita et cum reprehenderit molestiae.',
   title: 'Lorem ipsum',
+};
+
+const posts = {
+  _embedded: {
+    posts: [
+      {
+        _links: { self: { href: 'https://api.test/posts/123' } },
+        body: 'Try editing this post and see how it updates in the card.',
+        title: 'Post 123',
+      },
+      {
+        _links: { self: { href: 'https://api.test/posts/456' } },
+        body: 'Quia et suscipit suscipit recusandae consequuntur.',
+        title: 'Post 456',
+      },
+      {
+        _links: { self: { href: 'https://api.test/posts/789' } },
+        body: 'Expedita et cum reprehenderit molestiae.',
+        title: 'Post 789',
+      },
+    ],
+  },
+  _links: { self: { href: 'https://api.test/posts' } },
 };
 
 addEventListener('request', async evt => {
@@ -182,6 +219,10 @@ addEventListener('request', async evt => {
   }
 
   if (url === 'https://api.test/posts') {
+    if (method === 'GET') {
+      return evt.detail.resolve(new Response(JSON.stringify(posts)));
+    }
+
     if (method === 'POST') {
       const { title, body } = await evt.detail.request.json();
       return evt.detail.resolve(new Response(JSON.stringify({ ...post, body, title })));
