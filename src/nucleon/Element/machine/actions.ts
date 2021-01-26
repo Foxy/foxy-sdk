@@ -4,6 +4,7 @@ import {
   NucleonElementEvent,
   NucleonElementReloadEvent,
   NucleonElementRestoreEvent,
+  NucleonElementSetGroupEvent,
   NucleonElementSetHrefEvent,
   NucleonElementSetI18NLangEvent,
   NucleonElementSetI18NNsEvent,
@@ -13,6 +14,7 @@ import {
   Resource,
 } from './types';
 
+import { NucleonAPI } from '../../API';
 import { cloneDeep } from 'lodash-es';
 import { isResource } from '../../utils';
 
@@ -26,6 +28,20 @@ export const setHref = assign<NucleonElementContext, NucleonElementSetHrefEvent>
   backup: null,
   errors: [],
   href: (ctx, evt) => (evt.type === 'SET_HREF' ? evt.data : ctx.href),
+  resource: null,
+});
+
+export const setGroup = assign<NucleonElementContext, NucleonElementSetGroupEvent>({
+  api: (ctx, evt) =>
+    new NucleonAPI({
+      base: new URL(document.baseURI),
+      element: ctx.element,
+      group: evt.data,
+      level: 10,
+    }),
+  backup: null,
+  errors: [],
+  group: (_, evt) => evt.data,
   resource: null,
 });
 

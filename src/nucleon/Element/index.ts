@@ -31,6 +31,7 @@ export abstract class NucleonElement<TResource extends Resource = any> extends S
 
   static get properties(): PropertyDeclarations {
     return {
+      group: { noAccessor: true, reflect: true, type: String },
       href: { noAccessor: true, reflect: true, type: String },
       lang: { noAccessor: true, reflect: true, type: String },
       ns: { noAccessor: true, reflect: true, type: String },
@@ -77,6 +78,14 @@ export abstract class NucleonElement<TResource extends Resource = any> extends S
 
   set href(data: string) {
     if (data !== this.href) this._send({ data, type: 'SET_HREF' });
+  }
+
+  get group(): string {
+    return this._getContext('group');
+  }
+
+  set group(data: string) {
+    if (data !== this.group) this._send({ data, type: 'SET_GROUP' });
   }
 
   get parent(): string {

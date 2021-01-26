@@ -19,6 +19,7 @@ export const createContext = <TResource extends Resource>(
   breakpoints: init.breakpoints ?? null,
   element: init.element,
   errors: [{ code: 'link_required', type: 'fatal' }],
+  group: 'default',
   href: null,
 
   i18n: {

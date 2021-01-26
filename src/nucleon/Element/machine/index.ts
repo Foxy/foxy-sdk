@@ -42,6 +42,7 @@ export const createBaseMachine = <TResource extends Resource>(
         initial: 'unknown',
         on: {
           RELOAD: { actions: actions.reset, target: '.unknown' },
+          SET_GROUP: { actions: actions.setGroup, target: '.unknown' },
           SET_HREF: { actions: actions.setHref, target: '.unknown' },
           SET_PARENT: { actions: actions.setParent, target: '.unknown' },
           SET_RESOURCE: { actions: actions.setResource, target: '.unknown' },

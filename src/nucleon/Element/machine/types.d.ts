@@ -34,6 +34,11 @@ export type NucleonElementSetHrefEvent = {
   data: string | null;
 };
 
+export type NucleonElementSetGroupEvent = {
+  type: 'SET_GROUP';
+  data: string;
+};
+
 export type NucleonElementSetParentEvent = {
   type: 'SET_PARENT';
   data: string | null;
@@ -79,6 +84,7 @@ export type NucleonElementEvent<T extends Resource = any> =
   | NucleonElementDeleteEvent
   | NucleonElementSetHrefEvent
   | NucleonElementRestoreEvent
+  | NucleonElementSetGroupEvent
   | NucleonElementSetParentEvent
   | NucleonElementSetI18NNsEvent
   | NucleonElementSetI18NLangEvent
@@ -96,6 +102,7 @@ export type NucleonElementContext<T extends Resource = any> = {
     t: TFunction;
   };
   href: string | null;
+  group: string;
   parent: string | null; // optional parent collection uri to enable POST requests
   errors: NucleonElementError[];
   backup: T | null;
