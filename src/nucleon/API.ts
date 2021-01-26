@@ -9,6 +9,8 @@ import traverse from 'traverse';
 const exposedResources: Record<string, ExposeInit[]> = {};
 
 export class NucleonAPI<TGraph> extends API<TGraph> {
+  private readonly __unexposeCallbacks: Unexpose[] = [];
+
   private readonly __element: EventTarget;
 
   private readonly __group: string;
@@ -63,10 +65,19 @@ export class NucleonAPI<TGraph> extends API<TGraph> {
     resources.push(init);
     exposedResources[this.__group] = resources;
 
-    return () => {
+    const unexpose = () => {
       resources.splice(resources.indexOf(init), 1);
       this._console.trace(`NucleonAPI: ${tag} unsubscribed from resource updates`);
+      this.__unexposeCallbacks.splice(this.__unexposeCallbacks.indexOf(unexpose), 1);
     };
+
+    this.__unexposeCallbacks.push(unexpose);
+    return unexpose;
+  }
+
+  destroy(): void {
+    this.__unexposeCallbacks.forEach(unexpose => unexpose());
+    this.__unexposeCallbacks.length = 0;
   }
 
   private async __fetchFromExposedResources(request: Request) {
