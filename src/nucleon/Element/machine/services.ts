@@ -41,7 +41,7 @@ export const deleteResource: NucleonElementService = async (ctx: NucleonElementC
 export const exposeResource: NucleonElementService = ctx => send => {
   const unexpose = ctx.api?.expose({
     add: () => send({ type: 'RELOAD' }),
-    get: () => ctx.resource,
+    get: () => ctx.backup ?? ctx.resource,
     set: data => send({ data, type: 'SET_RESOURCE' }),
   });
 

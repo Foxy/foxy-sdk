@@ -62,6 +62,7 @@ export const createBaseMachine = <TResource extends Resource>(
             states: {
               snapshot: {
                 initial: 'unknown',
+                invoke: { src: services.exposeResource },
                 on: { DELETE: '#root.form.busy.deleting' },
                 states: {
                   modified: {
@@ -70,7 +71,7 @@ export const createBaseMachine = <TResource extends Resource>(
                       RESTORE: { actions: 'restore', target: '#root.form.unknown' },
                       SET_PROPERTY: {
                         actions: [actions.setPartialResource, actions.validateResource],
-                        target: '#root.form.unknown',
+                        target: 'unknown',
                       },
                     },
                     states: {
@@ -81,11 +82,10 @@ export const createBaseMachine = <TResource extends Resource>(
                   },
                   unknown: createTransientState({ modified: guards.hasChanges }, 'unmodified'),
                   unmodified: {
-                    invoke: { src: services.exposeResource },
                     on: {
                       SET_PROPERTY: {
                         actions: [actions.backupResource, actions.setPartialResource, actions.validateResource],
-                        target: '#root.form.unknown',
+                        target: 'unknown',
                       },
                     },
                   },

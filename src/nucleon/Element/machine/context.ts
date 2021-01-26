@@ -12,6 +12,7 @@ export const createContext = <TResource extends Resource>(
   api: new NucleonAPI({
     base: new URL(document.baseURI),
     element: init.element,
+    level: 10,
   }),
 
   backup: null,

@@ -56,10 +56,17 @@ export class NucleonAPI<TGraph> extends API<TGraph> {
    * @returns Unexpose callback to unsubscribe from updates
    */
   expose<TResource>(init: ExposeInit<TResource>): Unexpose {
+    const tag = (this.__element as Element).tagName?.toLowerCase();
+    this._console.trace(`NucleonAPI: ${tag} subscribed to resource updates`);
+
     const resources = exposedResources[this.__group] ?? [];
     resources.push(init);
     exposedResources[this.__group] = resources;
-    return () => resources.splice(resources.indexOf(init), 1);
+
+    return () => {
+      resources.splice(resources.indexOf(init), 1);
+      this._console.trace(`NucleonAPI: ${tag} unsubscribed from resource updates`);
+    };
   }
 
   private async __fetchFromExposedResources(request: Request) {
@@ -89,12 +96,18 @@ export class NucleonAPI<TGraph> extends API<TGraph> {
     const patch = traverse(responseJSON).reduce(toPatch, new Map()) as Patch;
     if (request.method === 'DELETE') patch.set(responseJSONKey, null);
 
-    if (exposedResources[this.__group]) {
-      for (const resource of exposedResources[this.__group]) {
-        const oldResource = resource.get();
-        const newResource = traverse({ v: oldResource }).map(applyPatch(patch)).v ?? null;
+    // list of exposed resources may change while applying updates, so we use a shallow local copy
+    const resources = [...(exposedResources[this.__group] ?? [])];
 
-        if (!isEqual(oldResource, newResource)) resource.set(newResource);
+    for (const resource of resources) {
+      const oldResource = resource.get();
+      const newResource = traverse({ v: oldResource }).map(applyPatch(patch)).v ?? null;
+
+      if (!isEqual(oldResource, newResource)) {
+        const tag = (this.__element as Element).tagName?.toLowerCase();
+        const link = newResource._links.self.href;
+        this._console.info(`NucleonAPI: ${tag} updating ${link} in ${this.__group} group`);
+        resource.set(newResource);
       }
     }
   }
