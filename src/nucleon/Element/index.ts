@@ -10,10 +10,10 @@ import {
   Resource,
 } from './machine/types';
 import { TFunction, i18n } from 'i18next';
-import { get, isEqual } from 'lodash-es';
 
 import { ScopedElementsMixin } from '@open-wc/scoped-elements';
 import { createBaseMachine } from './machine';
+import { get } from 'lodash-es';
 
 type NucleonElementParameters<T extends Resource = any> = {
   resourceI18N?: NucleonElementV8N<T>;
@@ -61,7 +61,7 @@ export abstract class NucleonElement<TResource extends Resource = any> extends S
   }
 
   set ns(data: string) {
-    if (data !== this.ns) this._send({ data, type: 'SET_I18N_NS' });
+    this._send({ data, type: 'SET_I18N_NS' });
   }
 
   get lang(): string {
@@ -69,7 +69,7 @@ export abstract class NucleonElement<TResource extends Resource = any> extends S
   }
 
   set lang(data: string) {
-    if (data !== this.lang) this._send({ data, type: 'SET_I18N_LANG' });
+    this._send({ data, type: 'SET_I18N_LANG' });
   }
 
   get href(): string {
@@ -77,7 +77,7 @@ export abstract class NucleonElement<TResource extends Resource = any> extends S
   }
 
   set href(data: string) {
-    if (data !== this.href) this._send({ data, type: 'SET_HREF' });
+    this._send({ data, type: 'SET_HREF' });
   }
 
   get group(): string {
@@ -85,7 +85,7 @@ export abstract class NucleonElement<TResource extends Resource = any> extends S
   }
 
   set group(data: string) {
-    if (data !== this.group) this._send({ data, type: 'SET_GROUP' });
+    this._send({ data, type: 'SET_GROUP' });
   }
 
   get parent(): string {
@@ -93,7 +93,7 @@ export abstract class NucleonElement<TResource extends Resource = any> extends S
   }
 
   set parent(data: string) {
-    if (data !== this.parent) this._send({ data, type: 'SET_PARENT' });
+    this._send({ data, type: 'SET_PARENT' });
   }
 
   get resource(): TResource | null {
@@ -101,7 +101,7 @@ export abstract class NucleonElement<TResource extends Resource = any> extends S
   }
 
   set resource(data: TResource | null) {
-    if (!isEqual(data, this.resource)) this._send({ data, type: 'SET_RESOURCE' });
+    this._send({ data, type: 'SET_RESOURCE' });
   }
 
   connectedCallback(): void {
