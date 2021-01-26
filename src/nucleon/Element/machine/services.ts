@@ -42,7 +42,7 @@ export const exposeResource: NucleonElementService = ctx => send => {
   const unexpose = ctx.api?.expose({
     add: () => send({ type: 'RELOAD' }),
     get: () => ctx.backup ?? ctx.resource,
-    set: data => send({ data, type: 'SET_RESOURCE' }),
+    set: data => (data ? send({ data, type: 'SET_RESOURCE' }) : send({ data, type: 'SET_HREF' })),
   });
 
   return unexpose;

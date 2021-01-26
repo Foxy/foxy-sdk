@@ -105,8 +105,11 @@ export class NucleonAPI<TGraph> extends API<TGraph> {
 
       if (!isEqual(oldResource, newResource)) {
         const tag = (this.__element as Element).tagName?.toLowerCase();
-        const link = newResource._links.self.href;
-        this._console.info(`NucleonAPI: ${tag} updating ${link} in ${this.__group} group`);
+        const link = oldResource?._links.self.href;
+        const action = newResource ? 'updating' : 'deleting';
+
+        this._console.info(`NucleonAPI: ${tag} ${action} ${link} in ${this.__group} group`);
+        console.log(newResource);
         resource.set(newResource);
       }
     }
