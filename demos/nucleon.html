@@ -28,7 +28,7 @@
 
     <details open>
       <summary>Demo</summary>
-      <demo-hello></demo-hello>
+      <demo-hello group="demo-0"></demo-hello>
     </details>
 
     <details>
@@ -58,8 +58,8 @@
 
     <details open>
       <summary>Demo</summary>
-      <demo-i18n lang="en"></demo-i18n>
-      <demo-i18n lang="ru"></demo-i18n>
+      <demo-i18n lang="en" group="demo-1"></demo-i18n>
+      <demo-i18n lang="ru" group="demo-1"></demo-i18n>
     </details>
 
     <details>
@@ -122,9 +122,9 @@
 
     <details open>
       <summary>Demo</summary>
-      <demo-breakpoints style="width: 50px"></demo-breakpoints>
-      <demo-breakpoints style="width: 150px"></demo-breakpoints>
-      <demo-breakpoints style="width: 250px"></demo-breakpoints>
+      <demo-breakpoints style="width: 50px" group="demo-2"></demo-breakpoints>
+      <demo-breakpoints style="width: 150px" group="demo-2"></demo-breakpoints>
+      <demo-breakpoints style="width: 250px" group="demo-2"></demo-breakpoints>
     </details>
 
     <details>
@@ -191,7 +191,7 @@
 
     <details open>
       <summary>Demo</summary>
-      <demo-card href="https://api.test/posts/123"></demo-card>
+      <demo-card href="https://api.test/posts/123" group="demo-3"></demo-card>
     </details>
 
     <details>
@@ -286,7 +286,7 @@
 
     <details open>
       <summary>Demo</summary>
-      <demo-form href="https://api.test/posts/123"></demo-form>
+      <demo-form href="https://api.test/posts/123" group="demo-4"></demo-form>
     </details>
 
     <details>
@@ -329,7 +329,7 @@
 
     <details open>
       <summary>Demo</summary>
-      <demo-form parent="https://api.test/posts"></demo-form>
+      <demo-form parent="https://api.test/posts" group="demo-5"></demo-form>
     </details>
 
     <details>
@@ -348,7 +348,8 @@
 
     <details open>
       <summary>Demo</summary>
-      <demo-remover href="https://api.test/posts/123"></demo-remover>
+      <demo-card href="https://api.test/posts/123" group="demo-6"></demo-card>
+      <demo-remover href="https://api.test/posts/123" group="demo-6"></demo-remover>
     </details>
 
     <details>
@@ -395,7 +396,7 @@
 
     <details open>
       <summary>Demo</summary>
-      <demo-v8n parent="https://api.test/posts"></demo-v8n>
+      <demo-v8n parent="https://api.test/posts" group="demo-7"></demo-v8n>
     </details>
 
     <details>
@@ -457,16 +458,18 @@
 
     <details open>
       <summary>Demo</summary>
-      <demo-card href="https://api.test/posts/123"></demo-card>
-      <demo-form href="https://api.test/posts/123"></demo-form>
+      <demo-card href="https://api.test/posts/123" group="demo-8"></demo-card>
+      <demo-form href="https://api.test/posts/123" group="demo-8"></demo-form>
+      <demo-remover href="https://api.test/posts/123" group="demo-8"></demo-remover>
     </details>
 
-    <p>Resource sync also works with embedded resources. Try displaying the first post in a list below:</p>
+    <p>Resource sync also works with embedded resources. Try editing the first post in a list below:</p>
 
     <details open>
       <summary>Demo</summary>
-      <demo-list href="https://api.test/posts"></demo-list>
-      <demo-form href="https://api.test/posts/123"></demo-form>
+      <demo-list href="https://api.test/posts" group="demo-9"></demo-list>
+      <demo-form href="https://api.test/posts/123" group="demo-9"></demo-form>
+      <demo-remover href="https://api.test/posts/123" group="demo-9"></demo-remover>
     </details>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.23.0/components/prism-core.min.js"></script>
