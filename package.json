@@ -3,6 +3,8 @@
   "type": "module",
   "version": "0.0.0",
   "description": "Universal SDK for a full server-side and a limited in-browser access to Foxy hAPI.",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
   "types": "dist/types/index.d.ts",
   "exports": {
     ".": {
