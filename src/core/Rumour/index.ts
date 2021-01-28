@@ -1,1 +1,1 @@
-export { Rumour } from './Rumour';
+export { Rumour } from './Rumour.js';

@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { storageV8N, v8n } from '../v8n';
+import consola, { Consola } from 'consola';
+import { storageV8N, v8n } from '../v8n.js';
 
-import { Consola } from 'consola';
 import { Response as GlobalThisResponse } from 'cross-fetch';
 import type { Graph } from '../Graph';
-import { Node } from './Node';
+import { Node } from './Node.js';
 import type { Query } from '../Query';
 import type { Resource } from '../Resource';
 
@@ -83,7 +83,7 @@ export class Response<
   static readonly v8n = {
     constructor: v8n().schema({
       cache: storageV8N,
-      console: v8n().instanceOf(Consola),
+      console: v8n().instanceOf(consola.constructor),
       fetch: v8n().typeOf('function'),
     }),
   };

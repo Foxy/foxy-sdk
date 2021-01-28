@@ -1,4 +1,4 @@
-import '../core/v8n';
+import '../core/v8n.js';
 
 import v8n from 'v8n';
 

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 
 const TerserPlugin = require('terser-webpack-plugin');
+const webpack = require('webpack');
 const path = require('path');
 
 module.exports = {
@@ -36,8 +37,17 @@ module.exports = {
     path: path.join(__dirname, './dist/cdn'),
   },
 
+  plugins: [
+    /** allows processing .js import paths with ts-loader */
+    new webpack.NormalModuleReplacementPlugin(/(.*)\.js/, resource => {
+      if (!resource.context.includes('node_modules')) {
+        resource.request = resource.request.replace(/(.*)\.js/, '$1.ts');
+      }
+    }),
+  ],
+
   resolve: {
-    extensions: ['.ts', '.js'],
+    extensions: ['.ts'],
   },
 
   target: 'web',

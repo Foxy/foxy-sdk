@@ -1,4 +1,4 @@
-import { Context, Event } from './types';
+import type { Context, Event } from './types';
 
 import { assign } from 'xstate';
 

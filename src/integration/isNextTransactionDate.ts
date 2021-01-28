@@ -1,4 +1,4 @@
-import { CustomerPortalSettings } from './Graph/customer_portal_settings';
+import type { CustomerPortalSettings } from './Graph/customer_portal_settings';
 import jsonata from 'jsonata';
 import parse from 'parse-duration';
 

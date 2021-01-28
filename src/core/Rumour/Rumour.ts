@@ -1,7 +1,7 @@
-import { CeaseCallback, Collection, Patch, Resource, Share, TrackCallback } from './types';
+import type { CeaseCallback, Collection, Patch, Resource, Share, TrackCallback } from './types';
 import { get, isEqual } from 'lodash-es';
 
-import { UpdateError } from './UpdateError';
+import { UpdateError } from './UpdateError.js';
 import traverse from 'traverse';
 
 /**

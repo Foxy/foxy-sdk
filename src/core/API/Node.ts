@@ -1,11 +1,11 @@
-import { V8N, storageV8N, v8n } from '../v8n';
+import { V8N, storageV8N, v8n } from '../v8n.js';
+import consola, { Consola } from 'consola';
 
-import { Consola } from 'consola';
-import { Graph } from '../Graph';
-import { Query } from '../Query';
+import type { Graph } from '../Graph';
+import type { Query } from '../Query';
 import { Request } from 'cross-fetch';
-import { ResolutionError } from './ResolutionError';
-import { Response } from './Response';
+import { ResolutionError } from './ResolutionError.js';
+import { Response } from './Response.js';
 
 /** Chain of curies leading to a hAPI resource starting with a base URL. */
 type CurieChain = [URL, ...string[]];
@@ -67,7 +67,7 @@ export class Node<TGraph extends Graph> {
   static readonly v8n: Record<string, V8N> = {
     classConstructor: v8n().schema({
       cache: storageV8N,
-      console: v8n().instanceOf(Consola),
+      console: v8n().instanceOf(consola.constructor),
       fetch: v8n().typeOf('function'),
       path: v8n().curieChain(),
     }),

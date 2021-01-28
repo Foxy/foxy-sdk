@@ -1,7 +1,7 @@
-import * as actions from './actions';
-import * as guards from './guards';
+import * as actions from './actions.js';
+import * as guards from './guards.js';
 
-import { Context, Event, State } from './types';
+import type { Context, Event, State } from './types';
 
 import { createMachine } from 'xstate';
 
