@@ -22,7 +22,7 @@ type CodesDict = {
  */
 export class Signer {
 
-  public static readonly cart_excludes = [
+  public static readonly cartExcludes = [
     // Analytics values
     "_",
     "_ga",
@@ -72,7 +72,7 @@ export class Signer {
     "shipping_company",
   ];
 
-  public static readonly cart_excludes_prefixes = ["h:", "x:", "__", "utm_"];
+  public static readonly cartExcludePrefixes = ["h:", "x:", "__", "utm_"];
 
   private __cartURL = '/cart?';
 
@@ -589,8 +589,8 @@ export class Signer {
   private __shouldSkipInput(name: string): boolean {
     const prefixStripped = name.replace(/^\d:/, "");
     return (
-      Signer.cart_excludes.includes(prefixStripped) ||
-      Signer.cart_excludes_prefixes.some(
+      Signer.cartExcludes.includes(prefixStripped) ||
+      Signer.cartExcludePrefixes.some(
         (p) =>
           name.toLowerCase().startsWith(p) ||
           (name.startsWith("0:") && prefixStripped.toLowerCase().startsWith(p))
