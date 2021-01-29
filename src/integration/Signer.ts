@@ -21,6 +21,59 @@ type CodesDict = {
  *          signer.signUrl("http://..."); // signs a URL
  */
 export class Signer {
+
+  public static readonly cart_excludes = [
+    // Analytics values
+    "_",
+    "_ga",
+    "_ke",
+    // Cart values
+    "cart",
+    "fcsid",
+    "empty",
+    "coupon",
+    "output",
+    "sub_token",
+    "redirect",
+    "callback",
+    "locale",
+    "template_set",
+    // Checkout pre-population values
+    "customer_email",
+    "customer_first_name",
+    "customer_last_name",
+    "customer_address1",
+    "customer_address2",
+    "customer_city",
+    "customer_state",
+    "customer_postal_code",
+    "customer_country",
+    "customer_phone",
+    "customer_company",
+    "billing_first_name",
+    "billing_last_name",
+    "billing_address1",
+    "billing_address2",
+    "billing_city",
+    "billing_postal_code",
+    "billing_region",
+    "billing_phone",
+    "billing_company",
+    "shipping_first_name",
+    "shipping_last_name",
+    "shipping_address1",
+    "shipping_address2",
+    "shipping_city",
+    "shipping_state",
+    "shipping_country",
+    "shipping_postal_code",
+    "shipping_region",
+    "shipping_phone",
+    "shipping_company",
+  ];
+
+  public static readonly cart_excludes_prefixes = ["h:", "x:", "__", "utm_"];
+
   private __cartURL = 'foxycart.com/cart';
 
   private __secret?: string;
@@ -161,9 +214,13 @@ export class Signer {
    */
   public signValue(name: string, code: string, parentCode = '', value?: string | number): string {
     name = name.replace(/ /g, '_');
-    const signature = this.__signProduct(code + parentCode, name, value);
-    const valueAttr = Signer.__buildSignedValue(signature, value);
-    return valueAttr;
+    if (this.__shouldSkipInput(name)) {
+      return (value as string);
+    } else {
+      const signature = this.__signProduct(code + parentCode, name, value);
+      const valueAttr = Signer.__buildSignedValue(signature, value);
+      return valueAttr;
+    }
   }
 
   /**
@@ -523,4 +580,25 @@ export class Signer {
     hmac.update(message);
     return hmac.digest('hex');
   }
+
+  /**
+   * Checks if a name should be skipped.
+   *
+   * @param name that could be signed
+   * @returns it should be skipped, i.e. not be signed
+   * @private
+   */
+  private __shouldSkipInput(name: string): boolean {
+    const prefixStripped = name.replace(/^\d:/, "");
+    return (
+      Signer.cart_excludes.includes(prefixStripped) ||
+      Signer.cart_excludes_prefixes.some(
+        (p) =>
+          name.toLowerCase().startsWith(p) ||
+          (name.startsWith("0:") && prefixStripped.toLowerCase().startsWith(p))
+      )
+    );
+  }
+
 }
+
