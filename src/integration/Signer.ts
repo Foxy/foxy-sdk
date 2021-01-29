@@ -183,7 +183,8 @@ export class Signer {
       newParams.set(signed[0], signed[1]);
     }
     url.search = newParams.toString();
-    return Signer.__replaceUrlCharacters(url.toString());
+    const result = decodeURIComponent(url.toString());
+    return result;
   }
 
   /**
@@ -251,11 +252,15 @@ export class Signer {
    */
   private __signQueryArg(name: string, code: string, value?: string): string {
     name = name.replace(/ /g, '_');
-    code = code.replace(/ /g, '_');
-    const signature = this.__signProduct(code, name, value);
-    const encodedName = encodeURIComponent(name).replace(/%20/g, '+');
-    const encodedValue = encodeURIComponent(Signer.__valueOrOpen(value)).replace(/%20/g, '+');
-    return Signer.__buildSignedQueryArg(encodedName, signature, encodedValue);
+    if (this.__shouldSkipInput(name)) {
+      return `${name}=${value}`;
+    } else {
+      code = code.replace(/ /g, '_');
+      const signature = this.__signProduct(code, name, value);
+      const encodedName = encodeURIComponent(name).replace(/%20/g, '+');
+      const encodedValue = encodeURIComponent(Signer.__valueOrOpen(value)).replace(/%20/g, '+');
+      return Signer.__buildSignedQueryArg(encodedName, signature, encodedValue);
+    }
   }
 
   /**
@@ -539,17 +544,6 @@ export class Signer {
    */
   private static __findCartForms(doc: ParentNode): HTMLFormElement[] {
     return Array.from(doc.querySelectorAll('form')).filter(e => e.querySelector('[name=code]'));
-  }
-
-  /**
-   * Replace some of the characters encoded by `encodeURIComponent()`.
-   *
-   * @param urlStr the URL string.
-   * @returns a cleaned URL string.
-   * @private
-   */
-  private static __replaceUrlCharacters(urlStr: string): string {
-    return urlStr.replace(/%7C/g, '|').replace(/%3D/g, '=').replace(/%2B/g, '+');
   }
 
   /**
