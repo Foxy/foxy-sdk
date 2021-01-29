@@ -53,6 +53,18 @@ describe('Signer', () => {
     });
   });
 
+  it('Does not sign excluded names in query arguments', () => {
+    Signer.cart_excludes.forEach((e: string) => {
+      expect(signer.signUrl(`https://foo.com/cart?code=1234&${e}=foo`).endsWith(`${e}=foo`)).toBeTruthy();
+    });
+  });
+
+  it('Does not sign excluded in query arguments', () => {
+    Signer.cart_excludes_prefixes.forEach((e: string) => {
+      expect(signer.signUrl(`https://foo.com/cart?code=1234&${e}nonce=foo`).endsWith(`${e}nonce=foo`)).toBeTruthy();
+    });
+  });
+
   it('Signs a whole URL', () => {
     const fullURL =
       'http://mockdomain.foxycart.com/cart/?code=mycode&name=testname&price=123.00&other atribute=Some Other Thing';
