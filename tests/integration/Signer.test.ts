@@ -39,6 +39,12 @@ describe('Signer', () => {
     );
   });
 
+  it('Does not sign excluded names', () => {
+    Signer.cart_excludes.forEach((e: string) => {
+      expect(signer.signName(e, 'abc')).toEqual(e);
+    });
+  });
+
   it('Signs a whole URL', () => {
     const fullURL =
       'http://mockdomain.foxycart.com/cart/?code=mycode&name=testname&price=123.00&other atribute=Some Other Thing';
