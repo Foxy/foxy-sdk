@@ -74,7 +74,7 @@ export class Signer {
 
   public static readonly cart_excludes_prefixes = ["h:", "x:", "__", "utm_"];
 
-  private __cartURL = 'foxycart.com/cart';
+  private __cartURL = '/cart?';
 
   private __secret?: string;
 
