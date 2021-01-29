@@ -206,7 +206,7 @@ describe('Signer', () => {
     console.error = consoleError;
   });
 
-  it('Does not sign an invalid URL', async () => {
+  it('Does not signs an invalid URL', async () => {
     const url = 'http://invalidURL?code=ABC123&name=name&value=My Example Product';
     const consoleError = console.error;
     console.error = jest.fn();
