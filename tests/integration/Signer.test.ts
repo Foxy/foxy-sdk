@@ -40,27 +40,27 @@ describe('Signer', () => {
   });
 
   it('Does not sign excluded names', () => {
-    Signer.cart_excludes.forEach((e: string) => {
+    Signer.cartExcludes.forEach((e: string) => {
       expect(signer.signName(e, 'nonce')).toEqual(e);
       expect(signer.signValue(e, 'nonce', '', 'foo')).toEqual('foo');
     });
   });
 
   it('Does not sign excluded prefixes', () => {
-    Signer.cart_excludes_prefixes.forEach((e: string) => {
+    Signer.cartExcludePrefixes.forEach((e: string) => {
       expect(signer.signName(e+'foo', 'nonce')).toEqual(e+'foo');
       expect(signer.signValue(e+'foo', 'nonce', '', 'bar')).toEqual('bar');
     });
   });
 
   it('Does not sign excluded names in query arguments', () => {
-    Signer.cart_excludes.forEach((e: string) => {
+    Signer.cartExcludes.forEach((e: string) => {
       expect(signer.signUrl(`https://foo.com/cart?code=1234&${e}=foo`).endsWith(`${e}=foo`)).toBeTruthy();
     });
   });
 
   it('Does not sign excluded in query arguments', () => {
-    Signer.cart_excludes_prefixes.forEach((e: string) => {
+    Signer.cartExcludePrefixes.forEach((e: string) => {
       expect(signer.signUrl(`https://foo.com/cart?code=1234&${e}nonce=foo`).endsWith(`${e}nonce=foo`)).toBeTruthy();
     });
   });
