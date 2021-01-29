@@ -41,7 +41,15 @@ describe('Signer', () => {
 
   it('Does not sign excluded names', () => {
     Signer.cart_excludes.forEach((e: string) => {
-      expect(signer.signName(e, 'abc')).toEqual(e);
+      expect(signer.signName(e, 'nonce')).toEqual(e);
+      expect(signer.signValue(e, 'nonce', '', 'foo')).toEqual('foo');
+    });
+  });
+
+  it('Does not sign excluded prefixes', () => {
+    Signer.cart_excludes_prefixes.forEach((e: string) => {
+      expect(signer.signName(e+'foo', 'nonce')).toEqual(e+'foo');
+      expect(signer.signValue(e+'foo', 'nonce', '', 'bar')).toEqual('bar');
     });
   });
 

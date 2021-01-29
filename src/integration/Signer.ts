@@ -197,10 +197,14 @@ export class Signer {
    */
   public signName(name: string, code: string, parentCode = '', value?: string | number): string {
     name = name.replace(/ /g, '_');
-    const signature = this.__signProduct(code + parentCode, name, value);
-    const encodedName = encodeURIComponent(name);
-    const nameAttr = Signer.__buildSignedName(encodedName, signature, value);
-    return nameAttr;
+    if (this.__shouldSkipInput(name)) {
+      return name;
+    } else {
+      const signature = this.__signProduct(code + parentCode, name, value);
+      const encodedName = encodeURIComponent(name);
+      const nameAttr = Signer.__buildSignedName(encodedName, signature, value);
+      return nameAttr;
+    }
   }
 
   /**
