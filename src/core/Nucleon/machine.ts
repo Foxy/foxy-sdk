@@ -38,7 +38,7 @@ export const machine = createMachine<Context, Event, State>(
           },
           fetching: {
             invoke: {
-              onDone: { actions: 'setData', target: '#nucleon.idle.snapshot' },
+              onDone: { actions: ['setData', 'clearErrors'], target: '#nucleon.idle.snapshot' },
               onError: { target: '#nucleon.fail' },
               src: 'sendGet',
             },
@@ -55,7 +55,7 @@ export const machine = createMachine<Context, Event, State>(
       fail: {},
       idle: {
         initial: 'unknown',
-        on: { EDIT: { actions: 'applyEdit', target: '.unknown' } },
+        on: { EDIT: { actions: ['applyEdit', 'validate'], target: '.unknown' } },
         states: {
           snapshot: {
             initial: 'unknown',
