@@ -15,8 +15,13 @@ export type Resource = {
 };
 
 export type Share = {
+  /** URIs of resources affected by this update. */
   readonly related?: ReadonlyArray<string>;
+
+  /** URI of the updated resource. */
   readonly source: string;
+
+  /** Updated resource or null if it's deleted. */
   readonly data: Resource | null;
 };
 
