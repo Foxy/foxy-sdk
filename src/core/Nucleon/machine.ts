@@ -16,6 +16,7 @@ export const machine = createMachine<Context, Event, State>(
     id: 'nucleon',
     initial: 'init',
     on: {
+      DELETE: { actions: ['clearData', 'clearEdits', 'clearErrors'], target: '#nucleon.busy.deleting' },
       FETCH: { actions: ['clearData', 'clearEdits', 'clearErrors'], target: '#nucleon.busy.fetching' },
       SET_DATA: { actions: ['setData', 'clearEdits', 'clearErrors'], target: '#nucleon.init' },
     },
@@ -59,7 +60,6 @@ export const machine = createMachine<Context, Event, State>(
         states: {
           snapshot: {
             initial: 'unknown',
-            on: { DELETE: '#nucleon.busy.deleting' },
             states: {
               clean: {
                 initial: 'unknown',
