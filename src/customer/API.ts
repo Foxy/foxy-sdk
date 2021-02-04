@@ -1,4 +1,4 @@
-import * as Core from '../core';
+import * as Core from '../core/index.js';
 
 import type { Credentials, Session } from './types';
 import { Headers, fetch } from 'cross-fetch';

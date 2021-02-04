@@ -1,10 +1,10 @@
 import consola, { Consola, LogLevel } from 'consola';
-import { storageV8N, v8n } from '../v8n';
+import { storageV8N, v8n } from '../v8n.js';
 
-import { AuthError } from './AuthError';
-import { Graph } from '../Graph';
+import { AuthError } from './AuthError.js';
+import type { Graph } from '../Graph';
 import MemoryStorage from 'fake-storage';
-import { Node } from './Node';
+import { Node } from './Node.js';
 import { fetch } from 'cross-fetch';
 
 /** API constructor parameters. */

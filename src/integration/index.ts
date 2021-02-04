@@ -1,9 +1,9 @@
-export { API } from './API';
-export { Signer } from './Signer';
-export { verifyWebhookSignature } from './verifyWebhookSignature';
-export { getAllowedFrequencies } from './getAllowedFrequencies';
-export { isNextTransactionDate } from './isNextTransactionDate';
-export { createSSOURL } from './createSSOURL';
+export { API } from './API.js';
+export { Signer } from './Signer.js';
+export { verifyWebhookSignature } from './verifyWebhookSignature.js';
+export { getAllowedFrequencies } from './getAllowedFrequencies.js';
+export { isNextTransactionDate } from './isNextTransactionDate.js';
+export { createSSOURL } from './createSSOURL.js';
 
 import type * as Rels from './Rels';
 export type { Graph } from './Graph';

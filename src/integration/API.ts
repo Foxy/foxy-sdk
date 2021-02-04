@@ -1,10 +1,10 @@
-import * as Core from '../core';
+import * as Core from '../core/index.js';
 
 import { Headers, fetch } from 'cross-fetch';
-import { storageV8N, v8n } from '../core/v8n';
+import { storageV8N, v8n } from '../core/v8n.js';
 
-import { Graph } from './Graph';
-import { LogLevel } from 'consola';
+import type { Graph } from './Graph';
+import type { LogLevel } from 'consola';
 import MemoryStorage from 'fake-storage';
 
 /** In order to facilitate any major, unforeseen breaking changes in the future, we require each request to include API version. We hope to rarely (never?) change it but by requiring it up front, we can ensure what you get today is what you’ll get tomorrow. */
