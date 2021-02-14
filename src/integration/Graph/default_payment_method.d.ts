@@ -16,7 +16,7 @@ export interface DefaultPaymentMethod extends Graph {
 
   props: {
     /** If the customer selected to save their payment information, this will be true. To clear out the payment information, set this to false. */
-    save_cc: string;
+    save_cc: boolean;
     /** The credit card or debit card type. This will be determined automatically once the payment card is saved. */
     cc_type: string;
     /** The payment card number. This property will not be displayed as part of this resource, but can be used to modify this payment method. */
