@@ -33,7 +33,7 @@ describe('Core', () => {
       };
 
       const rumour = new Rumour();
-      rumour.track(update => (syncedData = update(syncedData)));
+      rumour.track(update => (syncedData = update(syncedData as TestResource)));
 
       rumour.share({ data: trackedUpdate, source: trackedUpdate._links.self.href });
       expect(syncedData).toEqual(trackedUpdate);
@@ -73,7 +73,7 @@ describe('Core', () => {
       };
 
       const rumour = new Rumour();
-      rumour.track(update => (syncedData = update(syncedData)));
+      rumour.track(update => (syncedData = update(syncedData as TestResource)));
 
       rumour.share({ data: trackedUpdate, source: trackedUpdate._links.self.href });
       expect(syncedData).toEqual(trackedUpdate._embedded.foo);
@@ -125,7 +125,7 @@ describe('Core', () => {
       };
 
       const rumour = new Rumour();
-      rumour.track(update => (syncedData = update(syncedData)));
+      rumour.track(update => (syncedData = update(syncedData as TestResource)));
 
       rumour.share({ data: trackedUpdate, source: trackedUpdate._links.self.href });
       expect(syncedData).toEqual(trackedUpdate._embedded.bar._embedded.foo);
@@ -143,7 +143,7 @@ describe('Core', () => {
       };
 
       const rumour = new Rumour();
-      rumour.track(update => (syncedData = update(syncedData)));
+      rumour.track(update => (syncedData = update(syncedData as TestResource)));
       rumour.share({ data: null, source: syncedData._links.self.href });
 
       expect(syncedData).toBeNull();
@@ -164,7 +164,7 @@ describe('Core', () => {
       };
 
       const rumour = new Rumour();
-      rumour.track(update => (syncedData = update(syncedData)));
+      rumour.track(update => (syncedData = update(syncedData as TestResource)));
       rumour.share({ data: null, source: 'https://foxy.test/foo' });
 
       expect(syncedData).toEqual({
@@ -195,7 +195,7 @@ describe('Core', () => {
 
       rumour.track(update => {
         try {
-          syncedData = update(syncedData);
+          syncedData = update(syncedData as TestResource);
         } catch (err) {
           error = err;
         }
@@ -229,7 +229,7 @@ describe('Core', () => {
       };
 
       const rumour = new Rumour();
-      const untrackCallback = rumour.track(update => (syncedData = update(syncedData)));
+      const untrackCallback = rumour.track(update => (syncedData = update(syncedData as TestResource)));
 
       rumour.share({ data: trackedUpdate, source: trackedUpdate._links.self.href });
       expect(syncedData).toEqual(trackedUpdate);
@@ -258,7 +258,7 @@ describe('Core', () => {
       };
 
       const rumour = new Rumour();
-      rumour.track(update => (syncedData = update(syncedData)));
+      rumour.track(update => (syncedData = update(syncedData as TestResource)));
 
       rumour.share({ data: trackedUpdate, source: trackedUpdate._links.self.href });
       expect(syncedData).toEqual(trackedUpdate);
