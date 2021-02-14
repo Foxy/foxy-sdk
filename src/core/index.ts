@@ -1,3 +1,4 @@
+export type { FollowableResource } from './FollowableResource';
 export type { Resource } from './Resource';
 export type { Query } from './Query';
 export type { Graph } from './Graph';

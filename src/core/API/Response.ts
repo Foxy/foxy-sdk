@@ -4,11 +4,11 @@
 import consola, { Consola } from 'consola';
 import { storageV8N, v8n } from '../v8n.js';
 
+import type { FollowableResource } from '../FollowableResource';
 import { Response as GlobalThisResponse } from 'cross-fetch';
 import type { Graph } from '../Graph';
 import { Node } from './Node.js';
 import type { Query } from '../Query';
-import type { Resource } from '../Resource';
 
 /** Options of {@link Response} constructor. */
 type Init = ConstructorParameters<typeof globalThis.Response>[1] & {
@@ -30,7 +30,7 @@ type Init = ConstructorParameters<typeof globalThis.Response>[1] & {
  */
 function addFollowableLinks<TGraph extends Graph, TQuery extends Query<TGraph> | undefined>(
   params: Pick<Init, 'cache' | 'console' | 'fetch'> & { json: Record<string, unknown> }
-): Resource<TGraph, TQuery> {
+): FollowableResource<TGraph, TQuery> {
   const { json, ...nodeInit } = params;
 
   if ('_links' in json) {
@@ -67,7 +67,7 @@ function addFollowableLinks<TGraph extends Graph, TQuery extends Query<TGraph> |
     );
   }
 
-  return json as Resource<TGraph, TQuery>;
+  return json as FollowableResource<TGraph, TQuery>;
 }
 
 /**
@@ -113,7 +113,7 @@ export class Response<
    *
    * @returns Followable API response.
    */
-  async json(): Promise<Resource<TGraph, TQuery>> {
+  async json(): Promise<FollowableResource<TGraph, TQuery>> {
     const json = await super.json();
     const config = { cache: this._cache, console: this._console, fetch: this._fetch };
     return addFollowableLinks({ json, ...config });
