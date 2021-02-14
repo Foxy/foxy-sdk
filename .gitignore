@@ -120,3 +120,4 @@ docs
 
 # misc
 .DS_Store
+.vscode
