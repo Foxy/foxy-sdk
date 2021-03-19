@@ -1,6 +1,6 @@
 /* eslint-disable no-useless-escape */
 import { JSDOM } from 'jsdom';
-import { Signer } from '../../src/integration';
+import { Signer } from '../../src/backend';
 
 describe('Signer', () => {
   const signer = new Signer('1');

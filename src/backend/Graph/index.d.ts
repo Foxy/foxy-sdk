@@ -20,7 +20,7 @@ export interface Graph extends Core.Graph {
     'fx:stores': Stores;
     /** The current store for your authentication token. */
     'fx:store': Store;
-    /** OAuth endpoint for obtaining an access + refresh token pair. Please use the `FoxySDK.Integration.API.getAccessToken()` method to work with this endpoint. */
+    /** OAuth endpoint for obtaining an access + refresh token pair. Please use the `FoxySDK.Backend.API.getAccessToken()` method to work with this endpoint. */
     'fx:token': never;
     /** Your API home page. */
     'fx:user': User;

@@ -1,7 +1,7 @@
+import type * as Backend from '../../backend';
 import type * as Core from '../../core';
-import type * as Integration from '../../integration';
 
 export interface DefaultShippingAddress extends Core.Graph {
-  curie: Integration.Rels.DefaultShippingAddress['curie'];
-  props: Integration.Rels.DefaultShippingAddress['props'];
+  curie: Backend.Rels.DefaultShippingAddress['curie'];
+  props: Backend.Rels.DefaultShippingAddress['props'];
 }

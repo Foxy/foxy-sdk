@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable jsdoc/require-jsdoc */
 
-import { CustomerPortalSettings } from '../../src/integration/Graph/customer_portal_settings';
-import { isNextTransactionDate } from '../../src/integration/isNextTransactionDate';
+import { CustomerPortalSettings } from '../../src/backend/Graph/customer_portal_settings';
+import { isNextTransactionDate } from '../../src/backend/isNextTransactionDate';
 
 function mockSubscription(frequency = '1m') {
   return {
@@ -26,7 +26,7 @@ function mockSettings(rules: Config) {
   return { subscriptions: { allowNextDateModification: rules } };
 }
 
-describe('Integration', () => {
+describe('Backend', () => {
   describe('isNextTransactionDate', () => {
     it('returns true if allowNextDateModification is true', () => {
       const result = isNextTransactionDate({

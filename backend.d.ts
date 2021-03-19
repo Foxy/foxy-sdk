@@ -5,4 +5,4 @@
  * https://github.com/microsoft/TypeScript/issues/33079 is resolved.
  */
 
-export * from './dist/types/integration';
+export * from './dist/types/backend';

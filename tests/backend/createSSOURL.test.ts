@@ -1,6 +1,6 @@
-import { createSSOURL } from '../../src/integration/createSSOURL';
+import { createSSOURL } from '../../src/backend/createSSOURL';
 
-describe('Integration', () => {
+describe('Backend', () => {
   describe('createSSOURL', () => {
     beforeAll(() => jest.spyOn(Date, 'now').mockImplementation(() => 1585402055672));
 

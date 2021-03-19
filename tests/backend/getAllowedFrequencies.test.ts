@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable jsdoc/require-jsdoc */
 
-import { CustomerPortalSettings } from '../../src/integration/Graph/customer_portal_settings';
-import { getAllowedFrequencies } from '../../src/integration/getAllowedFrequencies';
+import { CustomerPortalSettings } from '../../src/backend/Graph/customer_portal_settings';
+import { getAllowedFrequencies } from '../../src/backend/getAllowedFrequencies';
 
 function mockSubscription(frequency = '1m') {
   return {
@@ -26,7 +26,7 @@ function mockSettings(rules: Rules = []) {
   return { subscriptions: { allowFrequencyModification: rules } };
 }
 
-describe('Integration', () => {
+describe('Backend', () => {
   describe('getAllowedFrequencies', () => {
     it('returns empty array for empty ruleset', () => {
       const result = getAllowedFrequencies({

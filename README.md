@@ -28,14 +28,14 @@ import * as FoxySDK from '@foxy.io/sdk';
 
 Our SDK consists of 3 main parts available via the main file:
 
-1. **Integration** is for building integrations that connect to hAPI directly from a safe **server-side** environment. Apart from the API client, you'll also find a number of useful utilities for HMAC signing, removing sensitive info from responses and webhook verification under this export alias.
+1. **Backend** is for building Node.JS apps that connect to hAPI directly from a safe **server-side** environment. Apart from the API client, you'll also find a number of useful utilities for HMAC signing, removing sensitive info from responses and webhook verification under this export alias.
 2. **Customer** is for building **universal** apps and websites that interact with a subset of hAPI available to customers of a particular store. This export is also available as a pre-built library on our CDN.
 3. **Core**: is for building custom API clients that interact with Hypermedia API endpoints. This is the most advanced part of the SDK that every other built-in API client depends on. You can run it server and client-side.
 
-Integration and Customer export API client classes for working with the respective endpoints. If you're using TypeScript, you'll also see the type exports for API-specific hypermedia relations and graphs named `Rels` and `Graph`. Let's connect to hAPI using `FoxySDK.Integration.API` class:
+Backend and Customer export API client classes for working with the respective endpoints. If you're using TypeScript, you'll also see the type exports for API-specific hypermedia relations and graphs named `Rels` and `Graph`. Let's connect to hAPI using `FoxySDK.Backend.API` class:
 
 ```js
-const api = new FoxySDK.Integration.API({
+const api = new FoxySDK.Backend.API({
   refreshToken: 'your refresh token',
   clientSecret: 'your client secret',
   clientId: 'your client id',
