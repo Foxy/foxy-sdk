@@ -1,7 +1,6 @@
-import type * as Backend from '../../backend';
-import type * as Core from '../../core';
+import { CustomerAddress } from '../../backend/Rels';
 
-export interface DefaultBillingAddress extends Core.Graph {
-  curie: Backend.Rels.DefaultBillingAddress['curie'];
-  props: Backend.Rels.DefaultBillingAddress['props'];
+export interface DefaultBillingAddress extends CustomerAddress {
+  curie: 'fx:default_billing_address';
+  links: CustomerAddress['links'] & { self: DefaultBillingAddress };
 }

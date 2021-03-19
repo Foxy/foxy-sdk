@@ -1,7 +1,6 @@
-import type * as Backend from '../../backend';
-import type * as Core from '../../core';
+import { CustomerAddress } from '../../backend/Rels';
 
-export interface DefaultShippingAddress extends Core.Graph {
-  curie: Backend.Rels.DefaultShippingAddress['curie'];
-  props: Backend.Rels.DefaultShippingAddress['props'];
+export interface DefaultShippingAddress extends CustomerAddress {
+  curie: 'fx:default_shipping_address';
+  links: CustomerAddress['links'] & { self: DefaultShippingAddress };
 }
