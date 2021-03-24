@@ -1,10 +1,10 @@
+import type * as Backend from '../../backend';
 import type * as Core from '../../core';
-import type * as Integration from '../../integration';
 import type { Items } from './items';
 
 export interface Transaction extends Core.Graph {
-  curie: Integration.Rels.Transaction['curie'];
-  links: Pick<Integration.Rels.Transaction['links'], 'fx:receipt'>;
-  props: Integration.Rels.Transaction['props'];
+  curie: Backend.Rels.Transaction['curie'];
+  links: Pick<Backend.Rels.Transaction['links'], 'fx:receipt'>;
+  props: Backend.Rels.Transaction['props'];
   zooms: { items?: Items };
 }

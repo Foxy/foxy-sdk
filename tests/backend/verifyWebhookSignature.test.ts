@@ -1,6 +1,6 @@
-import { verifyWebhookSignature } from '../../src/integration/verifyWebhookSignature';
+import { verifyWebhookSignature } from '../../src/backend/verifyWebhookSignature';
 
-describe('Integration', () => {
+describe('Backend', () => {
   describe('verifyWebhookSignature', () => {
     it('errors with incorrect params', () => {
       const invalidParams = ({

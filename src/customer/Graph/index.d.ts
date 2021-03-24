@@ -1,5 +1,5 @@
+import type * as Backend from '../../backend';
 import type * as Core from '../../core';
-import type * as Integration from '../../integration';
 import type { Attributes } from './attributes';
 import type { DefaultBillingAddress } from './default_billing_address';
 import type { DefaultPaymentMethod } from './default_payment_method';
@@ -9,7 +9,7 @@ import type { Transactions } from './transactions';
 
 export interface Graph extends Core.Graph {
   props: Pick<
-    Integration.Rels.Customer['props'],
+    Backend.Rels.Customer['props'],
     | 'date_created'
     | 'date_modified'
     | 'email'

@@ -19,16 +19,16 @@
       "import": "./dist/esm/customer/index.js",
       "require": "./dist/cjs/customer/index.js"
     },
-    "./integration": {
-      "import": "./dist/esm/integration/index.js",
-      "require": "./dist/cjs/integration/index.js"
+    "./backend": {
+      "import": "./dist/esm/backend/index.js",
+      "require": "./dist/cjs/backend/index.js"
     }
   },
   "files": [
     "dist",
     "core.d.ts",
     "customer.d.ts",
-    "integration.d.ts"
+    "backend.d.ts"
   ],
   "scripts": {
     "test": "jest",

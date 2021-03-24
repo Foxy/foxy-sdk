@@ -1,7 +1,7 @@
+import type * as Backend from '../../backend';
 import type * as Core from '../../core';
-import type * as Integration from '../../integration';
 
 export interface DefaultPaymentMethod extends Core.Graph {
-  curie: Integration.Rels.DefaultPaymentMethod['curie'];
-  props: Integration.Rels.DefaultPaymentMethod['props'];
+  curie: Backend.Rels.DefaultPaymentMethod['curie'];
+  props: Backend.Rels.DefaultPaymentMethod['props'];
 }

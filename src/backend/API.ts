@@ -8,16 +8,16 @@ import type { LogLevel } from 'consola';
 import MemoryStorage from 'fake-storage';
 
 /** In order to facilitate any major, unforeseen breaking changes in the future, we require each request to include API version. We hope to rarely (never?) change it but by requiring it up front, we can ensure what you get today is what you’ll get tomorrow. */
-type IntegrationAPIVersion = '1';
+type BackendAPIVersion = '1';
 
-/** Contructor parameters of the {@link IntegrationAPI} class. */
-type IntegrationAPIInit = {
+/** Contructor parameters of the {@link BackendAPI} class. */
+type BackendAPIInit = {
   refreshToken: string;
   clientSecret: string;
   clientId: string;
   level?: LogLevel;
   storage?: Storage;
-  version?: IntegrationAPIVersion;
+  version?: BackendAPIVersion;
   base?: URL; // pathname ending with "/" !!!
   cache?: Storage;
 };
@@ -25,7 +25,7 @@ type IntegrationAPIInit = {
 type GrantOpts = ({ code: string } | { refreshToken: string }) & {
   clientSecret: string;
   clientId: string;
-  version?: IntegrationAPIVersion;
+  version?: BackendAPIVersion;
   base?: URL; // pathname ending with "/" !!!
 };
 
@@ -39,7 +39,7 @@ type Token = {
 
 type StoredToken = Token & { date_created: string };
 
-/** JS SDK for building integrations with [Foxy Hypermedia API](https://api.foxycart.com/docs). Hypermedia API is designed to give you complete control over all aspects of your Foxy accounts, whether working with a single store or automating the provisioning of thousands. Anything you can do within the Foxy administration, you can also do through the API. This means that you can embed Foxy into any application (CMS, LMS, CRM, etc.) and expose as much or as little of Foxy's functionality as desired. */
+/** JS SDK for building backends with [Foxy Hypermedia API](https://api.foxycart.com/docs). Hypermedia API is designed to give you complete control over all aspects of your Foxy accounts, whether working with a single store or automating the provisioning of thousands. Anything you can do within the Foxy administration, you can also do through the API. This means that you can embed Foxy into any application (CMS, LMS, CRM, etc.) and expose as much or as little of Foxy's functionality as desired. */
 export class API extends Core.API<Graph> {
   static readonly REFRESH_THRESHOLD = 5 * 60 * 1000;
 
@@ -47,7 +47,7 @@ export class API extends Core.API<Graph> {
 
   static readonly BASE_URL = new URL('https://api.foxycart.com/');
 
-  static readonly VERSION: IntegrationAPIVersion = '1';
+  static readonly VERSION: BackendAPIVersion = '1';
 
   static readonly v8n = {
     classConstructor: v8n().schema({
@@ -109,9 +109,9 @@ export class API extends Core.API<Graph> {
 
   readonly clientId: string;
 
-  readonly version: IntegrationAPIVersion;
+  readonly version: BackendAPIVersion;
 
-  constructor(params: IntegrationAPIInit) {
+  constructor(params: BackendAPIInit) {
     API.v8n.classConstructor.check(params);
 
     super({

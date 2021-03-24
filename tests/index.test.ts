@@ -1,7 +1,7 @@
-import * as FoxySDK from '../src/index';
+import * as FoxySDK from '../src/index.js';
+import * as FoxySDKBackend from '../src/backend';
 import * as FoxySDKCore from '../src/core';
 import * as FoxySDKCustomer from '../src/customer';
-import * as FoxySDKIntegration from '../src/integration';
 
 describe('Index', () => {
   it('exports core modules as Core', () => {
@@ -12,7 +12,7 @@ describe('Index', () => {
     expect(FoxySDK).toHaveProperty('Customer', FoxySDKCustomer);
   });
 
-  it('exports integration sdk modules as Integration', () => {
-    expect(FoxySDK).toHaveProperty('Integration', FoxySDKIntegration);
+  it('exports backend sdk modules as Backend', () => {
+    expect(FoxySDK).toHaveProperty('Backend', FoxySDKBackend);
   });
 });

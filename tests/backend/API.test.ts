@@ -8,8 +8,8 @@ jest.mock('cross-fetch', () => ({
 
 import { Headers, Request, Response, fetch } from 'cross-fetch';
 
+import { API as BackendAPI } from '../../src/backend/API';
 import { API as CoreAPI } from '../../src/core/API';
-import { API as IntegrationAPI } from '../../src/integration/API';
 import MemoryCache from 'fake-storage';
 
 const fetchMock = (fetch as unknown) as jest.MockInstance<unknown, unknown[]>;
@@ -28,7 +28,7 @@ const commonInit = {
 
 const sampleToken = {
   access_token: 'w8a49rbvuznxmzs39xliwfa943fda84klkvniutgh34q1fjmnfma90iubl',
-  expires_in: IntegrationAPI.REFRESH_THRESHOLD * 3,
+  expires_in: BackendAPI.REFRESH_THRESHOLD * 3,
   refresh_token: '65redfghyuyjthgrhyjthrgdfghytredtyuytredrtyuy6trtyuhgfdr',
   scope: 'store',
   token_type: 'bearer',
@@ -38,26 +38,26 @@ const sampleStoredToken = Object.assign({}, sampleToken, {
   date_created: new Date().toISOString(),
 });
 
-describe('Integration', () => {
+describe('Backend', () => {
   describe('API', () => {
     it('exposes numeric refresh threshold as static property', () => {
-      expect(IntegrationAPI).toHaveProperty('REFRESH_THRESHOLD');
-      expect(typeof IntegrationAPI.REFRESH_THRESHOLD).toBe('number');
+      expect(BackendAPI).toHaveProperty('REFRESH_THRESHOLD');
+      expect(typeof BackendAPI.REFRESH_THRESHOLD).toBe('number');
     });
 
     it('exposes storage key for access token as static property', () => {
-      expect(IntegrationAPI).toHaveProperty('ACCESS_TOKEN');
-      expect(typeof IntegrationAPI.ACCESS_TOKEN).toBe('string');
+      expect(BackendAPI).toHaveProperty('ACCESS_TOKEN');
+      expect(typeof BackendAPI.ACCESS_TOKEN).toBe('string');
     });
 
     it('exposes default base url as static property', () => {
-      expect(IntegrationAPI).toHaveProperty('BASE_URL');
-      expect(IntegrationAPI.BASE_URL).toBeInstanceOf(URL);
+      expect(BackendAPI).toHaveProperty('BASE_URL');
+      expect(BackendAPI.BASE_URL).toBeInstanceOf(URL);
     });
 
     it('exposes default version as static property', () => {
-      expect(IntegrationAPI).toHaveProperty('VERSION');
-      expect(typeof IntegrationAPI.VERSION).toBe('string');
+      expect(BackendAPI).toHaveProperty('VERSION');
+      expect(typeof BackendAPI.VERSION).toBe('string');
     });
 
     it('errors when API.getToken() is called with incorrect arguments', async () => {
@@ -68,14 +68,14 @@ describe('Integration', () => {
         client_secret: {},
         refreshToken: null,
         version: -1,
-      } as unknown) as Parameters<typeof IntegrationAPI['getToken']>[0];
+      } as unknown) as Parameters<typeof BackendAPI['getToken']>[0];
 
-      await expect(() => IntegrationAPI.getToken(incorrectOpts)).rejects.toThrow();
+      await expect(() => BackendAPI.getToken(incorrectOpts)).rejects.toThrow();
     });
 
     it('returns null on auth failure in API.getToken()', async () => {
       fetchMock.mockImplementation(() => Promise.resolve(new Response(null, { status: 500 })));
-      expect(await IntegrationAPI.getToken({ ...commonInit })).toBeNull();
+      expect(await BackendAPI.getToken({ ...commonInit })).toBeNull();
       fetchMock.mockClear();
     });
 
@@ -83,9 +83,9 @@ describe('Integration', () => {
       fetchMock.mockImplementation(() => Promise.resolve(new Response(JSON.stringify(sampleToken))));
 
       const { clientId, clientSecret } = commonInit;
-      const url = new URL('token', IntegrationAPI.BASE_URL).toString();
+      const url = new URL('token', BackendAPI.BASE_URL).toString();
       const code = '1234567890';
-      const token = await IntegrationAPI.getToken({ clientId, clientSecret, code });
+      const token = await BackendAPI.getToken({ clientId, clientSecret, code });
 
       expect(token).toEqual(sampleToken);
       expect(fetchMock).toHaveBeenNthCalledWith(1, url, {
@@ -106,8 +106,8 @@ describe('Integration', () => {
       fetchMock.mockImplementation(() => Promise.resolve(new Response(JSON.stringify(sampleToken))));
 
       const { clientId, clientSecret, refreshToken } = commonInit;
-      const url = new URL('token', IntegrationAPI.BASE_URL).toString();
-      const token = await IntegrationAPI.getToken({ clientId, clientSecret, refreshToken });
+      const url = new URL('token', BackendAPI.BASE_URL).toString();
+      const token = await BackendAPI.getToken({ clientId, clientSecret, refreshToken });
 
       expect(token).toEqual(sampleToken);
       expect(fetchMock).toHaveBeenNthCalledWith(1, url, {
@@ -132,7 +132,7 @@ describe('Integration', () => {
       const base = new URL('https://api-development.foxycart.com/');
       const url = new URL('token', base).toString();
       const code = '1234567890';
-      const token = await IntegrationAPI.getToken({ base, clientId, clientSecret, code, version });
+      const token = await BackendAPI.getToken({ base, clientId, clientSecret, code, version });
 
       expect(token).toEqual(sampleToken);
       expect(fetchMock).toHaveBeenNthCalledWith(1, url, {
@@ -164,61 +164,61 @@ describe('Integration', () => {
         refreshToken: new Date(),
         storage: undefined,
         version: '3',
-      } as unknown) as ConstructorParameters<typeof IntegrationAPI>[0];
+      } as unknown) as ConstructorParameters<typeof BackendAPI>[0];
 
-      expect(() => new IntegrationAPI(incorrectInit)).toThrow();
+      expect(() => new BackendAPI(incorrectInit)).toThrow();
     });
 
     it('extends core API class', () => {
-      expect(new IntegrationAPI(commonInit)).toBeInstanceOf(CoreAPI);
+      expect(new BackendAPI(commonInit)).toBeInstanceOf(CoreAPI);
     });
 
     it('stores client ID as instance.clientId', () => {
-      const api = new IntegrationAPI(commonInit);
+      const api = new BackendAPI(commonInit);
       expect(api).toHaveProperty('clientId', commonInit.clientId);
     });
 
     it('stores client secret as instance.clientSecret', () => {
-      const api = new IntegrationAPI(commonInit);
+      const api = new BackendAPI(commonInit);
       expect(api).toHaveProperty('clientSecret', commonInit.clientSecret);
     });
 
     it('stores refresh token as instance.refreshToken', () => {
-      const api = new IntegrationAPI(commonInit);
+      const api = new BackendAPI(commonInit);
       expect(api).toHaveProperty('refreshToken', commonInit.refreshToken);
     });
 
     it('stores version as instance.version', () => {
       const version = '1';
-      const api = new IntegrationAPI({ ...commonInit, version });
+      const api = new BackendAPI({ ...commonInit, version });
       expect(api).toHaveProperty('version', version);
     });
 
     it('allows setting custom base URL', () => {
       const base = new URL('https://example.com/base/');
-      const api = new IntegrationAPI({ ...commonInit, base });
+      const api = new BackendAPI({ ...commonInit, base });
       expect(api).toHaveProperty('base', base);
     });
 
     it('allows setting custom storage', () => {
       const storage = new MemoryCache();
-      const api = new IntegrationAPI({ ...commonInit, storage });
+      const api = new BackendAPI({ ...commonInit, storage });
       expect(api).toHaveProperty('storage', storage);
     });
 
     it('allows setting custom cache', () => {
       const cache = new MemoryCache();
-      const api = new IntegrationAPI({ ...commonInit, cache });
+      const api = new BackendAPI({ ...commonInit, cache });
       expect(api).toHaveProperty('cache', cache);
     });
 
     it('makes an authenticated request when a valid access token is present in the cache', async () => {
       fetchMock.mockImplementation(() => Promise.resolve(new Response(null)));
 
-      const url = IntegrationAPI.BASE_URL.toString();
-      const api = new IntegrationAPI(commonInit);
+      const url = BackendAPI.BASE_URL.toString();
+      const api = new BackendAPI(commonInit);
 
-      api.storage.setItem(IntegrationAPI.ACCESS_TOKEN, JSON.stringify(sampleStoredToken));
+      api.storage.setItem(BackendAPI.ACCESS_TOKEN, JSON.stringify(sampleStoredToken));
       await api.fetch(url);
 
       const headers = new Headers({ ...commonHeaders, Authorization: `Bearer ${sampleToken.access_token}` });
@@ -230,13 +230,13 @@ describe('Integration', () => {
     it('obtains a new access token when the stored one is outdated', async () => {
       fetchMock.mockImplementation(() => Promise.resolve(new Response(JSON.stringify(sampleToken))));
 
-      const url = IntegrationAPI.BASE_URL.toString();
-      const api = new IntegrationAPI(commonInit);
+      const url = BackendAPI.BASE_URL.toString();
+      const api = new BackendAPI(commonInit);
 
-      api.storage.setItem(IntegrationAPI.ACCESS_TOKEN, JSON.stringify({ ...sampleStoredToken, expires_in: 0 }));
+      api.storage.setItem(BackendAPI.ACCESS_TOKEN, JSON.stringify({ ...sampleStoredToken, expires_in: 0 }));
       await api.fetch(url);
 
-      expect(fetchMock).toHaveBeenNthCalledWith(1, new URL('token', IntegrationAPI.BASE_URL.toString()).toString(), {
+      expect(fetchMock).toHaveBeenNthCalledWith(1, new URL('token', BackendAPI.BASE_URL.toString()).toString(), {
         body: new URLSearchParams({
           client_id: api.clientId,
           client_secret: api.clientSecret,
@@ -256,11 +256,11 @@ describe('Integration', () => {
     it("obtains a new access token when there isn't one", async () => {
       fetchMock.mockImplementation(() => Promise.resolve(new Response(JSON.stringify(sampleToken))));
 
-      const url = IntegrationAPI.BASE_URL.toString();
-      const api = new IntegrationAPI(commonInit);
+      const url = BackendAPI.BASE_URL.toString();
+      const api = new BackendAPI(commonInit);
       await api.fetch(url);
 
-      expect(fetchMock).toHaveBeenNthCalledWith(1, new URL('token', IntegrationAPI.BASE_URL.toString()).toString(), {
+      expect(fetchMock).toHaveBeenNthCalledWith(1, new URL('token', BackendAPI.BASE_URL.toString()).toString(), {
         body: new URLSearchParams({
           client_id: api.clientId,
           client_secret: api.clientSecret,
@@ -280,11 +280,11 @@ describe('Integration', () => {
     it('makes an unauthenticated request after a failure to obtain a new access token', async () => {
       fetchMock.mockImplementation(() => Promise.resolve(new Response(null, { status: 500 })));
 
-      const url = IntegrationAPI.BASE_URL.toString();
-      const api = new IntegrationAPI(commonInit);
+      const url = BackendAPI.BASE_URL.toString();
+      const api = new BackendAPI(commonInit);
       await api.fetch(url);
 
-      expect(fetchMock).toHaveBeenNthCalledWith(1, new URL('token', IntegrationAPI.BASE_URL.toString()).toString(), {
+      expect(fetchMock).toHaveBeenNthCalledWith(1, new URL('token', BackendAPI.BASE_URL.toString()).toString(), {
         body: new URLSearchParams({
           client_id: api.clientId,
           client_secret: api.clientSecret,
@@ -303,8 +303,8 @@ describe('Integration', () => {
     it('supports complex fetch requests', async () => {
       fetchMock.mockImplementation(() => Promise.resolve(new Response(null, { status: 500 })));
 
-      const api = new IntegrationAPI(commonInit);
-      const info = new Request(IntegrationAPI.BASE_URL.toString());
+      const api = new BackendAPI(commonInit);
+      const info = new Request(BackendAPI.BASE_URL.toString());
       const init = { headers: { foo: 'bar' }, method: 'POST' };
 
       await api.fetch(info, init);
