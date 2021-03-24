@@ -1,8 +1,51 @@
 {
   "name": "@foxy.io/sdk",
+  "type": "module",
   "version": "0.0.0",
   "description": "Universal SDK for a full server-side and a limited in-browser access to Foxy hAPI.",
-  "main": "index.js",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    },
+    "./core": {
+      "import": "./dist/esm/core/index.js",
+      "require": "./dist/cjs/core/index.js"
+    },
+    "./customer": {
+      "import": "./dist/esm/customer/index.js",
+      "require": "./dist/cjs/customer/index.js"
+    },
+    "./backend": {
+      "import": "./dist/esm/backend/index.js",
+      "require": "./dist/cjs/backend/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "core.d.ts",
+    "customer.d.ts",
+    "backend.d.ts"
+  ],
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "lint": "npm run lint:eslint && npm run lint:prettier",
+    "lint:eslint": "eslint --ext .ts,.html . --ignore-path .gitignore",
+    "lint:prettier": "prettier \"**/*.ts\" --check --ignore-path .gitignore",
+    "format": "npm run format:eslint && npm run format:prettier",
+    "format:eslint": "eslint --ext .ts,.html . --fix --ignore-path .gitignore",
+    "format:prettier": "prettier \"**/*.ts\" --write --ignore-path .gitignore",
+    "build:cdn": "webpack",
+    "build:cjs": "tsc --module commonjs --outdir \"dist/cjs\"",
+    "build:esm": "tsc --module es2015 --outdir \"dist/esm\"",
+    "build:docs": "typedoc --excludePrivate --ignoreCompilerErrors --mode library --out docs src/index.ts",
+    "build:types": "tsc --declarationdir \"dist/types\" --declaration --emitdeclarationonly && copyfiles --up 1 \"./src/**/*.d.ts\" \"./dist/types\"",
+    "prepack": "rimraf dist && run-p \"build:!(docs)\""
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/foxy/foxy-sdk.git"
@@ -16,6 +59,7 @@
     "api",
     "sdk"
   ],
+  "author": "",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/foxy/foxy-sdk/issues",
@@ -23,21 +67,88 @@
   },
   "homepage": "https://sdk.foxy.dev",
   "devDependencies": {
+    "@foxy.io/eslint-config": "^1.0.0",
+    "@types/jest": "^26.0.15",
+    "@types/node": "^14.14.6",
+    "copyfiles": "^2.4.0",
     "cz-conventional-changelog": "^3.3.0",
+    "eslint": "^7.12.1",
+    "eslint-plugin-jest": "^24.1.0",
     "husky": "^4.3.0",
-    "semantic-release": "^17.2.2"
+    "jest": "^26.6.3",
+    "jest-ts-webcompat-resolver": "^1.0.0",
+    "lint-staged": "^10.4.0",
+    "lodash": "^4.17.20",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^2.1.2",
+    "rimraf": "^3.0.2",
+    "semantic-release": "^17.3.0",
+    "ts-jest": "^26.4.4",
+    "ts-loader": "^8.0.9",
+    "typedoc": "0.17.0-3",
+    "typescript": "^4.0.3",
+    "webpack": "^5.4.0",
+    "webpack-cli": "^4.2.0",
+    "webpack-node-externals": "^2.5.2"
   },
   "engines": {
     "node": ">=10 <=15"
+  },
+  "eslintConfig": {
+    "extends": [
+      "@foxy.io",
+      "plugin:jest/recommended",
+      "plugin:jest/style"
+    ]
+  },
+  "lint-staged": {
+    "{src,test}/**/*.ts": "eslint --cache --fix"
+  },
+  "prettier": {
+    "quoteProps": "consistent",
+    "printWidth": 120,
+    "singleQuote": true,
+    "arrowParens": "avoid"
   },
   "config": {
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
     }
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "husky": {
     "hooks": {
-      "prepare-commit-msg": "exec < /dev/tty && git cz --hook || true"
+      "prepare-commit-msg": "exec < /dev/tty && git cz --hook || true",
+      "pre-commit": "lint-staged"
+    }
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "resolver": "jest-ts-webcompat-resolver",
+    "moduleNameMapper": {
+      "^lodash-es$": "lodash"
+    },
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/*.test.ts"
+    ],
+    "collectCoverage": true,
+    "coverageProvider": "v8",
+    "coveragePathIgnorePatterns": [
+      "\\.d\\.ts"
+    ],
+    "collectCoverageFrom": [
+      "src/**/*.ts"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 80,
+        "functions": 80,
+        "statements": 80,
+        "lines": 80
+      }
     }
   },
   "release": {
@@ -48,5 +159,20 @@
         "prerelease": true
       }
     ]
+  },
+  "dependencies": {
+    "@types/jsdom": "^16.2.5",
+    "@types/lodash-es": "^4.17.4",
+    "@types/traverse": "^0.6.32",
+    "consola": "^2.15.0",
+    "cross-fetch": "^3.0.6",
+    "fake-storage": "^2.0.0",
+    "jsdom": "^16.4.0",
+    "jsonata": "^1.8.4",
+    "lodash-es": "^4.17.20",
+    "parse-duration": "^0.4.4",
+    "traverse": "^0.6.6",
+    "v8n": "^1.3.3",
+    "xstate": "^4.16.0"
   }
 }
