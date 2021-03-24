@@ -1,8 +1,10 @@
-import type * as Backend from '../../backend';
-import type * as Core from '../../core';
+import type { CollectionGraphLinks, CollectionGraphProps } from '../../core/defaults';
+import type { Graph } from '../../core';
 import type { Item } from './item';
 
-export interface Items extends Core.Graph {
-  curie: Backend.Rels.Items['curie'];
+export interface Items extends Graph {
+  curie: 'fx:items';
+  links: CollectionGraphLinks<Items>;
+  props: CollectionGraphProps;
   child: Item;
 }

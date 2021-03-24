@@ -1,8 +1,10 @@
-import type * as Backend from '../../backend';
-import type * as Core from '../../core';
-import { Transaction } from './transaction';
+import type { CollectionGraphLinks, CollectionGraphProps } from '../../core/defaults';
+import type { Graph } from '../../core';
+import type { Transaction } from './transaction';
 
-export interface Transactions extends Core.Graph {
-  curie: Backend.Rels.Transactions['curie'];
+export interface Transactions extends Graph {
+  curie: 'fx:transactions';
+  links: CollectionGraphLinks<Transactions>;
+  props: CollectionGraphProps;
   child: Transaction;
 }
