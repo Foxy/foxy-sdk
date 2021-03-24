@@ -2,14 +2,12 @@
 
 Universal SDK for a full server-side and a limited in-browser access to Foxy hAPI.
 
-**Warning: this is a pre-release software. We're still working on the feature set, documentation and test coverage. Using this package in production is not advised.**
-
 ## Setup
 
 Install the package:
 
 ```bash
-npm i @foxy.io/sdk@beta
+npm i @foxy.io/sdk
 ```
 
 Then import using CommonJS (Node 10-12):
