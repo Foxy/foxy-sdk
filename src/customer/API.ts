@@ -84,7 +84,7 @@ export class API extends Core.API<Graph> {
 
   private async __fetch(input: RequestInfo, init?: RequestInit): Promise<Response> {
     let session = JSON.parse(this.storage.getItem(API.SESSION) ?? 'null') as StoredSession | null;
-    const request = new Request(input, init);
+    const request = typeof input === 'string' ? new Request(input, init) : input;
 
     if (session !== null) {
       const expiresAt = new Date(session.date_created).getTime() + session.expires_in * 1000;

@@ -222,7 +222,7 @@ describe('Backend', () => {
       await api.fetch(url);
 
       const headers = new Headers({ ...commonHeaders, Authorization: `Bearer ${sampleToken.access_token}` });
-      expect(fetchMock).toHaveBeenCalledWith(url, { headers });
+      expect(fetchMock).toHaveBeenCalledWith(new Request(url, { headers }));
 
       fetchMock.mockClear();
     });
@@ -248,7 +248,7 @@ describe('Backend', () => {
       });
 
       const headers = new Headers({ ...commonHeaders, Authorization: `Bearer ${sampleToken.access_token}` });
-      expect(fetchMock).toHaveBeenNthCalledWith(2, url, { headers });
+      expect(fetchMock).toHaveBeenNthCalledWith(2, new Request(url, { headers }));
 
       fetchMock.mockClear();
     });
@@ -272,7 +272,7 @@ describe('Backend', () => {
       });
 
       const headers = new Headers({ ...commonHeaders, Authorization: `Bearer ${sampleToken.access_token}` });
-      expect(fetchMock).toHaveBeenNthCalledWith(2, url, { headers });
+      expect(fetchMock).toHaveBeenNthCalledWith(2, new Request(url, { headers }));
 
       fetchMock.mockClear();
     });
@@ -295,22 +295,37 @@ describe('Backend', () => {
         method: 'POST',
       });
 
-      expect(fetchMock).toHaveBeenNthCalledWith(2, url, { headers: new Headers(commonHeaders) });
+      expect(fetchMock).toHaveBeenNthCalledWith(2, new Request(url, { headers: commonHeaders }));
 
       fetchMock.mockClear();
     });
 
-    it('supports complex fetch requests', async () => {
+    it('supports complex fetch requests with detailed arguments', async () => {
       fetchMock.mockImplementation(() => Promise.resolve(new Response(null, { status: 500 })));
 
       const api = new BackendAPI(commonInit);
-      const info = new Request(BackendAPI.BASE_URL.toString());
+      const info = BackendAPI.BASE_URL.toString();
       const init = { headers: { foo: 'bar' }, method: 'POST' };
 
       await api.fetch(info, init);
 
       const headers = new Headers({ ...commonHeaders, ...init.headers });
-      expect(fetchMock).toHaveBeenLastCalledWith(info, { ...init, headers });
+      expect(fetchMock).toHaveBeenLastCalledWith(new Request(info, { ...init, headers }));
+
+      fetchMock.mockClear();
+    });
+
+    it('supports complex fetch requests with Request instances', async () => {
+      fetchMock.mockImplementation(() => Promise.resolve(new Response(null, { status: 500 })));
+
+      const api = new BackendAPI(commonInit);
+      const info = BackendAPI.BASE_URL.toString();
+      const init = { headers: { foo: 'bar' }, method: 'POST' };
+
+      await api.fetch(new Request(info, init));
+
+      const headers = new Headers({ ...commonHeaders, ...init.headers });
+      expect(fetchMock).toHaveBeenLastCalledWith(new Request(info, { ...init, headers }));
 
       fetchMock.mockClear();
     });

@@ -1,6 +1,6 @@
 import * as Core from '../core/index.js';
 
-import { Headers, fetch } from 'cross-fetch';
+import { Headers, Request, fetch } from 'cross-fetch';
 import { storageV8N, v8n } from '../core/v8n.js';
 
 import type { Graph } from './Graph';
@@ -128,8 +128,9 @@ export class API extends Core.API<Graph> {
     this.version = params.version ?? API.VERSION;
   }
 
-  private async __fetch(input: RequestInfo, init?: RequestInit): Promise<Response> {
+  private async __fetch(info: RequestInfo, init?: RequestInit): Promise<Response> {
     let token = JSON.parse(this.storage.getItem(API.ACCESS_TOKEN) ?? 'null') as StoredToken | null;
+    const request = typeof info === 'string' ? new Request(info, init) : info;
 
     if (token !== null) {
       const expiresAt = new Date(token.date_created).getTime() + token.expires_in * 1000;
@@ -155,15 +156,14 @@ export class API extends Core.API<Graph> {
       }
     }
 
-    const headers = new Headers(init?.headers);
+    const headers = request.headers;
     const method = init?.method?.toUpperCase() ?? 'GET';
-    const url = typeof input === 'string' ? input : input.url;
 
     if (!headers.get('Authorization') && token) headers.set('Authorization', `Bearer ${token.access_token}`);
     if (!headers.get('Content-Type')) headers.set('Content-Type', 'application/json');
     if (!headers.get('FOXY-API-VERSION')) headers.set('FOXY-API-VERSION', this.version);
 
-    this.console.trace(`${method} ${url}`);
-    return fetch(input, { ...init, headers });
+    this.console.trace(`${method} ${request.url}`);
+    return fetch(request);
   }
 }
