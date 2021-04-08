@@ -85,6 +85,18 @@ describe('Customer', () => {
       fetchMock.mockClear();
     });
 
+    it('supports Request instances in .fetch()', async () => {
+      fetchMock.mockImplementation(() => Promise.resolve(new Response(null)));
+
+      const api = new CustomerAPI(commonInit);
+      const url = api.base.toString();
+
+      await api.fetch(new Request(url));
+
+      expect(fetchMock).toHaveBeenCalledWith(new Request(url, { headers: commonHeaders }));
+      fetchMock.mockClear();
+    });
+
     it('can create a session with .signIn()', async () => {
       fetchMock.mockImplementation(() => Promise.resolve(new Response(JSON.stringify(sampleSession))));
 
