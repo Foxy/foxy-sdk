@@ -1,3 +1,4 @@
+import { Headers, Request, Response, fetch } from 'cross-fetch';
 import consola, { Consola, LogLevel } from 'consola';
 import { storageV8N, v8n } from '../v8n.js';
 
@@ -5,7 +6,6 @@ import { AuthError } from './AuthError.js';
 import type { Graph } from '../Graph';
 import MemoryStorage from 'fake-storage';
 import { Node } from './Node.js';
-import { fetch } from 'cross-fetch';
 
 /** API constructor parameters. */
 type Init = {
@@ -45,6 +45,24 @@ type Init = {
  * your own client, consider extending this class for consistency.
  */
 export class API<TGraph extends Graph> extends Node<TGraph> {
+  /**
+   * Polyfilled version of the built-in `Response` class. If you need to check the return value of `.fetch()`,
+   * use this class instead of the built-in one to avoid [this issue](https://github.com/github/fetch/issues/860).
+   */
+  static readonly WHATWGResponse = Response;
+
+  /**
+   * Polyfilled version of the built-in `Request` class. If you need to pass an instance of `Request` to `.fetch()`,
+   * use this class instead of the built-in one to avoid [this issue](https://github.com/github/fetch/issues/860).
+   */
+  static readonly WHATWGRequest = Request;
+
+  /**
+   * Polyfilled version of the built-in `Headers` class. If you need to pass an instance of `Headers` to `.fetch()`,
+   * use this class instead of the built-in one to avoid [this issue](https://github.com/github/fetch/issues/860).
+   */
+  static readonly WHATWGHeaders = Headers;
+
   static readonly AuthError = AuthError;
 
   static readonly Node = Node;
