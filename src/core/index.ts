@@ -5,5 +5,6 @@ export type { Graph } from './Graph';
 
 export * as Nucleon from './Nucleon/index.js';
 
+export { BooleanSelector } from './BooleanSelector.js';
 export { Rumour } from './Rumour/index.js';
 export { API } from './API/index.js';
