@@ -133,5 +133,26 @@ describe('Core', () => {
       expect(BooleanSelector.False.zoom('foo').matches('bar')).toBe(false);
       expect(BooleanSelector.False.toAttribute()).toBeNull();
     });
+
+    it('returns BooleanSelector.False from BooleanSelector.fromAttribute if value is null', () => {
+      expect(BooleanSelector.fromAttribute(null)).toBe(BooleanSelector.False);
+    });
+
+    it('returns BooleanSelector.True from BooleanSelector.fromAttribute if value is empty string', () => {
+      expect(BooleanSelector.fromAttribute('')).toBe(BooleanSelector.True);
+    });
+
+    it('returns BooleanSelector.True from BooleanSelector.fromAttribute if value is custom truthy value', () => {
+      expect(BooleanSelector.fromAttribute('readonly', 'readonly')).toBe(BooleanSelector.True);
+      expect(BooleanSelector.fromAttribute('readonly', 'disabled')).not.toBe(BooleanSelector.True);
+    });
+
+    it('returns BooleanSelector instance from BooleanSelector.fromAttribute for custom input', () => {
+      const input = 'foo:bar baz:not=qux';
+      const instance = BooleanSelector.fromAttribute(input);
+
+      expect(instance).toBeInstanceOf(BooleanSelector);
+      expect(instance.toString()).toBe(input);
+    });
   });
 });

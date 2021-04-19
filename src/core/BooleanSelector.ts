@@ -77,6 +77,28 @@ export class BooleanSelector {
     return falseBooleanSelectorSingleton;
   }
 
+  /**
+   * Creates a `BooleanSelector` instance from an attribute value according to the following rules:
+   *
+   * - boolean selector constructed from a `null` value will always return `false` from `.allows()`;
+   * - if attribute value is empty or matches `truthyValue`, a boolean selector will always return `true` from `.allows()`;
+   * - in every other case attribute value will be parsed as boolean selector.
+   *
+   * @example
+   * const value = element.getAttribute('disabled');
+   * BooleanSelector.fromAttribute(value) // => [object BooleanSelector]
+   *
+   * @param value attribite value
+   * @param truthyValue additional attribute value that must be treated as truthy (use attribute name here to be spec-compliant)
+   * @returns `BooleanSelector` instance constructed from the given attribite value
+   */
+  static fromAttribute(value: string | null, truthyValue?: string): BooleanSelector {
+    if (value === null) return BooleanSelector.False;
+    if (value === '' || value === truthyValue) return BooleanSelector.True;
+    return new BooleanSelector(value);
+  }
+
+
   private static __processors: Record<Entity, Processor> = {
     [Entity.List](output, character) {
       /* istanbul ignore next */
