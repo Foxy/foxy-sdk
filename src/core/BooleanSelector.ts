@@ -51,6 +51,19 @@ type Processor = (output: Output, character: string) => void;
  * to use a character outside of this set will result in a `SyntaxError`.
  */
 export class BooleanSelector {
+  /**
+   * Helper selector that matches any identifier on any level.
+   *
+   * @example
+   * BooleanSelector.True.matches('anything') // => true
+   * BooleanSelector.True.zoom('thing').matches('stuff') // => true
+   *
+   * @returns `BooleanSelector` singleton
+   */
+  static get True(): BooleanSelector {
+    return trueBooleanSelectorSingleton;
+  }
+
   private static __processors: Record<Entity, Processor> = {
     [Entity.List](output, character) {
       /* istanbul ignore next */
@@ -212,3 +225,19 @@ export class BooleanSelector {
     return tree;
   }
 }
+
+class TrueBooleanSelector extends BooleanSelector {
+  matches(): boolean {
+    return true;
+  }
+
+  zoom(): this {
+    return this;
+  }
+
+  toAttribute(): string | null {
+    return '';
+  }
+}
+
+const trueBooleanSelectorSingleton = new TrueBooleanSelector('');

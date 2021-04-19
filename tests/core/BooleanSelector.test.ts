@@ -121,5 +121,11 @@ describe('Core', () => {
       expect(selector.matches('baz')).toBe(false);
       expect(selector.matches('qux')).toBe(true);
     });
+
+    it('has static property True exposing wildcard selector', () => {
+      expect(BooleanSelector.True.matches('foo')).toBe(true);
+      expect(BooleanSelector.True.zoom('foo').matches('bar')).toBe(true);
+      expect(BooleanSelector.True.toAttribute()).toBe('');
+    });
   });
 });
