@@ -167,6 +167,19 @@ export class BooleanSelector {
     return this.__value;
   }
 
+  /**
+   * Converts this selector to an attribute value.
+   *
+   * @example
+   * new BooleanSelector('foo:bar').toAttribute() // => "foo:bar"
+   * new BooleanSelector('').toAttribute() // => null
+   *
+   * @returns attribute value representing this selector.
+   */
+  toAttribute(): string | null {
+    return this.__value.trim().length === 0 ? null : this.toString();
+  }
+
   private static __stringify(tree: Tree, path = ''): string {
     if (tree.only) {
       return Object.entries(tree.only).reduce((output, [key, subtree]) => {

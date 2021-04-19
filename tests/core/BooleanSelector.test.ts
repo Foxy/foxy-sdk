@@ -81,6 +81,15 @@ describe('Core', () => {
       expect(new BooleanSelector(input).zoom('foo').toString()).toBe(res);
     });
 
+    it('outputs null from .toAttribute() for empty selectors', () => {
+      expect(new BooleanSelector('').toAttribute()).toBeNull();
+    });
+
+    it('outputs original input from .toAttribute() for non-empty selectors', () => {
+      const input = 'foo:bar:not=baz,qux quux';
+      expect(new BooleanSelector(input).toAttribute()).toBe(input);
+    });
+
     it('tolerates excessive use of whitespace in lists', () => {
       const selector = new BooleanSelector('  foo   bar ');
 
