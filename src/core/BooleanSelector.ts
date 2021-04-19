@@ -64,6 +64,19 @@ export class BooleanSelector {
     return trueBooleanSelectorSingleton;
   }
 
+  /**
+   * Helper selector that doesn't match any identifier on any level.
+   *
+   * @example
+   * BooleanSelector.False.matches('anything') // => false
+   * BooleanSelector.False.zoom('thing').matches('stuff') // => false
+   *
+   * @returns `BooleanSelector` singleton
+   */
+  static get False(): BooleanSelector {
+    return falseBooleanSelectorSingleton;
+  }
+
   private static __processors: Record<Entity, Processor> = {
     [Entity.List](output, character) {
       /* istanbul ignore next */
@@ -240,4 +253,19 @@ class TrueBooleanSelector extends BooleanSelector {
   }
 }
 
+class FalseBooleanSelector extends BooleanSelector {
+  matches(): boolean {
+    return false;
+  }
+
+  zoom(): this {
+    return this;
+  }
+
+  toAttribute(): string | null {
+    return null;
+  }
+}
+
+const falseBooleanSelectorSingleton = new FalseBooleanSelector('');
 const trueBooleanSelectorSingleton = new TrueBooleanSelector('');

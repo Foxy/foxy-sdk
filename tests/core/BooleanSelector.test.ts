@@ -127,5 +127,11 @@ describe('Core', () => {
       expect(BooleanSelector.True.zoom('foo').matches('bar')).toBe(true);
       expect(BooleanSelector.True.toAttribute()).toBe('');
     });
+
+    it('has static property False exposing inverse wildcard selector', () => {
+      expect(BooleanSelector.False.matches('foo')).toBe(false);
+      expect(BooleanSelector.False.zoom('foo').matches('bar')).toBe(false);
+      expect(BooleanSelector.False.toAttribute()).toBeNull();
+    });
   });
 });
