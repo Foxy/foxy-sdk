@@ -131,13 +131,13 @@ export class BooleanSelector {
    * Checks if current selector includes rules for the given top-level identifier.
    *
    * @example
-   * new BooleanSelector('foo:bar').allows('foo') // => true
-   * new BooleanSelector('foo:bar').allows('bar') // => false
+   * new BooleanSelector('foo:bar').matches('foo') // => true
+   * new BooleanSelector('foo:bar').matches('bar') // => false
    *
    * @param id identifier to look for
    * @returns `true` is current selector includes rules for the given identifier
    */
-  allows(id: string): boolean {
+  matches(id: string): boolean {
     return !!this.__tree.only?.[id] || this.__tree.not?.includes(id) === false;
   }
 
@@ -145,12 +145,12 @@ export class BooleanSelector {
    * Zooms on the given top-level identifier.
    *
    * @example
-   * new BooleanSelector('foo:bar:baz').filter('foo').toString() // => "bar:baz"
+   * new BooleanSelector('foo:bar:baz').zoom('foo').toString() // => "bar:baz"
    *
    * @param id identifier to look for
    * @returns `true` is current selector includes rules for the given identifier
    */
-  filter(id: string): BooleanSelector {
+  zoom(id: string): BooleanSelector {
     const subtree = this.__tree.only?.[id] ?? {};
     return new BooleanSelector(BooleanSelector.__stringify(subtree));
   }
