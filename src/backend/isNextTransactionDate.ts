@@ -1,5 +1,7 @@
 import type { CustomerPortalSettings } from './Graph/customer_portal_settings';
-import jsonata from 'jsonata';
+import type { Resource } from '../core/Resource/Resource';
+import type { Subscription } from './Graph/subscription';
+import { getNextTransactionDateConstraints } from './getNextTransactionDateConstraints.js';
 import parse from 'parse-duration';
 
 type Config = CustomerPortalSettings['props']['subscriptions']['allowNextDateModification'];
@@ -7,7 +9,7 @@ type Config = CustomerPortalSettings['props']['subscriptions']['allowNextDateMod
 type Options = {
   value: string;
   settings: { subscriptions: { allowNextDateModification: Config } };
-  subscription: unknown;
+  subscription: Omit<Resource<Subscription>, '_links' | '_embedded'>;
 };
 
 /**
@@ -29,44 +31,37 @@ function toDate(yyyyMmDd: string) {
  * @returns True if given date can be used as next transaction date.
  */
 export function isNextTransactionDate(opts: Options): boolean {
-  const config = opts.settings.subscriptions.allowNextDateModification;
-  if (typeof config === 'boolean') return config;
-
   const valueAsDate = toDate(opts.value);
   const valueAsTime = valueAsDate.getTime();
+  const constraints = getNextTransactionDateConstraints(
+    opts.subscription,
+    opts.settings.subscriptions.allowNextDateModification
+  );
 
-  const match = config.find(rule => {
-    if (!jsonata(rule.jsonataQuery).evaluate(opts.subscription)) return false;
+  if (typeof constraints === 'boolean') return constraints;
 
-    if (rule.disallowedDates) {
-      const match = rule.disallowedDates.find(dateOrRange => {
-        const [from, to] = dateOrRange.split('..').map(v => toDate(v).getTime());
-        return valueAsTime === from || (to !== undefined && valueAsTime >= from && valueAsTime <= to);
-      });
+  if (constraints.allowedDaysOfMonth?.includes(valueAsDate.getDate()) === false) return false;
 
-      if (match) return false;
-    }
+  if (constraints.allowedDaysOfWeek?.includes(valueAsDate.getDay()) === false) return false;
 
-    if (rule.allowedDays?.type === 'month') {
-      if (!rule.allowedDays.days.includes(valueAsDate.getDate())) return false;
-    }
+  if (constraints.disallowedDates) {
+    const match = constraints.disallowedDates.find(dateOrRange => {
+      const [from, to] = dateOrRange.split('..').map(v => toDate(v).getTime());
+      return valueAsTime === from || (to !== undefined && valueAsTime >= from && valueAsTime <= to);
+    });
 
-    if (rule.allowedDays?.type === 'day') {
-      if (!rule.allowedDays.days.includes(valueAsDate.getDay())) return false;
-    }
+    if (match) return false;
+  }
 
-    if (rule.min) {
-      const duration = parse(rule.min);
-      if (duration !== null && Date.now() + duration >= valueAsTime) return false;
-    }
+  if (constraints.min) {
+    const duration = parse(constraints.min);
+    if (duration !== null && Date.now() + duration >= valueAsTime) return false;
+  }
 
-    if (rule.max) {
-      const duration = parse(rule.max);
-      if (duration !== null && Date.now() + duration <= valueAsTime) return false;
-    }
+  if (constraints.max) {
+    const duration = parse(constraints.max);
+    if (duration !== null && Date.now() + duration <= valueAsTime) return false;
+  }
 
-    return true;
-  });
-
-  return !!match;
+  return true;
 }
