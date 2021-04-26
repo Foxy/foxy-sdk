@@ -2,6 +2,7 @@ export * from './Graph/attribute';
 export * from './Graph/attributes';
 export * from './Graph/customer_address';
 export * from './Graph/customer_addresses';
+export * from './Graph/customer_portal_settings';
 export * from './Graph/default_billing_address';
 export * from './Graph/default_payment_method';
 export * from './Graph/default_shipping_address';
