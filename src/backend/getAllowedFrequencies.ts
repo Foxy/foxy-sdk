@@ -1,11 +1,12 @@
 import type { CustomerPortalSettings } from './Graph/customer_portal_settings';
+import type { Resource } from '../core/Resource/Resource';
+import type { Subscription } from './Rels';
 import jsonata from 'jsonata';
 
 type Rules = CustomerPortalSettings['props']['subscriptions']['allowFrequencyModification'];
-
 type Options = {
   settings: { subscriptions: { allowFrequencyModification: Rules } };
-  subscription: unknown;
+  subscription: Omit<Resource<Subscription>, '_links' | '_embedded'>;
 };
 
 /**
