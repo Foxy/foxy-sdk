@@ -26,7 +26,7 @@ function mockSettings(rules: Config) {
   return { subscriptions: { allow_next_date_modification: rules } };
 }
 
-describe('Backend', () => {
+describe('Customer', () => {
   describe('isNextTransactionDate', () => {
     it('returns true if allow_next_date_modification is true', () => {
       const result = isNextTransactionDate({
