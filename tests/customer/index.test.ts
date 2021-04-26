@@ -2,7 +2,7 @@ import * as Customer from '../../src/customer';
 
 import { API } from '../../src/customer/API';
 import { getAllowedFrequencies } from '../../src/customer/getAllowedFrequencies';
-import { getNextTransactionDateConstraints } from '../../src/backend/getNextTransactionDateConstraints';
+import { getNextTransactionDateConstraints } from '../../src/customer/getNextTransactionDateConstraints';
 import { getTimeFromFrequency } from '../../src/backend/getTimeFromFrequency';
 import { isNextTransactionDate } from '../../src/customer/isNextTransactionDate';
 
