@@ -25,28 +25,28 @@ export const machine = createMachine<Context, Event, State>(
         states: {
           creating: {
             invoke: {
-              onDone: { actions: ['setData', 'clearEdits'], target: '#nucleon.idle.snapshot' },
+              onDone: { actions: ['setData', 'clearEdits', 'validate'], target: '#nucleon.idle.snapshot' },
               onError: { target: '#nucleon.fail' },
               src: 'sendPost',
             },
           },
           deleting: {
             invoke: {
-              onDone: { actions: ['clearData', 'clearEdits'], target: '#nucleon.idle.template' },
+              onDone: { actions: ['clearData', 'clearEdits', 'validate'], target: '#nucleon.idle.template' },
               onError: { target: '#nucleon.fail' },
               src: 'sendDelete',
             },
           },
           fetching: {
             invoke: {
-              onDone: { actions: ['setData', 'clearErrors'], target: '#nucleon.idle.snapshot' },
+              onDone: { actions: ['setData', 'clearErrors', 'validate'], target: '#nucleon.idle.snapshot' },
               onError: { target: '#nucleon.fail' },
               src: 'sendGet',
             },
           },
           updating: {
             invoke: {
-              onDone: { actions: ['setData', 'clearEdits'], target: '#nucleon.idle.snapshot' },
+              onDone: { actions: ['setData', 'clearEdits', 'validate'], target: '#nucleon.idle.snapshot' },
               onError: { target: '#nucleon.fail' },
               src: 'sendPatch',
             },
