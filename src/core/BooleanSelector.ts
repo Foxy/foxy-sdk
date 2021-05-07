@@ -250,8 +250,9 @@ export class BooleanSelector {
         BooleanSelector.__processors[output.entity](output, character);
       } catch (err) {
         const hint = 'This error occured at: ';
-        const preview = value.substring(position - 30, position + 30);
-        const pointer = `${' '.repeat(hint.length + Math.min(preview.length, 29))}^`;
+        const trim = (v: string) => v.substring(Math.max(0, position - 30), position + 30);
+        const preview = trim(value);
+        const pointer = ' '.repeat(hint.length) + trim('^'.padStart(position + 1, ' '));
 
         throw new SyntaxError([err.message, `${hint}${preview}`, pointer].join('\n'));
       }
