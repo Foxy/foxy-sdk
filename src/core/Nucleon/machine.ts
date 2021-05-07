@@ -11,6 +11,7 @@ export const machine = createMachine<Context, Event, State>(
       data: null,
       edits: null,
       errors: [],
+      failure: null,
     },
     entry: ['validate'],
     id: 'nucleon',
@@ -26,34 +27,48 @@ export const machine = createMachine<Context, Event, State>(
           creating: {
             invoke: {
               onDone: { actions: ['setData', 'clearEdits', 'validate'], target: '#nucleon.idle.snapshot' },
-              onError: { target: '#nucleon.fail' },
+              onError: [
+                { actions: 'setErrors', cond: 'isV8nErrorEvent', target: '#nucleon.idle' },
+                { actions: 'setFailure', target: '#nucleon.fail' },
+              ],
               src: 'sendPost',
             },
           },
           deleting: {
             invoke: {
               onDone: { actions: ['clearData', 'clearEdits', 'validate'], target: '#nucleon.idle.template' },
-              onError: { target: '#nucleon.fail' },
+              onError: [
+                { actions: 'setErrors', cond: 'isV8nErrorEvent', target: '#nucleon.idle' },
+                { actions: 'setFailure', target: '#nucleon.fail' },
+              ],
               src: 'sendDelete',
             },
           },
           fetching: {
             invoke: {
               onDone: { actions: ['setData', 'clearErrors', 'validate'], target: '#nucleon.idle.snapshot' },
-              onError: { target: '#nucleon.fail' },
+              onError: [
+                { actions: 'setErrors', cond: 'isV8nErrorEvent', target: '#nucleon.idle' },
+                { actions: 'setFailure', target: '#nucleon.fail' },
+              ],
               src: 'sendGet',
             },
           },
           updating: {
             invoke: {
               onDone: { actions: ['setData', 'clearEdits', 'validate'], target: '#nucleon.idle.snapshot' },
-              onError: { target: '#nucleon.fail' },
+              onError: [
+                { actions: 'setErrors', cond: 'isV8nErrorEvent', target: '#nucleon.idle' },
+                { actions: 'setFailure', target: '#nucleon.fail' },
+              ],
               src: 'sendPatch',
             },
           },
         },
       },
-      fail: {},
+      fail: {
+        exit: 'clearFailure',
+      },
       idle: {
         initial: 'unknown',
         on: { EDIT: { actions: ['applyEdit', 'validate'], target: '.unknown' } },
