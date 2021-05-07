@@ -11,6 +11,13 @@ describe('Core', () => {
       expect(selector.matches('bar')).toBe(false);
     });
 
+    it('supports wildcards in not= modifier', () => {
+      const selector = new BooleanSelector('not=*');
+
+      expect(selector.matches('foo')).toBe(true);
+      expect(selector.matches('bar')).toBe(true);
+    });
+
     it('supports simple lists with not= modifier', () => {
       const selector = new BooleanSelector('not=bar');
 
@@ -56,6 +63,13 @@ describe('Core', () => {
       expect(selector.zoom('foo').matches('bar')).toBe(false);
       expect(selector.zoom('foo').matches('baz')).toBe(false);
       expect(selector.zoom('foo').matches('any')).toBe(true);
+    });
+
+    it('matches only complete namespaces if isFullMatch is true', () => {
+      const selector = new BooleanSelector('foo:not=bar,baz qux');
+
+      expect(selector.matches('foo', true)).toBe(false);
+      expect(selector.matches('qux', true)).toBe(true);
     });
 
     it('throws on invalid list syntax', () => {
@@ -118,6 +132,22 @@ describe('Core', () => {
       const selector = new BooleanSelector('not=bar not=baz');
 
       expect(selector.matches('bar')).toBe(false);
+      expect(selector.matches('baz')).toBe(false);
+      expect(selector.matches('qux')).toBe(true);
+    });
+
+    it('prefers wildcard over detailed rules in sets if specified last', () => {
+      const selector = new BooleanSelector('not=baz not=*');
+
+      expect(selector.matches('bar')).toBe(true);
+      expect(selector.matches('baz')).toBe(true);
+      expect(selector.matches('qux')).toBe(true);
+    });
+
+    it('prefers detailed rules over wildcard in sets if specified first', () => {
+      const selector = new BooleanSelector('not=* not=baz');
+
+      expect(selector.matches('bar')).toBe(true);
       expect(selector.matches('baz')).toBe(false);
       expect(selector.matches('qux')).toBe(true);
     });
