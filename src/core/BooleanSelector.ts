@@ -212,10 +212,15 @@ export class BooleanSelector {
    * @returns `true` is current selector includes rules for the given identifier
    */
   zoom(id: string): BooleanSelector {
+    const [firstPart, ...rest] = id.split(':');
     const { only, not } = this.__tree;
-    if (only?.[id]) return new BooleanSelector(BooleanSelector.__stringify(only[id]));
-    if (!not || not.includes(id)) return BooleanSelector.False;
-    return BooleanSelector.True;
+
+    if (only?.[firstPart]) {
+      const selector = new BooleanSelector(BooleanSelector.__stringify(only[firstPart]));
+      return rest.length === 0 ? selector : selector.zoom(rest.join(':'));
+    }
+
+    return !not || not.includes(firstPart) ? BooleanSelector.False : BooleanSelector.True;
   }
 
   /**

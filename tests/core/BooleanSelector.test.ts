@@ -65,6 +65,13 @@ describe('Core', () => {
       expect(selector.zoom('foo').matches('any')).toBe(true);
     });
 
+    it('supports complex ids in .zoom()', () => {
+      const selector = new BooleanSelector('foo:bar:baz:qux');
+
+      expect(selector.zoom('foo:bar').toString()).toBe('baz:qux:not=*');
+      expect(selector.zoom('baz:qux').toString()).toBe('');
+    });
+
     it('matches only complete namespaces if isFullMatch is true', () => {
       const selector = new BooleanSelector('foo:not=bar,baz qux');
 
