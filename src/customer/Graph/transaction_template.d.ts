@@ -3,11 +3,11 @@ import type { Graph } from '../../core';
 import type { Items } from './items';
 
 export interface TransactionTemplate extends Graph {
-  curie: 'fx:cart';
+  curie: 'fx:transaction_template';
 
   links: {
     /** This resource. */
-    'self': Cart;
+    'self': TransactionTemplate;
     /** Items in this cart. */
     'fx:items': Items;
     /** Customer who created this cart. */
