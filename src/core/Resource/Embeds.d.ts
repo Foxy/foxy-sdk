@@ -25,9 +25,9 @@ type ResourceEmbed<TGraph extends With<Graph, 'zooms'>, TQuery extends Query<TGr
 /** Constructs part of the resource record with the embedded content. */
 export type Embeds<TGraph extends Graph, TQuery extends Query<TGraph> | undefined> = ExcludeNever<{
   /** Embedded resources. */
-  _embedded: TGraph extends With<Graph, 'child' | 'curie'> // <---------------| When given a collection with a curie,
-    ? Record<TGraph['curie'], Child<TGraph, TQuery>> // <---| create a special record like `{ [collection_curie]: APIResourceChild }`.
-    : TGraph extends With<Graph, 'zooms'> // <--------------------------------| If it's a single zoomable resource,
-    ? ResourceEmbed<TGraph, TQuery> // <----------------------------------| construct a regular zoom record like `{ [zoomed_curie]: APIResourceChild, ... }`.
-    : never; // <-------------------------------------------------------------------| In any other case remove the `_embedded` property from output.
+  _embedded: TGraph extends With<Graph, 'child' | 'curie'> // <----| When given a collection with a curie,
+    ? Record<TGraph['curie'], Child<TGraph, TQuery>> // <----------| create a special record like `{ [collection_curie]: APIResourceChild }`.
+    : TGraph extends With<Graph, 'zooms'> // <---------------------| If it's a single zoomable resource,
+    ? ResourceEmbed<TGraph, TQuery> // <---------------------------| construct a regular zoom record like `{ [zoomed_curie]: APIResourceChild, ... }`.
+    : never; // <--------------------------------------------------| In any other case remove the `_embedded` property from output.
 }>;
