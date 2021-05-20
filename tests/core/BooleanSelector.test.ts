@@ -143,20 +143,19 @@ describe('Core', () => {
       expect(selector.matches('qux')).toBe(true);
     });
 
-    it('prefers wildcard over detailed rules in sets if specified last', () => {
-      const selector = new BooleanSelector('not=baz not=*');
-
-      expect(selector.matches('bar')).toBe(true);
-      expect(selector.matches('baz')).toBe(true);
-      expect(selector.matches('qux')).toBe(true);
+    it('prefers wildcard over detailed rules in sets', () => {
+      ['not=foo not=*', 'not=* not=foo'].forEach(value => {
+        const selector = new BooleanSelector(value);
+        expect(selector.matches('foo')).toBe(true);
+        expect(selector.matches('bar')).toBe(true);
+      });
     });
 
-    it('prefers detailed rules over wildcard in sets if specified first', () => {
-      const selector = new BooleanSelector('not=* not=baz');
-
-      expect(selector.matches('bar')).toBe(true);
-      expect(selector.matches('baz')).toBe(false);
-      expect(selector.matches('qux')).toBe(true);
+    it('prefers larger namespace over detailed rules in lists', () => {
+      ['foo foo:bar'].forEach(value => {
+        const selector = new BooleanSelector(value);
+        expect(selector.matches('foo', true)).toBe(true);
+      });
     });
 
     it('has static property True exposing wildcard selector', () => {

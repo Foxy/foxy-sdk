@@ -106,6 +106,7 @@ export class BooleanSelector {
       if (character === '=') {
         if (output.buffer === 'not') {
           const newBranch = output.branch.not ?? [];
+          delete output.branch.only;
 
           output.branch.not = newBranch;
           output.entity = Entity.Set;
@@ -121,10 +122,15 @@ export class BooleanSelector {
       if (/^\s$/.test(character) || character === ':') {
         if (output.buffer.length > 0) {
           const selector = output.buffer;
-          const newBranch = output.branch.only?.[selector] ?? { not: ['*'] };
+          const newBranch = output.branch.only?.[selector] ?? {};
 
-          output.branch.only = { ...output.branch.only, [selector]: newBranch };
-          output.branch = /^\s$/.test(character) ? output.tree : newBranch;
+          if (character !== ':') newBranch.not = ['*'];
+          if (output.branch.not?.includes('*') !== true) {
+            output.branch.only = { ...output.branch.only, [selector]: newBranch };
+            delete output.branch.not;
+          }
+
+          output.branch = character === ':' ? newBranch : output.tree;
           output.buffer = '';
         }
 
@@ -146,9 +152,11 @@ export class BooleanSelector {
       if (output.buffer.length === 0 && /^\s$/.test(character)) return;
 
       if (character === ',' || character === '*' || /^\s$/.test(character)) {
-        const updatedSet = character === '*' ? ['*'] : [...output.branch.filter(v => v !== '*'), output.buffer];
-        output.branch.splice(0, output.branch.length, ...updatedSet);
+        const newItem = character === '*' ? '*' : output.buffer;
+        const updatedSet = new Set([...output.branch, newItem]);
+        const normalizedSet = updatedSet.has('*') ? new Set(['*']) : updatedSet;
 
+        output.branch.splice(0, output.branch.length, ...normalizedSet);
         output.entity = character === ',' ? Entity.Set : Entity.List;
         output.branch = character === ',' ? output.branch : output.tree;
         output.buffer = '';
