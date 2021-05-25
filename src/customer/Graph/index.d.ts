@@ -4,6 +4,8 @@ import type { DefaultBillingAddress } from './default_billing_address';
 import type { DefaultPaymentMethod } from './default_payment_method';
 import type { DefaultShippingAddress } from './default_shipping_address';
 import type { Graph } from '../../core';
+import type { SubModificationUrl } from './sub_modification_url';
+import type { SubTokenUrl } from './sub_token_url';
 import type { Subscriptions } from './subscriptions';
 import type { Transactions } from './transactions';
 
@@ -27,6 +29,10 @@ interface Customer extends Graph {
     'fx:default_billing_address': DefaultBillingAddress;
     /** Customer's default shipping address. */
     'fx:default_shipping_address': DefaultShippingAddress;
+    /** Navigate to this URL to open a cart with subscription details. */
+    'fx:sub_token_url': SubTokenUrl;
+    /** Navigate to this URL to make changes to this subscription. */
+    'fx:sub_modification_url': SubModificationUrl;
   };
 
   props: {

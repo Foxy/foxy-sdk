@@ -110,7 +110,7 @@ describe('Core', () => {
     });
 
     it('starts in idle.snapshot.clean.valid state when provided with context.data', () => {
-      const context = { data: { foo: 'bar' }, edits: null, errors: [] };
+      const context = { data: { foo: 'bar' }, edits: null, errors: [], failure: null };
       const service = interpret(machine.withContext(context)).start();
       expect(service.state.matches({ idle: { snapshot: { clean: 'valid' } } })).toBe(true);
       service.stop();
@@ -118,7 +118,7 @@ describe('Core', () => {
 
     it('starts in idle.snapshot.clean.invalid state when provided with context.data and a failing validator', () => {
       const validate = assign<Context>({ errors: ctx => ('foo' in (ctx.data ?? {}) ? ['no foos'] : []) });
-      const context = { data: { foo: 'bar' }, edits: null, errors: [] };
+      const context = { data: { foo: 'bar' }, edits: null, errors: [], failure: null };
       const config = { actions: { validate } };
       const service = interpret(machine.withContext(context).withConfig(config)).start();
       expect(service.state.matches({ idle: { snapshot: { clean: 'invalid' } } })).toBe(true);
@@ -126,7 +126,7 @@ describe('Core', () => {
     });
 
     it('switches to idle.snapshot.dirty.valid when edited with context.data and without validator', () => {
-      const context = { data: { foo: 'bar' }, edits: null, errors: [] };
+      const context = { data: { foo: 'bar' }, edits: null, errors: [], failure: null };
       const service = interpret(machine.withContext(context)).start();
       service.send({ data: { foo: 'baz' }, type: 'EDIT' });
       expect(service.state.matches({ idle: { snapshot: { dirty: 'valid' } } })).toBe(true);
@@ -135,7 +135,7 @@ describe('Core', () => {
 
     it('switches to idle.snapshot.dirty.invalid when edited with context.data and failing validator', () => {
       const validate = assign<Context>({ errors: ctx => ('foo' in (ctx.edits ?? {}) ? ['no foos'] : []) });
-      const context = { data: {}, edits: null, errors: [] };
+      const context = { data: {}, edits: null, errors: [], failure: null };
       const config = { actions: { validate } };
       const service = interpret(machine.withContext(context).withConfig(config)).start();
 
@@ -149,7 +149,7 @@ describe('Core', () => {
 
     it('does not submit invalid edits', async () => {
       const validate = assign<Context>({ errors: ctx => ('foo' in (ctx.edits ?? {}) ? ['no foos'] : []) });
-      const context = { data: {}, edits: null, errors: [] };
+      const context = { data: {}, edits: null, errors: [], failure: null };
       const config = { actions: { validate } };
       const service = interpret(machine.withContext(context).withConfig(config)).start();
 
@@ -164,7 +164,7 @@ describe('Core', () => {
     it('updates a resource with valid edits using sendPatch service', async () => {
       const sendPatch = () => Promise.resolve(response);
       const response = { baz: 'qux', foo: 'bar' };
-      const context = { data: { baz: 'qux' }, edits: null, errors: [] };
+      const context = { data: { baz: 'qux' }, edits: null, errors: [], failure: null };
       const config = { services: { sendPatch } };
       const service = interpret(machine.withContext(context).withConfig(config)).start();
 
@@ -188,7 +188,7 @@ describe('Core', () => {
 
     it('switches to fail state when sendPatch errors', async () => {
       const sendPatch = () => Promise.reject();
-      const context = { data: { baz: 'qux' }, edits: null, errors: [] };
+      const context = { data: { baz: 'qux' }, edits: null, errors: [], failure: null };
       const config = { services: { sendPatch } };
       const service = interpret(machine.withContext(context).withConfig(config)).start();
 

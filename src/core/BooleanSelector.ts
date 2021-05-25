@@ -80,9 +80,9 @@ export class BooleanSelector {
   /**
    * Creates a `BooleanSelector` instance from an attribute value according to the following rules:
    *
-   * - boolean selector constructed from a `null` value will always return `false` from `.allows()`;
-   * - if attribute value is empty or matches `truthyValue`, a boolean selector will always return `true` from `.allows()`;
-   * - in every other case attribute value will be parsed as boolean selector.
+   * - null will be parsed as empty string;
+   * - empty string or `truthyValue` will be parsed as `:not=*` ;
+   * - in every other case attribute value will be parsed as regular boolean selector.
    *
    * @example
    * const value = element.getAttribute('disabled');
@@ -98,7 +98,6 @@ export class BooleanSelector {
     return new BooleanSelector(value);
   }
 
-
   private static __processors: Record<Entity, Processor> = {
     [Entity.List](output, character) {
       /* istanbul ignore next */
@@ -106,9 +105,10 @@ export class BooleanSelector {
 
       if (character === '=') {
         if (output.buffer === 'not') {
-          const newBranch = output.branch[output.buffer] ?? [];
+          const newBranch = output.branch.not ?? [];
+          delete output.branch.only;
 
-          output.branch[output.buffer] = newBranch;
+          output.branch.not = newBranch;
           output.entity = Entity.Set;
           output.branch = newBranch;
           output.buffer = '';
@@ -120,12 +120,20 @@ export class BooleanSelector {
       }
 
       if (/^\s$/.test(character) || character === ':') {
-        const selector = output.buffer;
-        const newBranch = output.branch.only?.[selector] ?? {};
+        if (output.buffer.length > 0) {
+          const selector = output.buffer;
+          const newBranch = output.branch.only?.[selector] ?? {};
 
-        output.branch.only = { ...output.branch.only, [selector]: newBranch };
-        output.branch = /^\s$/.test(character) ? output.tree : newBranch;
-        output.buffer = '';
+          if (character !== ':') newBranch.not = ['*'];
+          if (output.branch.not?.includes('*') !== true) {
+            output.branch.only = { ...output.branch.only, [selector]: newBranch };
+            delete output.branch.not;
+          }
+
+          output.branch = character === ':' ? newBranch : output.tree;
+          output.buffer = '';
+        }
+
         return;
       }
 
@@ -143,11 +151,16 @@ export class BooleanSelector {
 
       if (output.buffer.length === 0 && /^\s$/.test(character)) return;
 
-      if (character === ',' || /^\s$/.test(character)) {
+      if (character === ',' || character === '*' || /^\s$/.test(character)) {
+        const newItem = character === '*' ? '*' : output.buffer;
+        const updatedSet = new Set([...output.branch, newItem]);
+        const normalizedSet = updatedSet.has('*') ? new Set(['*']) : updatedSet;
+
+        output.branch.splice(0, output.branch.length, ...normalizedSet);
         output.entity = character === ',' ? Entity.Set : Entity.List;
-        output.branch.push(output.buffer);
         output.branch = character === ',' ? output.branch : output.tree;
         output.buffer = '';
+
         return;
       }
 
@@ -179,14 +192,20 @@ export class BooleanSelector {
    * Checks if current selector includes rules for the given top-level identifier.
    *
    * @example
+   * new BooleanSelector('foo').matches('foo') // => true
+   * new BooleanSelector('foo').matches('foo', true) // => true
+   * new BooleanSelector('foo').matches('bar') // => false
    * new BooleanSelector('foo:bar').matches('foo') // => true
+   * new BooleanSelector('foo:bar').matches('foo', true) // => false
    * new BooleanSelector('foo:bar').matches('bar') // => false
    *
    * @param id identifier to look for
+   * @param [isFullMatch=false] if true, will match only if the entire namespace is selected
    * @returns `true` is current selector includes rules for the given identifier
    */
-  matches(id: string): boolean {
-    return !!this.__tree.only?.[id] || this.__tree.not?.includes(id) === false;
+  matches(id: string, isFullMatch = false): boolean {
+    const selector = this.zoom(id).toString();
+    return isFullMatch ? selector === 'not=*' : selector !== '';
   }
 
   /**
@@ -194,13 +213,22 @@ export class BooleanSelector {
    *
    * @example
    * new BooleanSelector('foo:bar:baz').zoom('foo').toString() // => "bar:baz"
+   * new BooleanSelector('not=foo').zoom('bar').toString() // => "not=*"
+   * new BooleanSelector('not=foo').zoom('foo').toString() // => ""
    *
    * @param id identifier to look for
    * @returns `true` is current selector includes rules for the given identifier
    */
   zoom(id: string): BooleanSelector {
-    const subtree = this.__tree.only?.[id] ?? {};
-    return new BooleanSelector(BooleanSelector.__stringify(subtree));
+    const [firstPart, ...rest] = id.split(':');
+    const { only, not } = this.__tree;
+
+    if (only?.[firstPart]) {
+      const selector = new BooleanSelector(BooleanSelector.__stringify(only[firstPart]));
+      return rest.length === 0 ? selector : selector.zoom(rest.join(':'));
+    }
+
+    return !not || not.includes(firstPart) ? BooleanSelector.False : BooleanSelector.True;
   }
 
   /**
@@ -220,11 +248,15 @@ export class BooleanSelector {
    *
    * @example
    * new BooleanSelector('foo:bar').toAttribute() // => "foo:bar"
-   * new BooleanSelector('').toAttribute() // => null
+   * BooleanSelector.False.toAttribute() // => null
+   * BooleanSelector.True.toAttribute("disabled") // => "disabled"
+   * BooleanSelector.True.toAttribute() // => ""
    *
+   * @param truthyValue attribute value for wildcard selectors (use attribute name here to be spec-compliant)
    * @returns attribute value representing this selector.
    */
-  toAttribute(): string | null {
+  toAttribute(truthyValue = ''): string | null {
+    if (this.__tree.not?.[0] === '*') return truthyValue;
     return this.__value.trim().length === 0 ? null : this.toString();
   }
 
@@ -250,8 +282,9 @@ export class BooleanSelector {
         BooleanSelector.__processors[output.entity](output, character);
       } catch (err) {
         const hint = 'This error occured at: ';
-        const preview = value.substring(position - 30, position + 30);
-        const pointer = `${' '.repeat(hint.length + Math.min(preview.length, 29))}^`;
+        const trim = (v: string) => v.substring(Math.max(0, position - 30), position + 30);
+        const preview = trim(value);
+        const pointer = ' '.repeat(hint.length) + trim('^'.padStart(position + 1, ' '));
 
         throw new SyntaxError([err.message, `${hint}${preview}`, pointer].join('\n'));
       }
@@ -261,33 +294,5 @@ export class BooleanSelector {
   }
 }
 
-class TrueBooleanSelector extends BooleanSelector {
-  matches(): boolean {
-    return true;
-  }
-
-  zoom(): this {
-    return this;
-  }
-
-  toAttribute(): string | null {
-    return '';
-  }
-}
-
-class FalseBooleanSelector extends BooleanSelector {
-  matches(): boolean {
-    return false;
-  }
-
-  zoom(): this {
-    return this;
-  }
-
-  toAttribute(): string | null {
-    return null;
-  }
-}
-
-const falseBooleanSelectorSingleton = new FalseBooleanSelector('');
-const trueBooleanSelectorSingleton = new TrueBooleanSelector('');
+const falseBooleanSelectorSingleton = new BooleanSelector('');
+const trueBooleanSelectorSingleton = new BooleanSelector('not=*');

@@ -1,5 +1,5 @@
-import type { Embeds } from '../Resource/Embeds';
-import type { FollowableLinks } from './Links';
+import type { FollowableEmbeds } from './FollowableEmbeds';
+import type { FollowableLinks } from './FollowableLinks';
 import type { Graph } from '../Graph';
 import type { Props } from '../Resource/Props';
 import type { Query } from '../Query';
@@ -8,4 +8,4 @@ import type { Query } from '../Query';
 export type FollowableResource<
   TGraph extends Graph,
   TQuery extends Query<TGraph> | undefined = undefined
-> = FollowableLinks<TGraph> & Props<TGraph, TQuery> & Embeds<TGraph, TQuery>;
+> = FollowableLinks<TGraph> & Props<TGraph, TQuery> & FollowableEmbeds<TGraph, TQuery>;

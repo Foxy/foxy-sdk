@@ -11,6 +11,13 @@ describe('Core', () => {
       expect(selector.matches('bar')).toBe(false);
     });
 
+    it('supports wildcards in not= modifier', () => {
+      const selector = new BooleanSelector('not=*');
+
+      expect(selector.matches('foo')).toBe(true);
+      expect(selector.matches('bar')).toBe(true);
+    });
+
     it('supports simple lists with not= modifier', () => {
       const selector = new BooleanSelector('not=bar');
 
@@ -56,6 +63,20 @@ describe('Core', () => {
       expect(selector.zoom('foo').matches('bar')).toBe(false);
       expect(selector.zoom('foo').matches('baz')).toBe(false);
       expect(selector.zoom('foo').matches('any')).toBe(true);
+    });
+
+    it('supports complex ids in .zoom()', () => {
+      const selector = new BooleanSelector('foo:bar:baz:qux');
+
+      expect(selector.zoom('foo:bar').toString()).toBe('baz:qux:not=*');
+      expect(selector.zoom('baz:qux').toString()).toBe('');
+    });
+
+    it('matches only complete namespaces if isFullMatch is true', () => {
+      const selector = new BooleanSelector('foo:not=bar,baz qux');
+
+      expect(selector.matches('foo', true)).toBe(false);
+      expect(selector.matches('qux', true)).toBe(true);
     });
 
     it('throws on invalid list syntax', () => {
@@ -120,6 +141,21 @@ describe('Core', () => {
       expect(selector.matches('bar')).toBe(false);
       expect(selector.matches('baz')).toBe(false);
       expect(selector.matches('qux')).toBe(true);
+    });
+
+    it('prefers wildcard over detailed rules in sets', () => {
+      ['not=foo not=*', 'not=* not=foo'].forEach(value => {
+        const selector = new BooleanSelector(value);
+        expect(selector.matches('foo')).toBe(true);
+        expect(selector.matches('bar')).toBe(true);
+      });
+    });
+
+    it('prefers larger namespace over detailed rules in lists', () => {
+      ['foo foo:bar'].forEach(value => {
+        const selector = new BooleanSelector(value);
+        expect(selector.matches('foo', true)).toBe(true);
+      });
     });
 
     it('has static property True exposing wildcard selector', () => {

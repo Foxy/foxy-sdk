@@ -4,7 +4,7 @@ import type { Credentials, Session, StoredSession } from './types';
 import { Request, fetch } from 'cross-fetch';
 
 import type { Graph } from './Graph';
-import { v8n } from '../core/v8n';
+import { v8n } from '../core/v8n.js';
 
 /**
  * Customer API for adding custom functionality to websites and web apps with our Customer Portal.
