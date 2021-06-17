@@ -5,6 +5,7 @@ describe('Core', () => {
     describe('AuthError', () => {
       it('exposes error codes as static members', () => {
         expect(AuthError).toHaveProperty('NEW_PASSWORD_REQUIRED');
+        expect(AuthError).toHaveProperty('INVALID_NEW_PASSWORD');
         expect(AuthError).toHaveProperty('UNAUTHORIZED');
         expect(AuthError).toHaveProperty('UNKNOWN');
       });

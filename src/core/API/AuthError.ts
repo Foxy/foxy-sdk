@@ -9,6 +9,7 @@ type AuthErrorParams = {
 /** Union of all possible auth error codes. */
 type UniversalAPIAuthErrorCode =
   | typeof AuthError['NEW_PASSWORD_REQUIRED']
+  | typeof AuthError['INVALID_NEW_PASSWORD']
   | typeof AuthError['UNAUTHORIZED']
   | typeof AuthError['UNKNOWN'];
 
@@ -21,6 +22,9 @@ type UniversalAPIAuthErrorCode =
 export class AuthError extends Error {
   /** Credentials are valid, but the session can be created only after changing the current password. This usually happens after a server-side password reset has been initiated for security reasons. */
   static readonly NEW_PASSWORD_REQUIRED = 'NEW_PASSWORD_REQUIRED';
+
+  /** Credentials are valid, but the new password provided in response to the `NEW_PASSWORD_REQUIRED` error doesn't meet the security requirements. */
+  static readonly INVALID_NEW_PASSWORD = 'INVALID_NEW_PASSWORD';
 
   /** Credentials are invalid. That could mean empty or invalid email or password or otherwise incorrect auth data. */
   static readonly UNAUTHORIZED = 'UNAUTHORIZED';
