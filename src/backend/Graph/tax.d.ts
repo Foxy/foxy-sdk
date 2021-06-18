@@ -21,7 +21,7 @@ export interface Tax extends Graph {
     /** The name of this tax which will be displayed to the customer. */
     name: string;
     /** The type of tax rate which determines when this tax will be applied. */
-    type: 'global' | 'country' | 'region' | 'local';
+    type: 'global' | 'union' | 'country' | 'region' | 'local';
     /** The country which will be matched against the customer shipping country to determine if a country tax will be applied. */
     country: string;
     /** The region (also known as a state or province) which will be matched against the customer shipping region to determine if a regional tax will be applied. */
