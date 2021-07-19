@@ -63,6 +63,12 @@ export class API<TGraph extends Graph> extends Node<TGraph> {
    */
   static readonly WHATWGHeaders = Headers;
 
+  /**
+   * Polyfilled version of the built-in `fetch` function. If you need to call fetch() with poyfilled request, response or headers,
+   * use this function instead of the built-in one to avoid [this issue](https://github.com/github/fetch/issues/860).
+   */
+  static readonly whatwgFetch = fetch;
+
   static readonly AuthError = AuthError;
 
   static readonly Node = Node;
