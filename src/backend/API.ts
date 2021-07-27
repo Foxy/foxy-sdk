@@ -153,7 +153,11 @@ export class API extends Core.API<Graph> {
 
     if (token === null) {
       this.console.trace("Access token isn't present in the storage. Fetching a new one...");
-      const rawToken = await API.getToken(this);
+
+      const rawToken = await API.getToken(this, true).catch(err => {
+        this.console.error(err.message);
+        return null;
+      });
 
       if (rawToken) {
         token = { ...rawToken, date_created: new Date().toISOString() };
