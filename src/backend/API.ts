@@ -76,9 +76,14 @@ export class API extends Core.API<Graph> {
    * or a refresh token. See more in our [authentication docs](https://api.foxycart.com/docs/authentication).
    *
    * @param opts Request options.
+   * @param throwOnFailure If true, this method will throw an error instead of returning null on failure to obtain a token.
    * @returns Access token with additional info on success, null on failure.
    */
-  static async getToken(opts: GrantOpts): Promise<Token | null> {
+  static async getToken(opts: GrantOpts): Promise<Token | null>;
+
+  static async getToken(opts: GrantOpts, throwOnFailure: true): Promise<Token>;
+
+  static async getToken(opts: GrantOpts, throwOnFailure = false): Promise<Token | null> {
     API.v8n.getAccessToken.check(opts);
 
     const headers = new Headers();
@@ -100,7 +105,10 @@ export class API extends Core.API<Graph> {
     }
 
     const response = await fetch(url, { body, headers, method: 'POST' });
-    return response.ok ? await response.json() : null;
+
+    if (response.ok) return response.json();
+    if (throwOnFailure) throw new Error(await response.text());
+    return null;
   }
 
   readonly refreshToken: string;
@@ -145,7 +153,11 @@ export class API extends Core.API<Graph> {
 
     if (token === null) {
       this.console.trace("Access token isn't present in the storage. Fetching a new one...");
-      const rawToken = await API.getToken(this);
+
+      const rawToken = await API.getToken(this, true).catch(err => {
+        this.console.error(err.message);
+        return null;
+      });
 
       if (rawToken) {
         token = { ...rawToken, date_created: new Date().toISOString() };

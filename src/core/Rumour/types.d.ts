@@ -14,7 +14,7 @@ export type Resource = {
   };
 };
 
-export type Share = {
+export type Share<T extends Resource = Resource> = {
   /** URIs of resources affected by this update. */
   readonly related?: ReadonlyArray<string>;
 
@@ -22,7 +22,7 @@ export type Share = {
   readonly source: string;
 
   /** Updated resource or null if it's deleted. */
-  readonly data: Resource | null;
+  readonly data: T | null;
 };
 
 export type TrackCallback = (update: <TData extends Resource>(data: TData) => TData | null) => void;

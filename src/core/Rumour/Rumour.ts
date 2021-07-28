@@ -1,4 +1,4 @@
-import type { CeaseCallback, Collection, Patch, Resource, Share, TrackCallback } from './types';
+import type { CeaseCallback, Patch, Resource, Share, TrackCallback } from './types';
 import { get, isEqual } from 'lodash';
 
 import { UpdateError } from './UpdateError.js';
@@ -56,16 +56,9 @@ export class Rumour {
    *
    * @param params Resource metadata and contents.
    */
-  share(params: Share): void {
+  share<T extends Resource = Resource>(params: Share<T>): void {
     const { related, source, data } = params;
-    let patch: Patch;
-
-    if (data === null) {
-      const dataID = Rumour.__createResourceID({ _links: { self: { href: source } } });
-      patch = new Map([[dataID, null]]);
-    } else {
-      patch = Rumour.__createPatch(data);
-    }
+    const patch = data === null ? new Map([[source, null]]) : Rumour.__createPatch(data);
 
     [...this.__callbacks].forEach(callback => {
       callback(oldData => {
@@ -113,23 +106,15 @@ export class Rumour {
     return typeof get(json, '_links.self.href') === 'string';
   }
 
-  private static __isCollection(json: unknown): json is Collection {
-    return typeof get(json, '_links.first.href') === 'string';
-  }
-
-  private static __createResourceID(data: Resource): string {
-    const url = new URL(data._links.self.href);
-
-    if (Rumour.__isCollection(data)) {
-      if (url.searchParams.get('offset') === '0') url.searchParams.delete('offset');
-      if (url.searchParams.get('limit') === '20') url.searchParams.delete('limit');
-    } else {
+  private static __approximateURI(href: string): string {
+    try {
+      const url = new URL(href);
       url.search = '';
+      url.hash = '';
+      return url.toString();
+    } catch {
+      return href;
     }
-
-    url.hash = '';
-
-    return url.toString();
   }
 
   private static __createPatch(data: Resource): Patch {
@@ -140,27 +125,36 @@ export class Rumour {
         if (this.key?.startsWith('_')) this.delete(true);
       });
 
-      patch.set(Rumour.__createResourceID(value), props);
+      patch.set(value._links.self.href, props);
       return patch;
     }, new Map());
   }
 
   private static __applyPatch(patch: Patch, data: Resource, related?: ReadonlyArray<string>) {
-    const relatedIDs = related?.map(href => {
-      return Rumour.__createResourceID({ _links: { self: { href } } });
-    });
+    const approximateRelatedURIs = related?.map(uri => Rumour.__approximateURI(uri)) ?? [];
 
     const result = traverse({ data }).map(function (node) {
       if (!Rumour.__isResource(node)) return;
 
-      const id = Rumour.__createResourceID(node);
-      if (relatedIDs?.includes(id)) throw new Rumour.UpdateError();
-      if (!patch.has(id)) return;
+      const exactURI = node._links.self.href;
+      const approximateURI = Rumour.__approximateURI(exactURI);
 
-      const props = patch.get(id);
-      if (props === null) return this.delete(true);
+      // This resource was referenced in the `related` array and is considered to be somehow affected by the update.
+      // An error is usually thrown here if a resource is added to a collection – Rumour can't know for sure
+      // where to insert the new resource in a collection page, so it asks the data host to reload its state.
+      if (approximateRelatedURIs.includes(approximateURI)) throw new Rumour.UpdateError();
 
-      this.update({ ...node, ...props }, true);
+      if (patch.has(exactURI)) {
+        const props = patch.get(exactURI);
+
+        if (props) return this.update({ ...node, ...props }, true);
+        if (!(this.parent as traverse.TraverseContext).parent) return this.delete(true);
+
+        // Deleting an embedded resource may result in differences between server-side and client-side states.
+        // For example, deleting a resource from a collection page shifts the content and changes some of the page fields.
+        // At this point, Rumour is unable to perform such updates reliably, so it asks the data host to reload its state instead.
+        throw new Rumour.UpdateError();
+      }
     });
 
     return result.data ?? null;

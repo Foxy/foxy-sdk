@@ -79,6 +79,12 @@ describe('Backend', () => {
       fetchMock.mockClear();
     });
 
+    it('throws an error on auth failure in API.getToken(opts, true)', async () => {
+      fetchMock.mockImplementation(() => Promise.resolve(new Response(null, { status: 500 })));
+      await expect(BackendAPI.getToken({ ...commonInit }, true)).rejects.toThrow();
+      fetchMock.mockClear();
+    });
+
     it('supports authorization_code grant in API.getToken()', async () => {
       fetchMock.mockImplementation(() => Promise.resolve(new Response(JSON.stringify(sampleToken))));
 

@@ -151,7 +151,7 @@ describe('Core', () => {
       rumour.cease();
     });
 
-    it('deletes embedded resource if deletion is committed', () => {
+    it('throws UpdateError when processing a deletion of an embedded resource', () => {
       let syncedData: TestResource | null = {
         _embedded: {
           foo: {
@@ -164,14 +164,22 @@ describe('Core', () => {
       };
 
       const rumour = new Rumour();
-      rumour.track(update => (syncedData = update(syncedData as TestResource)));
-      rumour.share({ data: null, source: 'https://foxy.test/foo' });
+      let error: Error | null = null;
 
-      expect(syncedData).toEqual({
-        _embedded: {},
-        _links: { self: { href: 'https://foxy.test/bar' } },
-        bar: 'qux',
+      rumour.track(update => {
+        try {
+          syncedData = update(syncedData as TestResource);
+        } catch (err) {
+          error = err;
+        }
       });
+
+      rumour.share({
+        data: null,
+        source: 'https://foxy.test/foo',
+      });
+
+      expect(error).toBeInstanceOf(UpdateError);
 
       rumour.cease();
     });
