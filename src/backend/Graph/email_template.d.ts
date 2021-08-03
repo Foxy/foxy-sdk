@@ -20,6 +20,8 @@ export interface EmailTemplate extends Graph {
   props: {
     /** The description of your email template. */
     description: string;
+    /** The subject template of your email. */
+    subject: string;
     /** The content of your html email template. Leave blank to use the default responsive template. You can set the content directly or set the `content_html_url` to point to your template content online and then POST to the `cache` link relationship. */
     content_html: string;
     /** The URL of your html email template hosted on your own server online and publicly available for our server to cache. */
