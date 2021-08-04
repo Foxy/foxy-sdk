@@ -1,6 +1,7 @@
 import { V8N, storageV8N, v8n } from '../v8n.js';
 import consola, { Consola } from 'consola';
 
+import type { CustomStorage } from './CustomStorage';
 import type { Graph } from '../Graph';
 import type { Query } from '../Query';
 import { Request } from 'cross-fetch';
@@ -16,8 +17,8 @@ type NodeInit = {
   path: CurieChain;
   /** Custom Fetch API implementation for making authenticated requests. */
   fetch: Window['fetch'];
-  /** Resolver cache implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API). */
-  cache: Storage;
+  /** Resolver cache implementing CustomStorage based on [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API). */
+  cache: CustomStorage;
   /** Shared [Consola](https://github.com/nuxt-contrib/consola) instance. */
   console: Consola;
 };
@@ -94,8 +95,8 @@ export class Node<TGraph extends Graph> {
   /** Custom Fetch API implementation for making authenticated requests. */
   protected readonly _fetch: Window['fetch'];
 
-  /** Resolver cache implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API). */
-  protected readonly _cache: Storage;
+  /** Resolver cache implementing CustomStorage based on [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API). */
+  protected readonly _cache: CustomStorage;
 
   /** Path to this resource node as base URL followed by a list of curies. */
   protected readonly _path: CurieChain;

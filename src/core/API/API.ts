@@ -3,6 +3,7 @@ import consola, { Consola, LogLevel } from 'consola';
 import { storageV8N, v8n } from '../v8n.js';
 
 import { AuthError } from './AuthError.js';
+import type { CustomStorage } from './CustomStorage';
 import type { Graph } from '../Graph';
 import MemoryStorage from 'fake-storage';
 import { Node } from './Node.js';
@@ -10,10 +11,10 @@ import { Node } from './Node.js';
 /** API constructor parameters. */
 type Init = {
   /**
-   * Credentials storage implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API).
+   * Credentials storage implementing CustomStorage based on [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API).
    * Access tokens and other related info will be stored here. Defaults to in-memory storage.
    */
-  storage?: Storage;
+  storage?: CustomStorage;
 
   /**
    * Numeric [Consola](https://github.com/nuxt-contrib/consola) log level.
@@ -28,10 +29,10 @@ type Init = {
   fetch?: Window['fetch'];
 
   /**
-   * Resolver cache implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API).
+   * Resolver cache implementing CustomStorage based on [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API).
    * Every resolved path will be stored here for future use. Defaults to in-memory storage.
    */
-  cache?: Storage;
+  cache?: CustomStorage;
 
   /**
    * Bookmark [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) for this API.
@@ -90,16 +91,16 @@ export class API<TGraph extends Graph> extends Node<TGraph> {
   readonly console: Consola;
 
   /**
-   * Credentials storage implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API).
+   * Credentials storage implementing CustomStorage based on [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API).
    * Access tokens and other related info will be stored here. Clearing this storage will log you out.
    */
-  readonly storage: Storage;
+  readonly storage: CustomStorage;
 
   /**
-   * Resolver cache implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API).
+   * Resolver cache implementing CustomStorage based on [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API).
    * Every resolved path will be stored here for future use. You can clear this cache by calling `clear()`.
    */
-  readonly cache: Storage;
+  readonly cache: CustomStorage;
 
   /**
    * Bookmark [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) for this API.

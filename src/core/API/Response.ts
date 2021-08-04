@@ -4,6 +4,7 @@
 import consola, { Consola } from 'consola';
 import { storageV8N, v8n } from '../v8n.js';
 
+import type { CustomStorage } from './CustomStorage';
 import type { FollowableResource } from '../FollowableResource';
 import { Response as GlobalThisResponse } from 'cross-fetch';
 import type { Graph } from '../Graph';
@@ -14,8 +15,8 @@ import type { Query } from '../Query';
 type Init = ConstructorParameters<typeof globalThis.Response>[1] & {
   /** Custom Fetch API implementation for making authenticated requests. */
   fetch: Window['fetch'];
-  /** Resolver cache implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API). */
-  cache: Storage;
+  /** Resolver cache implementing CustomStorage based on [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API). */
+  cache: CustomStorage;
   /** Shared [Consola](https://github.com/nuxt-contrib/consola) instance. */
   console: Consola;
   /** Response body. Streams aren't supported at the moment: https://github.com/github/fetch/issues/746#issuecomment-573701120. */
@@ -94,8 +95,8 @@ export class Response<
   /** Custom Fetch API implementation for making authenticated requests. */
   protected readonly _fetch: Window['fetch'];
 
-  /** Resolver cache implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API). */
-  protected readonly _cache: Storage;
+  /** Resolver cache implementing CustomStorage based on [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API). */
+  protected readonly _cache: CustomStorage;
 
   constructor(init: Init) {
     Response.v8n.constructor.check(init);

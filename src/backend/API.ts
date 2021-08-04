@@ -3,6 +3,7 @@ import * as Core from '../core/index.js';
 import { Headers, Request, fetch } from 'cross-fetch';
 import { storageV8N, v8n } from '../core/v8n.js';
 
+import type { CustomStorage } from '../../src/core/API/CustomStorage';
 import type { Graph } from './Graph';
 import type { LogLevel } from 'consola';
 import MemoryStorage from 'fake-storage';
@@ -16,10 +17,10 @@ type BackendAPIInit = {
   clientSecret: string;
   clientId: string;
   level?: LogLevel;
-  storage?: Storage;
+  storage?: CustomStorage;
   version?: BackendAPIVersion;
   base?: URL; // pathname ending with "/" !!!
-  cache?: Storage;
+  cache?: CustomStorage;
 };
 
 type GrantOpts = ({ code: string } | { refreshToken: string }) & {
