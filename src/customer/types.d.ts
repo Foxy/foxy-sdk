@@ -10,6 +10,7 @@ export interface Session {
   session_token: string;
   expires_in: number;
   jwt: string;
+  sso?: string;
 }
 
 export interface StoredSession extends Session {
