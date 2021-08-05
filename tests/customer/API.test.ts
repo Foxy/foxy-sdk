@@ -12,6 +12,30 @@ import { API as CoreAPI } from '../../src/core/API';
 import { Credentials } from '../../src/customer/types';
 import { API as CustomerAPI } from '../../src/customer/API';
 
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace jest {
+    interface Expect {
+      toBeWithinOneMinuteOf(date: Date): void;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    interface Matchers<R> {
+      toBeWithinOneMinuteOf(date: Date): void;
+    }
+  }
+}
+
+expect.extend({
+  toBeWithinOneMinuteOf(got, expected) {
+    const difference = Math.abs(expected.getTime() - got.getTime());
+    const message = () => `${got} should be within a minute of ${expected}.`;
+    const pass = difference < 60000;
+
+    return { message, pass };
+  },
+});
+
 const fetchMock = (fetch as unknown) as jest.MockInstance<unknown, unknown[]>;
 
 const commonHeaders = {
@@ -24,26 +48,33 @@ const commonInit = {
   level: -1,
 };
 
-const sampleSession = {
+const session = {
   expires_in: 86400,
   jwt: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.NQemf8P8qIf_5lPQNqstWDGnAAfhjO1rGzHNqE8Fwuw',
   session_token: '20crb85zhy2y3hgrhyjthr96c43fgh43fda84klgh34q1fjmna90iubl',
+  sso: 'https://example.com/sso?token=123',
 };
-
-const sampleStoredSession = Object.assign({}, sampleSession, {
-  date_created: new Date().toISOString(),
-});
-
-const sampleStoredExpiredSession = Object.assign({}, sampleSession, {
-  date_created: new Date(0, 0, 1).toISOString(),
-  expires_in: 0,
-});
 
 describe('Customer', () => {
   describe('API', () => {
-    it('exposes storage key for session as static property', () => {
-      expect(CustomerAPI).toHaveProperty('SESSION');
-      expect(typeof CustomerAPI.SESSION).toBe('string');
+    it('exposes storage key for customer session token as static property', () => {
+      expect(CustomerAPI).toHaveProperty('SESSION_TOKEN');
+      expect(typeof CustomerAPI.SESSION_TOKEN).toBe('string');
+    });
+
+    it('exposes storage key for max session lifetime value as static property', () => {
+      expect(CustomerAPI).toHaveProperty('EXPIRY');
+      expect(typeof CustomerAPI.EXPIRY).toBe('string');
+    });
+
+    it('exposes storage key for JWT representing authenticated customer as static property', () => {
+      expect(CustomerAPI).toHaveProperty('JWT');
+      expect(typeof CustomerAPI.JWT).toBe('string');
+    });
+
+    it('exposes storage key for SSO URL as static property', () => {
+      expect(CustomerAPI).toHaveProperty('SSO');
+      expect(typeof CustomerAPI.SSO).toBe('string');
     });
 
     it('extends core API class', () => {
@@ -56,21 +87,43 @@ describe('Customer', () => {
       const api = new CustomerAPI(commonInit);
       const url = api.base.toString();
 
-      api.storage.setItem(CustomerAPI.SESSION, JSON.stringify(sampleStoredSession));
+      api.storage.setItem(CustomerAPI.SESSION_TOKEN, session.session_token);
       await api.fetch(url);
 
-      const headers = { ...commonHeaders, Authorization: `Bearer ${sampleSession.session_token}` };
+      const headers = { ...commonHeaders, Authorization: `Bearer ${session.session_token}` };
       const request = new Request(url, { headers });
 
       expect(fetchMock).toHaveBeenCalledWith(request);
       fetchMock.mockClear();
     });
 
-    it('automatically clears storage on request once session expires', async () => {
+    it('updates expiry date for storage items on each request', async () => {
+      fetchMock.mockImplementation(() => Promise.resolve(new Response(null)));
+
+      const expiryAsString = String(session.expires_in);
       const api = new CustomerAPI(commonInit);
-      api.storage.setItem(CustomerAPI.SESSION, JSON.stringify(sampleStoredExpiredSession));
-      await api.fetch(api.base.toString());
-      expect(api.storage).toHaveLength(0);
+      const url = api.base.toString();
+
+      api.storage.setItem(CustomerAPI.SESSION_TOKEN, session.session_token);
+      api.storage.setItem(CustomerAPI.EXPIRY, expiryAsString);
+      api.storage.setItem(CustomerAPI.JWT, session.jwt);
+      api.storage.setItem(CustomerAPI.SSO, session.sso);
+
+      const setItemSpy = jest.spyOn(api.storage, 'setItem');
+      const setItemOptionsSchema = expect.objectContaining({
+        expires: expect.toBeWithinOneMinuteOf(new Date(Date.now() + session.expires_in)),
+      });
+
+      await api.fetch(url);
+
+      expect(setItemSpy).toHaveBeenCalledWith(CustomerAPI.SESSION_TOKEN, session.session_token, setItemOptionsSchema);
+      expect(setItemSpy).toHaveBeenCalledWith(CustomerAPI.EXPIRY, expiryAsString, setItemOptionsSchema);
+      expect(setItemSpy).toHaveBeenCalledWith(CustomerAPI.JWT, session.jwt, setItemOptionsSchema);
+      expect(setItemSpy).toHaveBeenCalledWith(CustomerAPI.SSO, session.sso, setItemOptionsSchema);
+
+      setItemSpy.mockRestore();
+      setItemSpy.mockReset();
+      fetchMock.mockClear();
     });
 
     it('makes an unauthenticated request when there is no session token', async () => {
@@ -98,7 +151,7 @@ describe('Customer', () => {
     });
 
     it('can create a session with .signIn()', async () => {
-      fetchMock.mockImplementation(() => Promise.resolve(new Response(JSON.stringify(sampleSession))));
+      fetchMock.mockImplementation(() => Promise.resolve(new Response(JSON.stringify(session))));
 
       const api = new CustomerAPI(commonInit);
       const url = new URL('./authenticate', api.base).toString();
@@ -113,6 +166,11 @@ describe('Customer', () => {
           method: 'POST',
         })
       );
+
+      expect(api.storage.getItem(CustomerAPI.SESSION_TOKEN)).toEqual(session.session_token);
+      expect(api.storage.getItem(CustomerAPI.EXPIRY)).toEqual(String(session.expires_in));
+      expect(api.storage.getItem(CustomerAPI.JWT)).toEqual(session.jwt);
+      expect(api.storage.getItem(CustomerAPI.SSO)).toEqual(session.sso);
     });
 
     it('throws an error when .signIn() is called with invalid params', async () => {
@@ -135,7 +193,7 @@ describe('Customer', () => {
     });
 
     it('can terminate a session with .signOut()', async () => {
-      fetchMock.mockImplementation(() => Promise.resolve(new Response(JSON.stringify(sampleSession))));
+      fetchMock.mockImplementation(() => Promise.resolve(new Response(JSON.stringify(session))));
 
       const api = new CustomerAPI(commonInit);
       const url = new URL('./authenticate', api.base).toString();
@@ -156,7 +214,7 @@ describe('Customer', () => {
     });
 
     it('can request a password reset with .sendPasswordResetEmail()', async () => {
-      fetchMock.mockImplementation(() => Promise.resolve(new Response(JSON.stringify(sampleSession))));
+      fetchMock.mockImplementation(() => Promise.resolve(new Response(JSON.stringify(session))));
 
       const api = new CustomerAPI(commonInit);
       const url = new URL('./forgot_password', api.base).toString();

@@ -12,7 +12,3 @@ export interface Session {
   jwt: string;
   sso?: string;
 }
-
-export interface StoredSession extends Session {
-  date_created: string;
-}

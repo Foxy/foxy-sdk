@@ -1,6 +1,6 @@
 import * as Core from '../core/index.js';
 
-import type { Credentials, Session, StoredSession } from './types';
+import type { Credentials, Session } from './types';
 import { Request, fetch } from 'cross-fetch';
 
 import type { Graph } from './Graph';
@@ -14,8 +14,17 @@ import { v8n } from '../core/v8n.js';
  * You can use @foxy.io/sdk prior to 1.0.0-beta.15 or a custom API client until you transition.
  */
 export class API extends Core.API<Graph> {
-  /** Storage key for session data. */
-  static readonly SESSION = 'session';
+  /** Storage key for customer session token. */
+  static readonly SESSION_TOKEN = 'customer';
+
+  /** Storage key for max session lifetime value (ms, stored as string). */
+  static readonly EXPIRY = 'customer.expiry';
+
+  /** Storage key for JWT representing authenticated customer. */
+  static readonly JWT = 'customer.jwt';
+
+  /** Storage key for SSO URL. */
+  static readonly SSO = 'customer.sso';
 
   /** Validators for the method arguments in this class (internal). */
   static readonly v8n = Object.assign({}, Core.API.v8n, {
@@ -46,9 +55,14 @@ export class API extends Core.API<Graph> {
     });
 
     if (response.ok) {
-      const session: Session = await response.json();
-      const storedSession: StoredSession = { ...session, date_created: new Date().toISOString() };
-      this.storage.setItem(API.SESSION, JSON.stringify(storedSession));
+      const session = (await response.json()) as Session;
+      const expires = new Date(Date.now() + session.expires_in);
+
+      this.storage.setItem(API.SESSION_TOKEN, session.session_token, { expires });
+      this.storage.setItem(API.EXPIRY, String(session.expires_in), { expires });
+      this.storage.setItem(API.JWT, session.jwt, { expires });
+
+      if (session.sso) this.storage.setItem(API.SSO, session.sso, { expires });
     } else {
       const code = response.status === 401 ? 'UNAUTHORIZED' : 'UNKNOWN';
       throw new Core.API.AuthError({ code });
@@ -83,22 +97,10 @@ export class API extends Core.API<Graph> {
   }
 
   private async __fetch(input: RequestInfo, init?: RequestInit): Promise<Response> {
-    let session = JSON.parse(this.storage.getItem(API.SESSION) ?? 'null') as StoredSession | null;
+    const token = this.storage.getItem(API.SESSION_TOKEN);
     const request = new Request(input, init);
 
-    if (session !== null) {
-      const expiresAt = new Date(session.date_created).getTime() + session.expires_in * 1000;
-      const now = Date.now();
-
-      if (expiresAt < now) {
-        this.console.info('Session has expired, signing out.');
-        this.storage.clear();
-        this.cache.clear();
-        session = null;
-      } else {
-        request.headers.set('Authorization', `Bearer ${session.session_token}`);
-      }
-    }
+    if (typeof token === 'string') request.headers.set('Authorization', `Bearer ${token}`);
 
     request.headers.set('Content-Type', 'application/json');
     request.headers.set('FOXY-API-VERSION', '1');
@@ -106,9 +108,20 @@ export class API extends Core.API<Graph> {
     this.console.trace(`${request.method} ${request.url}`);
     const response = await fetch(request);
 
-    if (session && response.ok) {
-      const refreshedSession = { ...session, date_created: new Date().toISOString() };
-      this.storage.setItem(API.SESSION, JSON.stringify(refreshedSession));
+    if (typeof token === 'string' && response.ok) {
+      const expiryAsString = this.storage.getItem(API.EXPIRY);
+
+      if (typeof expiryAsString === 'string') {
+        const expires = new Date(Date.now() + parseInt(expiryAsString));
+        const jwt = this.storage.getItem(API.JWT);
+        const sso = this.storage.getItem(API.SSO);
+
+        if (typeof token === 'string') this.storage.setItem(API.SESSION_TOKEN, token, { expires });
+        if (typeof jwt === 'string') this.storage.setItem(API.JWT, jwt, { expires });
+        if (typeof sso === 'string') this.storage.setItem(API.SSO, sso, { expires });
+
+        this.storage.setItem(API.EXPIRY, expiryAsString, { expires });
+      }
     }
 
     return response;
