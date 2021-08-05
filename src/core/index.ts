@@ -7,5 +7,6 @@ export * as Nucleon from './Nucleon/index.js';
 
 export { BooleanSelector } from './BooleanSelector.js';
 export { MemoryStorage } from './MemoryStorage.js';
+export { ScopedStorage } from './ScopedStorage.js';
 export { Rumour } from './Rumour/index.js';
 export { API } from './API/index.js';
