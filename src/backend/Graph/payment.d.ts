@@ -28,11 +28,11 @@ export interface Payment extends Graph {
     /** The masked credit card number used for this payment (for plastic payment types). */
     cc_number_masked: string;
     /** The type of credit card such as Visa or MasterCard (for plastic payment types). */
-    cc_type: string;
+    cc_type: string | null;
     /** The credit card expiration month (for plastic payment types). */
-    cc_exp_month: string;
+    cc_exp_month: string | null;
     /** The credit card expiration year (for plastic payment types). */
-    cc_exp_year: string;
+    cc_exp_year: string | null;
     /** If this payment gateway set is configured with a fraud protection system, the fraud score for this payment will be listed here. */
     fraud_protection_score: number;
     /** The payer id for this payment (for Paypal payment types). */
