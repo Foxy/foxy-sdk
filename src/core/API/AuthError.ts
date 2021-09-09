@@ -37,6 +37,7 @@ export class AuthError extends Error {
     constructor: v8n().schema({
       code: v8n().passesAnyOf(
         v8n().exact(AuthError.NEW_PASSWORD_REQUIRED),
+        v8n().exact(AuthError.INVALID_NEW_PASSWORD),
         v8n().exact(AuthError.UNAUTHORIZED),
         v8n().exact(AuthError.UNKNOWN)
       ),
