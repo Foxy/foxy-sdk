@@ -233,9 +233,38 @@ describe('Core', () => {
       const service = interpret(machine.withConfig(config)).start();
 
       await new Promise<void>(resolve => {
+        service.send({ data: { foo: 'bar' }, type: 'SET_DATA' });
         service.send({ type: 'FETCH' });
 
         expect(service.state.matches({ busy: 'fetching' })).toBe(true);
+        expect(service.state.context.data).toBeNull();
+
+        service.onTransition(({ changed, context, matches }) => {
+          if (!changed || !matches({ idle: { snapshot: { clean: 'valid' } } })) return;
+
+          expect(context).toHaveProperty('data', response);
+          expect(context).toHaveProperty('edits', null);
+          expect(context).toHaveProperty('errors', []);
+
+          resolve();
+        });
+      });
+
+      service.stop();
+    });
+
+    it('fetches a resource using sendGet and saves to context on REFRESH event', async () => {
+      const response = { foo: 'bar' };
+      const sendGet = () => Promise.resolve(response);
+      const config = { services: { sendGet } };
+      const service = interpret(machine.withConfig(config)).start();
+
+      await new Promise<void>(resolve => {
+        service.send({ data: { foo: 'bar' }, type: 'SET_DATA' });
+        service.send({ type: 'REFRESH' });
+
+        expect(service.state.matches({ busy: 'fetching' })).toBe(true);
+        expect(service.state.context.data).toEqual({ foo: 'bar' });
 
         service.onTransition(({ changed, context, matches }) => {
           if (!changed || !matches({ idle: { snapshot: { clean: 'valid' } } })) return;
