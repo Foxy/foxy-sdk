@@ -22,8 +22,8 @@ export interface UserAccess extends Graph {
     /** Set this to true to make this store the default store for this user. That means it will be the first store they see when the log in to the FoxyCart admin. */
     is_default_store: boolean;
     /** The date this resource was created. */
-    date_created: string;
+    date_created: string | null;
     /** The date this resource was last modified. */
-    date_modified: string;
+    date_modified: string | null;
   };
 }

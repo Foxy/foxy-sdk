@@ -13,5 +13,5 @@ export interface Session {
 }
 
 export interface StoredSession extends Session {
-  date_created: string;
+  date_created: string | null;
 }

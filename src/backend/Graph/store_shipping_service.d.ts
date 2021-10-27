@@ -29,8 +29,8 @@ export interface StoreShippingService extends Graph {
     /** The full API URI of the shipping method shipping service defined in our property helpers. Each shipping method will have it's own shipping services. */
     shipping_service_uri: string;
     /** The date this resource was created. */
-    date_created: string;
+    date_created: string | null;
     /** The date this resource was last modified. */
-    date_modified: string;
+    date_modified: string | null;
   };
 }

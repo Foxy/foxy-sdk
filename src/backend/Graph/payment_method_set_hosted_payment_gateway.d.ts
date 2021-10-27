@@ -23,8 +23,8 @@ export interface PaymentMethodSetHostedPaymentGateway extends Graph {
     /** The full API URI of the hosted payment gateway associated with this payment method set hosted payment gateway. */
     hosted_payment_gateway_uri: string;
     /** The date this resource was created. */
-    date_created: string;
+    date_created: string | null;
     /** The date this resource was last modified. */
-    date_modified: string;
+    date_modified: string | null;
   };
 }

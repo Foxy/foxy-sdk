@@ -1,10 +1,6 @@
 import type { Graph } from '../../core';
 import type { PropertyHelpers } from './property_helpers';
 
-interface StringRecord {
-  [key: string]: StringRecord;
-}
-
 export interface LanguageStrings extends Graph {
   curie: 'fx:language_strings';
 
@@ -19,6 +15,6 @@ export interface LanguageStrings extends Graph {
     /** A small, human readable explanation of this property helper. */
     message: string;
     /** JSON objects with the language strings supported. The key values match the language property and each pair represents the language_override `code` and `custom_value`. */
-    values: StringRecord;
+    values: Record<string, Record<string, string>>;
   };
 }

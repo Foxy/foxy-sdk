@@ -29,6 +29,6 @@ export interface TransactionLog extends Graph {
     /** Describes the source transaction modification such as admin or hAPI. */
     request_source: string;
     /** The date this resource was created. */
-    date_created: string;
+    date_created: string | null;
   };
 }
