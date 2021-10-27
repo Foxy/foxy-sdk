@@ -46,7 +46,7 @@ interface Options {
    * that usually looks like this: `https://yourdomain.foxycart.com`.
    *
    * @see https://docs.foxycart.com/v/2.0/sso#the_details
-   * @see https://api.foxycart.com/rels/store
+   * @see https://api.foxy.io/rels/store
    */
   domain: string;
 }

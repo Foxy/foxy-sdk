@@ -40,13 +40,13 @@ const api = new FoxySDK.Backend.API({
 });
 ```
 
-This will create a hAPI version 1 client connecting to `https://api.foxycart.com/` with the given credentials, using in-memory storage for access token and URL resolution, logging errors, warnings and informational messages to console. You can customize each one of these defaults in constructor params and you'll see similar options for Customer API as well.
+This will create a hAPI version 1 client connecting to `https://api.foxy.io/` with the given credentials, using in-memory storage for access token and URL resolution, logging errors, warnings and informational messages to console. You can customize each one of these defaults in constructor params and you'll see similar options for Customer API as well.
 
 Regardless of the API type you're working with, you'll see the same methods on each node: `.follow()`, `.get()`, `.put()`, `.post()`, `.patch()` and `.delete()`. Here's how you can use them in 3 steps:
 
 ### 1. Find a node
 
-To access a hAPI endpoint, you don't type in a URL – instead you traverse the API graph via links until you reach your target. For example, to see your transactions, you need to load the bookmark URL (`https://api.foxycart.com/`), load your store at `bookmark._links['fx:store'].href` and only then get to the transactions at `store._links['fx:transactions'].href`. With our SDK this lengthy process becomes a one-liner:
+To access a hAPI endpoint, you don't type in a URL – instead you traverse the API graph via links until you reach your target. For example, to see your transactions, you need to load the bookmark URL (`https://api.foxy.io/`), load your store at `bookmark._links['fx:store'].href` and only then get to the transactions at `store._links['fx:transactions'].href`. With our SDK this lengthy process becomes a one-liner:
 
 ```js
 const transactionsNode = api.follow('fx:store').follow('fx:transactions');
@@ -70,11 +70,11 @@ The method we've just called returns a Promise (hence the use of the `await` key
 const transactions = await transactionsResponse.json();
 ```
 
-Done! Now you have the API response with the same schema as in the [docs](https://api.foxycart.com/) at your disposal. And yes, we have type definitions for it too, meaning that you'll get type checking with TypeScript and rich autosuggestions with inline docs in every editor that supports them. But what if we could go even further?
+Done! Now you have the API response with the same schema as in the [docs](https://api.foxy.io/) at your disposal. And yes, we have type definitions for it too, meaning that you'll get type checking with TypeScript and rich autosuggestions with inline docs in every editor that supports them. But what if we could go even further?
 
 ### 3. Making complex queries
 
-Quite often you'll need to fetch a specific set of items, maybe apply some filters, skip a few entries, speed things up by requesting a partial resource – and you can do that with hAPI using query parameters from our [cheatsheet](https://api.foxycart.com/docs/cheat-sheet). Our SDK provides convenient shortcuts for these parameters in the `.get()` method (all optional):
+Quite often you'll need to fetch a specific set of items, maybe apply some filters, skip a few entries, speed things up by requesting a partial resource – and you can do that with hAPI using query parameters from our [cheatsheet](https://api.foxy.io/docs/cheat-sheet). Our SDK provides convenient shortcuts for these parameters in the `.get()` method (all optional):
 
 ```js
 const transactionsResponse = await transactionsNode.get({
