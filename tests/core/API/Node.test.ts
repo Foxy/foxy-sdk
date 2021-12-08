@@ -137,8 +137,7 @@ describe('Core', () => {
         const node = new Node({ cache, console, fetch, path });
         const promise = node.get((incorrectQuery as unknown) as Parameters<typeof node.get>[0]);
 
-        // eslint-disable-next-line jest/valid-expect
-        expect(promise).rejects.toThrow();
+        await expect(promise).rejects.toThrow();
       });
 
       (['put', 'post', 'patch'] as const).forEach(method => {
@@ -209,8 +208,7 @@ describe('Core', () => {
         const fetch = jest.fn().mockResolvedValue(new CrossFetchResponse(null, { status: 500 }));
         const promise = new Node({ cache, console, fetch, path }).get();
 
-        // eslint-disable-next-line jest/valid-expect
-        expect(promise).rejects.toThrow(ResolutionError);
+        await expect(promise).rejects.toThrow(ResolutionError);
       });
 
       it('is followable', () => {
