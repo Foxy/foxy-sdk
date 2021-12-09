@@ -52,9 +52,9 @@ export interface Coupon extends Graph {
     /** Set to true to apply taxes before this coupon's discount is applied. Check with your tax professional if you have questions about how you should calculate taxes. */
     is_taxable: boolean;
     /** The date this resource was created. */
-    date_created: string;
+    date_created: string | null;
     /** The date this resource was last modified. */
-    date_modified: string;
+    date_modified: string | null;
   };
 
   zooms: {

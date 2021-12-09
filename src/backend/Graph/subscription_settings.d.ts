@@ -35,8 +35,8 @@ export interface SubscriptionSettings extends Graph {
     /** When subscriptions run automatically to bill your customers, turning this setting off will prevent the normal receipt emails from being sent for their automated payment. The default value is true. */
     send_email_receipts_for_automated_billing: boolean;
     /** The date this resource was created. */
-    date_created: string;
+    date_created: string | null;
     /** The date this resource was last modified. */
-    date_modified: string;
+    date_modified: string | null;
   };
 }

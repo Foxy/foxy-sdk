@@ -65,8 +65,8 @@ export interface ItemCategory extends Graph {
     /** Email address of the administrator you'd like to send an email to every time an item in this category is purchased. */
     admin_email: string;
     /** The date this resource was created. */
-    date_created: string;
+    date_created: string | null;
     /** The date this resource was last modified. */
-    date_modified: string;
+    date_modified: string | null;
   };
 }

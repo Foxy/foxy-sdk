@@ -23,8 +23,8 @@ export interface CouponCode extends Graph {
     /** For informational purposes, this shows you how many times this coupon code has already been used. */
     number_of_uses_to_date: number;
     /** The date this resource was created. */
-    date_created: string;
+    date_created: string | null;
     /** The date this resource was last modified. */
-    date_modified: string;
+    date_modified: string | null;
   };
 }

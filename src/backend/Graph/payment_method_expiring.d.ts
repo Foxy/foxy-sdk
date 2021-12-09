@@ -41,8 +41,8 @@ export interface PaymentMethodExpiring extends Graph {
     /** The payment card expiration year in the YYYY format. */
     cc_exp_year: string;
     /** The date this resource was created. */
-    date_created: string;
+    date_created: string | null;
     /** The date this resource was last modified. */
-    date_modified: string;
+    date_modified: string | null;
   };
 }

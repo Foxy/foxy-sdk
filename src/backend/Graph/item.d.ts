@@ -82,9 +82,9 @@ export interface Item extends Graph {
     /** As a unix timestamp, this is the point in the future when this item will no longer be valid and will be removed from the cart. */
     expires: number;
     /** The date this resource was created. */
-    date_created: string;
+    date_created: string | null;
     /** The date this resource was last modified. */
-    date_modified: string;
+    date_modified: string | null;
   };
 
   zooms: {

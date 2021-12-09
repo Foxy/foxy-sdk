@@ -167,8 +167,8 @@ export interface Store extends Graph {
     /** The date of the first payment for this FoxyCart store subscription. This can be considered the go live date for this store. */
     first_payment_date: string;
     /** The date this resource was created. */
-    date_created: string;
+    date_created: string | null;
     /** The date this resource was last modified. */
-    date_modified: string;
+    date_modified: string | null;
   };
 }

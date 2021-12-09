@@ -27,8 +27,8 @@ export interface ItemOption extends Graph {
     /** The weight modifier for this item option. The weight of the item in the cart will be adjusted by this amount because of this item option. */
     weight_mod: number;
     /** The date this resource was created. */
-    date_created: string;
+    date_created: string | null;
     /** The date this resource was last modified. */
-    date_modified: string;
+    date_modified: string | null;
   };
 }

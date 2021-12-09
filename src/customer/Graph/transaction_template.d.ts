@@ -80,9 +80,9 @@ export interface TransactionTemplate extends Graph {
     /** The currency symbol, such as $, £, €, etc. */
     currency_symbol: string;
     /** The date this resource was created. */
-    date_created: string;
+    date_created: string | null;
     /** The date this resource was last modified. */
-    date_modified: string;
+    date_modified: string | null;
   };
 
   zooms: {

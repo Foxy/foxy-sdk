@@ -31,8 +31,8 @@ export interface ErrorEntry extends Graph {
     /** Set this to false to hide this error entry from the Foxy administrative interface. This may be a helpful way to manage and acknowledge errors for your store. */
     hide_error: boolean;
     /** The date this resource was created. */
-    date_created: string;
+    date_created: string | null;
     /** The date this resource was last modified. */
-    date_modified: string;
+    date_modified: string | null;
   };
 }

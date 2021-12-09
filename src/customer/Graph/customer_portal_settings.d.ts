@@ -54,8 +54,8 @@ export interface CustomerPortalSettings extends Graph {
     /** Life span of session in minutes. Maximum 40320 (4 weeks). */
     session_lifespan_in_minutes: number;
     /** The date this resource was created. */
-    date_created: string;
+    date_created: string | null;
     /** The date this resource was last modified. */
-    date_modified: string;
+    date_modified: string | null;
   };
 }

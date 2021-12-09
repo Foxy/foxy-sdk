@@ -25,8 +25,8 @@ export interface CartTemplate extends Graph {
     /** The URL of your cart template hosted on your own server online and publicly available for our server to cache. */
     content_url: string;
     /** The date this resource was created. */
-    date_created: string;
+    date_created: string | null;
     /** The date this resource was last modified. */
-    date_modified: string;
+    date_modified: string | null;
   };
 }

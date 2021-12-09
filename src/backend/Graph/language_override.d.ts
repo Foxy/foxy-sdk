@@ -25,8 +25,8 @@ export interface LanguageOverride extends Graph {
     /** Your custom string for this language code. */
     custom_value: string;
     /** The date this resource was created. */
-    date_created: string;
+    date_created: string | null;
     /** The date this resource was last modified. */
-    date_modified: string;
+    date_modified: string | null;
   };
 }
