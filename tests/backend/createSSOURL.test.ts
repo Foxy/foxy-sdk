@@ -24,7 +24,7 @@ describe('Backend', () => {
       });
 
       expect(url).toBe(
-        'https://foxy-demo.foxycart.com/checkout?fc_customer_id=12345&fc_auth_token=097e56e8db16788ec90b4857439098adc3fa8cb2&timestamp=1585402055672'
+        'https://foxy-demo.foxycart.com/checkout?fc_customer_id=12345&fc_auth_token=fe55dd1299ce7db668bd43ee3284e823a84fe3b3&timestamp=1585405655'
       );
     });
 
@@ -33,11 +33,11 @@ describe('Backend', () => {
         customer: 12345,
         domain: 'https://foxy-demo.foxycart.com',
         secret: 'yes, very',
-        timestamp: 1595406051672,
+        timestamp: 1595406051,
       });
 
       expect(url).toBe(
-        'https://foxy-demo.foxycart.com/checkout?fc_customer_id=12345&fc_auth_token=2682b3c43e97c98efbe7102e5f46aea5ee81834c&timestamp=1595406051672'
+        'https://foxy-demo.foxycart.com/checkout?fc_customer_id=12345&fc_auth_token=0d26d6129051d4175ed76cba20914b8855327e63&timestamp=1595406051'
       );
     });
 
@@ -50,7 +50,7 @@ describe('Backend', () => {
       });
 
       expect(url).toBe(
-        'https://foxy-demo.foxycart.com/checkout?fc_customer_id=12345&fc_auth_token=097e56e8db16788ec90b4857439098adc3fa8cb2&timestamp=1585402055672&fcsid=so_awesomely_unique'
+        'https://foxy-demo.foxycart.com/checkout?fc_customer_id=12345&fc_auth_token=fe55dd1299ce7db668bd43ee3284e823a84fe3b3&timestamp=1585405655&fcsid=so_awesomely_unique'
       );
     });
   });
