@@ -1,4 +1,4 @@
-import type { CeaseCallback, Patch, Resource, Share, TrackCallback } from './types';
+import type { CeaseCallback, Collection, Patch, Resource, Share, TrackCallback } from './types';
 import { get, isEqual } from 'lodash';
 
 import { UpdateError } from './UpdateError.js';
@@ -102,6 +102,10 @@ export class Rumour {
     this.__callbacks.length = 0;
   }
 
+  private static __isCollection(json: unknown): json is Collection {
+    return typeof get(json, '_links.first.href') === 'string';
+  }
+
   private static __isResource(json: unknown): json is Resource {
     return typeof get(json, '_links.self.href') === 'string';
   }
@@ -119,7 +123,7 @@ export class Rumour {
 
   private static __createPatch(data: Resource): Patch {
     return traverse(data).reduce(function (patch: Patch, value) {
-      if (!Rumour.__isResource(value)) return patch;
+      if (!Rumour.__isResource(value) || Rumour.__isCollection(value)) return patch;
 
       const props = traverse(value).map(function () {
         if (this.key?.startsWith('_')) this.delete(true);
