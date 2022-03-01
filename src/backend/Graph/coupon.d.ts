@@ -24,9 +24,9 @@ export interface Coupon extends Graph {
     /** The name of this coupon. This will be for your own use and displayed to the customer. */
     name: string;
     /** If you want this coupon's usage to be limited by a time frame or start in the future, add a start date here. To clear it out, set an empty value or use 0000-00-00. */
-    start_date: string;
+    start_date: string | null;
     /** If you want this coupon's usage to be limited by a time frame or end in the future, add an end date here. To clear it out, set an empty value or use 0000-00-00. */
-    end_date: string;
+    end_date: string | null;
     /** This is the total number of times this coupon is allowed to be used. This can be helpful for promotions that involve offering a discount to the first 100 customers, as an example, even though more than 100 coupon codes were given out. Leave as 0 to ignore this feature. */
     number_of_uses_allowed: number;
     /** For informational purposes, this shows you how many times this coupon has already been used. */
