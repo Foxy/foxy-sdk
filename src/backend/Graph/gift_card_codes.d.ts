@@ -8,3 +8,14 @@ export interface GiftCardCodes extends Graph {
   props: CollectionGraphProps;
   child: GiftCardCode;
 }
+
+export interface GiftCardCodesImport extends Graph {
+  curie: 'fx:gift_card_codes';
+
+  props: {
+    /** List of codes to import. */
+    gift_card_codes: string[];
+    /** Initial balance. */
+    current_balance: number;
+  };
+}
