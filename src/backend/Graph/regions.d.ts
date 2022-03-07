@@ -21,8 +21,6 @@ export interface Regions extends Graph {
         default: string;
         /** The code for this region. */
         code: string;
-        /** The official 3 character country code. */
-        cc3: string;
         /** Array of alternative names for this region. */
         alternate_values: string[];
         /** This value determines which regions will show up first in our find-as-you-type system. */

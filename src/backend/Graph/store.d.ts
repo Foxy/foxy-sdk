@@ -10,6 +10,7 @@ import type { Downloadables } from './downloadables';
 import type { EmailTemplates } from './email_templates';
 import type { ErrorEntries } from './error_entries';
 import type { FraudProtections } from './fraud_protections';
+import type { GiftCards } from './gift_cards';
 import type { Graph } from '../../core';
 import type { HostedPaymentGateways } from './hosted_payment_gateways';
 import type { ItemCategories } from './item_categories';
@@ -41,6 +42,8 @@ export interface Store extends Graph {
     'fx:coupons': Coupons;
     /** List of customers of this store. */
     'fx:customers': Customers;
+    /** List of gift cards available in this store. */
+    'fx:gift_cards': GiftCards;
     /** List of custom attributes of this store. */
     'fx:attributes': Attributes;
     /** List of transactions performed in this store. */
@@ -167,8 +170,8 @@ export interface Store extends Graph {
     /** The date of the first payment for this FoxyCart store subscription. This can be considered the go live date for this store. */
     first_payment_date: string;
     /** The date this resource was created. */
-    date_created: string;
+    date_created: string | null;
     /** The date this resource was last modified. */
-    date_modified: string;
+    date_modified: string | null;
   };
 }

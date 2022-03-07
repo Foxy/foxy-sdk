@@ -124,9 +124,9 @@ export interface Cart extends Graph {
     /** Total order amount of this cart including all items, taxes, shipping costs and discounts. */
     total_order: string;
     /** The date this resource was created. */
-    date_created: string;
+    date_created: string | null;
     /** The date this resource was last modified. */
-    date_modified: string;
+    date_modified: string | null;
   };
 
   zooms: {

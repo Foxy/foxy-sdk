@@ -59,9 +59,9 @@ export interface StoreShippingMethod extends Graph {
     /** For the `CUSTOM-CODE` shipping method. Values are `deploying`, `deployed`, and `error`. */
     deployment_status: 'deploying' | 'deployed' | 'error';
     /** The date this resource was created. */
-    date_created: string;
+    date_created: string | null;
     /** The date this resource was last modified. */
-    date_modified: string;
+    date_modified: string | null;
   };
 
   zooms: {

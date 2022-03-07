@@ -33,8 +33,8 @@ export interface Downloadable extends Graph {
     /** The date this file was last uploaded. */
     upload_date: string;
     /** The date this resource was created. */
-    date_created: string;
+    date_created: string | null;
     /** The date this resource was last modified. */
-    date_modified: string;
+    date_modified: string | null;
   };
 }

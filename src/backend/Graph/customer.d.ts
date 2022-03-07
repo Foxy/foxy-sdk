@@ -62,9 +62,9 @@ export interface Customer extends Graph {
     /** If this customer checks out as a guest, this will be set to true. Once it is set, it can not be changed. */
     is_anonymous: boolean;
     /** The date this resource was created. */
-    date_created: string;
+    date_created: string | null;
     /** The date this resource was last modified. */
-    date_modified: string;
+    date_modified: string | null;
   };
 
   zooms: {

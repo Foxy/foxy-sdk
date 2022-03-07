@@ -252,18 +252,21 @@ export class Node<TGraph extends Graph> {
     const response = await this._fetch(baseURL.toString());
 
     if (response.ok) {
-      const json = await response.json();
-      const url = new URL(json._links[curie].href);
-      const reducedPath = [url, ...this._path.slice(2)] as CurieChain;
+      const json = await response.clone().json();
 
-      this._cache.setItem(key, url.toString());
-      this._console.trace(`Cached ${url.toString()} for ${key}.`);
-      this._console.success(`Resolved ${key} to ${url.toString()} online.`);
+      if (json._links[curie]) {
+        const url = new URL(json._links[curie].href);
+        const reducedPath = [url, ...this._path.slice(2)] as CurieChain;
 
-      return new Node({ ...config, path: reducedPath })._resolve();
-    } else {
-      this._console.error(`Failed to resolve ${key}.`);
-      throw new ResolutionError(response);
+        this._cache.setItem(key, url.toString());
+        this._console.trace(`Cached ${url.toString()} for ${key}.`);
+        this._console.success(`Resolved ${key} to ${url.toString()} online.`);
+
+        return new Node({ ...config, path: reducedPath })._resolve();
+      }
     }
+
+    this._console.error(`Failed to resolve ${key}.`);
+    throw new ResolutionError(response);
   }
 }

@@ -8,3 +8,12 @@ export interface CouponCodes extends Graph {
   props: CollectionGraphProps;
   child: CouponCode;
 }
+
+export interface CouponCodesImport extends Graph {
+  curie: 'fx:coupon_codes';
+
+  props: {
+    /** List of codes to import. */
+    coupon_codes: string[];
+  };
+}

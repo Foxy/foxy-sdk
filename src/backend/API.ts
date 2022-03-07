@@ -40,13 +40,13 @@ type Token = {
 
 type StoredToken = Token & { date_created: string };
 
-/** JS SDK for building backends with [Foxy Hypermedia API](https://api.foxycart.com/docs). Hypermedia API is designed to give you complete control over all aspects of your Foxy accounts, whether working with a single store or automating the provisioning of thousands. Anything you can do within the Foxy administration, you can also do through the API. This means that you can embed Foxy into any application (CMS, LMS, CRM, etc.) and expose as much or as little of Foxy's functionality as desired. */
+/** JS SDK for building backends with [Foxy Hypermedia API](https://api.foxy.io/docs). Hypermedia API is designed to give you complete control over all aspects of your Foxy accounts, whether working with a single store or automating the provisioning of thousands. Anything you can do within the Foxy administration, you can also do through the API. This means that you can embed Foxy into any application (CMS, LMS, CRM, etc.) and expose as much or as little of Foxy's functionality as desired. */
 export class API extends Core.API<Graph> {
   static readonly REFRESH_THRESHOLD = 5 * 60 * 1000;
 
   static readonly ACCESS_TOKEN = 'access_token';
 
-  static readonly BASE_URL = new URL('https://api.foxycart.com/');
+  static readonly BASE_URL = new URL('https://api.foxy.io/');
 
   static readonly VERSION: BackendAPIVersion = '1';
 
@@ -74,7 +74,7 @@ export class API extends Core.API<Graph> {
 
   /**
    * Fetches a new access token in exchange for an authorization code
-   * or a refresh token. See more in our [authentication docs](https://api.foxycart.com/docs/authentication).
+   * or a refresh token. See more in our [authentication docs](https://api.foxy.io/docs/authentication).
    *
    * @param opts Request options.
    * @param throwOnFailure If true, this method will throw an error instead of returning null on failure to obtain a token.

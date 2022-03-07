@@ -28,6 +28,7 @@ export type Context<TData extends Data = Data, TError = unknown, TFailure = unkn
  */
 export type Event<TData extends Data = Data> =
   | { type: 'SET_DATA'; data: TData | null }
+  | { type: 'REFRESH' }
   | { type: 'EDIT'; data: Partial<TData> }
   | { type: 'UNDO' }
   | { type: 'FETCH' }
@@ -51,7 +52,7 @@ export type State<TData extends Data = Data, TError = unknown, TFailure = unknow
     }
   | {
       value: { busy: 'fetching' };
-      context: Context<TData, TError> & { data: null; edits: null; failure: null };
+      context: Context<TData, TError> & { failure: null };
     }
   | {
       value: { busy: 'creating' };

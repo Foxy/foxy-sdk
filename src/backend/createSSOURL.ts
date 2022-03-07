@@ -5,12 +5,14 @@ import v8n from 'v8n';
 
 interface Options {
   /**
-   * Integer, epoch time. The future time that this authentication token will expire.
+   * Integer, epoch time (seconds). The future time that this authentication token will expire.
    * If a customer makes a checkout request with an expired authentication token, then FoxyCart
    * will redirect them to the endpoint in order to generate a new token. You can make use of the
    * timestamp value you received to your endpoint in the GET parameters, and add additional time
    * to it for how long you want it to be valid for. For example, adding 3600 to the timestamp will
-   * extend it by 3600 seconds, or 30 minutes.
+   * extend it by 3600 seconds, or 60 minutes.
+   *
+   * Defaults to an hour from now.
    *
    * @see https://docs.foxycart.com/v/2.0/sso#the_details
    */
@@ -46,7 +48,7 @@ interface Options {
    * that usually looks like this: `https://yourdomain.foxycart.com`.
    *
    * @see https://docs.foxycart.com/v/2.0/sso#the_details
-   * @see https://api.foxycart.com/rels/store
+   * @see https://api.foxy.io/rels/store
    */
   domain: string;
 }
@@ -77,7 +79,7 @@ const optionsV8N = v8n().schema({
 export function createSSOURL(options: Options): string {
   optionsV8N.check(options);
 
-  const timestamp = options.timestamp ?? Date.now();
+  const timestamp = options.timestamp ?? Math.floor(Date.now() / 1000) + 3600;
   const decodedToken = `${options.customer}|${timestamp}|${options.secret}`;
   const encodedToken = crypto.createHash('sha1').update(decodedToken);
   const url = new URL('/checkout', options.domain);

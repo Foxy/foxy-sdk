@@ -41,8 +41,8 @@ export interface Tax extends Graph {
     /** The tax rate to be applied for this tax. For 10%, use 10. */
     rate: number;
     /** The date this resource was created. */
-    date_created: string;
+    date_created: string | null;
     /** The date this resource was last modified. */
-    date_modified: string;
+    date_modified: string | null;
   };
 }

@@ -37,8 +37,8 @@ export interface Discount extends Graph {
     /** Whether or not this discount is part of a subscription that is to be charged in the future based on when this transaction was processed. */
     is_future_discount: boolean;
     /** The date this resource was created. */
-    date_created: string;
+    date_created: string | null;
     /** The date this resource was last modified. */
-    date_modified: string;
+    date_modified: string | null;
   };
 }

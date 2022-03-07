@@ -137,8 +137,7 @@ describe('Core', () => {
         const node = new Node({ cache, console, fetch, path });
         const promise = node.get((incorrectQuery as unknown) as Parameters<typeof node.get>[0]);
 
-        // eslint-disable-next-line jest/valid-expect
-        expect(promise).rejects.toThrow();
+        await expect(promise).rejects.toThrow();
       });
 
       (['put', 'post', 'patch'] as const).forEach(method => {
@@ -204,13 +203,20 @@ describe('Core', () => {
         expect(fetch).toHaveBeenCalledWith(new CrossFetchRequest(fooHref));
       });
 
+      it("throws ResolutionError if link doesn't exist", async () => {
+        const path = [new URL('https://example.com/'), 'nope'] as [URL, ...string[]];
+        const fetch = jest.fn().mockResolvedValue(new CrossFetchResponse(null, { status: 500 }));
+        const promise = new Node({ cache, console, fetch, path }).get();
+
+        await expect(promise).rejects.toThrow(ResolutionError);
+      });
+
       it('throws ResolutionError on non-2xx status', async () => {
         const path = [new URL('https://example.com/'), 'foo'] as [URL, ...string[]];
         const fetch = jest.fn().mockResolvedValue(new CrossFetchResponse(null, { status: 500 }));
         const promise = new Node({ cache, console, fetch, path }).get();
 
-        // eslint-disable-next-line jest/valid-expect
-        expect(promise).rejects.toThrow(ResolutionError);
+        await expect(promise).rejects.toThrow(ResolutionError);
       });
 
       it('is followable', () => {

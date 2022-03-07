@@ -41,8 +41,8 @@ export interface PaymentGateway extends Graph {
     /** Your test payment gateway third party key. To view the specific description of this field for the given payment gateway, see {@link https://api-sandbox.foxycart.com/hal-browser/browser.html#https://api-sandbox.foxycart.com/property_helpers/payment_gateways payment_gateways} property helper `third_party_key_description` field. */
     test_third_party_key: string;
     /** The date this resource was created. */
-    date_created: string;
+    date_created: string | null;
     /** The date this resource was last modified. */
-    date_modified: string;
+    date_modified: string | null;
   };
 }

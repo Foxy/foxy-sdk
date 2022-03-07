@@ -33,8 +33,8 @@ export interface PaymentMethodSet extends Graph {
     /** Set this to true to enable the purchase order payment option on your store. This can only be set to true if your store is active. */
     is_purchase_order_enabled: boolean;
     /** The date this resource was created. */
-    date_created: string;
+    date_created: string | null;
     /** The date this resource was last modified. */
-    date_modified: string;
+    date_modified: string | null;
   };
 }
