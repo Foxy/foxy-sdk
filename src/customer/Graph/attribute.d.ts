@@ -12,8 +12,6 @@ export interface Attribute extends Graph {
   };
 
   props: {
-    /** Controls who can see this attribute. Only public attributes are accessible via this API. */
-    visibility: 'public';
     /** The name of this attribute. */
     name: string;
     /** The value of this attribute. */
