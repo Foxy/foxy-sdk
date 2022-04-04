@@ -102,6 +102,8 @@ export * from './Graph/receipt_template';
 export * from './Graph/receipt_templates';
 export * from './Graph/refund';
 export * from './Graph/regions';
+export * from './Graph/report';
+export * from './Graph/report_download_url';
 export * from './Graph/reporting';
 export * from './Graph/reporting_email_exists';
 export * from './Graph/reporting_store_domain_exists';
