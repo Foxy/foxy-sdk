@@ -16,6 +16,7 @@ import type { ItemCategories } from './item_categories';
 import type { PaymentMethodSets } from './payment_method_sets';
 import type { ProcessSubscriptionWebhook } from './process_subscription_webhook';
 import type { ReceiptTemplates } from './receipt_templates';
+import type { Reports } from './reports';
 import type { StoreVersion } from './store_version';
 import type { SubscriptionSettings } from './subscription_settings';
 import type { Subscriptions } from './subscriptions';
@@ -37,6 +38,8 @@ export interface Store extends Graph {
     'fx:users': Users;
     /** List of taxes configured for this store. */
     'fx:taxes': Taxes;
+    /** List of reports for this store. */
+    'fx:reports': Reports;
     /** List of coupons available in this store. */
     'fx:coupons': Coupons;
     /** List of customers of this store. */
