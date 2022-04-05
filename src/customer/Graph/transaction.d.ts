@@ -1,4 +1,5 @@
 import type { Attributes } from './attributes';
+import type { CustomFields } from './custom_fields';
 import type { Graph as Customer } from './index';
 import type { Graph } from '../../core';
 import type { Items } from './items';
@@ -15,6 +16,8 @@ export interface Transaction extends Graph {
     'fx:customer': Customer;
     /** List of custom attributes on this transaction. */
     'fx:attributes': Attributes;
+    /** List of custom fields on this transaction. */
+    'fx:custom_fields': CustomFields;
     /** List of items for this transaction. */
     'fx:items': Items;
   };
@@ -71,6 +74,7 @@ export interface Transaction extends Graph {
   };
 
   zooms: {
+    custom_fields?: CustomFields;
     attributes: Attributes;
     customer?: Customer;
     items?: Items;
