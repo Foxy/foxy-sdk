@@ -1,11 +1,4 @@
-const enum Entity {
-  List,
-  Set,
-}
-
-type Tree = { only?: Record<string, Tree>; not?: string[] };
-type Output = { entity: Entity; buffer: string; tree: Tree; branch: Tree | string[] };
-type Processor = (output: Output, character: string) => void;
+type Tree = { include: Record<string, Tree | true> } | { exclude: Record<string, Tree | true> };
 
 /**
  * Boolean selector is an HTML boolean attribute value format that allows
@@ -98,83 +91,6 @@ export class BooleanSelector {
     return new BooleanSelector(value);
   }
 
-  private static __processors: Record<Entity, Processor> = {
-    [Entity.List](output, character) {
-      /* istanbul ignore next */
-      if (Array.isArray(output.branch)) throw new SyntaxError('Paths are not allowed in sets.');
-
-      if (character === '=') {
-        if (output.buffer === 'not') {
-          const newBranch = output.branch.not ?? [];
-          delete output.branch.only;
-
-          output.branch.not = newBranch;
-          output.entity = Entity.Set;
-          output.branch = newBranch;
-          output.buffer = '';
-
-          return;
-        } else {
-          throw new SyntaxError(`Unknown modifier "${output.buffer}".`);
-        }
-      }
-
-      if (/^\s$/.test(character) || character === ':') {
-        if (output.buffer.length > 0) {
-          const selector = output.buffer;
-          const newBranch = output.branch.only?.[selector] ?? {};
-
-          if (character !== ':') newBranch.not = ['*'];
-          if (output.branch.not?.includes('*') !== true) {
-            output.branch.only = { ...output.branch.only, [selector]: newBranch };
-            delete output.branch.not;
-          }
-
-          output.branch = character === ':' ? newBranch : output.tree;
-          output.buffer = '';
-        }
-
-        return;
-      }
-
-      if (/^[a-z]|-$/.test(character)) {
-        output.buffer += character;
-        return;
-      }
-
-      throw new SyntaxError(`Expected [a-z], "-", ":" or a whitespace, but got "${character}" instead.`);
-    },
-
-    [Entity.Set](output, character) {
-      /* istanbul ignore next */
-      if (!Array.isArray(output.branch)) throw new SyntaxError('Unexpected set item.');
-
-      if (output.buffer.length === 0 && /^\s$/.test(character)) return;
-
-      if (character === ',' || character === '*' || /^\s$/.test(character)) {
-        const newItem = character === '*' ? '*' : output.buffer;
-        const updatedSet = new Set([...output.branch, newItem]);
-        const normalizedSet = updatedSet.has('*') ? new Set(['*']) : updatedSet;
-
-        output.branch.splice(0, output.branch.length, ...normalizedSet);
-        output.entity = character === ',' ? Entity.Set : Entity.List;
-        output.branch = character === ',' ? output.branch : output.tree;
-        output.buffer = '';
-
-        return;
-      }
-
-      if (/^[a-z]|-$/.test(character)) {
-        output.buffer += character;
-        return;
-      }
-
-      throw new SyntaxError(`Expected [a-z], "-", "," or a whitespace, but got "${character}" instead.`);
-    },
-  };
-
-  private __value: string;
-
   private __tree: Tree;
 
   /**
@@ -184,7 +100,6 @@ export class BooleanSelector {
    * @param value boolean selector value, e.g. `foo:bar baz:not=qux`
    */
   constructor(value: string) {
-    this.__value = value;
     this.__tree = BooleanSelector.__parse(value);
   }
 
@@ -209,26 +124,37 @@ export class BooleanSelector {
   }
 
   /**
-   * Zooms on the given top-level identifier.
+   * Zooms on the given top-level identifier or follows a path.
    *
    * @example
+   * new BooleanSelector('foo:bar:baz').zoom('foo:bar').toString() // => "baz"
    * new BooleanSelector('foo:bar:baz').zoom('foo').toString() // => "bar:baz"
    * new BooleanSelector('not=foo').zoom('bar').toString() // => "not=*"
    * new BooleanSelector('not=foo').zoom('foo').toString() // => ""
    *
-   * @param id identifier to look for
-   * @returns `true` is current selector includes rules for the given identifier
+   * @param path path to look for
+   * @returns zoomed BooleanSelector
    */
-  zoom(id: string): BooleanSelector {
-    const [firstPart, ...rest] = id.split(':');
-    const { only, not } = this.__tree;
+  zoom(path: string): BooleanSelector {
+    const zoomedSelector = new BooleanSelector('');
 
-    if (only?.[firstPart]) {
-      const selector = new BooleanSelector(BooleanSelector.__stringify(only[firstPart]));
-      return rest.length === 0 ? selector : selector.zoom(rest.join(':'));
-    }
+    zoomedSelector.__tree = path.split(':').reduce<Tree>((currentTree, id) => {
+      let zoomedTree: true | Tree;
 
-    return !not || not.includes(firstPart) ? BooleanSelector.False : BooleanSelector.True;
+      if ('include' in currentTree) {
+        zoomedTree = currentTree.include[id];
+        if (zoomedTree === undefined) return { include: {} };
+        if (zoomedTree === true) return { exclude: { '*': true } };
+      } else {
+        zoomedTree = currentTree.exclude[id];
+        if (zoomedTree === undefined) return { exclude: { '*': true } };
+        if (zoomedTree === true) return { include: {} };
+      }
+
+      return zoomedTree;
+    }, this.__tree);
+
+    return zoomedSelector;
   }
 
   /**
@@ -240,7 +166,7 @@ export class BooleanSelector {
    * @returns serialized representation of this selector
    */
   toString(): string {
-    return this.__value;
+    return BooleanSelector.__stringifyTree(this.__tree);
   }
 
   /**
@@ -256,41 +182,240 @@ export class BooleanSelector {
    * @returns attribute value representing this selector.
    */
   toAttribute(truthyValue = ''): string | null {
-    if (this.__tree.not?.[0] === '*') return truthyValue;
-    return this.__value.trim().length === 0 ? null : this.toString();
+    const serializedSelector = this.toString();
+    if (serializedSelector === 'not=*') return truthyValue;
+    return serializedSelector.length === 0 ? null : serializedSelector;
   }
 
-  private static __stringify(tree: Tree, path = ''): string {
-    if (tree.only) {
-      return Object.entries(tree.only).reduce((output, [key, subtree]) => {
-        const result = BooleanSelector.__stringify(subtree, path.length === 0 ? key : `${path}:${key}`);
-        return output.length === 0 ? result : `${output} ${result}`;
-      }, '');
+  private static __parsePath(path: string, tree: Tree): Tree {
+    const firstSeparatorIndex = path.indexOf(':');
+    const topLevelId = path.substring(0, firstSeparatorIndex);
+    const nestedPath = path.substring(firstSeparatorIndex + 1);
+
+    if ('exclude' in tree) {
+      const subTree = tree.exclude[topLevelId];
+      if (subTree) tree.exclude[topLevelId] = this.__parseListItem(nestedPath, subTree === true ? void 0 : subTree);
+    } else {
+      const subTree = tree.include[topLevelId];
+      if (subTree !== true) tree.include[topLevelId] = this.__parseListItem(nestedPath, subTree);
     }
 
-    if (tree.not) return `${path.length === 0 ? '' : `${path}:`}not=${tree.not.join(',')}`;
-
-    return path;
+    return tree;
   }
 
-  private static __parse(value: string): Tree {
-    const tree = {};
-    const output: Output = { branch: tree, buffer: '', entity: Entity.List, tree };
+  private static __parseSet(set: string, tree: Tree): Tree {
+    const setItems = set.split(',');
 
-    Array.from(`${value} `).forEach((character, position) => {
+    if ('include' in tree) {
+      tree = { exclude: tree.include };
+
+      for (const id in tree.exclude) if (!setItems.includes(id)) delete tree.exclude[id];
+
+      for (const item of setItems) {
+        if (item in tree.exclude) {
+          delete tree.exclude[item];
+        } else {
+          tree.exclude[item] = true;
+        }
+      }
+    } else {
+      for (const id in tree.exclude) if (!setItems.includes(id)) delete tree.exclude[id];
+    }
+
+    return tree;
+  }
+
+  private static __parseListItem(listItem: string, tree: Tree = { include: {} }): Tree {
+    if (listItem.includes(':')) return this.__parsePath(listItem, tree);
+    if (listItem.startsWith('not=')) return this.__parseSet(listItem.substring(4), tree);
+
+    if ('include' in tree) {
+      tree.include[listItem] = true;
+    } else {
+      for (const id in tree.exclude) if (id === listItem) delete tree.exclude[id];
+    }
+
+    return tree;
+  }
+
+  private static __parseList(list: string, tree: Tree = { include: {} }): Tree {
+    return list.split(' ').reduce((newTree, listItem) => this.__parseListItem(listItem, newTree), tree);
+  }
+
+  private static __lintList(list: string): string {
+    let position: 'list' | 'path' | 'set' | 'set-item' = 'list';
+    let result = '';
+
+    for (let i = 0; i < list.length; ++i) {
+      const character = list.charAt(i);
+
       try {
-        BooleanSelector.__processors[output.entity](output, character);
+        if (position === 'list') {
+          if (/^\s$/.test(character)) {
+            if (!/^\s$/.test(list[i - 1] ?? ' ')) result += ' ';
+            continue;
+          }
+
+          if (/^[a-z]$/.test(character)) {
+            result += character;
+            position = 'path';
+            continue;
+          }
+
+          throw new SyntaxError(`Expected [a-z] or a whitespace, but got "${character}" instead.`);
+        }
+
+        if (position === 'path') {
+          if (/^[a-z]$/.test(character)) {
+            result += character;
+            continue;
+          }
+
+          if (character === '-') {
+            if (list[i - 1] === '-' || list[i - 1] === ':') {
+              throw new SyntaxError(`Expected [a-z], but got "${character}" instead.`);
+            } else {
+              result += character;
+              continue;
+            }
+          }
+
+          if (character === ':') {
+            if (list[i - 1] === ':' || list[i - 1] === '-') {
+              throw new SyntaxError(`Expected [a-z], but got "${character}" instead.`);
+            } else {
+              result += character;
+              continue;
+            }
+          }
+
+          if (character === '=') {
+            if (list[i - 1] === '=' || list[i - 1] === ':' || list[i - 1] === '-') {
+              throw new SyntaxError(`Expected [a-z], but got "${character}" instead.`);
+            }
+
+            if (result.endsWith('not') && (result.length === 3 || !/[a-z]|-/.test(result[i - 4]))) {
+              result += character;
+              position = 'set';
+              continue;
+            } else {
+              throw new SyntaxError(`Expected [a-z] or ":", but got "${character}" instead.`);
+            }
+          }
+
+          if (/^\s$/.test(character)) {
+            result += ' ';
+            position = 'list';
+            continue;
+          }
+
+          throw new SyntaxError(`Expected [a-z], ",", ":", ":" or a whitespace, but got "${character}" instead.`);
+        }
+
+        if (position === 'set') {
+          if (/^\s$/.test(character)) continue;
+
+          if (/^[a-z]|\*$/.test(character)) {
+            position = 'set-item';
+            result += character;
+            continue;
+          }
+
+          throw new SyntaxError(`Expected [a-z] or a whitespace, but got "${character}" instead.`);
+        }
+
+        if (position === 'set-item') {
+          if (list[i - 1] === '*') {
+            if (character === ',') {
+              result += character;
+              position = 'set';
+              continue;
+            }
+
+            if (/^\s$/.test(character)) {
+              if (i !== list.length - 1) result += ' ';
+              position = 'list';
+              continue;
+            }
+
+            throw new SyntaxError(`Expected "," or a whitespace, but got "${character}" instead.`);
+          } else {
+            if (/^[a-z]$/.test(character)) {
+              result += character;
+              continue;
+            }
+
+            if (character === '-') {
+              if (list[i - 1] === '-' || list[i - 1] === ':' || list[i - 1] === '=') {
+                throw new SyntaxError(`Expected [a-z], but got "${character}" instead.`);
+              } else {
+                result += character;
+                continue;
+              }
+            }
+
+            if (character === ',') {
+              result += character;
+              position = 'set';
+              continue;
+            }
+
+            if (/^\s$/.test(character)) {
+              if (i !== list.length - 1) result += ' ';
+              position = 'list';
+              continue;
+            }
+
+            throw new SyntaxError(`Expected [a-z], "," or a whitespace, but got "${character}" instead.`);
+          }
+        }
       } catch (err) {
         const hint = 'This error occured at: ';
-        const trim = (v: string) => v.substring(Math.max(0, position - 30), position + 30);
-        const preview = trim(value);
-        const pointer = ' '.repeat(hint.length) + trim('^'.padStart(position + 1, ' '));
+        const trim = (v: string) => v.substring(Math.max(0, i - 30), i + 30);
+        const preview = trim(list);
+        const pointer = ' '.repeat(hint.length) + trim('^'.padStart(i + 1, ' '));
 
         throw new SyntaxError([err.message, `${hint}${preview}`, pointer].join('\n'));
       }
-    });
+    }
 
-    return tree;
+    return result.trimEnd();
+  }
+
+  private static __parse(list: string): Tree {
+    return this.__parseList(this.__lintList(list));
+  }
+
+  private static __stringifyTree(tree: Tree, path?: string): string {
+    const parts: string[] = [];
+
+    if ('include' in tree) {
+      for (const id in tree.include) {
+        const nestedTree = tree.include[id];
+        const newPath = path ? [path, id].join(':') : id;
+
+        if (nestedTree === true) {
+          parts.push(newPath);
+        } else {
+          parts.push(this.__stringifyTree(nestedTree, newPath));
+        }
+      }
+    } else {
+      const ids: string[] = [];
+      const partsToPush: string[] = [];
+
+      for (const id in tree.exclude) {
+        const nestedTree = tree.exclude[id];
+        const newPath = path ? [path, id].join(':') : id;
+
+        ids.push(id);
+        if (nestedTree !== true) partsToPush.push(this.__stringifyTree(nestedTree, newPath));
+      }
+
+      parts.push(`${path ? `${path}:` : ''}not=${ids.join(',')}`, ...partsToPush);
+    }
+
+    return parts.join(' ');
   }
 }
 

@@ -68,7 +68,7 @@ describe('Core', () => {
     it('supports complex ids in .zoom()', () => {
       const selector = new BooleanSelector('foo:bar:baz:qux');
 
-      expect(selector.zoom('foo:bar').toString()).toBe('baz:qux:not=*');
+      expect(selector.zoom('foo:bar').toString()).toBe('baz:qux');
       expect(selector.zoom('baz:qux').toString()).toBe('');
     });
 
@@ -133,14 +133,6 @@ describe('Core', () => {
       expect(selector.zoom('foo').matches('bar')).toBe(true);
       expect(selector.zoom('foo').matches('baz')).toBe(true);
       expect(selector.zoom('foo').matches('qux')).toBe(false);
-    });
-
-    it('merges sets together', () => {
-      const selector = new BooleanSelector('not=bar not=baz');
-
-      expect(selector.matches('bar')).toBe(false);
-      expect(selector.matches('baz')).toBe(false);
-      expect(selector.matches('qux')).toBe(true);
     });
 
     it('prefers wildcard over detailed rules in sets', () => {
