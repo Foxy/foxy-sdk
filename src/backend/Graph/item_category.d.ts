@@ -31,8 +31,8 @@ export interface ItemCategory extends Graph {
     code: string;
     /** The name of this category. */
     name: string;
-    /** The delivery type of the items in this category. */
-    item_delivery_type: string;
+    /** The delivery type of the items in this category. Required. Defaults to `notshipped`. */
+    item_delivery_type: 'shipped' | 'downloaded' | 'flat_rate' | 'pickup' | 'notshipped';
     /** Determines how many times the same customer can attempt to download a purchased downloadable item before they are given an error. */
     max_downloads_per_customer: number;
     /** Determines how long in hours after the initial purchase a customer can attempt to download a purchased downloadable item before they are given an error. Some helpful values include: 1 day = 24 hours, 1 Week = 168 hours, 1 Month = 672 hours, 6 Months = 4032 hours */
