@@ -29,6 +29,17 @@ export interface GiftCard extends Graph {
     expires_after: string | null;
     /** If you want to limit which products can use this gift card, you can enter a comma separated listed of product codes or partial product codes using `*` as a wild card at the beginning or end of the value. So `abc123`, `fun_*`, `*-small` would match `abc123`, `fun_` and `fun_times`, and `example-small`. It wouldn't match `abc12`, `abc1234`, `fun`, or `good-smalls`. Optional. 5000 characters or less. */
     product_code_restrictions: string | null;
+    /** SKU used to add the gift card to the cart in order to buy it. Optional. 200 characters or less. */
+    sku: string | null;
+    /** Used for provisioning the gift card. */
+    provisioning_config: {
+      /** Set to `true` to activate automatic code provisioning for this gift card. */
+      allow_autoprovisioning: boolean;
+      /** Minimum initial gift card code balance. When this gift card is added to a cart, its price will have to be greater or equal to this value. */
+      initial_balance_min: number;
+      /** Maximum initial gift card code balance. When this gift card is added to a cart, its price will have to be less or equal to this value. */
+      initial_balance_max: number;
+    } | null;
     /** The date this resource was created. ISO date. Read only. */
     date_created: string | null;
     /** The date this resource was last modified. ISO date. Read only. */

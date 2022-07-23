@@ -3,6 +3,7 @@ import type { GiftCard } from './gift_card';
 import type { GiftCardCodeLogs } from './gift_card_code_logs';
 import type { Graph } from '../../core';
 import type { Store } from './store';
+import type { Transaction } from './transaction';
 
 export interface GiftCardCode extends Graph {
   curie: 'fx:gift_card_code';
@@ -18,6 +19,8 @@ export interface GiftCardCode extends Graph {
     'fx:gift_card': GiftCard;
     /** Transactions using this gift card code. */
     'fx:gift_card_code_logs': GiftCardCodeLogs;
+    /** Transaction that resulted in the creation of this gift card code, if applicable. */
+    'fx:provisioned_by_transaction_detail_id': Transaction;
   };
 
   props: {
