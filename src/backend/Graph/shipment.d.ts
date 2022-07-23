@@ -1,3 +1,5 @@
+import type { Attributes } from './attributes';
+import type { CustomFields } from './custom_fields';
 import type { Customer } from './customer';
 import type { CustomerAddress } from './customer_address';
 import type { Graph } from '../../core';
@@ -24,6 +26,10 @@ export interface Shipment extends Graph {
     'fx:transaction': Transaction;
     /** Customer's address. */
     'fx:customer_address': CustomerAddress;
+    /** Custom fields associated with this shipment. */
+    'fx:custom_fields': CustomFields;
+    /** Attributes associated with this shipment. */
+    'fx:attributes': Attributes;
   };
 
   props: {
@@ -65,5 +71,11 @@ export interface Shipment extends Graph {
     date_created: string | null;
     /** The date this resource was last modified. */
     date_modified: string | null;
+  };
+
+  zooms: {
+    custom_fields?: CustomFields;
+    attributes?: Attributes;
+    items?: Items;
   };
 }
