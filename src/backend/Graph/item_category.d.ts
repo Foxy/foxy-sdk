@@ -1,3 +1,4 @@
+import type { EmailTemplate } from './email_template';
 import type { EmailTemplates } from './email_templates';
 import type { Graph } from '../../core';
 import type { Store } from './store';
@@ -15,6 +16,8 @@ export interface ItemCategory extends Graph {
     'fx:email_templates': EmailTemplates;
     /** Related tax item categories. */
     'fx:tax_item_categories': TaxItemCategories;
+    /** Gift recipient email template for this item category, if applicable. */
+    'fx:gift_recipient_email_template': EmailTemplate;
   };
 
   props: {
@@ -22,12 +25,14 @@ export interface ItemCategory extends Graph {
     admin_email_template_uri: string;
     /** The full API URI of the email template used by this category for sending an additional customer email if send_customer_email is true. */
     customer_email_template_uri: string;
+    /** The full API URI of the email template used by this category for sending an additional customer email for gift items that are in the cart. URL, optional. */
+    gift_recipient_email_template_uri: string | null;
     /** The category code used when applying this item category to the cart. */
     code: string;
     /** The name of this category. */
     name: string;
-    /** The delivery type of the items in this category. */
-    item_delivery_type: string;
+    /** The delivery type of the items in this category. Required. Defaults to `notshipped`. */
+    item_delivery_type: 'shipped' | 'downloaded' | 'flat_rate' | 'pickup' | 'notshipped';
     /** Determines how many times the same customer can attempt to download a purchased downloadable item before they are given an error. */
     max_downloads_per_customer: number;
     /** Determines how long in hours after the initial purchase a customer can attempt to download a purchased downloadable item before they are given an error. Some helpful values include: 1 day = 24 hours, 1 Week = 168 hours, 1 Month = 672 hours, 6 Months = 4032 hours */

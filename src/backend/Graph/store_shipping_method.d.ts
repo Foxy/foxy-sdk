@@ -39,25 +39,25 @@ export interface StoreShippingMethod extends Graph {
     /** The full API URI of the shipping method defined in our property helpers. */
     shipping_method_uri: string;
     /** The full API URI of the shipping method container defined in our property helpers. Each shipping method will have it's own shipping containers. */
-    shipping_container_uri: string;
+    shipping_container_uri?: string;
     /** The full API URI of the shipping method drop type defined in our property helpers. Each shipping method will have it's own shipping drop types. */
-    shipping_drop_type_uri: string;
-    /** If using account specific rates, enter your shipping account id here. */
-    accountid: string;
+    shipping_drop_type_uri?: string;
+    /** If using account specific rates, enter your shipping account id here. If using the `CUSTOM-ENDPOINT-POST` method, enter your endpoint URL here. */
+    accountid?: string | null;
     /** If using account specific rates, enter your shipping account password here. */
-    password: string;
+    password?: string | null;
     /** If using account specific rates, enter your shipping account meter number here, if applicable. */
-    meter_number: string;
+    meter_number?: string | null;
     /** If using account specific rates, enter your shipping account authentication key here, if applicable. */
-    authentication_key: string;
+    authentication_key?: string | null;
     /** Set to true if you want this shipping method to apply to domestic shipping rate requests. <br>Note: This value is read only `true` for `CUSTOM-CODE`. */
-    use_for_domestic: string;
+    use_for_domestic: boolean;
     /** Set to true if you want this shipping method to apply to international shipping rate requests. <br>Note: This value is read only `true` for `CUSTOM-CODE`. */
-    use_for_international: string;
+    use_for_international: boolean;
     /** For the `CUSTOM-CODE` shipping method. JavaScript used to create and modify shipping rates. */
-    custom_code: string;
+    custom_code?: string;
     /** For the `CUSTOM-CODE` shipping method. Values are `deploying`, `deployed`, and `error`. */
-    deployment_status: 'deploying' | 'deployed' | 'error';
+    deployment_status?: 'deploying' | 'deployed' | 'error';
     /** The date this resource was created. */
     date_created: string | null;
     /** The date this resource was last modified. */
@@ -65,9 +65,9 @@ export interface StoreShippingMethod extends Graph {
   };
 
   zooms: {
-    store_shipping_services: StoreShippingServices;
-    shipping_container: ShippingContainer;
-    shipping_drop_type: ShippingDropType;
-    shipping_method: ShippingMethod;
+    store_shipping_services?: StoreShippingServices;
+    shipping_container?: ShippingContainer;
+    shipping_drop_type?: ShippingDropType;
+    shipping_method?: ShippingMethod;
   };
 }
