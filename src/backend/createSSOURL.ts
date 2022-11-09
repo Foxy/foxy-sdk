@@ -66,7 +66,7 @@ const optionsV8N = v8n().schema({
  *
  * @example
  *
- * const url = FoxyApi.sso.createUrl({
+ * const url = FoxySDK.Backend.createSSOURL({
  *   customer: 123,
  *   secret: "...",
  *   domain: "https://yourdomain.foxycart.com"
