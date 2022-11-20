@@ -107,9 +107,9 @@ export interface Store extends Graph {
     /** Used for when you want to specify a different from email than your store's email address or when your store_email has a list of email addresses. */
     from_email: string;
     /** Set this to true if you would like each receipt sent to your customer to also be blind carbon copied to your store's email address. */
-    bcc_on_receipt_email: string;
+    bcc_on_receipt_email: boolean;
     /** Set this to true if you have set up your DNS settings to include and spf record for FoxyCart. See the {@link http://wiki.foxycart.com/v/1.1/emails FoxyCart documentation} for more details. */
-    use_email_dns: string;
+    use_email_dns: boolean;
     /** If you'd like to configure your own SMTP server for sending transaction receipt emails, you can do so here. The JSON supports the following fields: `username`,`password`,`host`,`port`,`security`. The security value can be blank, `ssl`, or `tls` */
     smtp_config: string;
     /** The postal code of your store. This will be used for calculating shipping costs if you sell shippable items. */

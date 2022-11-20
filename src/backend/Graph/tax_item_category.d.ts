@@ -21,7 +21,7 @@ export interface TaxItemCategory extends Graph {
     /** A full API URI of the item category resource used in this relationship. When working with hypermedia, it's important to save URIs and not just numeric ids. */
     item_category_uri: string;
     /** A full API URI of the tax resource used in this relationship. When working with hypermedia, it's important to save URIs and not just numeric ids. */
-    store_uri: string;
+    tax_uri: string;
     /** The date this resource was created. */
     date_created: string | null;
     /** The date this resource was last modified. */
