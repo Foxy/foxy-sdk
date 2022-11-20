@@ -15,6 +15,6 @@ export interface LanguageStrings extends Graph {
     /** A small, human readable explanation of this property helper. */
     message: string;
     /** JSON objects with the language strings supported. The key values match the language property and each pair represents the language_override `code` and `custom_value`. */
-    values: Record<string, Record<string, string>>;
+    values: Record<string, Record<string, string | Record<string, Record<string, string>>>>;
   };
 }
