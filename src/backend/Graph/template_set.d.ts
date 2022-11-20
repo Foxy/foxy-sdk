@@ -6,6 +6,7 @@ import type { Graph } from '../../core';
 import type { LanguageOverrides } from './language_overrides';
 import type { ReceiptTemplate } from './receipt_template';
 import type { Store } from './store';
+import type { TemplateConfig } from './template_config';
 
 export interface TemplateSet extends Graph {
   curie: 'fx:template_set';
@@ -27,6 +28,8 @@ export interface TemplateSet extends Graph {
     'fx:language_overrides': LanguageOverrides;
     /** Cart include template for this template set. */
     'fx:cart_include_template': CartIncludeTemplate;
+    /** Template config for this template set. */
+    'fx:template_config': TemplateConfig;
   };
 
   props: {
