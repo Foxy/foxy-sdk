@@ -4,6 +4,7 @@ import type { Graph } from '../../core';
 import type { LastTransaction } from './last_transaction';
 import type { OriginalTransaction } from './original_transaction';
 import type { Store } from './store';
+import type { SubModificationUrl } from './sub_modification_url';
 import type { SubTokenUrl } from './sub_token_url';
 import type { TransactionTemplate } from './transaction_template';
 import type { Transactions } from './transactions';
@@ -28,6 +29,8 @@ export interface Subscription extends Graph {
     'fx:transaction_template': TransactionTemplate;
     /** Open this link in browser to load up the subscription template into a full HTML cart for the store. */
     'fx:sub_token_url': SubTokenUrl;
+    /** URL of the page where the customer can modify this subscription. This link is available only when configured in subscription settings. */
+    'fx:sub_modification_url': SubModificationUrl;
   };
 
   props: {

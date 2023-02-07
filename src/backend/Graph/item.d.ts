@@ -1,4 +1,5 @@
 import type { Attributes } from './attributes';
+import type { Cart } from './cart';
 import type { CouponDetails } from './coupon_details';
 import type { DiscountDetails } from './discount_details';
 import type { Graph } from '../../core';
@@ -6,6 +7,7 @@ import type { ItemCategory } from './item_category';
 import type { ItemOptions } from './item_options';
 import type { Shipment } from './shipment';
 import type { Store } from './store';
+import type { Subscription } from './subscription';
 import type { Transaction } from './transaction';
 
 export interface Item extends Graph {
@@ -16,12 +18,16 @@ export interface Item extends Graph {
     'self': Item;
     /** Store this item belongs to. */
     'fx:store': Store;
-    /** Related shipment info. */
+    /** Related shipment info. This link is available in purchased items only. */
     'fx:shipment': Shipment;
     /** Custom attributes linked to this item. */
     'fx:attributes': Attributes;
-    /** Related transaction info. */
+    /** Related transaction info. This link is available in transaction items only. */
     'fx:transaction': Transaction;
+    /** Related subscription info. This link is available only when this item is part of a subscription. */
+    'fx:subscription': Subscription;
+    /** Related cart info. This link is available in cart items only. */
+    'fx:cart': Cart;
     /** Various custom options for this item. */
     'fx:item_options': ItemOptions;
     /** Category this item belongs in. */

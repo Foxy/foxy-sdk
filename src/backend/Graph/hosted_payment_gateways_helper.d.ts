@@ -47,6 +47,7 @@ export interface HostedPaymentGatewaysHelper extends Graph {
               type: string;
               description?: string;
               default_value: string;
+              options?: { name: string; value: string }[];
             }[];
           }[];
         };

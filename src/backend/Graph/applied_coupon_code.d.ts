@@ -23,6 +23,8 @@ export interface AppliedCouponCode extends Graph {
   props: {
     /** The coupon code applied to this cart. */
     code: string;
+    /** Allow the coupon to be added to the cart, even if it has expired or the number of uses per coupon, code or customer has reached their maximums. This value is available only in POST request body. */
+    ignore_usage_limits?: boolean;
     /** The date this resource was created. */
     date_created: string | null;
     /** The date this resource was last modified. */
