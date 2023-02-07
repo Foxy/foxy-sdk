@@ -113,16 +113,20 @@ export interface Cart extends Graph {
     template_set_uri: string;
     /** The language defined by the template set being used. */
     language: string;
+    /** The 3 character ISO code for the currency. This value may be unavailable in some carts. */
+    currency_code?: string;
+    /** The currency symbol, such as $, £, €, etc. This value may be unavailable in some carts. */
+    currency_symbol?: string;
     /** Total amount of the items in this cart. */
-    total_item_price: string;
+    total_item_price: number;
     /** Total amount of the taxes for this cart. */
-    total_tax: string;
+    total_tax: number;
     /** Total amount of the shipping costs for this cart. */
-    total_shipping: string;
+    total_shipping: number;
     /** If this cart has any shippable subscription items which will process in the future, this will be the total amount of shipping costs for those items. */
-    total_future_shipping: string;
+    total_future_shipping: number;
     /** Total order amount of this cart including all items, taxes, shipping costs and discounts. */
-    total_order: string;
+    total_order: number;
     /** The date this resource was created. */
     date_created: string | null;
     /** The date this resource was last modified. */
