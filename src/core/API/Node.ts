@@ -128,8 +128,8 @@ export class Node<TGraph extends Graph> {
 
     if (filters !== undefined) {
       filters.forEach((filter: string) => {
-        const params = new URLSearchParams(filter);
-        [...params.entries()].forEach(([key, value]) => url.searchParams.append(key, value));
+        const [key, value = ''] = filter.split('=');
+        if (key) url.searchParams.append(key, value);
       });
     }
 

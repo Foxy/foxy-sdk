@@ -119,8 +119,8 @@ describe('Core', () => {
 
       testGET<{ child: never }>({
         label: 'GETs resolved URL with filters',
-        query: { filters: ['foo=bar', 'baz=qux'] },
-        target: 'https://example.com/?foo=bar&baz=qux',
+        query: { filters: ['foo=bar', 'baz=qux+one@example.com'] },
+        target: 'https://example.com/?foo=bar&baz=qux%2Bone%40example.com',
       });
 
       it('errors when .get() is called with incorrect query', async () => {
