@@ -7,6 +7,8 @@ describe('Core', () => {
         expect(AuthError).toHaveProperty('NEW_PASSWORD_REQUIRED');
         expect(AuthError).toHaveProperty('INVALID_NEW_PASSWORD');
         expect(AuthError).toHaveProperty('UNAUTHORIZED');
+        expect(AuthError).toHaveProperty('INVALID_FORM');
+        expect(AuthError).toHaveProperty('UNAVAILABLE');
         expect(AuthError).toHaveProperty('UNKNOWN');
       });
 

@@ -1,10 +1,10 @@
-import * as Core from '../core/index.js';
-
-import type { Credentials, Session, StoredSession } from './types';
-import { Request, fetch } from 'cross-fetch';
-
+import type { Credentials, Session, SignUpParams, StoredSession } from './types';
 import type { Graph } from './Graph';
+
+import { Request, fetch } from 'cross-fetch';
 import { v8n } from '../core/v8n.js';
+
+import * as Core from '../core/index.js';
 
 /**
  * Customer API for adding custom functionality to websites and web apps with our Customer Portal.
@@ -19,6 +19,16 @@ export class API extends Core.API<Graph> {
 
   /** Validators for the method arguments in this class (internal). */
   static readonly v8n = Object.assign({}, Core.API.v8n, {
+    signUpParams: v8n().schema({
+      verification: v8n().schema({
+        token: v8n().string(),
+        type: v8n().passesAnyOf(v8n().exact('hcaptcha')),
+      }),
+      first_name: v8n().optional(v8n().string().maxLength(50)),
+      last_name: v8n().optional(v8n().string().maxLength(50)),
+      password: v8n().string().maxLength(50),
+      email: v8n().string().maxLength(100),
+    }),
     credentials: v8n().schema({
       email: v8n().string(),
       newPassword: v8n().optional(v8n().string()),
@@ -52,6 +62,31 @@ export class API extends Core.API<Graph> {
     } else {
       const code = response.status === 401 ? 'UNAUTHORIZED' : 'UNKNOWN';
       throw new Core.API.AuthError({ code });
+    }
+  }
+
+  /**
+   * Creates a new customer account with the given credentials.
+   * If the email is already taken, `Core.API.AuthError` with code `UNAVAILABLE` will be thrown.
+   * If customer registration is disabled, `Core.API.AuthError` with code `UNAUTHORIZED` will be thrown.
+   * If the provided form data is invalid (e.g. captcha is expired), `Core.API.AuthError` with code `INVALID_FORM` will be thrown.
+   *
+   * @param params Customer information.
+   */
+  async signUp(params: SignUpParams): Promise<void> {
+    API.v8n.signUpParams.check(params);
+
+    const url = new URL('./sign_up', this.base);
+    const response = await this.fetch(url.toString(), {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+
+    if (!response.ok) {
+      if (response.status === 400) throw new Core.API.AuthError({ code: 'INVALID_FORM' });
+      if (response.status === 401) throw new Core.API.AuthError({ code: 'UNAUTHORIZED' });
+      if (response.status === 403) throw new Core.API.AuthError({ code: 'UNAVAILABLE' });
+      throw new Core.API.AuthError({ code: 'UNKNOWN' });
     }
   }
 
