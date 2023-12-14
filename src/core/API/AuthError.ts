@@ -11,6 +11,8 @@ type UniversalAPIAuthErrorCode =
   | typeof AuthError['NEW_PASSWORD_REQUIRED']
   | typeof AuthError['INVALID_NEW_PASSWORD']
   | typeof AuthError['UNAUTHORIZED']
+  | typeof AuthError['INVALID_FORM']
+  | typeof AuthError['UNAVAILABLE']
   | typeof AuthError['UNKNOWN'];
 
 /**
@@ -29,6 +31,12 @@ export class AuthError extends Error {
   /** Credentials are invalid. That could mean empty or invalid email or password or otherwise incorrect auth data. */
   static readonly UNAUTHORIZED = 'UNAUTHORIZED';
 
+  /** Provided form data is invalid, e.g. email is too long or captcha is expired. */
+  static readonly INVALID_FORM = 'INVALID_FORM';
+
+  /** Provided email is already taken. Applies to customer registration only. */
+  static readonly UNAVAILABLE = 'UNAVAILABLE';
+
   /** Any other or internal error that interrupted authentication. */
   static readonly UNKNOWN = 'UNKNOWN';
 
@@ -39,6 +47,8 @@ export class AuthError extends Error {
         v8n().exact(AuthError.NEW_PASSWORD_REQUIRED),
         v8n().exact(AuthError.INVALID_NEW_PASSWORD),
         v8n().exact(AuthError.UNAUTHORIZED),
+        v8n().exact(AuthError.INVALID_FORM),
+        v8n().exact(AuthError.UNAVAILABLE),
         v8n().exact(AuthError.UNKNOWN)
       ),
     }),

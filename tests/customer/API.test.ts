@@ -9,7 +9,7 @@ jest.mock('cross-fetch', () => ({
 import { Request, Response, fetch } from 'cross-fetch';
 
 import { API as CoreAPI } from '../../src/core/API';
-import { Credentials } from '../../src/customer/types';
+import { Credentials, SignUpParams } from '../../src/customer/types';
 import { API as CustomerAPI } from '../../src/customer/API';
 
 const fetchMock = (fetch as unknown) as jest.MockInstance<unknown, unknown[]>;
@@ -183,6 +183,97 @@ describe('Customer', () => {
       await expect(new CustomerAPI(commonInit).sendPasswordResetEmail({ email: 'foo@bar.test' })).rejects.toThrow(
         new CoreAPI.AuthError({ code: 'UNKNOWN' })
       );
+    });
+
+    it('can register a customer with valid parameters', async () => {
+      const params: SignUpParams = {
+        verification: { type: 'hcaptcha', token: 'abc123' },
+        password: 'password123',
+        email: 'test@example.com',
+      };
+
+      const expectedUrl = new URL('./sign_up', commonInit.base).toString();
+      const expectedBody = JSON.stringify(params);
+
+      fetchMock.mockImplementationOnce(async (url, options) => {
+        const request = new Request(url as RequestInfo, options as RequestInit);
+        expect(request.url).toBe(expectedUrl);
+        expect(request.method).toBe('POST');
+        expect(await request.text()).toBe(expectedBody);
+        return new Response(JSON.stringify({ success: true }), { status: 200 });
+      });
+
+      await new CustomerAPI(commonInit).signUp(params);
+
+      expect(fetchMock).toHaveBeenCalledWith(
+        new Request(expectedUrl, {
+          headers: commonHeaders,
+          method: 'POST',
+          body: expectedBody,
+        })
+      );
+
+      fetchMock.mockClear();
+    });
+
+    it('throws an error with code UNAVAILABLE if the email is already taken', async () => {
+      const params: SignUpParams = {
+        verification: { type: 'hcaptcha', token: 'abc123' },
+        password: 'password123',
+        email: 'test@example.com',
+      };
+
+      fetchMock.mockImplementationOnce(() => Promise.resolve(new Response(null, { status: 403 })));
+
+      const api = new CustomerAPI(commonInit);
+      await expect(api.signUp(params)).rejects.toThrow(new CoreAPI.AuthError({ code: 'UNAVAILABLE' }));
+
+      fetchMock.mockClear();
+    });
+
+    it('throws an error with code UNAUTHORIZED if customer registration is disabled', async () => {
+      const params: SignUpParams = {
+        verification: { type: 'hcaptcha', token: 'abc123' },
+        password: 'password123',
+        email: 'test@example.com',
+      };
+
+      fetchMock.mockImplementationOnce(() => Promise.resolve(new Response(null, { status: 401 })));
+
+      const api = new CustomerAPI(commonInit);
+      await expect(api.signUp(params)).rejects.toThrow(new CoreAPI.AuthError({ code: 'UNAUTHORIZED' }));
+
+      fetchMock.mockClear();
+    });
+
+    it('throws an error with code INVALID_FORM if captcha is expired', async () => {
+      const params: SignUpParams = {
+        verification: { type: 'hcaptcha', token: 'abc123' },
+        password: 'password123',
+        email: 'test@example.com',
+      };
+
+      fetchMock.mockImplementationOnce(() => Promise.resolve(new Response(null, { status: 400 })));
+
+      const api = new CustomerAPI(commonInit);
+      await expect(api.signUp(params)).rejects.toThrow(new CoreAPI.AuthError({ code: 'INVALID_FORM' }));
+
+      fetchMock.mockClear();
+    });
+
+    it('throws an error with code UNKNOWN when sign up request fails with an unknown error', async () => {
+      const params: SignUpParams = {
+        verification: { type: 'hcaptcha', token: 'abc123' },
+        password: 'password123',
+        email: 'test@example.com',
+      };
+
+      fetchMock.mockImplementationOnce(() => Promise.resolve(new Response(null, { status: 500 })));
+
+      const api = new CustomerAPI(commonInit);
+      await expect(api.signUp(params)).rejects.toThrow(new CoreAPI.AuthError({ code: 'UNKNOWN' }));
+
+      fetchMock.mockClear();
     });
   });
 });

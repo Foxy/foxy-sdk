@@ -53,6 +53,29 @@ export interface CustomerPortalSettings extends Graph {
     sso: boolean;
     /** Life span of session in minutes. Maximum 40320 (4 weeks). */
     session_lifespan_in_minutes: number;
+    /** Determines if a terms of service checkbox is shown on the portal. This value comes from a template config linked to the default template set. */
+    tos_checkbox_settings: {
+      /** Initial state of the checkbox element. */
+      initial_state: 'unchecked' | 'checked';
+      /** Hides the checkbox if true. */
+      is_hidden: boolean;
+      /** Hides the checkbox if "none". Makes accepting ToS mandatory if "required", and optional otherwise. */
+      usage: 'none' | 'optional' | 'required';
+      /** Public URL of your terms of service agreement. */
+      url: string;
+    };
+    /** Self-registration settings. Self-registration is disabled if this field is undefined. */
+    sign_up?: {
+      /** Client verification settings. */
+      verification: {
+        /** hCaptcha site key. If empty, Foxy will use its own hCaptcha site key. */
+        site_key: string;
+        /** Verification type. Currently only hCaptcha is supported. */
+        type: 'hcaptcha';
+      };
+      /** If this field is true, then self-registration is enabled. */
+      enabled: boolean;
+    };
     /** The date this resource was created. */
     date_created: string | null;
     /** The date this resource was last modified. */
