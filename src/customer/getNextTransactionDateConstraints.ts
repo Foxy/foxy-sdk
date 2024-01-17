@@ -1,7 +1,7 @@
 import type { CustomerPortalSettings } from './Graph/customer_portal_settings';
 import type { Resource } from '../core/Resource/Resource';
 import type { Subscription } from './Graph/subscription';
-import { getNextTransactionDateConstraints as backendUtility } from '../backend/getNextTransactionDateConstraints';
+import { getNextTransactionDateConstraints as backendUtility } from '../backend/getNextTransactionDateConstraints.js';
 
 type BackendRules = Parameters<typeof backendUtility>[1];
 type Rules = Resource<CustomerPortalSettings>['subscriptions']['allow_next_date_modification'];
