@@ -35,6 +35,8 @@ export interface HostedPaymentGatewaysHelper extends Graph {
         test_third_party_key: string;
         /** The description of the third party key field for this hosted gateway. */
         third_party_key_description: string;
+        /** Marks hosted payment gateways that are no longer supported. */
+        is_deprecated: boolean;
         /** If this hosted gateway requires additional information, this will contain details about the data which needs to be collected to configure this hosted gateway. */
         additional_fields: null | {
           blocks: {

@@ -10,6 +10,8 @@ export interface Transaction extends Graph {
   links: {
     /** This resource. */
     'self': Transaction;
+    /** List of items in this transaction. */
+    'fx:items': Items;
     /** Open this link in a browser to see a receipt for this transaction. */
     'fx:receipt': Receipt;
     /** Related customer resource. */
@@ -18,15 +20,13 @@ export interface Transaction extends Graph {
     'fx:attributes': Attributes;
     /** List of custom fields on this transaction. */
     'fx:custom_fields': CustomFields;
-    /** List of items for this transaction. */
-    'fx:items': Items;
   };
 
   props: {
     /** The order number. */
     id: number;
-    /** The order number for display (usually same as id). */
-    display_id: number;
+    /** If custom transaction IDs, prefixes, or suffixes have been configured, this value will contain the custom ID (which may be a string). Otherwise it will be identical to the id value (an integer). */
+    display_id: string | number;
     /** True if this transaction was a test transaction and not run against a live payment gateway. */
     is_test: boolean;
     /** Set this to true to hide it in the FoxyCart admin. */
@@ -60,9 +60,24 @@ export interface Transaction extends Graph {
     /** Total amount of this transaction including all items, taxes, shipping costs and discounts. */
     total_order: number;
     /** Used for transactions processed with a hosted payment gateway which can change the status of the transaction after it is originally posted. If the status is empty, a normal payment gateway was used and the transaction should be considered completed. */
-    status: 'approved' | 'authorized' | 'declined' | 'pending' | 'rejected';
+    status:
+      | ''
+      | 'capturing'
+      | 'captured'
+      | 'approved'
+      | 'authorized'
+      | 'pending'
+      | 'completed'
+      | 'problem'
+      | 'pending_fraud_review'
+      | 'rejected'
+      | 'declined'
+      | 'refunding'
+      | 'refunded'
+      | 'voided'
+      | 'verified';
     /** The type of transaction that has occurred. */
-    type: 'updateinfo' | 'subscription_modification' | 'subscription_renewal' | 'subscription_cancellation';
+    type: '' | 'updateinfo' | 'subscription_modification' | 'subscription_renewal' | 'subscription_cancellation';
     /** The 3 character ISO code for the currency. */
     currency_code: string;
     /** The currency symbol, such as $, £, €, etc. */
