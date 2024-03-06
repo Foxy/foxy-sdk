@@ -51,6 +51,12 @@ export interface Coupon extends Graph {
     exclude_line_item_discounts: boolean;
     /** Set to true to apply taxes before this coupon's discount is applied. Check with your tax professional if you have questions about how you should calculate taxes. */
     is_taxable: boolean;
+    /** Set to true to enable auto-apply functionality. */
+    customer_auto_apply: boolean;
+    /** Auto-apply coupons only. This coupon will be automatically applied when a customer record matches this query. Example: `attributes:name[auto_apply_coupons]=1`. */
+    customer_attribute_restrictions: string;
+    /** Auto-apply coupons only. This coupon will be automatically applied when a subscription includes a product with one of the codes in the list. Wildcards are allowed just like in product code restrictions. Example: `code_1,code_2,sku_*,abc`. */
+    customer_subscription_restrictions: string;
     /** The date this resource was created. */
     date_created: string | null;
     /** The date this resource was last modified. */

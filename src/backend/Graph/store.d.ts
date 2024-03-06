@@ -26,6 +26,7 @@ import type { TemplateSets } from './template_sets';
 import type { Transactions } from './transactions';
 import type { UserAccesses } from './user_accesses';
 import type { Users } from './users';
+import type { StoreShippingMethods } from './store_shipping_methods';
 
 export interface Store extends Graph {
   curie: 'fx:store';
@@ -81,6 +82,8 @@ export interface Store extends Graph {
     'fx:subscription_settings': SubscriptionSettings;
     /** List of cart include templates available in this store. */
     'fx:cart_include_templates': CartIncludeTemplates;
+    /** List of shipping methods supported by this store. */
+    'fx:store_shipping_methods': StoreShippingMethods;
     /** List of hosted payment gateways enabled for this store. */
     'fx:hosted_payment_gateways': HostedPaymentGateways;
     /** Configuration of this store's customer portal. */

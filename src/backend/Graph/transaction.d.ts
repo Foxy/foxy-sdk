@@ -17,6 +17,12 @@ import type { Shipments } from './shipments';
 import type { Store } from './store';
 import type { TransactionLogs } from './transaction_logs';
 import type { Void } from './void';
+import type { GiftCardCodeLog } from './gift_card_code_log';
+import type { TransactionLog } from './transaction_log';
+import type { TransactionJournalEntry } from './transaction_journal_entry';
+import type { TransactionJournalEntries } from './transaction_journal_entries';
+import type { GiftCardCodeLogs } from './gift_card_code_logs';
+import type { Subscription } from './subscription';
 
 export interface Transaction extends Graph {
   curie: 'fx:transaction';
@@ -48,6 +54,8 @@ export interface Transaction extends Graph {
     'fx:attributes': Attributes;
     /** POST here to resend emails for this transaction. */
     'fx:send_emails': SendEmails;
+    /** If this transaction has a subscription, it will be linked here. */
+    'fx:subscription': Subscription;
     /** List of taxes applied to this transaction. */
     'fx:applied_taxes': AppliedTaxes;
     /** List of custom fields on this transaction. */
@@ -60,6 +68,10 @@ export interface Transaction extends Graph {
     'fx:billing_addresses': BillingAddresses;
     /** POST here to resend transaction to the webhooks. */
     'fx:native_integrations': NativeIntegrations;
+    /** List of all gift card codes applied to this transaction. */
+    'fx:applied_gift_card_codes': GiftCardCodeLogs;
+    /** Journal entries for this transaction. */
+    'fx:transaction_journal_entries': TransactionJournalEntries;
   };
 
   props: {
@@ -98,13 +110,42 @@ export interface Transaction extends Graph {
     /** Total amount of this transaction including all items, taxes, shipping costs and discounts. */
     total_order: number;
     /** Used for transactions processed with a hosted payment gateway which can change the status of the transaction after it is originally posted. If the status is empty, a normal payment gateway was used and the transaction should be considered completed. */
-    status: 'approved' | 'authorized' | 'declined' | 'pending' | 'rejected';
+    status:
+      | ''
+      | 'capturing'
+      | 'captured'
+      | 'approved'
+      | 'authorized'
+      | 'pending'
+      | 'completed'
+      | 'problem'
+      | 'pending_fraud_review'
+      | 'rejected'
+      | 'declined'
+      | 'refunding'
+      | 'refunded'
+      | 'voided'
+      | 'verified';
     /** The type of transaction that has occurred. */
-    type: 'updateinfo' | 'subscription_modification' | 'subscription_renewal' | 'subscription_cancellation';
+    type: '' | 'updateinfo' | 'subscription_modification' | 'subscription_renewal' | 'subscription_cancellation';
     /** The 3 character ISO code for the currency. */
     currency_code: string;
     /** The currency symbol, such as $, £, €, etc. */
     currency_symbol: string;
+    /** The UA string of a browser that customer used on checkout. May contain a special UA for subscription processing. */
+    user_agent: string;
+    /** If custom transaction IDs, prefixes, or suffixes have been configured, this value will contain the custom ID (which may be a string). Otherwise it will be identical to the id value (an integer). */
+    display_id: string | number;
+    /** The source of transaction that has occurred. CIT/MIT. */
+    source:
+      | 'cit_ecommerce'
+      | 'mit_uoe'
+      | 'mit_api'
+      | 'mit_recurring'
+      | 'mit_recurring_reattempt_automated'
+      | 'mit_recurring_reattempt_manual'
+      | 'cit_recurring_cancellation'
+      | 'mit_recurring_cancellation';
     /** The date this resource was created. */
     date_created: string | null;
     /** The date this resource was last modified. */
@@ -112,7 +153,10 @@ export interface Transaction extends Graph {
   };
 
   zooms: {
+    transaction_journal_entries?: TransactionJournalEntry;
+    applied_gift_card_codes?: GiftCardCodeLog;
     billing_addresses?: BillingAddresses;
+    transaction_logs?: TransactionLog;
     applied_taxes?: AppliedTaxes;
     custom_fields?: CustomFields;
     attributes: Attributes;
