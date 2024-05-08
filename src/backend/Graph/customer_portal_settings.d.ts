@@ -76,14 +76,9 @@ export interface CustomerPortalSettings extends Graph {
     date_created: string | null;
     /** The date this resource was last modified. */
     date_modified: string | null;
-  } & (
-    | {
-        /** Shared secret key. */
-        jwtSharedSecret: string;
-      }
-    | {
-        /** Private key for JWT signing. */
-        jwtPrivateKey: string;
-      }
-  );
+    /** Shared secret key. */
+    jwtSharedSecret: string;
+    /** Private key for JWT signing, read-only. */
+    jwtPrivateKey?: string;
+  };
 }

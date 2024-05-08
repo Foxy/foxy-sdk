@@ -30,6 +30,8 @@ export interface GiftCardCode extends Graph {
     end_date: string | null;
     /** Current balance on the gift card. Decimal. Required. */
     current_balance: number;
+    /** PATCH-only: use this field to link this gift card code to a customer. */
+    customer_id?: number | string;
     /** The date this resource was created. Readonly. */
     date_created: string | null;
     /** The date this resource was last modified. Readonly. */

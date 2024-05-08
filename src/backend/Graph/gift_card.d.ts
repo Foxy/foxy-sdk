@@ -1,3 +1,4 @@
+import type { Attributes } from './attributes';
 import type { GenerateCodes } from './generate_codes';
 import type { GiftCardCodes } from './gift_card_codes';
 import type { GiftCardItemCategories } from './gift_card_item_categories';
@@ -12,6 +13,8 @@ export interface GiftCard extends Graph {
     'self': GiftCard;
     /** Store this gift card is assigned to. */
     'fx:store': Store;
+    /** Attributes linked to this gift card. */
+    'fx:attributes': Attributes;
     /** POST here to generate random gift card codes. */
     'fx:generate_codes': GenerateCodes;
     /** Collection of codes for this gift card. */
