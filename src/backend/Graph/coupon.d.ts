@@ -1,3 +1,4 @@
+import type { Attributes } from './attributes';
 import type { CouponCodes } from './coupon_codes';
 import type { CouponItemCategories } from './coupon_item_categories';
 import type { GenerateCodes } from './generate_codes';
@@ -12,6 +13,8 @@ export interface Coupon extends Graph {
     'self': Coupon;
     /** Store this coupon belongs to. */
     'fx:store': Store;
+    /** Attributes linked to this coupon. */
+    'fx:attributes': Attributes;
     /** Codes linked to this coupon. */
     'fx:coupon_codes': CouponCodes;
     /** POST here to generate random coupon codes. */
@@ -57,6 +60,12 @@ export interface Coupon extends Graph {
     customer_attribute_restrictions: string;
     /** Auto-apply coupons only. This coupon will be automatically applied when a subscription includes a product with one of the codes in the list. Wildcards are allowed just like in product code restrictions. Example: `code_1,code_2,sku_*,abc`. */
     customer_subscription_restrictions: string;
+    /** This restricts the usage of a coupon code based on an item's `item_option` key and value. Valid input is a json object with the keys matching the `item_option.name`, and the value an array of comma-separated matching or partially matching strings, using `*` as a wild card at the beginning, end, or middle of the string. So `{"author": ["Agatha*", "*brown"]}` will match the item where item option "author" is "Agatha Christie" or "Dan Brown". It would not match an item with no "author" option, or with an "author" of "John Doe". Optional. 6000 characters or less. */
+    item_option_restrictions: null | Record<string, string[]>;
+    /** Enables sharing coupon codes between coupons. */
+    shared_codes_allowed: boolean;
+    /** This param is using for coupon calculation amount for tax inclusive mode. Optional. [0..1]. */
+    inclusive_tax_rate: number;
     /** The date this resource was created. */
     date_created: string | null;
     /** The date this resource was last modified. */
