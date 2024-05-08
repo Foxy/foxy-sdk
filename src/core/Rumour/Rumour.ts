@@ -126,7 +126,7 @@ export class Rumour {
       if (!Rumour.__isResource(value) || Rumour.__isCollection(value)) return patch;
 
       const props = traverse(value).map(function () {
-        if (this.key?.startsWith('_')) this.delete(true);
+        if (this.key === '_embedded') return this.delete(true);
       });
 
       patch.set(value._links.self.href, props);
