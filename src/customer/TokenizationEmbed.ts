@@ -27,7 +27,7 @@ export class TokenizationEmbed {
       if (this.__iframe) this.__iframe.style.height = data.height;
     } else if (data.type === 'tokenization_response') {
       const request = this.__tokenizationRequests.find(r => r.id === data.id);
-      data.ok ? request?.resolve(data.token) : request?.reject();
+      data.token ? request?.resolve(data.token) : request?.reject();
       this.__tokenizationRequests = this.__tokenizationRequests.filter(r => r.id !== data.id);
     } else if (data.type === 'ready') {
       this.__mountingTask?.resolve();

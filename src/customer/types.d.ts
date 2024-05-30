@@ -4,26 +4,18 @@ export type TokenizationEmbedConfig = Partial<{
   translations: {
     stripe?: {
       label?: string;
-      cards?: {
-        label?: string;
-      };
       status?: {
         idle?: string;
         busy?: string;
-        fail_5xx?: string;
-        fail_4xx?: string;
+        fail?: string;
       };
     };
     square?: {
       label?: string;
-      cards?: {
-        label?: string;
-      };
       status?: {
         idle?: string;
         busy?: string;
-        fail_5xx?: string;
-        fail_4xx?: string;
+        fail?: string;
       };
     };
     default?: {
@@ -47,14 +39,11 @@ export type TokenizationEmbedConfig = Partial<{
         v8n_required?: string;
         v8n_invalid?: string;
       };
-      'cards'?: {
-        label?: string;
-      };
       'status'?: {
         idle?: string;
         busy?: string;
-        fail_5xx?: string;
-        fail_4xx?: string;
+        fail?: string;
+        misconfigured?: string;
       };
     };
   };
