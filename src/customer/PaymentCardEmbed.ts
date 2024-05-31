@@ -1,19 +1,19 @@
-import type { TokenizationEmbedConfig } from './types';
+import type { PaymentCardEmbedConfig } from './types';
 
 /**
- * A convenience wrapper for the tokenization embed iframe. You don't have to use
- * this class to embed the tokenization iframe, but it provides a more convenient
+ * A convenience wrapper for the payment card embed iframe. You don't have to use
+ * this class to embed the payment card iframe, but it provides a more convenient
  * way to interact with the iframe and listen to its events.
  *
  * @example
- * const embed = new TokenizationEmbed({
+ * const embed = new PaymentCardEmbed({
  *   url: 'https://embed.foxy.io/v1?template_set_id=123'
  * });
  *
  * await embed.mount(document.body);
  * console.log('Token:', await embed.tokenize());
  */
-export class TokenizationEmbed {
+export class PaymentCardEmbed {
   private __tokenizationRequests: {
     resolve: (token: string) => void;
     reject: () => void;
@@ -52,24 +52,24 @@ export class TokenizationEmbed {
 
   private __iframe: HTMLIFrameElement | null = null;
 
-  private __config: TokenizationEmbedConfig;
+  private __config: PaymentCardEmbedConfig;
 
   private __url: string;
 
-  constructor({ url, ...config }: { url: string } & TokenizationEmbedConfig) {
+  constructor({ url, ...config }: { url: string } & PaymentCardEmbedConfig) {
     this.__config = config;
     this.__url = url;
   }
 
   /**
-   * Updates the configuration of the tokenization embed.
+   * Updates the configuration of the payment card embed.
    * You can change style, translations, language and interactivity settings.
-   * To change the URL of the tokenization embed, you need to create a new instance.
+   * To change the URL of the payment card embed, you need to create a new instance.
    * You are not required to provide the full configuration object, only the properties you want to change.
    *
    * @param config - The new configuration.
    */
-  configure(config: TokenizationEmbedConfig): void {
+  configure(config: PaymentCardEmbedConfig): void {
     this.__config = config;
     const message = { type: 'config', ...config };
     this.__channel?.port1.postMessage(JSON.stringify(message));
@@ -107,7 +107,7 @@ export class TokenizationEmbed {
   }
 
   /**
-   * Mounts the tokenization embed in the given root element. If the embed is already mounted,
+   * Mounts the payment card embed in the given root element. If the embed is already mounted,
    * it will be unmounted first.
    *
    * @param root - The root element to mount the embed in.

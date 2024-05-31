@@ -1,5 +1,5 @@
 /** Tokenization embed configuration that can be updated any time after mount. */
-export type TokenizationEmbedConfig = Partial<{
+export type PaymentCardEmbedConfig = Partial<{
   /** Translations. Note that Stripe and Square provide their own translations that can't be customized. */
   translations: {
     stripe?: {
