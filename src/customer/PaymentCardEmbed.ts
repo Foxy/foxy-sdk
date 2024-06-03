@@ -30,11 +30,8 @@ export class PaymentCardEmbed {
       data.token ? request?.resolve(data.token) : request?.reject();
       this.__tokenizationRequests = this.__tokenizationRequests.filter(r => r.id !== data.id);
     } else if (data.type === 'ready') {
+      this.configure(this.__config);
       this.__mountingTask?.resolve();
-      if (this.__config) {
-        const message = { type: 'config', ...this.__config };
-        this.__channel?.port1.postMessage(JSON.stringify(message));
-      }
     }
   };
 
@@ -82,9 +79,13 @@ export class PaymentCardEmbed {
    */
   tokenize(): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-      const id = `${Date.now()}${Math.random().toFixed(6).slice(2)}`;
-      this.__tokenizationRequests.push({ id, reject, resolve });
-      this.__channel?.port1.postMessage(JSON.stringify({ id, type: 'tokenization_request' }));
+      if (this.__channel) {
+        const id = this._createId();
+        this.__tokenizationRequests.push({ id, reject, resolve });
+        this.__channel.port1.postMessage(JSON.stringify({ id, type: 'tokenization_request' }));
+      } else {
+        reject();
+      }
     });
   }
 
@@ -114,22 +115,23 @@ export class PaymentCardEmbed {
    * @returns A promise that resolves when the embed is mounted.
    */
   mount(root: Element): Promise<void> {
+    this.unmount();
+
+    this.__channel = this._createMessageChannel();
+    this.__channel.port1.addEventListener('message', this.__iframeMessageHandler);
+    this.__channel.port1.start();
+
+    this.__iframe = this._createIframe(root);
+    this.__iframe.addEventListener('load', this.__iframeLoadHandler);
+    this.__iframe.style.transition = 'height 0.15s ease';
+    this.__iframe.style.margin = '-2px';
+    this.__iframe.style.height = '100px';
+    this.__iframe.style.width = 'calc(100% + 4px)';
+    this.__iframe.src = this.__url;
+
+    root.append(this.__iframe);
+
     return new Promise<void>((resolve, reject) => {
-      this.unmount();
-
-      this.__channel = new MessageChannel();
-      this.__channel.port1.addEventListener('message', this.__iframeMessageHandler);
-      this.__channel.port1.start();
-
-      this.__iframe = root.ownerDocument.createElement('iframe');
-      this.__iframe.addEventListener('load', this.__iframeLoadHandler);
-      this.__iframe.style.transition = 'height 0.15s ease';
-      this.__iframe.style.margin = '-2px';
-      this.__iframe.style.height = '100px';
-      this.__iframe.style.width = 'calc(100% + 4px)';
-      this.__iframe.src = this.__url;
-
-      root.append(this.__iframe);
       this.__mountingTask = { reject, resolve };
     });
   }
@@ -140,5 +142,20 @@ export class PaymentCardEmbed {
    */
   clear(): void {
     this.__channel?.port1.postMessage(JSON.stringify({ type: 'clear' }));
+  }
+
+  /* istanbul ignore next */
+  protected _createMessageChannel(): MessageChannel {
+    return new MessageChannel();
+  }
+
+  /* istanbul ignore next */
+  protected _createIframe(root: Element): HTMLIFrameElement {
+    return root.ownerDocument.createElement('iframe');
+  }
+
+  /* istanbul ignore next */
+  protected _createId(): string {
+    return `${Date.now()}${Math.random().toFixed(6).slice(2)}`;
   }
 }
