@@ -26,4 +26,8 @@ describe('Customer', () => {
   it('exports isNextTransactionDate', () => {
     expect(Customer).toHaveProperty('isNextTransactionDate', isNextTransactionDate);
   });
+
+  it('exports PaymentCardEmbed', () => {
+    expect(Customer).toHaveProperty('PaymentCardEmbed');
+  });
 });
