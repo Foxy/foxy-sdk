@@ -144,17 +144,17 @@ export class PaymentCardEmbed {
     this.__channel?.port1.postMessage(JSON.stringify({ type: 'clear' }));
   }
 
-  /* istanbul ignore next */
+  /* v8 ignore next */
   protected _createMessageChannel(): MessageChannel {
     return new MessageChannel();
   }
 
-  /* istanbul ignore next */
+  /* v8 ignore next */
   protected _createIframe(root: Element): HTMLIFrameElement {
     return root.ownerDocument.createElement('iframe');
   }
 
-  /* istanbul ignore next */
+  /* v8 ignore next */
   protected _createId(): string {
     return `${Date.now()}${Math.random().toFixed(6).slice(2)}`;
   }
