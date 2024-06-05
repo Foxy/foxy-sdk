@@ -45,7 +45,7 @@ describe('Customer', () => {
     beforeEach(() => jest.clearAllMocks());
 
     it('creates an instance of PaymentCardEmbed', () => {
-      const embed = new TestPaymentCardEmbed({ url: 'https://embed.foxy.test/v1?demo=default' });
+      const embed = new TestPaymentCardEmbed({ url: 'https://embed.foxy.test/v1.html?demo=default' });
       expect(embed).toBeInstanceOf(PaymentCardEmbed);
     });
 
@@ -53,7 +53,7 @@ describe('Customer', () => {
       const embed = new TestPaymentCardEmbed({
         disabled: true,
         lang: 'es',
-        url: 'https://embed.foxy.test/v1?demo=default',
+        url: 'https://embed.foxy.test/v1.html?demo=default',
       });
 
       const mockRoot = new TestElement();
@@ -71,7 +71,7 @@ describe('Customer', () => {
       expect(testIframe.style.margin).toBe('-2px');
       expect(testIframe.style.height).toBe('100px');
       expect(testIframe.style.width).toBe('calc(100% + 4px)');
-      expect(testIframe.src).toBe('https://embed.foxy.test/v1?demo=default');
+      expect(testIframe.src).toBe('https://embed.foxy.test/v1.html?demo=default');
       expect(mockRoot.append).toHaveBeenCalledTimes(1);
 
       // It must also create a message channel and start listening for messages
@@ -98,7 +98,7 @@ describe('Customer', () => {
     });
 
     it('unmounts the embed on .unmount()', async () => {
-      const embed = new TestPaymentCardEmbed({ url: 'https://embed.foxy.test/v1?demo=default' });
+      const embed = new TestPaymentCardEmbed({ url: 'https://embed.foxy.test/v1.html?demo=default' });
       const mountingPromise = embed.mount((new TestElement() as unknown) as Element);
 
       jest.clearAllMocks();
@@ -120,12 +120,12 @@ describe('Customer', () => {
     });
 
     it('does not fail if .unmount() is called before .mount()', () => {
-      const embed = new TestPaymentCardEmbed({ url: 'https://embed.foxy.test/v1?demo=default' });
+      const embed = new TestPaymentCardEmbed({ url: 'https://embed.foxy.test/v1.html?demo=default' });
       expect(() => embed.unmount()).not.toThrow();
     });
 
     it('sends "clear" event to iframe on .clear()', async () => {
-      const embed = new TestPaymentCardEmbed({ url: 'https://embed.foxy.test/v1?demo=default' });
+      const embed = new TestPaymentCardEmbed({ url: 'https://embed.foxy.test/v1.html?demo=default' });
       const mountingPromise = embed.mount((new TestElement() as unknown) as Element);
 
       // Mount the mock embed
@@ -146,12 +146,12 @@ describe('Customer', () => {
     });
 
     it('does not fail if .clear() is called before .mount()', () => {
-      const embed = new TestPaymentCardEmbed({ url: 'https://embed.foxy.test/v1?demo=default' });
+      const embed = new TestPaymentCardEmbed({ url: 'https://embed.foxy.test/v1.html?demo=default' });
       expect(() => embed.clear()).not.toThrow();
     });
 
     it('sends "config" event to iframe on .configure()', async () => {
-      const embed = new TestPaymentCardEmbed({ url: 'https://embed.foxy.test/v1?demo=default' });
+      const embed = new TestPaymentCardEmbed({ url: 'https://embed.foxy.test/v1.html?demo=default' });
       const mountingPromise = embed.mount((new TestElement() as unknown) as Element);
 
       // Mount the mock embed
@@ -186,12 +186,12 @@ describe('Customer', () => {
     });
 
     it('does not fail if .configure() is called before .mount()', () => {
-      const embed = new TestPaymentCardEmbed({ url: 'https://embed.foxy.test/v1?demo=default' });
+      const embed = new TestPaymentCardEmbed({ url: 'https://embed.foxy.test/v1.html?demo=default' });
       expect(() => embed.configure({ disabled: true })).not.toThrow();
     });
 
     it('requests tokenization on .tokenize() (positive path)', async () => {
-      const embed = new TestPaymentCardEmbed({ url: 'https://embed.foxy.test/v1?demo=default' });
+      const embed = new TestPaymentCardEmbed({ url: 'https://embed.foxy.test/v1.html?demo=default' });
       const mountingPromise = embed.mount((new TestElement() as unknown) as Element);
 
       // Mount the mock embed
@@ -219,7 +219,7 @@ describe('Customer', () => {
     });
 
     it('requests tokenization on .tokenize() (negative path)', async () => {
-      const embed = new TestPaymentCardEmbed({ url: 'https://embed.foxy.test/v1?demo=default' });
+      const embed = new TestPaymentCardEmbed({ url: 'https://embed.foxy.test/v1.html?demo=default' });
       const mountingPromise = embed.mount((new TestElement() as unknown) as Element);
 
       // Mount the mock embed
@@ -246,12 +246,12 @@ describe('Customer', () => {
     });
 
     it('rejects tokenization promise if iframe is not mounted', async () => {
-      const embed = new TestPaymentCardEmbed({ url: 'https://embed.foxy.test/v1?demo=default' });
+      const embed = new TestPaymentCardEmbed({ url: 'https://embed.foxy.test/v1.html?demo=default' });
       await expect(embed.tokenize()).rejects.toBeUndefined();
     });
 
     it('sets iframe height on "resize" event', async () => {
-      const embed = new TestPaymentCardEmbed({ url: 'https://embed.foxy.test/v1?demo=default' });
+      const embed = new TestPaymentCardEmbed({ url: 'https://embed.foxy.test/v1.html?demo=default' });
       const mountingPromise = embed.mount((new TestElement() as unknown) as Element);
 
       // Mount the mock embed
