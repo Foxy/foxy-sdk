@@ -7,7 +7,7 @@ import type { PaymentCardEmbedConfig } from './types';
  *
  * @example
  * const embed = new PaymentCardEmbed({
- *   url: 'https://embed.foxy.io/v1?template_set_id=123'
+ *   url: 'https://embed.foxy.io/v1.html?template_set_id=123'
  * });
  *
  * await embed.mount(document.body);
