@@ -14,6 +14,13 @@ import type { PaymentCardEmbedConfig } from './types';
  * console.log('Token:', await embed.tokenize());
  */
 export class PaymentCardEmbed {
+  /**
+   * An event handler that is triggered when Enter is pressed in the card form.
+   * This feature is not available for template sets configured with the `stripe_connect`
+   * hosted payment gateway due to the limitations of Stripe.js.
+   */
+  onsubmit: (() => void) | null = null;
+
   private __tokenizationRequests: {
     resolve: (token: string) => void;
     reject: () => void;
@@ -23,15 +30,26 @@ export class PaymentCardEmbed {
   private __iframeMessageHandler = (evt: MessageEvent) => {
     const data = JSON.parse(evt.data);
 
-    if (data.type === 'resize') {
-      if (this.__iframe) this.__iframe.style.height = data.height;
-    } else if (data.type === 'tokenization_response') {
-      const request = this.__tokenizationRequests.find(r => r.id === data.id);
-      data.token ? request?.resolve(data.token) : request?.reject();
-      this.__tokenizationRequests = this.__tokenizationRequests.filter(r => r.id !== data.id);
-    } else if (data.type === 'ready') {
-      this.configure(this.__config);
-      this.__mountingTask?.resolve();
+    switch (data.type) {
+      case 'tokenization_response': {
+        const request = this.__tokenizationRequests.find(r => r.id === data.id);
+        data.token ? request?.resolve(data.token) : request?.reject();
+        this.__tokenizationRequests = this.__tokenizationRequests.filter(r => r.id !== data.id);
+        break;
+      }
+      case 'submit': {
+        this.onsubmit?.();
+        break;
+      }
+      case 'resize': {
+        if (this.__iframe) this.__iframe.style.height = data.height;
+        break;
+      }
+      case 'ready': {
+        this.configure(this.__config);
+        this.__mountingTask?.resolve();
+        break;
+      }
     }
   };
 

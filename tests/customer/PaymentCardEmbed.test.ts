@@ -270,5 +270,23 @@ describe('Customer', () => {
       // It must set the height of the iframe
       expect(testIframe.style.height).toBe('200px');
     });
+
+    it('calls .onsubmit on "submit" event', async () => {
+      const embed = new TestPaymentCardEmbed({ url: 'https://embed.foxy.test/v1.html?demo=default' });
+      const mountingPromise = embed.mount((new TestElement() as unknown) as Element);
+      const loadListener = testIframe.addEventListener.mock.calls.find(([event]) => event === 'load')[1];
+      const messageListener = testMessageChannel.port1.addEventListener.mock.calls.find(([e]) => e === 'message')[1];
+      const onSubmit = jest.fn();
+
+      await new Promise(resolve => setTimeout(resolve, 0));
+      loadListener({ currentTarget: testIframe });
+      messageListener({ data: JSON.stringify({ type: 'ready' }) });
+      await mountingPromise;
+      jest.clearAllMocks();
+      embed.onsubmit = onSubmit;
+      messageListener({ data: JSON.stringify({ type: 'submit' }) });
+
+      expect(onSubmit).toHaveBeenCalledTimes(1);
+    });
   });
 });
