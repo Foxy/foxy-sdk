@@ -19,6 +19,8 @@ export interface DefaultPaymentMethod extends Graph {
     save_cc: boolean;
     /** The credit card or debit card type. This will be determined automatically once the payment card is saved. */
     cc_type: string | null;
+    /** Token returned by our Tokenization Embed. Send this field with PATCH to update customer's payment method. */
+    cc_token?: string;
     /** The payment card number. This property will not be displayed as part of this resource, but can be used to modify this payment method. */
     cc_number?: number;
     /** A masked version of this payment card showing only the last 4 digits. */
