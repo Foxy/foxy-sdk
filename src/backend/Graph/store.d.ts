@@ -195,3 +195,36 @@ export interface Store extends Graph {
     date_modified: string | null;
   };
 }
+
+export type StoreWebhookKeyJson = {
+  cart_signing: string;
+  xml_datafeed: string;
+  api_legacy: string;
+  sso: string;
+};
+
+export type StoreSmtpConfigJson = {
+  username: string;
+  password: string;
+  security: string;
+  host: string;
+  port: string;
+};
+
+export type StoreCustomDisplayIdConfigJson = {
+  enabled: boolean;
+  start: string;
+  length: string;
+  prefix: string;
+  suffix: string;
+  transaction_journal_entries: {
+    enabled: boolean;
+    transaction_separator: string;
+    log_detail_request_types: {
+      transaction_authcapture: { prefix: string };
+      transaction_capture: { prefix: string };
+      transaction_refund: { prefix: string };
+      transaction_void: { prefix: string };
+    };
+  };
+};
