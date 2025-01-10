@@ -23,7 +23,7 @@ export interface SubscriptionSettings extends Graph {
     /** A comma separated list of numbers. Each number represents the number of days after the initial failure that a reattempt should be made. For example, a setting of `1, 3, 5, 15, 30` would direct FoxyCart to attempt to collect the past-due amount on the 1st, 3rd, 5th, and 15th days after the initial transaction. */
     reattempt_schedule: string;
     /** Used in conjunction with the "bypass strings" below, this setting determines whether Foxy should reattempt the subscription charge if the transaction's previous error string does or doesn't contain specific text. */
-    reattempt_bypass_logic: 'skip_if_exists' | 'reattempt_if_exists';
+    reattempt_bypass_logic: 'skip_if_exists' | 'reattempt_if_exists' | '';
     /** A comma separated list of strings containing text strings that should prevent or allow (based on the above setting) a rebilling attempt. For example, setting the logic to "skip if the string is present" with a value for the "strings" field of `Code: 8, Code: 37` would instruct FoxyCart to not initiate the rebilling process if the last error contained either `Code: 8` or `Code: 37`, but to attempt the rebilling in all other cases. */
     reattempt_bypass_strings: string;
     /** Enter a comma separated list of numbers. Each number represents the number of days until the payment card expires that an email notification should be sent to the customer. This only happens for customers with active subscriptions. For example, if you put in 20,15,5, 20 days before the end of the month, customers with payment cards that will expire that month will receive an email. Same with 15 days and 5 days before the end of the month. */
