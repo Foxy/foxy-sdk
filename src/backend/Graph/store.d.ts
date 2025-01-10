@@ -26,6 +26,7 @@ import type { TemplateSets } from './template_sets';
 import type { Transactions } from './transactions';
 import type { UserAccesses } from './user_accesses';
 import type { Users } from './users';
+import type { Webhooks } from './webhooks';
 import type { StoreShippingMethods } from './store_shipping_methods';
 
 export interface Store extends Graph {
@@ -44,6 +45,8 @@ export interface Store extends Graph {
     'fx:reports': Reports;
     /** List of coupons available in this store. */
     'fx:coupons': Coupons;
+    /** List of webhooks configured for this store. */
+    'fx:webhooks': Webhooks;
     /** List of customers of this store. */
     'fx:customers': Customers;
     /** List of gift cards available in this store. */
