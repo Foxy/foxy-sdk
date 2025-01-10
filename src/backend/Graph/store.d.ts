@@ -25,6 +25,7 @@ import type { Taxes } from './taxes';
 import type { TemplateSets } from './template_sets';
 import type { Transactions } from './transactions';
 import type { UserAccesses } from './user_accesses';
+import type { UserInvitations } from './user_invitations';
 import type { Users } from './users';
 import type { Webhooks } from './webhooks';
 import type { StoreShippingMethods } from './store_shipping_methods';
@@ -73,6 +74,8 @@ export interface Store extends Graph {
     'fx:email_templates': EmailTemplates;
     /** List of item categories configured in this store. */
     'fx:item_categories': ItemCategories;
+    /** List of user invitations for this store. */
+    'fx:user_invitations': UserInvitations;
     /** List of fraud protection measures enabled on this store. */
     'fx:fraud_protections': FraudProtections;
     /** List of receipt templates for this store. */
