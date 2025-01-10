@@ -1,6 +1,7 @@
 import type { Attributes } from './attributes';
 import type { DefaultStore } from './default_store';
 import type { Graph } from '../../core';
+import type { Passkeys } from './passkeys';
 import type { Stores } from './stores';
 import type { UserInvitations } from './user_invitations';
 
@@ -14,6 +15,8 @@ export interface User extends Graph {
     'fx:stores': Stores;
     /** List of custom attributes on this user resource. */
     'fx:attributes': Attributes;
+    /** List of passkeys for this user. */
+    'fx:user_passkeys': Passkeys;
     /** Default store for this user. */
     'fx:default_store': DefaultStore;
     /** List of user invitations for this store. */
