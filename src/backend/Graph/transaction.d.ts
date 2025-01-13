@@ -18,6 +18,7 @@ import type { Store } from './store';
 import type { TransactionLogs } from './transaction_logs';
 import type { Void } from './void';
 import type { GiftCardCodeLog } from './gift_card_code_log';
+import type { SendWebhooks } from './send_webhooks';
 import type { TransactionLog } from './transaction_log';
 import type { TransactionJournalEntry } from './transaction_journal_entry';
 import type { TransactionJournalEntries } from './transaction_journal_entries';
@@ -60,6 +61,8 @@ export interface Transaction extends Graph {
     'fx:applied_taxes': AppliedTaxes;
     /** List of custom fields on this transaction. */
     'fx:custom_fields': CustomFields;
+    /** POST here to send the webhook notification for this transaction. */
+    'fx:send_webhooks': SendWebhooks;
     /** POST here to resend the webhook notification for this transaction. */
     'fx:process_webhook': ProcessWebhook;
     /** Transaction logs. */

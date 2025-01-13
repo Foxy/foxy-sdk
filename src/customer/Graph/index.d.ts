@@ -41,9 +41,9 @@ interface Customer extends Graph {
     /** The date of the last time this customer authenticated with the FoxyCart checkout. */
     last_login_date: string;
     /** The customer's given name. */
-    first_name: string;
+    first_name: string | null;
     /** The customer's surname. */
-    last_name: string;
+    last_name: string | null;
     /** The customer's email address. This is used as the login to the FoxyCart checkout for this customer. */
     email: string;
     /** A tax identification number for this customer. */

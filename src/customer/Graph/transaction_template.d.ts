@@ -32,7 +32,7 @@ export interface TransactionTemplate extends Graph {
     /** The city of this address. */
     billing_city: string;
     /** The two character code for states in the United States. Other countries may call this a province. When a two character code isn't available, use the full region name. */
-    billing_region: string;
+    billing_state: string;
     /** The postal code of the billing address. */
     billing_postal_code: string;
     /** The country code of the billing address. */
@@ -54,7 +54,7 @@ export interface TransactionTemplate extends Graph {
     /** The city of this address. */
     shipping_city: string;
     /** The two character code for states in the United States. Other countries may call this a province. When a two character code isn't available, use the full region name. */
-    shipping_region: string;
+    shipping_state: string;
     /** The postal code of the shipping address. */
     shipping_postal_code: string;
     /** The country code of the shipping address. */

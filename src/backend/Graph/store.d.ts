@@ -25,7 +25,9 @@ import type { Taxes } from './taxes';
 import type { TemplateSets } from './template_sets';
 import type { Transactions } from './transactions';
 import type { UserAccesses } from './user_accesses';
+import type { UserInvitations } from './user_invitations';
 import type { Users } from './users';
+import type { Webhooks } from './webhooks';
 import type { StoreShippingMethods } from './store_shipping_methods';
 
 export interface Store extends Graph {
@@ -44,6 +46,8 @@ export interface Store extends Graph {
     'fx:reports': Reports;
     /** List of coupons available in this store. */
     'fx:coupons': Coupons;
+    /** List of webhooks configured for this store. */
+    'fx:webhooks': Webhooks;
     /** List of customers of this store. */
     'fx:customers': Customers;
     /** List of gift cards available in this store. */
@@ -70,6 +74,8 @@ export interface Store extends Graph {
     'fx:email_templates': EmailTemplates;
     /** List of item categories configured in this store. */
     'fx:item_categories': ItemCategories;
+    /** List of user invitations for this store. */
+    'fx:user_invitations': UserInvitations;
     /** List of fraud protection measures enabled on this store. */
     'fx:fraud_protections': FraudProtections;
     /** List of receipt templates for this store. */
@@ -90,6 +96,14 @@ export interface Store extends Graph {
     'fx:customer_portal_settings': CustomerPortalSettings;
     /** POST here to resend the daily subscription webhook notification for this store. */
     'fx:process_subscription_webhook': ProcessSubscriptionWebhook;
+    /** Add-to-cart URL for the Standard plan with yearly billing. */
+    'fx:activate_store_yearly_url': { curie: 'fx:activate_store_yearly_url' };
+    /** Add-to-cart URL for the Standard plan with monthly billing. */
+    'fx:activate_store_monthly_url': { curie: 'fx:activate_store_monthly_url' };
+    /** Add-to-cart URL for the Advanced plan with yearly billing. */
+    'fx:activate_store_advanced_yearly_url': { curie: 'fx:activate_store_advanced_yearly_url' };
+    /** Add-to-cart URL for the Advanced plan with monthly billing. */
+    'fx:activate_store_advanced_monthly_url': { curie: 'fx:activate_store_advanced_monthly_url' };
   };
 
   props: {
@@ -181,3 +195,36 @@ export interface Store extends Graph {
     date_modified: string | null;
   };
 }
+
+export type StoreWebhookKeyJson = {
+  cart_signing: string;
+  xml_datafeed: string;
+  api_legacy: string;
+  sso: string;
+};
+
+export type StoreSmtpConfigJson = {
+  username: string;
+  password: string;
+  security: string;
+  host: string;
+  port: string;
+};
+
+export type StoreCustomDisplayIdConfigJson = {
+  enabled: boolean;
+  start: string;
+  length: string;
+  prefix: string;
+  suffix: string;
+  transaction_journal_entries: {
+    enabled: boolean;
+    transaction_separator: string;
+    log_detail_request_types: {
+      transaction_authcapture: { prefix: string };
+      transaction_capture: { prefix: string };
+      transaction_refund: { prefix: string };
+      transaction_void: { prefix: string };
+    };
+  };
+};
