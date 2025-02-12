@@ -64,6 +64,18 @@ export interface CustomerPortalSettings extends Graph {
       /** Public URL of your terms of service agreement. */
       url: string;
     };
+    /** List of display preferences that comes from `cart_display_config` in the active `fx:template_config`. */
+    cart_display_config: {
+      show_product_weight: boolean;
+      show_product_category: boolean;
+      show_product_code: boolean;
+      show_product_options: boolean;
+      show_sub_frequency: boolean;
+      show_sub_startdate: boolean;
+      show_sub_nextdate: boolean;
+      show_sub_enddate: boolean;
+      hidden_product_options: string[];
+    };
     /** Self-registration settings. Self-registration is disabled if this field is undefined. */
     sign_up?: {
       /** Client verification settings. */
