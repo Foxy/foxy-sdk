@@ -15,6 +15,7 @@ export * from './Graph/cart_include_templates';
 export * from './Graph/cart_template';
 export * from './Graph/cart_templates';
 export * from './Graph/carts';
+export * from './Graph/charge_past_due';
 export * from './Graph/checkout_template';
 export * from './Graph/checkout_templates';
 export * from './Graph/checkout_types';
