@@ -35,6 +35,8 @@ export interface Webhook extends Graph {
     encryption_key: string | null;
     /** The type of resource to observe changes on. */
     event_resource: ('subscription' | 'transaction' | 'customer')[];
+    /** If set to `0`, events will not be triggered for this webhook. This can also be set to `0` automatically if there are too many consecutive failed attempts to send a payload to this endpoint. */
+    is_active: 0 | 1;
     /** The date this resource was created. */
     date_created: string | null;
     /** The date this resource was last modified. */
