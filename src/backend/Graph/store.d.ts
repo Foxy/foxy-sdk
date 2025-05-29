@@ -18,6 +18,7 @@ import type { PaymentMethodSets } from './payment_method_sets';
 import type { ProcessSubscriptionWebhook } from './process_subscription_webhook';
 import type { ReceiptTemplates } from './receipt_templates';
 import type { Reports } from './reports';
+import type { StoreShippingMethods } from './store_shipping_methods';
 import type { StoreVersion } from './store_version';
 import type { SubscriptionSettings } from './subscription_settings';
 import type { Subscriptions } from './subscriptions';
@@ -28,7 +29,6 @@ import type { UserAccesses } from './user_accesses';
 import type { UserInvitations } from './user_invitations';
 import type { Users } from './users';
 import type { Webhooks } from './webhooks';
-import type { StoreShippingMethods } from './store_shipping_methods';
 
 export interface Store extends Graph {
   curie: 'fx:store';

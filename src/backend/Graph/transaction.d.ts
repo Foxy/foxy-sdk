@@ -5,6 +5,7 @@ import type { Capture } from './capture';
 import type { CustomFields } from './custom_fields';
 import type { Customer } from './customer';
 import type { Discounts } from './discounts';
+import type { GiftCardCodeLogs } from './gift_card_code_logs';
 import type { Graph } from '../../core';
 import type { Items } from './items';
 import type { NativeIntegrations } from './native_integrations';
@@ -13,17 +14,13 @@ import type { ProcessWebhook } from './process_webhook';
 import type { Receipt } from './receipt';
 import type { Refund } from './refund';
 import type { SendEmails } from './send_emails';
+import type { SendWebhooks } from './send_webhooks';
 import type { Shipments } from './shipments';
 import type { Store } from './store';
+import type { Subscription } from './subscription';
+import type { TransactionJournalEntries } from './transaction_journal_entries';
 import type { TransactionLogs } from './transaction_logs';
 import type { Void } from './void';
-import type { GiftCardCodeLog } from './gift_card_code_log';
-import type { SendWebhooks } from './send_webhooks';
-import type { TransactionLog } from './transaction_log';
-import type { TransactionJournalEntry } from './transaction_journal_entry';
-import type { TransactionJournalEntries } from './transaction_journal_entries';
-import type { GiftCardCodeLogs } from './gift_card_code_logs';
-import type { Subscription } from './subscription';
 
 export interface Transaction extends Graph {
   curie: 'fx:transaction';
