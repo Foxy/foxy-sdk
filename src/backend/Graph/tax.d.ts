@@ -21,7 +21,7 @@ export interface Tax extends Graph {
     /** The name of this tax which will be displayed to the customer. */
     name: string;
     /** The type of tax rate which determines when this tax will be applied. */
-    type: 'global' | 'union' | 'country' | 'region' | 'local';
+    type: 'global' | 'union' | 'country' | 'region' | 'local' | 'custom_tax_endpoint';
     /** The country which will be matched against the customer shipping country to determine if a country tax will be applied. */
     country: string;
     /** The region (also known as a state or province) which will be matched against the customer shipping region to determine if a regional tax will be applied. */
@@ -31,7 +31,7 @@ export interface Tax extends Graph {
     /** Set to true if the tax rate will be determined automatically by the postal code. */
     is_live: boolean;
     /** If using a live tax rate service provider, this value can be set to determine which provider you would like to use. */
-    service_provider: 'avalara' | '';
+    service_provider: 'avalara' | 'custom_tax' | 'onesource' | 'taxjar' | '';
     /** Set to true if the tax rate will also be applied to the shipping costs. */
     apply_to_shipping: boolean;
     /** For a Union tax type, set to true to use the origin country tax rates. */
