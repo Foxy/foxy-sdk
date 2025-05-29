@@ -129,6 +129,8 @@ export interface Store extends Graph {
     use_email_dns: boolean;
     /** If you'd like to configure your own SMTP server for sending transaction receipt emails, you can do so here. The JSON supports the following fields: `username`,`password`,`host`,`port`,`security`. The security value can be blank, `ssl`, or `tls` */
     smtp_config: string;
+    /** Set to true if you would like to send HTML formatted emails. */
+    send_html_email: boolean;
     /** The postal code of your store. This will be used for calculating shipping costs if you sell shippable items. */
     postal_code: string;
     /** The two character code for states in the United States. Other countries may call this a province. When a two character code isn't available, use the full region name. This will be used for calculating shipping costs if you sell shippable items. */
