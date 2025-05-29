@@ -19,6 +19,7 @@ import type { ProcessSubscriptionWebhook } from './process_subscription_webhook'
 import type { ReceiptTemplates } from './receipt_templates';
 import type { Reports } from './reports';
 import type { StoreShippingMethods } from './store_shipping_methods';
+import type { StoreTransactionFolders } from './store_transaction_folders';
 import type { StoreVersion } from './store_version';
 import type { SubscriptionSettings } from './subscription_settings';
 import type { Subscriptions } from './subscriptions';
@@ -84,6 +85,8 @@ export interface Store extends Graph {
     'fx:checkout_templates': CheckoutTemplates;
     /** List of payment method sets configured for this store. */
     'fx:payment_method_sets': PaymentMethodSets;
+    /** List of transaction folders for this store. */
+    'fx:transaction_folders': StoreTransactionFolders;
     /** Subscription settings for this store. */
     'fx:subscription_settings': SubscriptionSettings;
     /** List of cart include templates available in this store. */

@@ -136,6 +136,8 @@ export * from './Graph/store_shipping_method';
 export * from './Graph/store_shipping_methods';
 export * from './Graph/store_shipping_service';
 export * from './Graph/store_shipping_services';
+export * from './Graph/store_transaction_folder';
+export * from './Graph/store_transaction_folders';
 export * from './Graph/store_version';
 export * from './Graph/store_versions';
 export * from './Graph/stores';
