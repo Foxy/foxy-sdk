@@ -153,10 +153,10 @@ export interface Transaction extends Graph {
   };
 
   zooms: {
-    transaction_journal_entries?: TransactionJournalEntry;
-    applied_gift_card_codes?: GiftCardCodeLog;
+    transaction_journal_entries?: TransactionJournalEntries;
+    gift_card_code_logs?: GiftCardCodeLogs; // the zoom name is `applied_gift_card_codes` but we use `gift_card_code_logs` here due to the constraints of the SDK type system
     billing_addresses?: BillingAddresses;
-    transaction_logs?: TransactionLog;
+    transaction_logs?: TransactionLogs;
     applied_taxes?: AppliedTaxes;
     custom_fields?: CustomFields;
     attributes: Attributes;
