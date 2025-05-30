@@ -4,6 +4,7 @@ import type { CreateSession } from './create_session';
 import type { CustomFields } from './custom_fields';
 import type { Customer } from './customer';
 import type { Discounts } from './discounts';
+import type { GiftCardCodeLogs } from './gift_card_code_logs';
 import type { Graph } from '../../core';
 import type { Items } from './items';
 import type { Store } from './store';
@@ -33,6 +34,8 @@ export interface Cart extends Graph {
     'fx:create_session': CreateSession;
     /** Coupon codes applied to the items in this cart. */
     'fx:applied_coupon_codes': AppliedCouponCodes;
+    /** Gift card codes applied to the items in this cart. */
+    'fx:applied_gift_card_codes': GiftCardCodeLogs;
   };
 
   props: {
@@ -134,6 +137,8 @@ export interface Cart extends Graph {
   };
 
   zooms: {
+    applied_coupon_codes?: AppliedCouponCodes;
+    gift_card_code_logs?: GiftCardCodeLogs; // the zoom name is `applied_gift_card_codes`, but the resource is `gift_card_code_logs` so we use that here due to the limitations of the SDK types
     custom_fields?: CustomFields;
     attributes: Attributes;
     discounts?: Discounts;

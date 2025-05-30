@@ -37,6 +37,12 @@ export interface HostedPaymentGatewaysHelper extends Graph {
         third_party_key_description: string;
         /** Marks hosted payment gateways that are no longer supported. */
         is_deprecated: boolean;
+        /** Whether or not this hosted gateway supports card verification. */
+        supports_card_verification: boolean;
+        /** Default card verification mode if this gateway supports it. */
+        card_verification: 'disabled' | 'enabled_automatically' | 'enabled_override';
+        /** Default configuration for card verification amounts. This is a serialized JSON string that contains the amounts for each card type. Example: `{"verification_amounts": {"visa": 1, "mastercard": 1, "american_express": 1, "discover": 1, "default": 1}}`. */
+        card_verification_config: string;
         /** If this hosted gateway requires additional information, this will contain details about the data which needs to be collected to configure this hosted gateway. */
         additional_fields: null | {
           blocks: {
