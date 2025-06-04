@@ -27,21 +27,21 @@ export interface Countries extends Graph {
         alternate_values: string[];
         /** This value determines which countries will show up first in our find-as-you-type system. */
         boost: number;
-        /** If `include_regions` is passed in, this will be replaced with regions, an array of region information for this country. Boolean otherwise. */
-        has_regions:
-          | boolean
-          | {
-              /** The default name for this region. */
-              n: string;
-              /** The official region code. */
-              c: string;
-              /** Array of alternative names for this region. */
-              alt: string[];
-              /** This value determines which regions will show up first in our find-as-you-type system. */
-              boost: number;
-              /** If this region is currently recognized. */
-              active: boolean;
-            }[];
+        /** Whether this country has known regions on file in our system. If `?include_regions=true` is passed in, this property will be omitted. */
+        has_regions?: boolean;
+        /** Known regions for this country if Foxy is aware of them. If `?include_regions=true` is not passed in, this property will be omitted. */
+        regions?: {
+          /** The default name for this region. */
+          n: string;
+          /** The official region code. */
+          c: string;
+          /** Array of alternative names for this region. */
+          alt: string[];
+          /** This value determines which regions will show up first in our find-as-you-type system. */
+          boost: number;
+          /** If this region is currently recognized. */
+          active: boolean;
+        }[];
         /** Whether this country requires regions for shipping or not. */
         regions_required: boolean;
         /** What type of region this is such as state, province, etc. */

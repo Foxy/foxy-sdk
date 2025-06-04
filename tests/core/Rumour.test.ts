@@ -220,6 +220,50 @@ describe('Core', () => {
       rumour.cease();
     });
 
+    it('throws UpdateError when a _uri property changes', () => {
+      let syncedData: TestResource | null = {
+        _links: { self: { href: 'https://foxy.test/foo' } },
+        bar_uri: 'https://example.com/bar',
+      };
+
+      const rumour = new Rumour();
+      let error: Error | null = null;
+
+      rumour.track(update => {
+        try {
+          syncedData = update(syncedData as TestResource);
+        } catch (err) {
+          error = err;
+        }
+      });
+
+      rumour.share({
+        data: { ...syncedData, bar_uri: 'https://example.com/baz' },
+        source: 'https://foxy.test/foo',
+      });
+
+      expect(error).toBeInstanceOf(UpdateError);
+      rumour.cease();
+    });
+
+    it('throws UpdateError when a _id property changes', () => {
+      let syncedData: TestResource | null = { _links: { self: { href: 'https://foxy.test/foo' } }, bar_id: 0 };
+      const rumour = new Rumour();
+      let error: Error | null = null;
+
+      rumour.track(update => {
+        try {
+          syncedData = update(syncedData as TestResource);
+        } catch (err) {
+          error = err;
+        }
+      });
+
+      rumour.share({ data: { ...syncedData, bar_id: 1 }, source: 'https://foxy.test/foo' });
+      expect(error).toBeInstanceOf(UpdateError);
+      rumour.cease();
+    });
+
     it('stops sending updates to a listener after its untrack callback is invoked', () => {
       let syncedData: TestResource | null = {
         _links: { self: { href: 'https://foxy.test/foo' } },

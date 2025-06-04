@@ -18,6 +18,8 @@ import type { PaymentMethodSets } from './payment_method_sets';
 import type { ProcessSubscriptionWebhook } from './process_subscription_webhook';
 import type { ReceiptTemplates } from './receipt_templates';
 import type { Reports } from './reports';
+import type { StoreShippingMethods } from './store_shipping_methods';
+import type { StoreTransactionFolders } from './store_transaction_folders';
 import type { StoreVersion } from './store_version';
 import type { SubscriptionSettings } from './subscription_settings';
 import type { Subscriptions } from './subscriptions';
@@ -28,7 +30,6 @@ import type { UserAccesses } from './user_accesses';
 import type { UserInvitations } from './user_invitations';
 import type { Users } from './users';
 import type { Webhooks } from './webhooks';
-import type { StoreShippingMethods } from './store_shipping_methods';
 
 export interface Store extends Graph {
   curie: 'fx:store';
@@ -84,6 +85,8 @@ export interface Store extends Graph {
     'fx:checkout_templates': CheckoutTemplates;
     /** List of payment method sets configured for this store. */
     'fx:payment_method_sets': PaymentMethodSets;
+    /** List of transaction folders for this store. */
+    'fx:transaction_folders': StoreTransactionFolders;
     /** Subscription settings for this store. */
     'fx:subscription_settings': SubscriptionSettings;
     /** List of cart include templates available in this store. */
@@ -129,6 +132,8 @@ export interface Store extends Graph {
     use_email_dns: boolean;
     /** If you'd like to configure your own SMTP server for sending transaction receipt emails, you can do so here. The JSON supports the following fields: `username`,`password`,`host`,`port`,`security`. The security value can be blank, `ssl`, or `tls` */
     smtp_config: string;
+    /** Set to true if you would like to send HTML formatted emails. */
+    send_html_email: boolean;
     /** The postal code of your store. This will be used for calculating shipping costs if you sell shippable items. */
     postal_code: string;
     /** The two character code for states in the United States. Other countries may call this a province. When a two character code isn't available, use the full region name. This will be used for calculating shipping costs if you sell shippable items. */

@@ -1,4 +1,5 @@
 import type { Attributes } from './attributes';
+import type { ChargePastDue } from './charge_past_due';
 import type { Customer } from './customer';
 import type { Graph } from '../../core';
 import type { LastTransaction } from './last_transaction';
@@ -31,6 +32,8 @@ export interface Subscription extends Graph {
     'fx:sub_token_url': SubTokenUrl;
     /** URL of the page where the customer can modify this subscription. This link is available only when configured in subscription settings. */
     'fx:sub_modification_url': SubModificationUrl;
+    /** POST to this endpoint to charge any past due payments for this subscription. Not present when there's no past due amount to charge. */
+    'fx:charge_past_due': ChargePastDue;
   };
 
   props: {

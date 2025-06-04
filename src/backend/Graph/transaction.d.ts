@@ -5,6 +5,7 @@ import type { Capture } from './capture';
 import type { CustomFields } from './custom_fields';
 import type { Customer } from './customer';
 import type { Discounts } from './discounts';
+import type { GiftCardCodeLogs } from './gift_card_code_logs';
 import type { Graph } from '../../core';
 import type { Items } from './items';
 import type { NativeIntegrations } from './native_integrations';
@@ -13,17 +14,14 @@ import type { ProcessWebhook } from './process_webhook';
 import type { Receipt } from './receipt';
 import type { Refund } from './refund';
 import type { SendEmails } from './send_emails';
+import type { SendWebhooks } from './send_webhooks';
 import type { Shipments } from './shipments';
 import type { Store } from './store';
+import type { StoreTransactionFolder } from './store_transaction_folder';
+import type { Subscription } from './subscription';
+import type { TransactionJournalEntries } from './transaction_journal_entries';
 import type { TransactionLogs } from './transaction_logs';
 import type { Void } from './void';
-import type { GiftCardCodeLog } from './gift_card_code_log';
-import type { SendWebhooks } from './send_webhooks';
-import type { TransactionLog } from './transaction_log';
-import type { TransactionJournalEntry } from './transaction_journal_entry';
-import type { TransactionJournalEntries } from './transaction_journal_entries';
-import type { GiftCardCodeLogs } from './gift_card_code_logs';
-import type { Subscription } from './subscription';
 
 export interface Transaction extends Graph {
   curie: 'fx:transaction';
@@ -37,6 +35,8 @@ export interface Transaction extends Graph {
     'fx:store': Store;
     /** List of items in this transaction. */
     'fx:items': Items;
+    /** Folder this transaction is assigned to. Not present when not assigned. */
+    'fx:folder': StoreTransactionFolder;
     /** POST here to refund this transaction. */
     'fx:refund': Refund;
     /** Open this link in a browser to see a receipt for this transaction. */
@@ -149,6 +149,10 @@ export interface Transaction extends Graph {
       | 'mit_recurring_reattempt_manual'
       | 'cit_recurring_cancellation'
       | 'mit_recurring_cancellation';
+    /** ID of the folder this transaction is assigned to. When not assigned, this will be `null`. */
+    folder_id: number | null;
+    /** The URI of the folder this transaction is assigned to. When not assigned, this will be an empty string. */
+    folder_uri: string;
     /** The date this resource was created. */
     date_created: string | null;
     /** The date this resource was last modified. */
@@ -156,10 +160,10 @@ export interface Transaction extends Graph {
   };
 
   zooms: {
-    transaction_journal_entries?: TransactionJournalEntry;
-    applied_gift_card_codes?: GiftCardCodeLog;
+    transaction_journal_entries?: TransactionJournalEntries;
+    gift_card_code_logs?: GiftCardCodeLogs; // the zoom name is `applied_gift_card_codes` but we use `gift_card_code_logs` here due to the constraints of the SDK type system
     billing_addresses?: BillingAddresses;
-    transaction_logs?: TransactionLog;
+    transaction_logs?: TransactionLogs;
     applied_taxes?: AppliedTaxes;
     custom_fields?: CustomFields;
     attributes: Attributes;
@@ -167,6 +171,7 @@ export interface Transaction extends Graph {
     shipments?: Shipments;
     customer?: Customer;
     payments?: Payments;
+    folder?: StoreTransactionFolder;
     items?: Items;
   };
 }
