@@ -55,6 +55,8 @@ export interface Subscription extends Graph {
     is_active: boolean;
     /** If this subscription is using a third party subscription system such as PayPal Express, their identifier will be set here. */
     third_party_id: string;
+    /** The type of payment method used for this subscription. Can be `null` if payment method info is unavailable via this API. */
+    payment_type: 'plastic' | 'paypal' | 'ach' | 'amazon' | null;
     /** The date this resource was created. */
     date_created: string | null;
     /** The date this resource was last modified. */

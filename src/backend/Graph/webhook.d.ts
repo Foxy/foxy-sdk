@@ -34,7 +34,7 @@ export interface Webhook extends Graph {
     /** The JSON webhooks are encrypted in certain situations. This key is also used to generate a signature to verify the integrity of the payload. 1000 characters or less. */
     encryption_key: string | null;
     /** The type of resource to observe changes on. */
-    event_resource: ('subscription' | 'transaction' | 'customer')[];
+    event_resource: 'subscription' | 'transaction' | 'transaction_log' | 'customer';
     /** If set to `0`, events will not be triggered for this webhook. This can also be set to `0` automatically if there are too many consecutive failed attempts to send a payload to this endpoint. */
     is_active: 0 | 1;
     /** The date this resource was created. */
