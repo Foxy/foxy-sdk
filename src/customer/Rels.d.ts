@@ -6,6 +6,8 @@ export * from './Graph/customer_portal_settings';
 export * from './Graph/default_billing_address';
 export * from './Graph/default_payment_method';
 export * from './Graph/default_shipping_address';
+export * from './Graph/item_option';
+export * from './Graph/item_options';
 export * from './Graph/item';
 export * from './Graph/items';
 export * from './Graph/last_transaction';
