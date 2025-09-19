@@ -1,5 +1,7 @@
 export * from './Graph/attribute';
 export * from './Graph/attributes';
+export * from './Graph/custom_field';
+export * from './Graph/custom_fields';
 export * from './Graph/customer_address';
 export * from './Graph/customer_addresses';
 export * from './Graph/customer_portal_settings';
