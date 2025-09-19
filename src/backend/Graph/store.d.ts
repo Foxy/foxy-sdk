@@ -99,10 +99,14 @@ export interface Store extends Graph {
     'fx:customer_portal_settings': CustomerPortalSettings;
     /** POST here to resend the daily subscription webhook notification for this store. */
     'fx:process_subscription_webhook': ProcessSubscriptionWebhook;
-    /** Add-to-cart URL for the Standard plan with yearly billing. */
-    'fx:activate_store_yearly_url': { curie: 'fx:activate_store_yearly_url' };
-    /** Add-to-cart URL for the Standard plan with monthly billing. */
-    'fx:activate_store_monthly_url': { curie: 'fx:activate_store_monthly_url' };
+    /** Add-to-cart URL for the Starter plan with yearly billing. */
+    'fx:activate_store_starter_yearly_url': { curie: 'fx:activate_store_starter_yearly_url' };
+    /** Add-to-cart URL for the Starter plan with monthly billing. */
+    'fx:activate_store_starter_monthly_url': { curie: 'fx:activate_store_starter_monthly_url' };
+    /** Add-to-cart URL for the Growth plan with yearly billing. */
+    'fx:activate_store_growth_yearly_url': { curie: 'fx:activate_store_growth_yearly_url' };
+    /** Add-to-cart URL for the Growth plan with monthly billing. */
+    'fx:activate_store_growth_monthly_url': { curie: 'fx:activate_store_growth_monthly_url' };
     /** Add-to-cart URL for the Advanced plan with yearly billing. */
     'fx:activate_store_advanced_yearly_url': { curie: 'fx:activate_store_advanced_yearly_url' };
     /** Add-to-cart URL for the Advanced plan with monthly billing. */
