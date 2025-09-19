@@ -74,7 +74,7 @@ export interface TransactionTemplate extends Graph {
     /** If this cart has any shippable subscription items which will process in the future, this will be the total amount of shipping costs for those items. */
     total_future_shipping: string;
     /** Total order amount of this cart including all items, taxes, shipping costs and discounts. */
-    total_order: string;
+    total_order: number;
     /** The 3 character ISO code for the currency. */
     currency_code: string;
     /** The currency symbol, such as $, £, €, etc. */
