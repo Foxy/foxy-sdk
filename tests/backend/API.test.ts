@@ -27,19 +27,27 @@ const commonInit = {
 };
 
 const sampleToken = {
-  access_token: 'w8a49rbvuznxmzs39xliwfa943fda84klkvniutgh34q1fjmnfma90iubl',
+  access_token: 'w8a49rbvuznxmzs39xliwfa943fda84klkvniutgh34q1fjmnfma90iu',
   expires_in: BackendAPI.REFRESH_THRESHOLD * 3,
-  refresh_token: '65redfghyuyjthgrhyjthrgdfghytredtyuytredrtyuy6trtyuhgfdr',
+  refresh_token: 'bsedt8wke84rt7w49tsdljfkhg8t7p475tpwrhaskjfb04t7bodrlGne',
   scope: 'store',
   token_type: 'bearer',
 };
 
 const sampleStoredToken = Object.assign({}, sampleToken, {
+  access_token: '290af43rwef9e83ad0d79e97738992778derwett3t08324a9fee0521',
   date_created: new Date().toISOString(),
 });
 
+const tokenError = {
+  error: 'invalid_token',
+  error_description: 'The access token is invalid or expired',
+};
+
 describe('Backend', () => {
   describe('API', () => {
+    beforeEach(() => fetchMock.mockClear());
+
     it('exposes numeric refresh threshold as static property', () => {
       expect(BackendAPI).toHaveProperty('REFRESH_THRESHOLD');
       expect(typeof BackendAPI.REFRESH_THRESHOLD).toBe('number');
@@ -76,13 +84,11 @@ describe('Backend', () => {
     it('returns null on auth failure in API.getToken()', async () => {
       fetchMock.mockImplementation(() => Promise.resolve(new Response(null, { status: 500 })));
       expect(await BackendAPI.getToken({ ...commonInit })).toBeNull();
-      fetchMock.mockClear();
     });
 
     it('throws an error on auth failure in API.getToken(opts, true)', async () => {
       fetchMock.mockImplementation(() => Promise.resolve(new Response(null, { status: 500 })));
       await expect(BackendAPI.getToken({ ...commonInit }, true)).rejects.toThrow();
-      fetchMock.mockClear();
     });
 
     it('supports authorization_code grant in API.getToken()', async () => {
@@ -104,8 +110,6 @@ describe('Backend', () => {
         headers: new Headers({ ...commonHeaders, 'Content-Type': 'application/x-www-form-urlencoded' }),
         method: 'POST',
       });
-
-      fetchMock.mockClear();
     });
 
     it('supports refresh_token grant in API.getToken()', async () => {
@@ -126,8 +130,6 @@ describe('Backend', () => {
         headers: new Headers({ ...commonHeaders, 'Content-Type': 'application/x-www-form-urlencoded' }),
         method: 'POST',
       });
-
-      fetchMock.mockClear();
     });
 
     it('supports custom version and base in API.getToken()', async () => {
@@ -156,8 +158,6 @@ describe('Backend', () => {
 
         method: 'POST',
       });
-
-      fetchMock.mockClear();
     });
 
     it('errors when constructed with incorrect arguments', () => {
@@ -227,10 +227,8 @@ describe('Backend', () => {
       api.storage.setItem(BackendAPI.ACCESS_TOKEN, JSON.stringify(sampleStoredToken));
       await api.fetch(url);
 
-      const headers = new Headers({ ...commonHeaders, Authorization: `Bearer ${sampleToken.access_token}` });
+      const headers = new Headers({ ...commonHeaders, Authorization: `Bearer ${sampleStoredToken.access_token}` });
       expect(fetchMock).toHaveBeenCalledWith(new Request(url, { headers }));
-
-      fetchMock.mockClear();
     });
 
     it('obtains a new access token when the stored one is outdated', async () => {
@@ -255,8 +253,6 @@ describe('Backend', () => {
 
       const headers = new Headers({ ...commonHeaders, Authorization: `Bearer ${sampleToken.access_token}` });
       expect(fetchMock).toHaveBeenNthCalledWith(2, new Request(url, { headers }));
-
-      fetchMock.mockClear();
     });
 
     it("obtains a new access token when there isn't one", async () => {
@@ -279,15 +275,46 @@ describe('Backend', () => {
 
       const headers = new Headers({ ...commonHeaders, Authorization: `Bearer ${sampleToken.access_token}` });
       expect(fetchMock).toHaveBeenNthCalledWith(2, new Request(url, { headers }));
-
-      fetchMock.mockClear();
     });
 
-    it('makes an unauthenticated request after a failure to obtain a new access token', async () => {
-      fetchMock.mockImplementation(() => Promise.resolve(new Response(null, { status: 500 })));
+    it('obtains a new access token when the stored one has been revoked', async () => {
+      fetchMock
+        .mockImplementationOnce(() => Promise.resolve(new Response(JSON.stringify(tokenError), { status: 401 })))
+        .mockImplementationOnce(() => Promise.resolve(new Response(JSON.stringify(sampleToken))))
+        .mockImplementationOnce(() => Promise.resolve(new Response(null)));
 
       const url = BackendAPI.BASE_URL.toString();
       const api = new BackendAPI(commonInit);
+
+      api.storage.setItem(BackendAPI.ACCESS_TOKEN, JSON.stringify(sampleStoredToken));
+      await api.fetch(url);
+
+      let headers = new Headers({ ...commonHeaders, Authorization: `Bearer ${sampleStoredToken.access_token}` });
+      expect(fetchMock).toHaveBeenNthCalledWith(1, new Request(url, { headers }));
+
+      expect(fetchMock).toHaveBeenNthCalledWith(2, new URL('token', BackendAPI.BASE_URL.toString()).toString(), {
+        body: new URLSearchParams({
+          client_id: api.clientId,
+          client_secret: api.clientSecret,
+          grant_type: 'refresh_token',
+          refresh_token: api.refreshToken,
+        }),
+        headers: new Headers({ ...commonHeaders, 'Content-Type': 'application/x-www-form-urlencoded' }),
+        method: 'POST',
+      });
+
+      headers = new Headers({ ...commonHeaders, Authorization: `Bearer ${sampleToken.access_token}` });
+      expect(fetchMock).toHaveBeenNthCalledWith(3, new Request(url, { headers }));
+    });
+
+    it('makes an unauthenticated request after a failure to obtain a new access token', async () => {
+      fetchMock
+        .mockImplementationOnce(() => Promise.resolve(new Response(null, { status: 500 })))
+        .mockImplementationOnce(() => Promise.resolve(new Response(null)));
+
+      const url = BackendAPI.BASE_URL.toString();
+      const api = new BackendAPI(commonInit);
+
       await api.fetch(url);
 
       expect(fetchMock).toHaveBeenNthCalledWith(1, new URL('token', BackendAPI.BASE_URL.toString()).toString(), {
@@ -302,8 +329,6 @@ describe('Backend', () => {
       });
 
       expect(fetchMock).toHaveBeenNthCalledWith(2, new Request(url, { headers: commonHeaders }));
-
-      fetchMock.mockClear();
     });
 
     it('supports complex fetch requests with detailed arguments', async () => {
@@ -317,8 +342,6 @@ describe('Backend', () => {
 
       const headers = new Headers({ ...commonHeaders, ...init.headers });
       expect(fetchMock).toHaveBeenLastCalledWith(new Request(info, { ...init, headers }));
-
-      fetchMock.mockClear();
     });
 
     it('supports complex fetch requests with Request instances', async () => {
@@ -332,8 +355,6 @@ describe('Backend', () => {
 
       const headers = new Headers({ ...commonHeaders, ...init.headers });
       expect(fetchMock).toHaveBeenLastCalledWith(new Request(info, { ...init, headers }));
-
-      fetchMock.mockClear();
     });
   });
 });

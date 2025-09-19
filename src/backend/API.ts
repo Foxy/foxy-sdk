@@ -138,44 +138,73 @@ export class API extends Core.API<Graph> {
 
   private async __fetch(input: RequestInfo, init?: RequestInit): Promise<Response> {
     let token = JSON.parse(this.storage.getItem(API.ACCESS_TOKEN) ?? 'null') as StoredToken | null;
-    const request = new Request(input, init);
+    let request = new Request(input, init);
+    let headers = request.headers;
 
-    if (token !== null) {
-      const expiresAt = new Date(token.date_created).getTime() + token.expires_in * 1000;
-      const refreshAt = Date.now() + API.REFRESH_THRESHOLD;
-
-      if (expiresAt < refreshAt) {
-        this.storage.removeItem(API.ACCESS_TOKEN);
-        this.console.info('Removed old access token from the storage.');
-        token = null;
-      }
-    }
-
-    if (token === null) {
-      this.console.trace("Access token isn't present in the storage. Fetching a new one...");
-
+    const fetchNewAccessToken = async () => {
+      this.console.trace('Fetching a new access token...');
       const rawToken = await API.getToken(this, true).catch(err => {
         this.console.error(err.message);
         return null;
       });
 
       if (rawToken) {
-        token = { ...rawToken, date_created: new Date().toISOString() };
+        const token = { ...rawToken, date_created: new Date().toISOString() };
         this.storage.setItem(API.ACCESS_TOKEN, JSON.stringify(token));
         this.console.info('Access token updated.');
+        return token;
       } else {
         this.console.warn('Failed to fetch access token. Proceeding without authentication.');
+        return null;
+      }
+    };
+
+    const setHeaders = (accessToken?: string) => {
+      if (!headers.get('Authorization') && accessToken) headers.set('Authorization', `Bearer ${accessToken}`);
+      if (!headers.get('Content-Type')) headers.set('Content-Type', 'application/json');
+      if (!headers.get('FOXY-API-VERSION')) headers.set('FOXY-API-VERSION', this.version);
+    };
+
+    if (token) {
+      const expiresAt = new Date(token.date_created).getTime() + token.expires_in * 1000;
+      const refreshAt = Date.now() + API.REFRESH_THRESHOLD;
+
+      if (expiresAt < refreshAt) {
+        this.storage.removeItem(API.ACCESS_TOKEN);
+        this.console.info('Removed old access token from the storage.');
+        token = await fetchNewAccessToken();
+      }
+    } else {
+      this.console.trace("Access token isn't present in the storage.");
+      token = await fetchNewAccessToken();
+    }
+
+    setHeaders(token?.access_token);
+    const method = init?.method?.toUpperCase() ?? 'GET';
+    this.console.trace(`${method} ${request.url}`);
+    let response = await fetch(request);
+
+    if (response.status === 401) {
+      const { error } = (await response.clone().json()) as { error: string };
+
+      if (error === 'invalid_token') {
+        this.console.info('Access token is invalid or expired.');
+
+        this.storage.removeItem(API.ACCESS_TOKEN);
+        this.console.info('Removed old access token from the storage.');
+
+        token = await fetchNewAccessToken();
+
+        if (token) {
+          request = new Request(input, init);
+          headers = request.headers;
+          setHeaders(token.access_token);
+          this.console.trace(`Retrying ${method} ${request.url}`);
+          response = await fetch(request);
+        }
       }
     }
 
-    const headers = request.headers;
-    const method = init?.method?.toUpperCase() ?? 'GET';
-
-    if (!headers.get('Authorization') && token) headers.set('Authorization', `Bearer ${token.access_token}`);
-    if (!headers.get('Content-Type')) headers.set('Content-Type', 'application/json');
-    if (!headers.get('FOXY-API-VERSION')) headers.set('FOXY-API-VERSION', this.version);
-
-    this.console.trace(`${method} ${request.url}`);
-    return fetch(request);
+    return response;
   }
 }
