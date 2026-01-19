@@ -2,6 +2,7 @@ import type { Attributes } from './attributes';
 import type { Cart } from './cart';
 import type { CouponDetails } from './coupon_details';
 import type { DiscountDetails } from './discount_details';
+import type { DownloadablePurchase } from './downloadable_purchase';
 import type { Graph } from '../../core';
 import type { ItemCategory } from './item_category';
 import type { ItemOptions } from './item_options';
@@ -36,6 +37,8 @@ export interface Item extends Graph {
     'fx:coupon_details': CouponDetails;
     /** Details about discounts linked to this item. */
     'fx:discount_details': DiscountDetails;
+    /** Related downloadable purchase info. This link is available only when this item has a downloadable purchase associated with it. */
+    'fx:downloadable_purchase': DownloadablePurchase;
   };
 
   props: {

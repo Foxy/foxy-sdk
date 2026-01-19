@@ -1,7 +1,9 @@
 import type { Customer } from './customer';
+import type { DownloadUrl } from './download_url';
 import type { Downloadable } from './downloadable';
 import type { Graph } from '../../core';
 import type { Item } from './item';
+import type { ResetUsage } from './reset_usage';
 import type { Store } from './store';
 import type { Transaction } from './transaction';
 
@@ -21,6 +23,10 @@ export interface DownloadablePurchase extends Graph {
     'fx:transaction': Transaction;
     /** Downloadable product. */
     'fx:downloadable': Downloadable;
+    /** POST to this URL to reset the usage count for this downloadable purchase. */
+    'fx:reset_usage': ResetUsage;
+    /** The URL to download the purchased item. */
+    'fx:download_url': DownloadUrl;
   };
 
   props: {
