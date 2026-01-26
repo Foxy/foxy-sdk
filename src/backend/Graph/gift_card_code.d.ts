@@ -13,7 +13,7 @@ export interface GiftCardCode extends Graph {
     'self': GiftCardCode;
     /** Store this gift card code belongs to. */
     'fx:store': Store;
-    /** Customer this gift card belongs to. */
+    /** Customer this gift card belongs to. Present only when linked. */
     'fx:customer': Customer;
     /** Gift card this code corresponds to. */
     'fx:gift_card': GiftCard;
@@ -30,8 +30,8 @@ export interface GiftCardCode extends Graph {
     end_date: string | null;
     /** Current balance on the gift card. Decimal. Required. */
     current_balance: number;
-    /** PATCH-only: use this field to link this gift card code to a customer. */
-    customer_id?: number | string;
+    /** PATCH-only: use this field to link this gift card code to a customer or null to unlink. */
+    customer_id?: number | null;
     /** The date this resource was created. Readonly. */
     date_created: string | null;
     /** The date this resource was last modified. Readonly. */
