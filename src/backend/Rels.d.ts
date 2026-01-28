@@ -118,6 +118,7 @@ export * from './Graph/reporting';
 export * from './Graph/reporting_email_exists';
 export * from './Graph/reporting_store_domain_exists';
 export * from './Graph/reports';
+export * from './Graph/reset_usage';
 export * from './Graph/send_emails';
 export * from './Graph/send_webhooks';
 export * from './Graph/shipment';

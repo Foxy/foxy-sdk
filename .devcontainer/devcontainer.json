@@ -1,0 +1,8 @@
+{
+  "name": "foxy-sdk",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-20-bookworm",
+  "mounts": [
+    "source=${localEnv:HOME}/.ssh,target=/home/node/.ssh,type=bind,consistency=cached"
+  ],
+  "postCreateCommand": "npm install"
+}

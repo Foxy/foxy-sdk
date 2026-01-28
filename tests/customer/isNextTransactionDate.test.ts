@@ -15,6 +15,7 @@ function mockSubscription(frequency = '1m') {
     is_active: false,
     next_transaction_date: '2014-05-01T00:00:00-0700',
     past_due_amount: 0,
+    payment_type: 'plastic' as const,
     start_date: '2010-09-15T00:00:00-0700',
     third_party_id: '',
   };
