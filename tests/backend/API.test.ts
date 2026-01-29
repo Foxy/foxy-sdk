@@ -356,5 +356,44 @@ describe('Backend', () => {
       const headers = new Headers({ ...commonHeaders, ...init.headers });
       expect(fetchMock).toHaveBeenLastCalledWith(new Request(info, { ...init, headers }));
     });
+
+    it('handles concurrent requests that detect an expired token without duplicate refreshes', async () => {
+      const url = BackendAPI.BASE_URL.toString();
+      const api = new BackendAPI(commonInit);
+
+      // Store an expired token
+      api.storage.setItem(BackendAPI.ACCESS_TOKEN, JSON.stringify({ ...sampleStoredToken, expires_in: 0 }));
+
+      // Set up fetch to succeed after token refresh
+      fetchMock.mockImplementation(() => Promise.resolve(new Response(JSON.stringify(sampleToken))));
+
+      // Make two concurrent requests that will both detect the expired token
+      const [response1, response2] = await Promise.all([api.fetch(url), api.fetch(url)]);
+
+      // Verify both requests succeed
+      expect(response1.ok).toBe(true);
+      expect(response2.ok).toBe(true);
+
+      // Verify token refresh was called exactly once (for the token endpoint)
+      // Expected calls: 1 token refresh + 2 actual requests = 3 total
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+
+      // First call should be token refresh
+      expect(fetchMock).toHaveBeenNthCalledWith(1, new URL('token', BackendAPI.BASE_URL.toString()).toString(), {
+        body: new URLSearchParams({
+          client_id: api.clientId,
+          client_secret: api.clientSecret,
+          grant_type: 'refresh_token',
+          refresh_token: api.refreshToken,
+        }),
+        headers: new Headers({ ...commonHeaders, 'Content-Type': 'application/x-www-form-urlencoded' }),
+        method: 'POST',
+      });
+
+      // Second and third calls should be the two actual requests
+      const headers = new Headers({ ...commonHeaders, Authorization: `Bearer ${sampleToken.access_token}` });
+      expect(fetchMock).toHaveBeenNthCalledWith(2, new Request(url, { headers }));
+      expect(fetchMock).toHaveBeenNthCalledWith(3, new Request(url, { headers }));
+    });
   });
 });
