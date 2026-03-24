@@ -12,7 +12,7 @@ export type AchAccountTypeValue = "checking" | "savings";
 export type CardEmbedMode = "full" | "csc-only";
 
 /** Supported Stripe v2 option modes. */
-export type StripeV2Mode = "full" | "saved";
+export type StripeConnectMode = "full" | "saved";
 
 /** Configuration for secure card capture. */
 export type CardPaymentOption = {
@@ -27,7 +27,7 @@ export type CardPaymentOption = {
  * Option-level Stripe configuration used to initialize Stripe Card Element.
  * Values are passed directly from API JSON and interpreted by the UI renderer.
  */
-export type StripeV2Config = {
+export type StripeConnectConfig = {
   /** Stripe publishable key used with loadStripe. */
   publishable_key: string;
   /** Optional locale forwarded to Stripe Elements. */
@@ -44,9 +44,9 @@ export type StripeV2Config = {
  * - `mode: "full"` renders Stripe Card Element for new card capture.
  * - `mode: "saved"` renders a saved Stripe card option with no CSC prompt.
  */
-export type StripeV2PaymentOption = {
-  type: "stripe_v2";
-  mode?: StripeV2Mode;
+export type StripeConnectPaymentOption = {
+  type: "stripe_connect";
+  mode?: StripeConnectMode;
   /** Saved Stripe payment method identifier for mode="saved" when available. */
   payment_method_id?: string;
   /** Optional option-specific display label override. */
@@ -57,7 +57,7 @@ export type StripeV2PaymentOption = {
   expiration_month?: number;
   expiration_year?: number;
   /** Option-level Stripe Card Element configuration. */
-  stripe?: StripeV2Config;
+  stripe?: StripeConnectConfig;
 };
 
 /**
@@ -76,4 +76,4 @@ export type AchPaymentOption = {
 };
 
 /** Union of all supported payment option configuration types. */
-export type PaymentOption = AchPaymentOption | CardPaymentOption | StripeV2PaymentOption;
+export type PaymentOption = AchPaymentOption | CardPaymentOption | StripeConnectPaymentOption;

@@ -31,9 +31,9 @@ export type AchPaymentMethod = {
   bank_name?: string;
 };
 
-export type StripeV2PaymentMethod = {
+export type StripeConnectPaymentMethod = {
   /** Saved Stripe v2 payment method. */
-  type: "stripe_v2";
+  type: "stripe_connect";
   /** Stripe payment method identifier. */
   payment_method_id?: string;
   /** Last 4 digits of the card when available. */
@@ -50,4 +50,4 @@ export type PaymentMethod =
   | CardPaymentMethod
   | PurchaseOrderPaymentMethod
   | AchPaymentMethod
-  | StripeV2PaymentMethod;
+  | StripeConnectPaymentMethod;
