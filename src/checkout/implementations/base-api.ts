@@ -1,13 +1,12 @@
-import type { APIEventMap, APIJson } from "../types";
+import type { APIEventMap, APIJson } from '../types';
 
-import { API } from "../api";
+import { API } from '../api';
 
-type DeepMutable<T> =
-  T extends ReadonlyArray<infer U>
-    ? DeepMutable<U>[]
-    : T extends object
-      ? { -readonly [K in keyof T]: DeepMutable<T[K]> }
-      : T;
+type DeepMutable<T> = T extends ReadonlyArray<infer U>
+  ? DeepMutable<U>[]
+  : T extends object
+  ? { -readonly [K in keyof T]: DeepMutable<T[K]> }
+  : T;
 
 export type MutableAPIJson = DeepMutable<APIJson>;
 
@@ -33,16 +32,16 @@ export function toMutable<T>(value: T): DeepMutable<T> {
 }
 
 export abstract class BaseCheckoutAPI extends API {
-  #state: "idle" | "busy";
+  #state: 'idle' | 'busy';
   #json: MutableAPIJson;
 
-  constructor(initialJson: APIJson, initialState: "idle" | "busy" = "idle") {
+  constructor(initialJson: APIJson, initialState: 'idle' | 'busy' = 'idle') {
     super();
     this.#json = cloneApiJson(initialJson);
     this.#state = initialState;
   }
 
-  get state(): "idle" | "busy" {
+  get state(): 'idle' | 'busy' {
     return this.#state;
   }
 
@@ -50,29 +49,26 @@ export abstract class BaseCheckoutAPI extends API {
     return this.#json as APIJson;
   }
 
-  protected setState(state: "idle" | "busy", emitUpdate = true): void {
+  protected setState(state: 'idle' | 'busy', emitUpdate = true): void {
     this.#state = state;
 
     if (emitUpdate) {
-      this.dispatchEvent(new Event("update"));
+      this.dispatchEvent(new Event('update'));
     }
   }
 
   protected mutateJson(mutator: (json: MutableAPIJson) => void): void {
     mutator(this.#json);
-    this.dispatchEvent(new Event("update"));
+    this.dispatchEvent(new Event('update'));
   }
 
   protected replaceJson(nextJson: APIJson): void {
     this.#json = cloneApiJson(nextJson);
-    this.dispatchEvent(new Event("update"));
+    this.dispatchEvent(new Event('update'));
   }
 
   protected dispatchCancelable<K extends EventWithoutDetailName>(type: K): boolean;
-  protected dispatchCancelable<K extends EventWithDetailName>(
-    type: K,
-    detail: EventDetail<K>,
-  ): boolean;
+  protected dispatchCancelable<K extends EventWithDetailName>(type: K, detail: EventDetail<K>): boolean;
   protected dispatchCancelable<K extends EventName>(type: K, detail?: EventDetail<K>): boolean {
     const event =
       detail === undefined
@@ -82,9 +78,9 @@ export abstract class BaseCheckoutAPI extends API {
     return this.dispatchEvent(event);
   }
 
-  protected addErrorMessage(message: string, context = "sdk"): void {
-    this.mutateJson((json) => {
-      json.messages.push({ context, message, level: "error" });
+  protected addErrorMessage(message: string, context = 'sdk'): void {
+    this.mutateJson(json => {
+      json.messages.push({ context, message, level: 'error' });
     });
   }
 }

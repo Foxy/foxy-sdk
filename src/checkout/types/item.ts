@@ -26,7 +26,7 @@ export type Item = {
   /** Length dimension. */
   length: number | null;
   /** Unit of measurement for length. */
-  length_unit: "inch" | "centimeter";
+  length_unit: 'inch' | 'centimeter';
   /** Width dimension. */
   width: number | null;
   /** Height dimension. */
@@ -34,7 +34,7 @@ export type Item = {
   /** Weight of the item. */
   weight: number | null;
   /** Unit of measurement for weight. */
-  weight_unit: "pound" | "kilogram";
+  weight_unit: 'pound' | 'kilogram';
   /** Quantity in the cart. */
   quantity: number;
   /** Minimum quantity allowed. If this value is non-zero and parent code is present, then the quantity of this item is locked to its parent. */
@@ -54,7 +54,7 @@ export type Item = {
   /** Category code for this item. */
   item_category_code: string;
   /** How the item will be delivered. */
-  item_delivery_type: "shipped" | "downloaded" | "flat_rate" | "pickup" | "notshipped";
+  item_delivery_type: 'shipped' | 'downloaded' | 'flat_rate' | 'pickup' | 'notshipped';
   /** Delivery type code. */
   delivery_type: string;
   /** Identifier for downloadable product. */
@@ -62,7 +62,8 @@ export type Item = {
   /** URL to download the product (only available after purchase). */
   downloadable_url: string | null;
   /** Subscription frequency in format like '1m', '1y', or '.5m'. */
-  subscription_frequency: `${number}${"y" | "m" | "w" | "d"}` | ".5m" | null;
+  /** Subscription frequency in format like '1m', '1y', '2w', '10d', or '.5m'. */
+  subscription_frequency: string | null;
   /** Subscription start date in YYYY-MM-DD format. */
   subscription_start_date: string | null;
   /** Next transaction date for subscription in YYYY-MM-DD format. */

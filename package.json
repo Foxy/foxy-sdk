@@ -8,22 +8,27 @@
   "types": "dist/types/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/types/index.d.ts",
       "import": "./dist/esm/index.js",
       "require": "./dist/cjs/index.js"
     },
     "./checkout": {
+      "types": "./dist/types/checkout/index.d.ts",
       "import": "./dist/esm/checkout/index.js",
       "require": "./dist/cjs/checkout/index.js"
     },
     "./core": {
+      "types": "./dist/types/core/index.d.ts",
       "import": "./dist/esm/core/index.js",
       "require": "./dist/cjs/core/index.js"
     },
     "./customer": {
+      "types": "./dist/types/customer/index.d.ts",
       "import": "./dist/esm/customer/index.js",
       "require": "./dist/cjs/customer/index.js"
     },
     "./backend": {
+      "types": "./dist/types/backend/index.d.ts",
       "import": "./dist/esm/backend/index.js",
       "require": "./dist/cjs/backend/index.js"
     }

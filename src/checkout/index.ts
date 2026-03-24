@@ -36,11 +36,11 @@ export type {
   AchHostedFieldsTokenizeErrorCode,
   CardValidationField,
   CardEmbedTokenizeErrorCode,
-} from "./types";
+} from './types';
 
-export { API } from "./api";
-export { MockCheckoutAPI } from "./implementations/mock-api";
-export { HttpCheckoutAPI } from "./implementations/http-api";
+export { API } from './api';
+export { MockCheckoutAPI } from './implementations/mock-api';
+export { HttpCheckoutAPI } from './implementations/http-api';
 export {
   ACH_FIELD_ELEMENT_TAG,
   AchFieldElement,
@@ -48,7 +48,7 @@ export {
   CardEmbedElement,
   defineAchFieldElement,
   defineCardEmbedElement,
-} from "./elements";
+} from './elements';
 
 export type {
   AchFieldElementConfig,
@@ -64,4 +64,4 @@ export type {
   CardEmbedResizeEventDetail,
   CardEmbedTokenizeSuccessEventDetail,
   CardEmbedTokenizeErrorEventDetail,
-} from "./elements";
+} from './elements';
