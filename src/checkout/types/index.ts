@@ -14,7 +14,7 @@ export type {
   AchPaymentMethod,
   CardPaymentMethod,
   PurchaseOrderPaymentMethod,
-  StripeV2PaymentMethod,
+  StripeConnectPaymentMethod,
   PaymentMethod,
 } from './payment-method';
 export type { APIJson } from './api-json';
@@ -26,9 +26,9 @@ export type {
   AchAccountTypeValue,
   AchPaymentOption,
   CardEmbedMode,
-  StripeV2Config,
-  StripeV2Mode,
-  StripeV2PaymentOption,
+  StripeConnectConfig,
+  StripeConnectMode,
+  StripeConnectPaymentOption,
   PaymentOption,
 } from './payment-option';
 export type {
