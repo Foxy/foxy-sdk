@@ -11,6 +11,10 @@
       "import": "./dist/esm/index.js",
       "require": "./dist/cjs/index.js"
     },
+    "./checkout": {
+      "import": "./dist/esm/checkout/index.js",
+      "require": "./dist/cjs/checkout/index.js"
+    },
     "./core": {
       "import": "./dist/esm/core/index.js",
       "require": "./dist/cjs/core/index.js"
@@ -26,6 +30,7 @@
   },
   "files": [
     "dist",
+    "checkout.d.ts",
     "core.d.ts",
     "customer.d.ts",
     "backend.d.ts"
