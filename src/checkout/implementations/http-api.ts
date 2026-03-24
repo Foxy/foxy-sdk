@@ -1,19 +1,14 @@
-import type { APIJson, CustomFields } from "../types";
+import type { APIJson, CustomFields } from '../types';
 
-import { BaseCheckoutAPI, toMutable } from "./base-api";
-import {
-  isNonNegativeInteger,
-  isPositiveInteger,
-  isValidEmail,
-  validateCustomFields,
-} from "./validation";
+import { BaseCheckoutAPI, toMutable } from './base-api';
+import { isNonNegativeInteger, isPositiveInteger, isValidEmail, validateCustomFields } from './validation';
 
 type FetchLike = typeof fetch;
 
 type HttpCheckoutAPIOptions = {
   baseUrl?: string;
   fetch?: FetchLike;
-  initialState?: "idle" | "busy";
+  initialState?: 'idle' | 'busy';
   onError?: (error: Error) => void;
 };
 
@@ -27,7 +22,7 @@ function toFormData(input: Record<string, unknown>): URLSearchParams {
       continue;
     }
 
-    if (typeof value === "object") {
+    if (typeof value === 'object') {
       form.set(key, JSON.stringify(value));
       continue;
     }
@@ -58,8 +53,8 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
   readonly #onError?: (error: Error) => void;
 
   constructor(initialJson: APIJson, options: HttpCheckoutAPIOptions = {}) {
-    super(initialJson, options.initialState ?? "idle");
-    this.#baseUrl = options.baseUrl ?? "";
+    super(initialJson, options.initialState ?? 'idle');
+    this.#baseUrl = options.baseUrl ?? '';
     this.#fetch = options.fetch ?? fetch;
     this.#onError = options.onError;
   }
@@ -69,21 +64,18 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
 
     for (const [index, param] of params.entries()) {
       if (!isPositiveInteger(param.id) || !isNonNegativeInteger(param.quantity)) {
-        this.addErrorMessage(
-          "Each item update requires a positive id and non-negative quantity.",
-          "item-update",
-        );
+        this.addErrorMessage('Each item update requires a positive id and non-negative quantity.', 'item-update');
         return;
       }
 
-      const item = this.json.items.find((candidate) => candidate.id === param.id);
+      const item = this.json.items.find(candidate => candidate.id === param.id);
       if (!item) {
-        this.addErrorMessage(`Item ${param.id} was not found.`, "item-update");
+        this.addErrorMessage(`Item ${param.id} was not found.`, 'item-update');
         return;
       }
 
       if (
-        !this.dispatchCancelable("item-update", {
+        !this.dispatchCancelable('item-update', {
           oldItem: toMutable(item),
           newItem: toMutable({ ...item, quantity: param.quantity }),
         })
@@ -97,7 +89,7 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
     }
 
     void this.runMutation(async () => {
-      const nextJson = await this.postJson("/cart", payload);
+      const nextJson = await this.postJson('/cart', payload);
       this.replaceJson(nextJson);
     });
   };
@@ -107,17 +99,17 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
 
     for (const [index, param] of params.entries()) {
       if (!isPositiveInteger(param.id)) {
-        this.addErrorMessage("Each remove call requires a positive item id.", "item-remove");
+        this.addErrorMessage('Each remove call requires a positive item id.', 'item-remove');
         return;
       }
 
-      const item = this.json.items.find((candidate) => candidate.id === param.id);
+      const item = this.json.items.find(candidate => candidate.id === param.id);
       if (!item) {
-        this.addErrorMessage(`Item ${param.id} was not found.`, "item-remove");
+        this.addErrorMessage(`Item ${param.id} was not found.`, 'item-remove');
         return;
       }
 
-      if (!this.dispatchCancelable("item-remove", { item: toMutable(item) })) {
+      if (!this.dispatchCancelable('item-remove', { item: toMutable(item) })) {
         return;
       }
 
@@ -127,18 +119,18 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
     }
 
     void this.runMutation(async () => {
-      const nextJson = await this.postJson("/cart", payload);
+      const nextJson = await this.postJson('/cart', payload);
       this.replaceJson(nextJson);
     });
   };
 
   clearCart = (reset?: boolean): void => {
-    if (!this.dispatchCancelable("cart-clear")) {
+    if (!this.dispatchCancelable('cart-clear')) {
       return;
     }
 
     void this.runMutation(async () => {
-      const nextJson = await this.postJson("/cart", { empty: reset ? "reset" : "true" });
+      const nextJson = await this.postJson('/cart', { empty: reset ? 'reset' : 'true' });
       this.replaceJson(nextJson);
     });
   };
@@ -147,16 +139,16 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
     const code = params.code.trim();
 
     if (!code) {
-      this.addErrorMessage("Coupon or gift card code is required.", "coupon-or-gift-card-apply");
+      this.addErrorMessage('Coupon or gift card code is required.', 'coupon-or-gift-card-apply');
       return;
     }
 
-    if (!this.dispatchCancelable("coupon-or-gift-card-apply", { code })) {
+    if (!this.dispatchCancelable('coupon-or-gift-card-apply', { code })) {
       return;
     }
 
     void this.runMutation(async () => {
-      const nextJson = await this.postJson("/cart", {
+      const nextJson = await this.postJson('/cart', {
         coupon: code,
         gift_card: code,
       });
@@ -166,25 +158,23 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
 
   removeCouponCode = (params: { couponId: number }): void => {
     if (!isPositiveInteger(params.couponId)) {
-      this.addErrorMessage("Coupon id must be a positive integer.", "coupon-remove");
+      this.addErrorMessage('Coupon id must be a positive integer.', 'coupon-remove');
       return;
     }
 
-    const coupon = this.json.totals[0]?.coupons.find(
-      (candidate) => candidate.id === params.couponId,
-    );
+    const coupon = this.json.totals[0]?.coupons.find(candidate => candidate.id === params.couponId);
     if (!coupon) {
-      this.addErrorMessage(`Coupon ${params.couponId} was not found.`, "coupon-remove");
+      this.addErrorMessage(`Coupon ${params.couponId} was not found.`, 'coupon-remove');
       return;
     }
 
-    if (!this.dispatchCancelable("coupon-remove", { coupon })) {
+    if (!this.dispatchCancelable('coupon-remove', { coupon })) {
       return;
     }
 
     void this.runMutation(async () => {
-      const nextJson = await this.postJson("/cart", {
-        action: "remove_coupon",
+      const nextJson = await this.postJson('/cart', {
+        action: 'remove_coupon',
         coupon_id: params.couponId,
       });
       this.replaceJson(nextJson);
@@ -193,37 +183,35 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
 
   removeGiftCardCode = (params: { giftCardId: number }): void => {
     if (!isPositiveInteger(params.giftCardId)) {
-      this.addErrorMessage("Gift card id must be a positive integer.", "gift-card-remove");
+      this.addErrorMessage('Gift card id must be a positive integer.', 'gift-card-remove');
       return;
     }
 
-    const giftCard = this.json.totals[0]?.gift_cards.find(
-      (candidate) => candidate.id === params.giftCardId,
-    );
+    const giftCard = this.json.totals[0]?.gift_cards.find(candidate => candidate.id === params.giftCardId);
     if (!giftCard) {
-      this.addErrorMessage(`Gift card ${params.giftCardId} was not found.`, "gift-card-remove");
+      this.addErrorMessage(`Gift card ${params.giftCardId} was not found.`, 'gift-card-remove');
       return;
     }
 
-    if (!this.dispatchCancelable("gift-card-remove", { giftCard })) {
+    if (!this.dispatchCancelable('gift-card-remove', { giftCard })) {
       return;
     }
 
     void this.runMutation(async () => {
-      const nextJson = await this.postJson("/cart", {
-        action: "remove_gift_card",
+      const nextJson = await this.postJson('/cart', {
+        action: 'remove_gift_card',
         gift_card_id: params.giftCardId,
       });
       this.replaceJson(nextJson);
     });
   };
 
-  addMessage(params: APIJson["messages"][number]): number {
-    if (!this.dispatchCancelable("messages-add", { message: params })) {
+  addMessage(params: APIJson['messages'][number]): number {
+    if (!this.dispatchCancelable('messages-add', { message: params })) {
       return -1;
     }
 
-    this.mutateJson((json) => {
+    this.mutateJson(json => {
       json.messages.push(params);
     });
 
@@ -232,49 +220,49 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
 
   removeMessage(index: number): void {
     if (!isNonNegativeInteger(index)) {
-      this.addErrorMessage("Message index must be a non-negative integer.", "messages-remove");
+      this.addErrorMessage('Message index must be a non-negative integer.', 'messages-remove');
       return;
     }
 
     const message = this.json.messages[index];
     if (!message) {
-      this.addErrorMessage(`Message index ${index} is out of bounds.`, "messages-remove");
+      this.addErrorMessage(`Message index ${index} is out of bounds.`, 'messages-remove');
       return;
     }
 
-    if (!this.dispatchCancelable("messages-remove", { message })) {
+    if (!this.dispatchCancelable('messages-remove', { message })) {
       return;
     }
 
-    this.mutateJson((json) => {
+    this.mutateJson(json => {
       json.messages.splice(index, 1);
     });
   }
 
   clearMessages(): void {
-    if (!this.dispatchCancelable("messages-clear")) {
+    if (!this.dispatchCancelable('messages-clear')) {
       return;
     }
 
-    this.mutateJson((json) => {
+    this.mutateJson(json => {
       json.messages = [];
     });
   }
 
-  setEmail(email: string, mode?: "guest" | "registered"): void {
+  setEmail(email: string, mode?: 'guest' | 'registered'): void {
     const normalizedEmail = email.trim();
 
     if (!isValidEmail(normalizedEmail)) {
-      this.addErrorMessage("A valid email is required.", "email-update");
+      this.addErrorMessage('A valid email is required.', 'email-update');
       return;
     }
 
-    if (!this.dispatchCancelable("email-update", { email: normalizedEmail })) {
+    if (!this.dispatchCancelable('email-update', { email: normalizedEmail })) {
       return;
     }
 
     void this.runMutation(async () => {
-      const nextJson = await this.postJson("/checkout", {
+      const nextJson = await this.postJson('/checkout', {
         customer_email: normalizedEmail,
         customer_type: mode,
       });
@@ -283,23 +271,20 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
   }
 
   requestTemporaryPassword(email?: string): void {
-    const emailToUse = (email ?? this.json.customer.email ?? "").trim();
+    const emailToUse = (email ?? this.json.customer.email ?? '').trim();
 
     if (!isValidEmail(emailToUse)) {
-      this.addErrorMessage(
-        "A valid email is required for temporary password request.",
-        "temporary-password-request",
-      );
+      this.addErrorMessage('A valid email is required for temporary password request.', 'temporary-password-request');
       return;
     }
 
-    if (!this.dispatchCancelable("temporary-password-request", { email: emailToUse })) {
+    if (!this.dispatchCancelable('temporary-password-request', { email: emailToUse })) {
       return;
     }
 
     void this.runMutation(async () => {
-      const nextJson = await this.postJson("/checkout", {
-        action: "request_temporary_password",
+      const nextJson = await this.postJson('/checkout', {
+        action: 'request_temporary_password',
         customer_email: emailToUse,
       });
       this.replaceJson(nextJson);
@@ -311,21 +296,21 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
     const password = params.password;
 
     if (!isValidEmail(email)) {
-      this.addErrorMessage("A valid sign-in email is required.", "sign-in");
+      this.addErrorMessage('A valid sign-in email is required.', 'sign-in');
       return;
     }
 
     if (!password.trim()) {
-      this.addErrorMessage("Password is required.", "sign-in");
+      this.addErrorMessage('Password is required.', 'sign-in');
       return;
     }
 
-    if (!this.dispatchCancelable("sign-in", { email, password })) {
+    if (!this.dispatchCancelable('sign-in', { email, password })) {
       return;
     }
 
     void this.runMutation(async () => {
-      const nextJson = await this.postJson("/checkout", {
+      const nextJson = await this.postJson('/checkout', {
         customer_email: email,
         customer_password: password,
       });
@@ -334,13 +319,13 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
   };
 
   signOut(): void {
-    if (!this.dispatchCancelable("sign-out")) {
+    if (!this.dispatchCancelable('sign-out')) {
       return;
     }
 
     void this.runMutation(async () => {
-      const nextJson = await this.postJson("/checkout", {
-        customer_email: "",
+      const nextJson = await this.postJson('/checkout', {
+        customer_email: '',
       });
       this.replaceJson(nextJson);
     });
@@ -360,18 +345,18 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
       postal_code: string;
       country: string;
       shipping_service_id: number | null;
-    }>,
+    }>
   ): void => {
     const index = params.index ?? 0;
 
     if (!isNonNegativeInteger(index)) {
-      this.addErrorMessage("Shipment index must be a non-negative integer.", "shipment-update");
+      this.addErrorMessage('Shipment index must be a non-negative integer.', 'shipment-update');
       return;
     }
 
     const shipment = this.json.shipments[index];
     if (!shipment) {
-      this.addErrorMessage(`Shipment ${index} was not found.`, "shipment-update");
+      this.addErrorMessage(`Shipment ${index} was not found.`, 'shipment-update');
       return;
     }
 
@@ -390,23 +375,23 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
       shipping_service_id: params.shipping_service_id ?? shipment.shipping_service_id,
     };
 
-    if (!this.dispatchCancelable("shipment-update", nextShipment)) {
+    if (!this.dispatchCancelable('shipment-update', nextShipment)) {
       return;
     }
 
     const payload: Record<string, Stringifiable> = {};
 
     const map: Array<[keyof typeof params, string]> = [
-      ["first_name", `shipto_${index}_first_name`],
-      ["last_name", `shipto_${index}_last_name`],
-      ["company", `shipto_${index}_company`],
-      ["phone", `shipto_${index}_phone`],
-      ["address1", `shipto_${index}_address1`],
-      ["address2", `shipto_${index}_address2`],
-      ["city", `shipto_${index}_city`],
-      ["region", `shipto_${index}_region`],
-      ["postal_code", `shipto_${index}_postal_code`],
-      ["country", `shipto_${index}_country`],
+      ['first_name', `shipto_${index}_first_name`],
+      ['last_name', `shipto_${index}_last_name`],
+      ['company', `shipto_${index}_company`],
+      ['phone', `shipto_${index}_phone`],
+      ['address1', `shipto_${index}_address1`],
+      ['address2', `shipto_${index}_address2`],
+      ['city', `shipto_${index}_city`],
+      ['region', `shipto_${index}_region`],
+      ['postal_code', `shipto_${index}_postal_code`],
+      ['country', `shipto_${index}_country`],
     ];
 
     for (const [source, target] of map) {
@@ -417,12 +402,11 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
     }
 
     if (params.shipping_service_id !== undefined) {
-      payload[index === 0 ? "shipping_service_id" : `shipto_${index}_service_id`] =
-        params.shipping_service_id;
+      payload[index === 0 ? 'shipping_service_id' : `shipto_${index}_service_id`] = params.shipping_service_id;
     }
 
     void this.runMutation(async () => {
-      const nextJson = await this.postJson("/checkout", payload);
+      const nextJson = await this.postJson('/checkout', payload);
       this.replaceJson(nextJson);
     });
   };
@@ -439,14 +423,14 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
       region: string;
       postal_code: string;
       country: string;
-    }>,
+    }>
   ): void => {
     const nextAddress = {
       ...this.json.billing_address,
       ...params,
     };
 
-    if (!this.dispatchCancelable("billing-address-update", nextAddress)) {
+    if (!this.dispatchCancelable('billing-address-update', nextAddress)) {
       return;
     }
 
@@ -464,7 +448,7 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
     };
 
     void this.runMutation(async () => {
-      const nextJson = await this.postJson("/checkout", payload);
+      const nextJson = await this.postJson('/checkout', payload);
       this.replaceJson(nextJson);
     });
   };
@@ -473,22 +457,25 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
     const errors = validateCustomFields(fields);
     if (errors.length > 0) {
       for (const error of errors) {
-        this.addErrorMessage(error, "custom-fields-update");
+        this.addErrorMessage(error, 'custom-fields-update');
       }
       return;
     }
 
-    if (!this.dispatchCancelable("custom-fields-update", fields)) {
+    if (!this.dispatchCancelable('custom-fields-update', fields)) {
       return;
     }
 
     void this.runMutation(async () => {
-      const nextJson = await this.postJson("/checkout", fields);
+      const nextJson = await this.postJson('/checkout', fields);
       this.replaceJson(nextJson);
     });
   };
 
-  async getAddressSuggestions(params: { postalCode: string; country: string }): Promise<
+  async getAddressSuggestions(params: {
+    postalCode: string;
+    country: string;
+  }): Promise<
     Array<{
       country: string;
       region: string;
@@ -506,15 +493,15 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
     }
 
     const response = await this.#fetch(
-      this.resolveUrl("/helpers", {
-        action: "get_address_suggestions",
+      this.resolveUrl('/helpers', {
+        action: 'get_address_suggestions',
         country,
         postal_code: postalCode,
-      }),
+      })
     );
 
     if (!response.ok) {
-      throw this.createRequestError(response.status, "Failed to load address suggestions.");
+      throw this.createRequestError(response.status, 'Failed to load address suggestions.');
     }
 
     const json = (await response.json()) as unknown;
@@ -538,10 +525,10 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
       console.error(error);
     }
 
-    void this.#fetch(this.resolveUrl("/helpers", { action: "log_error" }), {
-      method: "POST",
+    void this.#fetch(this.resolveUrl('/helpers', { action: 'log_error' }), {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
       },
       body: toFormData({ error: error.message }),
     }).catch(() => {
@@ -550,50 +537,50 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
   }
 
   checkOut = (paymentMethod: unknown): void => {
-    if (!this.dispatchCancelable("checkout")) {
+    if (!this.dispatchCancelable('checkout')) {
       return;
     }
 
     const payload =
-      paymentMethod && typeof paymentMethod === "object"
-        ? ({ ...paymentMethod, action: "submit" } as Record<string, unknown>)
-        : { action: "submit", payment_method: paymentMethod };
+      paymentMethod && typeof paymentMethod === 'object'
+        ? ({ ...paymentMethod, action: 'submit' } as Record<string, unknown>)
+        : { action: 'submit', payment_method: paymentMethod };
 
     void this.runMutation(async () => {
-      const nextJson = await this.postJson("/checkout", payload);
+      const nextJson = await this.postJson('/checkout', payload);
       this.replaceJson(nextJson);
     });
   };
 
   private async runMutation(action: () => Promise<void>): Promise<void> {
-    this.setState("busy");
+    this.setState('busy');
 
     try {
       await action();
     } catch (error) {
       const normalized = error instanceof Error ? error : new Error(String(error));
-      this.addErrorMessage(normalized.message, "network");
+      this.addErrorMessage(normalized.message, 'network');
       this.#onError?.(normalized);
     } finally {
-      this.setState("idle");
+      this.setState('idle');
     }
   }
 
   private resolveUrl(path: string, query?: Record<string, Stringifiable>): string {
-    const base = this.#baseUrl.replace(/\/$/, "");
-    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-    const suffix = query ? `?${toQueryString(query)}` : "";
+    const base = this.#baseUrl.replace(/\/$/, '');
+    const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+    const suffix = query ? `?${toQueryString(query)}` : '';
 
     return `${base}${normalizedPath}${suffix}`;
   }
 
   private async postJson(path: string, body: Record<string, unknown>): Promise<APIJson> {
     const response = await this.#fetch(this.resolveUrl(path), {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
       },
-      body: toFormData({ ...body, output: "json" }),
+      body: toFormData({ ...body, output: 'json' }),
     });
 
     if (!response.ok) {

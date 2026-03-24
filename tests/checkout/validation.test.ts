@@ -1,4 +1,9 @@
-import { isNonNegativeInteger, isPositiveInteger, isValidEmail, validateCustomFields } from '../../src/checkout/implementations/validation';
+import {
+  isNonNegativeInteger,
+  isPositiveInteger,
+  isValidEmail,
+  validateCustomFields,
+} from '../../src/checkout/implementations/validation';
 
 describe('Checkout validation', () => {
   it('validates email addresses', () => {
@@ -15,7 +20,7 @@ describe('Checkout validation', () => {
 
   it('validates custom field keys and values', () => {
     expect(validateCustomFields({ 'h:test': 'value' })).toEqual([]);
-    expect(validateCustomFields({ test: 'value', 'h:count': 1 as unknown as string })).toEqual([
+    expect(validateCustomFields({ 'test': 'value', 'h:count': (1 as unknown) as string })).toEqual([
       'Invalid custom field key "test". Keys must start with "h:".',
       'Invalid value for custom field "h:count". Value must be a string.',
     ]);

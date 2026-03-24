@@ -1,34 +1,33 @@
-import type { CardEmbedMode } from "../types/payment-option";
-import type { CardEmbedTokenizeErrorCode, CardValidationField } from "../types/hosted-fields";
+import type { CardEmbedMode } from '../types/payment-option';
+import type { CardEmbedTokenizeErrorCode, CardValidationField } from '../types/hosted-fields';
 
-export const CARD_EMBED_ELEMENT_TAG = "foxy-payment-card-field";
+export const CARD_EMBED_ELEMENT_TAG = 'foxy-payment-card-field';
 
 const CARD_STYLE_ATTRIBUTE_NAMES = [
-  "card-input-height",
-  "card-input-padding",
-  "card-input-padding-x",
-  "card-input-padding-y",
-  "card-input-font",
-  "card-input-text-color",
-  "card-input-text-color-error",
-  "card-input-font-size",
+  'card-input-height',
+  'card-input-padding',
+  'card-input-padding-x',
+  'card-input-padding-y',
+  'card-input-font',
+  'card-input-text-color',
+  'card-input-text-color-error',
+  'card-input-font-size',
 ] as const;
 
-type CardStyleAttributeName = (typeof CARD_STYLE_ATTRIBUTE_NAMES)[number];
+type CardStyleAttributeName = typeof CARD_STYLE_ATTRIBUTE_NAMES[number];
 
 const STYLE_ATTR_TO_CSS_VAR: Record<CardStyleAttributeName, string> = {
-  "card-input-height": "--input-height",
-  "card-input-padding": "--input-padding",
-  "card-input-padding-x": "--input-padding-x",
-  "card-input-padding-y": "--input-padding-y",
-  "card-input-font": "--font-sans",
-  "card-input-text-color": "--input-text-color",
-  "card-input-text-color-error": "--input-error-text-color",
-  "card-input-font-size": "--input-font-size",
+  'card-input-height': '--input-height',
+  'card-input-padding': '--input-padding',
+  'card-input-padding-x': '--input-padding-x',
+  'card-input-padding-y': '--input-padding-y',
+  'card-input-font': '--font-sans',
+  'card-input-text-color': '--input-text-color',
+  'card-input-text-color-error': '--input-error-text-color',
+  'card-input-font-size': '--input-font-size',
 };
 
-const DEFAULT_CARD_SECURE_ORIGIN = "https://embed.foxy.io";
-
+const DEFAULT_CARD_SECURE_ORIGIN = 'https://embed.foxy.io';
 
 type TokenizeDeferred = {
   resolve: (value: { token: string; requestId?: string }) => void;
@@ -75,18 +74,15 @@ export type CardEmbedTokenizeErrorEventDetail = {
 
 function normalizeUrl(secureOrigin: string, embedPath: string): URL | null {
   try {
-    const origin = secureOrigin.replace(/\/$/, "");
-    const path = embedPath.startsWith("/") ? embedPath : `/${embedPath}`;
+    const origin = secureOrigin.replace(/\/$/, '');
+    const path = embedPath.startsWith('/') ? embedPath : `/${embedPath}`;
     return new URL(`${origin}${path}`);
   } catch {
     return null;
   }
 }
 
-function areStringMapsEqual(
-  left?: Record<string, string>,
-  right?: Record<string, string>,
-): boolean {
+function areStringMapsEqual(left?: Record<string, string>, right?: Record<string, string>): boolean {
   const leftKeys = Object.keys(left ?? {}).sort();
   const rightKeys = Object.keys(right ?? {}).sort();
 
@@ -99,28 +95,28 @@ function areConfigsEqual(left: CardEmbedElementConfig, right: CardEmbedElementCo
   return (
     left.secureOrigin === right.secureOrigin &&
     left.embedPath === right.embedPath &&
-    (left.merchantOrigin ?? "") === (right.merchantOrigin ?? "") &&
+    (left.merchantOrigin ?? '') === (right.merchantOrigin ?? '') &&
     left.templateSetId === right.templateSetId &&
     left.mode === right.mode &&
-    (left.paymentToken ?? "") === (right.paymentToken ?? "") &&
-    (left.demoMode ?? "") === (right.demoMode ?? "") &&
+    (left.paymentToken ?? '') === (right.paymentToken ?? '') &&
+    (left.demoMode ?? '') === (right.demoMode ?? '') &&
     areStringMapsEqual(left.style, right.style) &&
     areStringMapsEqual(left.translations, right.translations)
   );
 }
 
 function isValidationField(value: unknown): value is CardValidationField {
-  return value === "cc-number" || value === "cc-exp" || value === "cc-csc" || value === "form";
+  return value === 'cc-number' || value === 'cc-exp' || value === 'cc-csc' || value === 'form';
 }
 
 function toErrorMessage(code: CardEmbedTokenizeErrorCode): string {
   switch (code) {
-    case "invalid_state":
-      return "Secure card fields are not ready yet.";
-    case "invalid_config":
-      return "Secure card embed configuration is incomplete.";
-    case "tokenization_failed":
-      return "Unable to tokenize card details.";
+    case 'invalid_state':
+      return 'Secure card fields are not ready yet.';
+    case 'invalid_config':
+      return 'Secure card embed configuration is incomplete.';
+    case 'tokenization_failed':
+      return 'Unable to tokenize card details.';
   }
 }
 
@@ -131,8 +127,8 @@ export class CardEmbedElement extends HTMLElement {
 
   private _config: CardEmbedElementConfig = {
     secureOrigin: DEFAULT_CARD_SECURE_ORIGIN,
-    embedPath: "/v2.html",
-    mode: "full",
+    embedPath: '/v2.html',
+    mode: 'full',
   };
 
   private _disabled = false;
@@ -145,7 +141,7 @@ export class CardEmbedElement extends HTMLElement {
 
   constructor() {
     super();
-    this.attachShadow({ mode: "open" });
+    this.attachShadow({ mode: 'open' });
   }
 
   get config(): CardEmbedElementConfig {
@@ -206,7 +202,7 @@ export class CardEmbedElement extends HTMLElement {
   }
 
   clear(): void {
-    this._postPort({ type: "clear" });
+    this._postPort({ type: 'clear' });
   }
 
   setDisabled(disabled: boolean): void {
@@ -225,21 +221,20 @@ export class CardEmbedElement extends HTMLElement {
     }
 
     if (!this._port || !this._ready) {
-      const error = this._emitTokenizeError("invalid_state", requestId);
+      const error = this._emitTokenizeError('invalid_state', requestId);
       return Promise.reject(error);
     }
 
-    const normalizedRequestId =
-      requestId ?? `card-tokenize-${++this._fallbackRequestCounter}-${Date.now()}`;
+    const normalizedRequestId = requestId ?? `card-tokenize-${++this._fallbackRequestCounter}-${Date.now()}`;
 
     return new Promise((resolve, reject) => {
       const timeoutId = window.setTimeout(() => {
         this._pendingTokenizes.delete(normalizedRequestId);
-        reject(this._emitTokenizeError("tokenization_failed", normalizedRequestId));
+        reject(this._emitTokenizeError('tokenization_failed', normalizedRequestId));
       }, 30000);
 
       this._pendingTokenizes.set(normalizedRequestId, { resolve, reject, timeoutId });
-      this._postPort({ type: "tokenization_request", id: normalizedRequestId });
+      this._postPort({ type: 'tokenization_request', id: normalizedRequestId });
     });
   }
 
@@ -274,17 +269,16 @@ export class CardEmbedElement extends HTMLElement {
       this._port = null;
     }
 
-    const iframe = document.createElement("iframe");
-    iframe.setAttribute("part", "iframe");
-    iframe.setAttribute("scrolling", "no");
-    iframe.title =
-      this._config.mode === "csc-only" ? "Secure card security code" : "Secure card details";
-    iframe.style.display = "block";
-    iframe.style.width = "100%";
-    iframe.style.height = "52px";
-    iframe.style.border = "0";
-    iframe.style.background = "transparent";
-    iframe.style.overflow = "hidden";
+    const iframe = document.createElement('iframe');
+    iframe.setAttribute('part', 'iframe');
+    iframe.setAttribute('scrolling', 'no');
+    iframe.title = this._config.mode === 'csc-only' ? 'Secure card security code' : 'Secure card details';
+    iframe.style.display = 'block';
+    iframe.style.width = '100%';
+    iframe.style.height = '52px';
+    iframe.style.border = '0';
+    iframe.style.background = 'transparent';
+    iframe.style.overflow = 'hidden';
 
     const iframeUrl = this._buildIframeUrl(this._config);
     if (iframeUrl) {
@@ -293,10 +287,10 @@ export class CardEmbedElement extends HTMLElement {
       iframe.setAttribute('srcdoc', '<!doctype html><html><body></body></html>');
     }
 
-    iframe.addEventListener("load", () => this._connectPort(iframe));
+    iframe.addEventListener('load', () => this._connectPort(iframe));
 
-    const hostStyle = document.createElement("style");
-    hostStyle.textContent = ":host { display: block; }";
+    const hostStyle = document.createElement('style');
+    hostStyle.textContent = ':host { display: block; }';
     while (shadowRoot.firstChild) shadowRoot.removeChild(shadowRoot.firstChild);
     shadowRoot.appendChild(hostStyle);
     shadowRoot.appendChild(iframe);
@@ -308,9 +302,9 @@ export class CardEmbedElement extends HTMLElement {
     if (!url) return null;
 
     if (config.demoMode) {
-      url.searchParams.set("demo", config.demoMode);
-    } else if (typeof config.templateSetId === "number" && config.templateSetId > 0) {
-      url.searchParams.set("template_set_id", String(config.templateSetId));
+      url.searchParams.set('demo', config.demoMode);
+    } else if (typeof config.templateSetId === 'number' && config.templateSetId > 0) {
+      url.searchParams.set('template_set_id', String(config.templateSetId));
     }
 
     return url.toString();
@@ -328,16 +322,16 @@ export class CardEmbedElement extends HTMLElement {
     }
 
     const channel = new MessageChannel();
-    channel.port1.onmessage = (event) => this._handlePortMessage(event);
+    channel.port1.onmessage = event => this._handlePortMessage(event);
     channel.port1.start();
 
-    contentWindow.postMessage("connect", url.origin, [channel.port2]);
+    contentWindow.postMessage('connect', url.origin, [channel.port2]);
     this._port = channel.port1;
     this._sendConfig();
   }
 
   private _handlePortMessage(event: MessageEvent<string>): void {
-    if (typeof event.data !== "string") return;
+    if (typeof event.data !== 'string') return;
 
     let data: unknown;
 
@@ -347,45 +341,45 @@ export class CardEmbedElement extends HTMLElement {
       return;
     }
 
-    if (!data || typeof data !== "object") return;
+    if (!data || typeof data !== 'object') return;
 
     const payload = data as Record<string, unknown>;
-    const type = payload["type"];
-    if (type === "ready") {
+    const type = payload['type'];
+    if (type === 'ready') {
       this._ready = true;
-      this._dispatch("card-ready", { mode: this._config.mode });
+      this._dispatch('card-ready', { mode: this._config.mode });
       return;
     }
 
-    if (type === "resize") {
-      const height = payload["height"];
-      if (typeof height !== "string") return;
+    if (type === 'resize') {
+      const height = payload['height'];
+      if (typeof height !== 'string') return;
 
       if (this._iframe) {
         this._iframe.style.height = height;
       }
 
-      this._dispatch("card-resize", { height });
+      this._dispatch('card-resize', { height });
       return;
     }
 
-    if (type === "validation") {
-      const field = payload["field"];
-      const valid = payload["valid"];
-      const message = payload["message"];
+    if (type === 'validation') {
+      const field = payload['field'];
+      const valid = payload['valid'];
+      const message = payload['message'];
 
-      if (!isValidationField(field) || typeof valid !== "boolean") return;
-      if (!(typeof message === "string" || message === null)) return;
+      if (!isValidationField(field) || typeof valid !== 'boolean') return;
+      if (!(typeof message === 'string' || message === null)) return;
 
-      this._dispatch("card-validation", { field, valid, message });
+      this._dispatch('card-validation', { field, valid, message });
       return;
     }
 
-    if (type === "tokenization_response") {
-      const requestId = payload["id"];
-      const token = payload["token"];
+    if (type === 'tokenization_response') {
+      const requestId = payload['id'];
+      const token = payload['token'];
 
-      if (typeof requestId !== "string") return;
+      if (typeof requestId !== 'string') return;
 
       const pending = this._pendingTokenizes.get(requestId);
       if (!pending) return;
@@ -393,11 +387,11 @@ export class CardEmbedElement extends HTMLElement {
       this._pendingTokenizes.delete(requestId);
       window.clearTimeout(pending.timeoutId);
 
-      if (typeof token === "string" && token) {
-        this._dispatch("card-tokenize-success", { token, requestId });
+      if (typeof token === 'string' && token) {
+        this._dispatch('card-tokenize-success', { token, requestId });
         pending.resolve({ token, requestId });
       } else {
-        const error = this._emitTokenizeError("tokenization_failed", requestId);
+        const error = this._emitTokenizeError('tokenization_failed', requestId);
         pending.reject(error);
       }
     }
@@ -405,15 +399,14 @@ export class CardEmbedElement extends HTMLElement {
 
   private _getInvalidConfigCode(): CardEmbedTokenizeErrorCode | null {
     const hasDemoMode = Boolean(this._config.demoMode);
-    const hasTemplateSetId =
-      typeof this._config.templateSetId === "number" && this._config.templateSetId > 0;
+    const hasTemplateSetId = typeof this._config.templateSetId === 'number' && this._config.templateSetId > 0;
 
     if (!hasDemoMode && !hasTemplateSetId) {
-      return "invalid_config";
+      return 'invalid_config';
     }
 
-    if (this._config.mode === "csc-only" && !hasDemoMode && !this._config.paymentToken) {
-      return "invalid_config";
+    if (this._config.mode === 'csc-only' && !hasDemoMode && !this._config.paymentToken) {
+      return 'invalid_config';
     }
 
     return null;
@@ -422,7 +415,7 @@ export class CardEmbedElement extends HTMLElement {
   private _sendConfig(): void {
     const mergedStyle = { ...(this._config.style ?? {}), ...this._getStyleAttributes() };
     this._postPort({
-      type: "config",
+      type: 'config',
       disabled: this._disabled,
       readonly: this._readonly,
       mode: this._config.mode,
@@ -449,19 +442,21 @@ export class CardEmbedElement extends HTMLElement {
   private _emitTokenizeError(
     code: CardEmbedTokenizeErrorCode,
     requestId?: string,
-    message = toErrorMessage(code),
+    message = toErrorMessage(code)
   ): Error {
-    this._dispatch("card-tokenize-error", { code, message, requestId });
+    this._dispatch('card-tokenize-error', { code, message, requestId });
     return new Error(message);
   }
 
   private _dispatch<T>(type: string, detail: T): void {
-    this.dispatchEvent(new CustomEvent<T>(type, { detail, bubbles: true, composed: true }));
+    this.dispatchEvent(
+      new CustomEvent<T>(type, { detail, bubbles: true, composed: true })
+    );
   }
 }
 
 export function defineCardEmbedElement(): void {
-  if (typeof window === "undefined") return;
+  if (typeof window === 'undefined') return;
   if (customElements.get(CARD_EMBED_ELEMENT_TAG)) return;
   customElements.define(CARD_EMBED_ELEMENT_TAG, CardEmbedElement);
 }

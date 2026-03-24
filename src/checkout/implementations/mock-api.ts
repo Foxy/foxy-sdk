@@ -1,12 +1,7 @@
-import type { APIJson, CustomFields, GiftCard, Shipment } from "../types";
+import type { APIJson, CustomFields, GiftCard, Shipment } from '../types';
 
-import { BaseCheckoutAPI, toMutable } from "./base-api";
-import {
-  isNonNegativeInteger,
-  isPositiveInteger,
-  isValidEmail,
-  validateCustomFields,
-} from "./validation";
+import { BaseCheckoutAPI, toMutable } from './base-api';
+import { isNonNegativeInteger, isPositiveInteger, isValidEmail, validateCustomFields } from './validation';
 
 function normalizeCode(code: string): string {
   return code.trim();
@@ -22,29 +17,29 @@ export class MockCheckoutAPI extends BaseCheckoutAPI {
   }
 
   updateItemQuantity = (...params: { id: number; quantity: number }[]): void => {
-    this.setState("busy");
+    this.setState('busy');
 
     try {
       for (const param of params) {
         if (!isPositiveInteger(param.id)) {
-          this.addErrorMessage("Item id must be a positive integer.", "item-update");
+          this.addErrorMessage('Item id must be a positive integer.', 'item-update');
           continue;
         }
 
         if (!isNonNegativeInteger(param.quantity)) {
-          this.addErrorMessage("Item quantity must be a non-negative integer.", "item-update");
+          this.addErrorMessage('Item quantity must be a non-negative integer.', 'item-update');
           continue;
         }
 
-        const item = this.json.items.find((candidate) => candidate.id === param.id);
+        const item = this.json.items.find(candidate => candidate.id === param.id);
 
         if (!item) {
-          this.addErrorMessage(`Item ${param.id} was not found.`, "item-update");
+          this.addErrorMessage(`Item ${param.id} was not found.`, 'item-update');
           continue;
         }
 
         const nextItem = { ...item, quantity: param.quantity };
-        const canProceed = this.dispatchCancelable("item-update", {
+        const canProceed = this.dispatchCancelable('item-update', {
           oldItem: toMutable(item),
           newItem: toMutable(nextItem),
         });
@@ -53,58 +48,56 @@ export class MockCheckoutAPI extends BaseCheckoutAPI {
           continue;
         }
 
-        this.mutateJson((json) => {
+        this.mutateJson(json => {
           json.items = json.items
-            .map((candidate) =>
-              candidate.id === param.id ? { ...candidate, quantity: param.quantity } : candidate,
-            )
-            .filter((candidate) => candidate.quantity > 0);
+            .map(candidate => (candidate.id === param.id ? { ...candidate, quantity: param.quantity } : candidate))
+            .filter(candidate => candidate.quantity > 0);
         });
       }
     } finally {
-      this.setState("idle");
+      this.setState('idle');
     }
   };
 
   removeItem = (...params: { id: number }[]): void => {
-    this.setState("busy");
+    this.setState('busy');
 
     try {
       for (const param of params) {
         if (!isPositiveInteger(param.id)) {
-          this.addErrorMessage("Item id must be a positive integer.", "item-remove");
+          this.addErrorMessage('Item id must be a positive integer.', 'item-remove');
           continue;
         }
 
-        const item = this.json.items.find((candidate) => candidate.id === param.id);
+        const item = this.json.items.find(candidate => candidate.id === param.id);
 
         if (!item) {
-          this.addErrorMessage(`Item ${param.id} was not found.`, "item-remove");
+          this.addErrorMessage(`Item ${param.id} was not found.`, 'item-remove');
           continue;
         }
 
-        if (!this.dispatchCancelable("item-remove", { item: toMutable(item) })) {
+        if (!this.dispatchCancelable('item-remove', { item: toMutable(item) })) {
           continue;
         }
 
-        this.mutateJson((json) => {
-          json.items = json.items.filter((candidate) => candidate.id !== param.id);
+        this.mutateJson(json => {
+          json.items = json.items.filter(candidate => candidate.id !== param.id);
         });
       }
     } finally {
-      this.setState("idle");
+      this.setState('idle');
     }
   };
 
   clearCart = (reset?: boolean): void => {
-    if (!this.dispatchCancelable("cart-clear")) {
+    if (!this.dispatchCancelable('cart-clear')) {
       return;
     }
 
-    this.setState("busy");
+    this.setState('busy');
 
     try {
-      this.mutateJson((json) => {
+      this.mutateJson(json => {
         json.items = [];
 
         if (reset) {
@@ -121,7 +114,7 @@ export class MockCheckoutAPI extends BaseCheckoutAPI {
         }
       });
     } finally {
-      this.setState("idle");
+      this.setState('idle');
     }
   };
 
@@ -129,23 +122,23 @@ export class MockCheckoutAPI extends BaseCheckoutAPI {
     const code = normalizeCode(params.code);
 
     if (!code) {
-      this.addErrorMessage("Coupon or gift card code is required.", "coupon-or-gift-card-apply");
+      this.addErrorMessage('Coupon or gift card code is required.', 'coupon-or-gift-card-apply');
       return;
     }
 
-    if (!this.dispatchCancelable("coupon-or-gift-card-apply", { code })) {
+    if (!this.dispatchCancelable('coupon-or-gift-card-apply', { code })) {
       return;
     }
 
-    this.setState("busy");
+    this.setState('busy');
 
     try {
-      this.mutateJson((json) => {
+      this.mutateJson(json => {
         const totals = json.totals[0];
         if (!totals) return;
 
         const lowered = code.toLowerCase();
-        const isGiftCard = lowered.startsWith("gift") || lowered.startsWith("gc-");
+        const isGiftCard = lowered.startsWith('gift') || lowered.startsWith('gc-');
 
         if (isGiftCard) {
           const giftCard: GiftCard = {
@@ -175,84 +168,78 @@ export class MockCheckoutAPI extends BaseCheckoutAPI {
         totals.total_order = Math.max(0, totals.total_order - coupon.amount);
       });
     } finally {
-      this.setState("idle");
+      this.setState('idle');
     }
   };
 
   removeCouponCode = (params: { couponId: number }): void => {
     if (!isPositiveInteger(params.couponId)) {
-      this.addErrorMessage("Coupon id must be a positive integer.", "coupon-remove");
+      this.addErrorMessage('Coupon id must be a positive integer.', 'coupon-remove');
       return;
     }
 
-    const coupon = this.json.totals[0]?.coupons.find(
-      (candidate) => candidate.id === params.couponId,
-    );
+    const coupon = this.json.totals[0]?.coupons.find(candidate => candidate.id === params.couponId);
     if (!coupon) {
-      this.addErrorMessage(`Coupon ${params.couponId} was not found.`, "coupon-remove");
+      this.addErrorMessage(`Coupon ${params.couponId} was not found.`, 'coupon-remove');
       return;
     }
 
-    if (!this.dispatchCancelable("coupon-remove", { coupon })) {
+    if (!this.dispatchCancelable('coupon-remove', { coupon })) {
       return;
     }
 
-    this.setState("busy");
+    this.setState('busy');
 
     try {
-      this.mutateJson((json) => {
+      this.mutateJson(json => {
         const totals = json.totals[0];
         if (!totals) return;
 
-        totals.coupons = totals.coupons.filter((candidate) => candidate.id !== params.couponId);
+        totals.coupons = totals.coupons.filter(candidate => candidate.id !== params.couponId);
         totals.total_order += coupon.amount;
       });
     } finally {
-      this.setState("idle");
+      this.setState('idle');
     }
   };
 
   removeGiftCardCode = (params: { giftCardId: number }): void => {
     if (!isPositiveInteger(params.giftCardId)) {
-      this.addErrorMessage("Gift card id must be a positive integer.", "gift-card-remove");
+      this.addErrorMessage('Gift card id must be a positive integer.', 'gift-card-remove');
       return;
     }
 
-    const giftCard = this.json.totals[0]?.gift_cards.find(
-      (candidate) => candidate.id === params.giftCardId,
-    );
+    const giftCard = this.json.totals[0]?.gift_cards.find(candidate => candidate.id === params.giftCardId);
     if (!giftCard) {
-      this.addErrorMessage(`Gift card ${params.giftCardId} was not found.`, "gift-card-remove");
+      this.addErrorMessage(`Gift card ${params.giftCardId} was not found.`, 'gift-card-remove');
       return;
     }
 
-    if (!this.dispatchCancelable("gift-card-remove", { giftCard })) {
+    if (!this.dispatchCancelable('gift-card-remove', { giftCard })) {
       return;
     }
 
-    this.setState("busy");
+    this.setState('busy');
 
     try {
-      this.mutateJson((json) => {
+      this.mutateJson(json => {
         const totals = json.totals[0];
         if (!totals) return;
 
-        totals.gift_cards = totals.gift_cards.filter(
-          (candidate) => candidate.id !== params.giftCardId,
-        );
+        totals.gift_cards = totals.gift_cards.filter(candidate => candidate.id !== params.giftCardId);
         totals.total_order += giftCard.amount;
       });
     } finally {
-      this.setState("idle");
+      this.setState('idle');
     }
   };
 
-  addMessage(params: APIJson["messages"][number]): number {
-    if (!this.dispatchCancelable("messages-add", { message: params })) {
+  addMessage(params: APIJson['messages'][number]): number {
+    if (!this.dispatchCancelable('messages-add', { message: params })) {
       return -1;
     }
 
-    this.mutateJson((json) => {
+    this.mutateJson(json => {
       json.messages.push(params);
     });
 
@@ -261,56 +248,56 @@ export class MockCheckoutAPI extends BaseCheckoutAPI {
 
   removeMessage(index: number): void {
     if (!isNonNegativeInteger(index)) {
-      this.addErrorMessage("Message index must be a non-negative integer.", "messages-remove");
+      this.addErrorMessage('Message index must be a non-negative integer.', 'messages-remove');
       return;
     }
 
     const message = this.json.messages[index];
     if (!message) {
-      this.addErrorMessage(`Message index ${index} is out of bounds.`, "messages-remove");
+      this.addErrorMessage(`Message index ${index} is out of bounds.`, 'messages-remove');
       return;
     }
 
-    if (!this.dispatchCancelable("messages-remove", { message })) {
+    if (!this.dispatchCancelable('messages-remove', { message })) {
       return;
     }
 
-    this.mutateJson((json) => {
+    this.mutateJson(json => {
       json.messages.splice(index, 1);
     });
   }
 
   clearMessages(): void {
-    if (!this.dispatchCancelable("messages-clear")) {
+    if (!this.dispatchCancelable('messages-clear')) {
       return;
     }
 
-    this.mutateJson((json) => {
+    this.mutateJson(json => {
       json.messages = [];
     });
   }
 
-  setEmail(email: string, mode?: "guest" | "registered"): void {
+  setEmail(email: string, mode?: 'guest' | 'registered'): void {
     if (!isValidEmail(email)) {
-      this.addErrorMessage("A valid email is required.", "email-update");
+      this.addErrorMessage('A valid email is required.', 'email-update');
       return;
     }
 
-    if (!this.dispatchCancelable("email-update", { email })) {
+    if (!this.dispatchCancelable('email-update', { email })) {
       return;
     }
 
-    this.setState("busy");
+    this.setState('busy');
 
     try {
-      this.mutateJson((json) => {
+      this.mutateJson(json => {
         json.customer.email = email;
-        json.customer.type = mode ?? "guest";
-        json.customer.id = mode === "registered" ? 1 : null;
-        json.customer.token = mode === "registered" ? "mock-customer-token" : null;
+        json.customer.type = mode ?? 'guest';
+        json.customer.id = mode === 'registered' ? 1 : null;
+        json.customer.token = mode === 'registered' ? 'mock-customer-token' : null;
       });
     } finally {
-      this.setState("idle");
+      this.setState('idle');
     }
   }
 
@@ -318,30 +305,27 @@ export class MockCheckoutAPI extends BaseCheckoutAPI {
     const emailToUse = email ?? this.json.customer.email;
 
     if (!emailToUse || !isValidEmail(emailToUse)) {
-      this.addErrorMessage(
-        "A valid email is required for temporary password request.",
-        "temporary-password-request",
-      );
+      this.addErrorMessage('A valid email is required for temporary password request.', 'temporary-password-request');
       return;
     }
 
-    if (!this.dispatchCancelable("temporary-password-request", { email: emailToUse })) {
+    if (!this.dispatchCancelable('temporary-password-request', { email: emailToUse })) {
       return;
     }
 
-    this.setState("busy");
+    this.setState('busy');
 
     try {
-      this.mutateJson((json) => {
+      this.mutateJson(json => {
         json.customer.email = emailToUse;
         json.messages.push({
-          context: "temporary-password-request",
-          message: "Temporary password requested.",
-          level: "info",
+          context: 'temporary-password-request',
+          message: 'Temporary password requested.',
+          level: 'info',
         });
       });
     } finally {
-      this.setState("idle");
+      this.setState('idle');
     }
   }
 
@@ -350,42 +334,42 @@ export class MockCheckoutAPI extends BaseCheckoutAPI {
     const password = params.password.trim();
 
     if (!isValidEmail(email)) {
-      this.addErrorMessage("A valid sign-in email is required.", "sign-in");
+      this.addErrorMessage('A valid sign-in email is required.', 'sign-in');
       return;
     }
 
     if (!password) {
-      this.addErrorMessage("Password is required.", "sign-in");
+      this.addErrorMessage('Password is required.', 'sign-in');
       return;
     }
 
-    if (!this.dispatchCancelable("sign-in", { email, password })) {
+    if (!this.dispatchCancelable('sign-in', { email, password })) {
       return;
     }
 
-    this.setState("busy");
+    this.setState('busy');
 
     try {
-      this.mutateJson((json) => {
+      this.mutateJson(json => {
         json.customer.email = email;
-        json.customer.type = "registered";
+        json.customer.type = 'registered';
         json.customer.id = 1;
-        json.customer.token = "mock-customer-token";
+        json.customer.token = 'mock-customer-token';
       });
     } finally {
-      this.setState("idle");
+      this.setState('idle');
     }
   };
 
   signOut(): void {
-    if (!this.dispatchCancelable("sign-out")) {
+    if (!this.dispatchCancelable('sign-out')) {
       return;
     }
 
-    this.setState("busy");
+    this.setState('busy');
 
     try {
-      this.mutateJson((json) => {
+      this.mutateJson(json => {
         json.customer.first_name = null;
         json.customer.last_name = null;
         json.customer.email = null;
@@ -394,7 +378,7 @@ export class MockCheckoutAPI extends BaseCheckoutAPI {
         json.customer.token = null;
       });
     } finally {
-      this.setState("idle");
+      this.setState('idle');
     }
   }
 
@@ -412,18 +396,18 @@ export class MockCheckoutAPI extends BaseCheckoutAPI {
       postal_code: string;
       country: string;
       shipping_service_id: number | null;
-    }>,
+    }>
   ): void => {
     const index = params.index ?? 0;
 
     if (!isNonNegativeInteger(index)) {
-      this.addErrorMessage("Shipment index must be a non-negative integer.", "shipment-update");
+      this.addErrorMessage('Shipment index must be a non-negative integer.', 'shipment-update');
       return;
     }
 
     const current = this.json.shipments[index];
     if (!current) {
-      this.addErrorMessage(`Shipment ${index} was not found.`, "shipment-update");
+      this.addErrorMessage(`Shipment ${index} was not found.`, 'shipment-update');
       return;
     }
 
@@ -442,18 +426,18 @@ export class MockCheckoutAPI extends BaseCheckoutAPI {
       shipping_service_id: params.shipping_service_id ?? current.shipping_service_id,
     };
 
-    if (!this.dispatchCancelable("shipment-update", nextShipment)) {
+    if (!this.dispatchCancelable('shipment-update', nextShipment)) {
       return;
     }
 
-    this.setState("busy");
+    this.setState('busy');
 
     try {
-      this.mutateJson((json) => {
+      this.mutateJson(json => {
         json.shipments[index] = nextShipment;
       });
     } finally {
-      this.setState("idle");
+      this.setState('idle');
     }
   };
 
@@ -469,25 +453,25 @@ export class MockCheckoutAPI extends BaseCheckoutAPI {
       region: string;
       postal_code: string;
       country: string;
-    }>,
+    }>
   ): void => {
     const nextAddress = {
       ...this.json.billing_address,
       ...params,
     };
 
-    if (!this.dispatchCancelable("billing-address-update", nextAddress)) {
+    if (!this.dispatchCancelable('billing-address-update', nextAddress)) {
       return;
     }
 
-    this.setState("busy");
+    this.setState('busy');
 
     try {
-      this.mutateJson((json) => {
+      this.mutateJson(json => {
         json.billing_address = nextAddress;
       });
     } finally {
-      this.setState("idle");
+      this.setState('idle');
     }
   };
 
@@ -495,30 +479,33 @@ export class MockCheckoutAPI extends BaseCheckoutAPI {
     const errors = validateCustomFields(fields);
     if (errors.length > 0) {
       for (const error of errors) {
-        this.addErrorMessage(error, "custom-fields-update");
+        this.addErrorMessage(error, 'custom-fields-update');
       }
       return;
     }
 
-    if (!this.dispatchCancelable("custom-fields-update", fields)) {
+    if (!this.dispatchCancelable('custom-fields-update', fields)) {
       return;
     }
 
-    this.setState("busy");
+    this.setState('busy');
 
     try {
-      this.mutateJson((json) => {
+      this.mutateJson(json => {
         json.custom_fields = {
           ...json.custom_fields,
           ...fields,
         };
       });
     } finally {
-      this.setState("idle");
+      this.setState('idle');
     }
   };
 
-  async getAddressSuggestions(params: { postalCode: string; country: string }): Promise<
+  async getAddressSuggestions(params: {
+    postalCode: string;
+    country: string;
+  }): Promise<
     Array<{
       country: string;
       region: string;
@@ -560,26 +547,26 @@ export class MockCheckoutAPI extends BaseCheckoutAPI {
   }
 
   checkOut = (paymentMethod: unknown): void => {
-    if (!this.dispatchCancelable("checkout")) {
+    if (!this.dispatchCancelable('checkout')) {
       return;
     }
 
-    this.setState("busy");
+    this.setState('busy');
 
     try {
-      this.mutateJson((json) => {
+      this.mutateJson(json => {
         if (paymentMethod) {
-          json.payment_method = paymentMethod as APIJson["payment_method"];
+          json.payment_method = paymentMethod as APIJson['payment_method'];
         }
 
         json.messages.push({
-          context: "checkout",
-          message: "Checkout submitted.",
-          level: "info",
+          context: 'checkout',
+          message: 'Checkout submitted.',
+          level: 'info',
         });
       });
     } finally {
-      this.setState("idle");
+      this.setState('idle');
     }
   };
 }

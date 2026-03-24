@@ -1,4 +1,4 @@
-import type { CustomFields } from "../types";
+import type { CustomFields } from '../types';
 
 export function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
@@ -16,11 +16,11 @@ export function validateCustomFields(fields: CustomFields): string[] {
   const errors: string[] = [];
 
   for (const [key, value] of Object.entries(fields)) {
-    if (!key.startsWith("h:")) {
+    if (!key.startsWith('h:')) {
       errors.push(`Invalid custom field key "${key}". Keys must start with "h:".`);
     }
 
-    if (typeof value !== "string") {
+    if (typeof value !== 'string') {
       errors.push(`Invalid value for custom field "${key}". Value must be a string.`);
     }
   }
