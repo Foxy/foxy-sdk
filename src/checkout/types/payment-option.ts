@@ -1,79 +1,203 @@
-/** Names of the individual ACH hosted field iframes. */
-export type AchHostedFieldName =
-  | "routingNumber"
-  | "accountNumber"
-  | "accountType"
-  | "accountHolderName";
+export type StandardCardGateway =
+  | 'accept_blue'
+  | 'authorize'
+  | 'authorize_cim'
+  | 'bambora'
+  | 'barclaycard'
+  | 'beanstream'
+  | 'bluefin'
+  | 'bluepay'
+  | 'braintree'
+  | 'cardpointe'
+  | 'datacash'
+  | 'digitalriver'
+  | 'durango'
+  | 'ems_pay'
+  | 'epicor_esdm_token'
+  | 'eprocessingnetwork'
+  | 'eway'
+  | 'fatzebra'
+  | 'firstdata'
+  | 'firstdata_e4'
+  | 'fosdick'
+  | 'goemerchant'
+  | 'handepay'
+  | 'helcim'
+  | 'helcim_commerce'
+  | 'inspire'
+  | 'litle'
+  | 'lucy'
+  | 'merchantesolutions'
+  | 'migs_anz_egate'
+  | 'migs_commweb'
+  | 'moneris'
+  | 'netbilling'
+  | 'nmi'
+  | 'nmi_native'
+  | 'orbital_salem'
+  | 'orbital_tampa'
+  | 'paperless'
+  | 'pawapay'
+  | 'payconex'
+  | 'payflowpro'
+  | 'paygate'
+  | 'payjunction'
+  | 'payleap'
+  | 'payline'
+  | 'paylinedata'
+  | 'paymentexpress'
+  | 'paymentsense'
+  | 'paypoint_enterprise'
+  | 'paypoint_gateway'
+  | 'paypoint_metacharge'
+  | 'paytrace'
+  | 'payvector'
+  | 'plugnpay'
+  | 'plugnpay_authnet'
+  | 'propay'
+  | 'quantumgateway'
+  | 'quickbook_payments'
+  | 'quickbooks'
+  | 'realex'
+  | 'sagepayments'
+  | 'securenet'
+  | 'stripe'
+  | 'stripe_omnipay'
+  | 'totalapps'
+  | 'transaction_express'
+  | 'transfirst'
+  | 'usaepay'
+  | 'vanco'
+  | 'vantiv_omnipay'
+  | 'virtualmerchant'
+  | 'wallee'
+  | 'wepay'
+  | 'westpac'
+  | 'xendit';
 
-/** Allowed values for the ACH account type select field. */
-export type AchAccountTypeValue = "checking" | "savings";
+export type StandardACHGateway =
+  | 'accept_blue_ach'
+  | 'authorize_ach'
+  | 'paperless_ach'
+  | 'payjunction_ach'
+  | 'vantiv_ach';
 
-/** Supported secure card embed modes. */
-export type CardEmbedMode = "full" | "csc-only";
+export type StandardRedirectGateway =
+  | 'adyen'
+  | 'amazon_fps'
+  | 'bitpay'
+  | 'cardx'
+  | 'ccavenue'
+  | 'coinbase'
+  | 'coinbase_v2'
+  | 'comgate'
+  | 'curbstone'
+  | 'cybersource_pos'
+  | 'cybersource_sa_web'
+  | 'dibs'
+  | 'dwolla'
+  | 'epayments'
+  | 'mercadopago'
+  | 'migs'
+  | 'mollie_omnipay'
+  | 'ogone'
+  | 'paymentexpress_ws'
+  | 'payu_omnipay'
+  | 'pesapal'
+  | 'skrill'
+  | 'smartscreen'
+  | 'tazapay'
+  | 'trustcommerce'
+  | 'twocheckout'
+  | 'vivawallet_checkout'
+  | 'wigwag'
+  | 'worldline_hosted'
+  | 'worldpay_online';
 
-/** Supported Stripe v2 option modes. */
-export type StripeConnectMode = "full" | "saved";
+export type StripeConnectGateway = 'stripe_connect' | 'stripe_connect_charge';
+export type StripeV2Gateway = 'stripe_v2';
 
-/** Configuration for secure card capture. */
-export type CardPaymentOption = {
-  type: "card";
-  /** The secure card capture mode to render. */
-  mode?: CardEmbedMode;
-  /** Stored payment token used for CSC-only flows when available. */
-  token?: string;
-};
-
-/**
- * Option-level Stripe configuration used to initialize Stripe Card Element.
- * Values are passed directly from API JSON and interpreted by the UI renderer.
- */
-export type StripeConnectConfig = {
-  /** Stripe publishable key used with loadStripe. */
-  publishable_key: string;
-  /** Optional locale forwarded to Stripe Elements. */
-  locale?: string;
-  /** Optional appearance object forwarded to Stripe Elements. */
-  appearance?: Record<string, unknown>;
-  /** Optional Card Element options object forwarded to elements.create("card", ...). */
-  card_element_options?: Record<string, unknown>;
-};
-
-/**
- * Configuration for the Stripe v2 payment option.
- *
- * - `mode: "full"` renders Stripe Card Element for new card capture.
- * - `mode: "saved"` renders a saved Stripe card option with no CSC prompt.
- */
-export type StripeConnectPaymentOption = {
-  type: "stripe_connect";
-  mode?: StripeConnectMode;
-  /** Saved Stripe payment method identifier for mode="saved" when available. */
-  payment_method_id?: string;
-  /** Optional option-specific display label override. */
-  label?: string;
-  /** Optional saved-card display metadata for mode="saved". */
-  card_brand?: string;
-  last4?: string;
-  expiration_month?: number;
-  expiration_year?: number;
-  /** Option-level Stripe Card Element configuration. */
-  stripe?: StripeConnectConfig;
-};
-
-/**
- * Configuration for the ACH (bank transfer) payment option.
- *
- * - `fields` – ordered list of ACH field iframes to render. Omit to render all four fields.
- * - `account_type_values` – account type options to present in the select field. Omit to show
- *   both "checking" and "savings".
- */
-export type AchPaymentOption = {
-  type: "ach";
-  /** Subset (and order) of ACH fields to render. Defaults to all four fields. */
-  fields?: AchHostedFieldName[];
-  /** Account type values to present to the customer. Defaults to both checking and savings. */
-  account_type_values?: AchAccountTypeValue[];
-};
-
-/** Union of all supported payment option configuration types. */
-export type PaymentOption = AchPaymentOption | CardPaymentOption | StripeConnectPaymentOption;
+export type PaymentOption =
+  | {
+      /** Gateway type. */
+      gateway: StandardCardGateway;
+      /** If present, customer can also choose to pay with these saved payment methods. */
+      saved_payment_methods?: {
+        /** Payment method identifier. */
+        id: string;
+        /** Payment method type. Only "card" is supported at the moment. */
+        type: 'card';
+        /** Card brand (e.g., "visa", "mastercard"). */
+        brand: string;
+        /** Last 4 card digits (e.g., "1234"). */
+        last_4: string;
+        /** Full expiration year (e.g., 2030). */
+        expiry_year: number;
+        /** Expiration month from 1 to 12. */
+        expiry_month: number;
+      }[];
+    }
+  | {
+      /** Gateway type. */
+      gateway: StandardACHGateway;
+      /** Subset and order of ACH fields to render. */
+      fields: ('routing_number' | 'account_number' | 'account_type' | 'account_holder_name' | 'is_account_owner')[];
+      /** Accepted account types. */
+      account_types: ('checking' | 'savings')[];
+    }
+  | {
+      /** Gateway type. */
+      gateway: StandardRedirectGateway;
+    }
+  | {
+      /** Gateway type. */
+      gateway: StripeConnectGateway;
+      /** Publishable key for rendering a new Stripe Card Element option. */
+      publishable_key: string;
+      /** If present, customer can also choose to pay with these saved payment methods. */
+      saved_payment_methods?: {
+        /** Stripe Payment Method identifier. */
+        id: string;
+        /** Stripe Payment Method type. Only "card" is supported at the moment. */
+        type: 'card';
+        /** Stripe Payment Method card brand. See Stripe documentation for the complete list of supported card brands. */
+        brand: string;
+        /** Last 4 card digits (e.g., "1234"). */
+        last_4: string;
+        /** Full expiration year (e.g., 2030). */
+        expiry_year: number;
+        /** Expiration month from 1 (January) to 12 (December). */
+        expiry_month: number;
+      }[];
+    }
+  | {
+      /** Gateway type. */
+      gateway: StripeV2Gateway;
+      /** Enables Stripe express checkout element (Apple Pay / Google Pay / etc). */
+      express_checkout: boolean;
+      /** Stripe publishable key for initializing Stripe.js. */
+      publishable_key: string;
+      /** If present, indicates a pending next_action flow that should be handled via stripe.handleNextAction(). */
+      next_action?: string;
+      /** Connected account ID used as stripeAccount when creating the Stripe client. */
+      account_id: string;
+      /** Return URL used by Stripe confirmation flows (setup/payment redirects). */
+      return_url: string;
+      /** Capture mode flag from backend. 1 means manual capture, otherwise automatic capture. */
+      auth_only: boolean;
+      /** If present, customer can also choose to pay with these saved payment methods. */
+      saved_payment_methods?: {
+        /** Stripe Payment Method identifier. */
+        id: string;
+        /** Stripe Payment Method type. Only "card" is supported at the moment. */
+        type: 'card';
+        /** Stripe Payment Method card brand. See Stripe documentation for the complete list of supported card brands. */
+        brand: string;
+        /** Last 4 card digits (e.g., "1234"). */
+        last_4: string;
+        /** Full expiration year (e.g., 2030). */
+        expiry_year: number;
+        /** Expiration month from 1 (January) to 12 (December). */
+        expiry_month: number;
+      }[];
+    };

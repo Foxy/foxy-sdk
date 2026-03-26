@@ -1,4 +1,3 @@
-import type { CardEmbedMode } from '../types/payment-option';
 import type { CardEmbedTokenizeErrorCode, CardValidationField } from '../types/hosted-fields';
 
 export const CARD_EMBED_ELEMENT_TAG = 'foxy-payment-card-field';
@@ -40,15 +39,15 @@ export type CardEmbedElementConfig = {
   embedPath: string;
   merchantOrigin?: string;
   templateSetId?: number;
-  mode: CardEmbedMode;
+  mode: 'full' | 'csc-only';
   paymentToken?: string;
-  demoMode?: CardEmbedMode;
+  demoMode?: 'full' | 'csc-only';
   style?: Record<string, string>;
   translations?: Record<string, string>;
 };
 
 export type CardEmbedReadyEventDetail = {
-  mode: CardEmbedMode;
+  mode: 'full' | 'csc-only';
 };
 
 export type CardEmbedValidationEventDetail = {
