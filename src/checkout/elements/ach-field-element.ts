@@ -1,15 +1,14 @@
-import type { AchHostedFieldName, AchAccountTypeValue } from '../types/payment-option';
 import type { AchHostedFieldsPublicState, AchHostedFieldsTokenizeErrorCode } from '../types/hosted-fields';
 
 export const ACH_FIELD_ELEMENT_TAG = 'foxy-ach-field';
 const DEFAULT_ACH_SECURE_ORIGIN = 'https://embed.foxy.io';
 const ACH_SECURE_ORIGIN = DEFAULT_ACH_SECURE_ORIGIN;
 
-const DEFAULT_LABELS: Record<AchHostedFieldName, string> = {
-  routingNumber: 'Routing number',
-  accountNumber: 'Account number',
-  accountType: 'Account type',
-  accountHolderName: 'Name on account',
+const DEFAULT_LABELS = {
+  routing_number: 'Routing number',
+  account_number: 'Account number',
+  account_type: 'Account type',
+  account_holder_name: 'Name on account',
 };
 
 const STYLE_ATTRIBUTE_NAMES = [
@@ -22,6 +21,10 @@ const STYLE_ATTRIBUTE_NAMES = [
   'ach-input-text-color-error',
   'ach-input-text-size',
 ] as const;
+
+type AchAccountTypeValue = 'checking' | 'savings';
+
+type AchHostedFieldName = 'routing_number' | 'account_number' | 'account_type' | 'account_holder_name';
 
 type AchStyleAttributeName = typeof STYLE_ATTRIBUTE_NAMES[number];
 
@@ -104,7 +107,10 @@ export type AchTokenizeErrorEventDetail = {
 
 function isAchFieldName(value: unknown): value is AchHostedFieldName {
   return (
-    value === 'routingNumber' || value === 'accountNumber' || value === 'accountType' || value === 'accountHolderName'
+    value === 'routing_number' ||
+    value === 'account_number' ||
+    value === 'account_type' ||
+    value === 'account_holder_name'
   );
 }
 
@@ -164,7 +170,7 @@ export class AchFieldElement extends HTMLElement {
   private _config: AchFieldElementConfig = {
     secureOrigin: ACH_SECURE_ORIGIN,
     embedPath: '/v2.html',
-    field: 'routingNumber',
+    field: 'routing_number',
   };
 
   private _disabled = false;
@@ -583,7 +589,7 @@ export class AchFieldElement extends HTMLElement {
       if (this._config.placeholder) {
         url.searchParams.set('placeholder', this._config.placeholder);
       }
-      if (field === 'accountType' && this._config.accountTypeValues?.length) {
+      if (field === 'account_type' && this._config.accountTypeValues?.length) {
         url.searchParams.set('accountTypeValues', this._config.accountTypeValues.join(','));
       }
       if (styleAttributes['ach-input-height']) {

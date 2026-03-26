@@ -1,32 +1,24 @@
-import type { Item } from "./item";
-import type { Shipment } from "./shipment";
-import type { BillingAddress } from "./billing-address";
-import type { Store } from "./store";
-import type { Message } from "./message";
-import type { Format } from "./format";
-import type { Display } from "./display";
-import type { PaymentMethod } from "./payment-method";
-import type { PaymentOption } from "./payment-option";
-import type { TemplateSet } from "./template-set";
-import type { Transaction } from "./transaction";
-import type { Session } from "./session";
-import type { Customer } from "./customer";
-import type { Totals } from "./totals";
-import type { CustomFields } from "./custom-fields";
-import type { CustomConfig } from "./custom-config";
+import type { BillingAddress } from './billing-address';
+import type { CustomConfig } from './custom-config';
+import type { CustomFields } from './custom-fields';
+import type { Customer } from './customer';
+import type { Display } from './display';
+import type { Format } from './format';
+import type { Item } from './item';
+import type { Message } from './message';
+import type { PaymentOption } from './payment-option';
+import type { Session } from './session';
+import type { Shipment } from './shipment';
+import type { Store } from './store';
+import type { TemplateSet } from './template-set';
+import type { Totals } from './totals';
+import type { Transaction } from './transaction';
 
-type DeepReadonly<T> =
-  T extends Array<infer U>
-    ? ReadonlyArray<DeepReadonly<U>>
-    : T extends object
-      ? { readonly [K in keyof T]: DeepReadonly<T[K]> }
-      : T;
-
-export type APIJson = DeepReadonly<{
+export type APIJson = {
   /** Public template set info (fx:template_set). */
   template_set: TemplateSet;
-  /** Public transaction details including ID and date when available. */
-  transaction: Transaction;
+  /** Public transaction details including ID, date and payments – available after purchase. */
+  transaction?: Transaction;
   /** The session information including name (fcsid) and unique identifier. */
   session: Session;
   /** Whether debug mode is enabled for this template set. */
@@ -53,8 +45,6 @@ export type APIJson = DeepReadonly<{
   display: Display;
   /** Custom configuration options for this checkout. */
   custom_config: CustomConfig;
-  /** Selected payment method details (only present if a payment method has been selected). */
-  payment_method?: PaymentMethod;
-  /** Payment option configuration for this checkout (e.g. which ACH fields to render). */
+  /** Payment options available for this order. */
   payment_options?: PaymentOption[];
-}>;
+};

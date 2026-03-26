@@ -1,5 +1,12 @@
-import type { APIEventMap, APIJson, CustomFields } from "./types";
-import type { Listener } from "./types/listener";
+import type { APIEventMap, APIJson, CustomFields } from './types';
+import {
+  StandardACHGateway,
+  StandardCardGateway,
+  StandardRedirectGateway,
+  StripeConnectGateway,
+  StripeV2Gateway,
+} from './types/payment-option';
+import type { Listener } from './types/listener';
 
 /**
  * This is going to be under SDK.Checkout.API in the @foxy.io/sdk package.
@@ -9,19 +16,23 @@ import type { Listener } from "./types/listener";
  */
 export abstract class API extends EventTarget {
   addEventListener<K extends keyof APIEventMap>(type: K, listener: Listener<K, API>): void;
+
   addEventListener(type: string, listener: EventListenerOrEventListenerObject): void;
+
   addEventListener(type: string, listener: EventListenerOrEventListenerObject): void {
     return super.addEventListener(type, listener);
   }
 
   removeEventListener<K extends keyof APIEventMap>(type: K, listener: Listener<K, API>): void;
+
   removeEventListener(type: string, listener: EventListenerOrEventListenerObject): void;
+
   removeEventListener(type: string, listener: EventListenerOrEventListenerObject): void {
     return super.removeEventListener(type, listener);
   }
 
   /** The current state of the API client. Requests that modify `API.json` will trigger a state change. */
-  abstract readonly state: "idle" | "busy";
+  abstract readonly state: 'idle' | 'busy';
 
   /** The complete data state for cart, checkout and receipt. Contains all information about the current session, customer, items, totals, and settings. */
   abstract readonly json: APIJson;
@@ -78,7 +89,7 @@ export abstract class API extends EventTarget {
    * Adds a message to `API.messages` and returns its index.
    * No server interaction. Fires a cancelable `messages-add` event before adding the message.
    */
-  abstract addMessage(params: APIJson["messages"][number]): number;
+  abstract addMessage(params: APIJson['messages'][number]): number;
 
   /**
    * Removes a message from `API.messages` by its index.
@@ -99,7 +110,7 @@ export abstract class API extends EventTarget {
    * Calls `POST /checkout?customer_email=ABC`.
    * Fires a cancelable `email-update` event before setting the email.
    */
-  abstract setEmail(email: string, mode?: "guest" | "registered"): void;
+  abstract setEmail(email: string, mode?: 'guest' | 'registered'): void;
 
   /**
    * Sends a temporary password to the email address associated with the cart.
@@ -161,7 +172,7 @@ export abstract class API extends EventTarget {
       country: string;
       /** Selected shipping service ID. */
       shipping_service_id: number | null;
-    }>,
+    }>
   ) => void;
 
   /**
@@ -191,7 +202,7 @@ export abstract class API extends EventTarget {
       postal_code: string;
       /** Country code. */
       country: string;
-    }>,
+    }>
   ) => void;
 
   /**
@@ -238,6 +249,22 @@ export abstract class API extends EventTarget {
    * Submits the order with the given payment method details.
    * Calls `POST /checkout?action=submit` with payment method details in the body.
    * Fires a cancelable `checkout` event before submitting the order.
+   *
+   * - ACH Gateways: `POST /checkout?action=submit&gateway=accept_blue_ach&ach_token=XYZ`
+   * - Embedded Card Gateways: `POST /checkout?action=submit&gateway=authorize&card_token=XYZ`
+   * - Redirect-Based Gateways: `POST /checkout?action=submit&gateway=adyen`
+   * - Stripe Connect and Stripe Connect Charge: `POST /checkout?action=submit&gateway=stripe_connect&payment_method_id=XYZ`
+   * - Stripe v2 Payment Element: `POST /checkout?action=submit&gateway=stripe_v2&...`
+   *
+   * Note: the stripe_v2 payload is intentionally extensible and will be narrowed
+   * once the backend contract is finalized.
    */
-  abstract checkOut: (paymentMethod: unknown) => void;
+  abstract checkOut: (
+    paymentOption:
+      | { gateway: StandardACHGateway; ach_token: string }
+      | { gateway: StandardCardGateway; card_token: string }
+      | { gateway: StandardRedirectGateway }
+      | { gateway: StripeConnectGateway; payment_method_id: string }
+      | ({ gateway: StripeV2Gateway } & Record<string, unknown>)
+  ) => void;
 }

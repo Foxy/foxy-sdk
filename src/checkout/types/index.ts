@@ -10,27 +10,11 @@ export type { Store } from './store';
 export type { Message } from './message';
 export type { Format } from './format';
 export type { Display } from './display';
-export type {
-  AchPaymentMethod,
-  CardPaymentMethod,
-  PurchaseOrderPaymentMethod,
-  StripeConnectPaymentMethod,
-  PaymentMethod,
-} from './payment-method';
 export type { APIJson } from './api-json';
 export type { APIEventMap } from './api-event-map';
 export type { CustomFields } from './custom-fields';
 export type { CustomConfig } from './custom-config';
-export type {
-  AchHostedFieldName,
-  AchAccountTypeValue,
-  AchPaymentOption,
-  CardEmbedMode,
-  StripeConnectConfig,
-  StripeConnectMode,
-  StripeConnectPaymentOption,
-  PaymentOption,
-} from './payment-option';
+export type { PaymentOption, StripeV2Gateway } from './payment-option';
 export type {
   AchHostedFieldsPublicState,
   AchHostedFieldsTokenizeErrorCode,

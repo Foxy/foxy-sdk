@@ -555,10 +555,6 @@ export class MockCheckoutAPI extends BaseCheckoutAPI {
 
     try {
       this.mutateJson(json => {
-        if (paymentMethod) {
-          json.payment_method = paymentMethod as APIJson['payment_method'];
-        }
-
         json.messages.push({
           context: 'checkout',
           message: 'Checkout submitted.',

@@ -2,13 +2,7 @@ import type { APIEventMap, APIJson } from '../types';
 
 import { API } from '../api';
 
-type DeepMutable<T> = T extends ReadonlyArray<infer U>
-  ? DeepMutable<U>[]
-  : T extends object
-  ? { -readonly [K in keyof T]: DeepMutable<T[K]> }
-  : T;
-
-export type MutableAPIJson = DeepMutable<APIJson>;
+export type MutableAPIJson = APIJson;
 
 type EventName = keyof APIEventMap;
 type EventWithDetailName = {
@@ -27,8 +21,8 @@ export function cloneApiJson(json: APIJson): MutableAPIJson {
   return deepClone(json) as MutableAPIJson;
 }
 
-export function toMutable<T>(value: T): DeepMutable<T> {
-  return deepClone(value) as DeepMutable<T>;
+export function toMutable<T>(value: T): T {
+  return deepClone(value) as T;
 }
 
 export abstract class BaseCheckoutAPI extends API {
