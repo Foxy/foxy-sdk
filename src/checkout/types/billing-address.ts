@@ -25,4 +25,8 @@ export type BillingAddress = {
   postal_code: string;
   /** 2-letter country code. */
   country: string;
+  /** Available region options for the selected country. */
+  region_options?: string[];
+  /** Available country options for billing. */
+  country_options?: string[];
 };

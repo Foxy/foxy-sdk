@@ -1,7 +1,14 @@
 import type { APIJson, CustomFields } from '../types';
 
 import { BaseCheckoutAPI, toMutable } from './base-api';
-import { isNonNegativeInteger, isPositiveInteger, isValidEmail, validateCustomFields } from './validation';
+import {
+  isNonNegativeInteger,
+  isPositiveInteger,
+  isValidEmail,
+  validateBillingAddressParams,
+  validateCustomFields,
+  validateShipmentParams,
+} from './validation';
 
 type FetchLike = typeof fetch;
 
@@ -375,6 +382,19 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
       shipping_service_id: params.shipping_service_id ?? shipment.shipping_service_id,
     };
 
+    const shipmentErrors = validateShipmentParams(
+      params as Record<string, string | null | undefined>,
+      this.json.display,
+      {
+        countryOptions: shipment.country_options,
+        regionOptions: shipment.region_options,
+      }
+    );
+    for (const err of shipmentErrors) {
+      this.addErrorMessage(err.message, err.context);
+    }
+    if (shipmentErrors.length > 0) return;
+
     if (!this.dispatchCancelable('shipment-update', nextShipment)) {
       return;
     }
@@ -429,6 +449,19 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
       ...this.json.billing_address,
       ...params,
     };
+
+    const billingErrors = validateBillingAddressParams(
+      params as Record<string, string | null | undefined>,
+      this.json.display,
+      {
+        countryOptions: this.json.billing_address.country_options ?? this.json.shipments[0]?.country_options,
+        regionOptions: this.json.billing_address.region_options ?? this.json.shipments[0]?.region_options,
+      }
+    );
+    for (const err of billingErrors) {
+      this.addErrorMessage(err.message, err.context);
+    }
+    if (billingErrors.length > 0) return;
 
     if (!this.dispatchCancelable('billing-address-update', nextAddress)) {
       return;
