@@ -121,6 +121,18 @@ export type PaymentOption =
   | {
       /** Gateway type. */
       gateway: StandardCardGateway;
+      /** Optional Apple Pay setup for this card gateway (wallet-specific, non-derivable fields only). */
+      apple_pay?: {
+        /** Apple Pay merchant identifier used for this gateway option. */
+        merchant_id: string;
+      };
+      /** Optional Google Pay setup for this card gateway (wallet-specific, non-derivable fields only). */
+      google_pay?: {
+        /** Google Pay merchant identifier. */
+        merchant_id: string;
+        /** Custom tokenization parameters for payment gateway: https://developers.google.com/pay/api/web/reference/request-objects#gateway. */
+        gateway_parameters?: Record<string, string>;
+      };
       /** If present, customer can also choose to pay with these saved payment methods. */
       saved_payment_methods?: {
         /** Payment method identifier. */
