@@ -117,40 +117,60 @@ export type StandardRedirectGateway =
 export type StripeConnectGateway = 'stripe_connect' | 'stripe_connect_charge';
 export type StripeV2Gateway = 'stripe_v2';
 
+export type SavedCardPaymentMethod = {
+  /** Payment method identifier. */
+  payment_method_id: string;
+  /** Payment method type. Only "card" is supported at the moment. */
+  payment_method_type?: 'card';
+  /** Card brand (e.g., "visa", "mastercard"). */
+  brand: string;
+  /** Last 4 card digits (e.g., "1234"). */
+  last_4: string;
+  /** Full expiration year (e.g., 2030). */
+  expiry_year: number;
+  /** Expiration month from 1 to 12. */
+  expiry_month: number;
+};
+
 export type PaymentOption =
   | {
-      /** Gateway type. */
+      /** Payment option type. */
+      type: 'new-card';
+      /** Gateway used for card tokenization submission. */
       gateway: StandardCardGateway;
-      /** Optional Apple Pay setup for this card gateway (wallet-specific, non-derivable fields only). */
-      apple_pay?: {
-        /** Apple Pay merchant identifier used for this gateway option. */
-        merchant_id: string;
-      };
-      /** Optional Google Pay setup for this card gateway (wallet-specific, non-derivable fields only). */
-      google_pay?: {
-        /** Google Pay merchant identifier. */
-        merchant_id: string;
-        /** Custom tokenization parameters for payment gateway: https://developers.google.com/pay/api/web/reference/request-objects#gateway. */
-        gateway_parameters?: Record<string, string>;
-      };
-      /** If present, customer can also choose to pay with these saved payment methods. */
-      saved_payment_methods?: {
-        /** Payment method identifier. */
-        id: string;
-        /** Payment method type. Only "card" is supported at the moment. */
-        type: 'card';
-        /** Card brand (e.g., "visa", "mastercard"). */
-        brand: string;
-        /** Last 4 card digits (e.g., "1234"). */
-        last_4: string;
-        /** Full expiration year (e.g., 2030). */
-        expiry_year: number;
-        /** Expiration month from 1 to 12. */
-        expiry_month: number;
-      }[];
     }
   | {
-      /** Gateway type. */
+      /** Payment option type. */
+      type: 'saved-card';
+      /** Gateway used for saved card submission. */
+      gateway: StandardCardGateway | StripeConnectGateway | StripeV2Gateway;
+      /** Saved payment method details for rendering and submission. */
+      payment_method: SavedCardPaymentMethod;
+    }
+  | {
+      /** Payment option type. */
+      type: 'apple-pay';
+      /** Gateway used for Apple Pay token submission. */
+      gateway: StandardCardGateway;
+      /** Apple Pay merchant identifier used for this payment option. */
+      merchant_id: string;
+      /** Legacy key accepted by some integrations. */
+      merchant_identifier?: string;
+    }
+  | {
+      /** Payment option type. */
+      type: 'google-pay';
+      /** Gateway used for Google Pay token submission. */
+      gateway: StandardCardGateway;
+      /** Google Pay merchant identifier. */
+      merchant_id: string;
+      /** Custom tokenization parameters for payment gateway: https://developers.google.com/pay/api/web/reference/request-objects#gateway. */
+      gateway_parameters?: Record<string, string>;
+    }
+  | {
+      /** Payment option type. */
+      type: 'ach';
+      /** Gateway used for ACH token submission. */
       gateway: StandardACHGateway;
       /** Subset and order of ACH fields to render. */
       fields: ('routing_number' | 'account_number' | 'account_type' | 'account_holder_name' | 'is_account_owner')[];
@@ -158,35 +178,24 @@ export type PaymentOption =
       account_types: ('checking' | 'savings')[];
     }
   | {
-      /** Gateway type. */
+      /** Payment option type. */
+      type: 'redirect';
+      /** Gateway used for redirect submission. */
       gateway: StandardRedirectGateway;
     }
   | {
-      /** Gateway type. */
+      /** Payment option type. */
+      type: 'stripe-card-element';
+      /** Gateway used for Stripe Card Element token submission. */
       gateway: StripeConnectGateway;
       /** Publishable key for rendering a new Stripe Card Element option. */
       publishable_key: string;
-      /** If present, customer can also choose to pay with these saved payment methods. */
-      saved_payment_methods?: {
-        /** Stripe Payment Method identifier. */
-        id: string;
-        /** Stripe Payment Method type. Only "card" is supported at the moment. */
-        type: 'card';
-        /** Stripe Payment Method card brand. See Stripe documentation for the complete list of supported card brands. */
-        brand: string;
-        /** Last 4 card digits (e.g., "1234"). */
-        last_4: string;
-        /** Full expiration year (e.g., 2030). */
-        expiry_year: number;
-        /** Expiration month from 1 (January) to 12 (December). */
-        expiry_month: number;
-      }[];
     }
   | {
-      /** Gateway type. */
+      /** Payment option type. */
+      type: 'stripe-payment-element';
+      /** Gateway used for Stripe Payment Element submission. */
       gateway: StripeV2Gateway;
-      /** Enables Stripe express checkout element (Apple Pay / Google Pay / etc). */
-      express_checkout: boolean;
       /** Stripe publishable key for initializing Stripe.js. */
       publishable_key: string;
       /** If present, indicates a pending next_action flow that should be handled via stripe.handleNextAction(). */
@@ -197,19 +206,6 @@ export type PaymentOption =
       return_url: string;
       /** Capture mode flag from backend. 1 means manual capture, otherwise automatic capture. */
       auth_only: boolean;
-      /** If present, customer can also choose to pay with these saved payment methods. */
-      saved_payment_methods?: {
-        /** Stripe Payment Method identifier. */
-        id: string;
-        /** Stripe Payment Method type. Only "card" is supported at the moment. */
-        type: 'card';
-        /** Stripe Payment Method card brand. See Stripe documentation for the complete list of supported card brands. */
-        brand: string;
-        /** Last 4 card digits (e.g., "1234"). */
-        last_4: string;
-        /** Full expiration year (e.g., 2030). */
-        expiry_year: number;
-        /** Expiration month from 1 (January) to 12 (December). */
-        expiry_month: number;
-      }[];
+      /** Optional locale override for Stripe Elements. */
+      locale?: string;
     };

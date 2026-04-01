@@ -4,6 +4,7 @@ import type { CustomFields } from './custom-fields';
 import type { Customer } from './customer';
 import type { Display } from './display';
 import type { Format } from './format';
+import type { ExpressCheckoutOption } from './express-checkout-option';
 import type { Item } from './item';
 import type { Message } from './message';
 import type { PaymentOption } from './payment-option';
@@ -47,4 +48,6 @@ export type APIJson = {
   custom_config: CustomConfig;
   /** Payment options available for this order. */
   payment_options?: PaymentOption[];
+  /** Express checkout options available for this order. */
+  express_checkout_options?: ExpressCheckoutOption[];
 };

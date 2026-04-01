@@ -14,6 +14,7 @@ export type { APIJson } from './api-json';
 export type { APIEventMap } from './api-event-map';
 export type { CustomFields } from './custom-fields';
 export type { CustomConfig } from './custom-config';
+export type { ExpressCheckoutType, ExpressCheckoutOption } from './express-checkout-option';
 export type { PaymentOption, StripeV2Gateway } from './payment-option';
 export type {
   AchHostedFieldsPublicState,
