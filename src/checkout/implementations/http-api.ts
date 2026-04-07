@@ -97,7 +97,7 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
 
     void this.runMutation(async () => {
       const nextJson = await this.postJson('/cart', payload);
-      this.replaceJson(nextJson);
+      await this.replaceJson(nextJson);
     });
   };
 
@@ -127,7 +127,7 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
 
     void this.runMutation(async () => {
       const nextJson = await this.postJson('/cart', payload);
-      this.replaceJson(nextJson);
+      await this.replaceJson(nextJson);
     });
   };
 
@@ -138,7 +138,7 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
 
     void this.runMutation(async () => {
       const nextJson = await this.postJson('/cart', { empty: reset ? 'reset' : 'true' });
-      this.replaceJson(nextJson);
+      await this.replaceJson(nextJson);
     });
   };
 
@@ -159,7 +159,7 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
         coupon: code,
         gift_card: code,
       });
-      this.replaceJson(nextJson);
+      await this.replaceJson(nextJson);
     });
   };
 
@@ -184,7 +184,7 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
         action: 'remove_coupon',
         coupon_id: params.couponId,
       });
-      this.replaceJson(nextJson);
+      await this.replaceJson(nextJson);
     });
   };
 
@@ -209,7 +209,7 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
         action: 'remove_gift_card',
         gift_card_id: params.giftCardId,
       });
-      this.replaceJson(nextJson);
+      await this.replaceJson(nextJson);
     });
   };
 
@@ -273,7 +273,7 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
         customer_email: normalizedEmail,
         customer_type: mode,
       });
-      this.replaceJson(nextJson);
+      await this.replaceJson(nextJson);
     });
   }
 
@@ -294,7 +294,7 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
         action: 'request_temporary_password',
         customer_email: emailToUse,
       });
-      this.replaceJson(nextJson);
+      await this.replaceJson(nextJson);
     });
   }
 
@@ -321,7 +321,7 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
         customer_email: email,
         customer_password: password,
       });
-      this.replaceJson(nextJson);
+      await this.replaceJson(nextJson);
     });
   };
 
@@ -334,7 +334,7 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
       const nextJson = await this.postJson('/checkout', {
         customer_email: '',
       });
-      this.replaceJson(nextJson);
+      await this.replaceJson(nextJson);
     });
   }
 
@@ -427,7 +427,7 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
 
     void this.runMutation(async () => {
       const nextJson = await this.postJson('/checkout', payload);
-      this.replaceJson(nextJson);
+      await this.replaceJson(nextJson);
     });
   };
 
@@ -482,7 +482,7 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
 
     void this.runMutation(async () => {
       const nextJson = await this.postJson('/checkout', payload);
-      this.replaceJson(nextJson);
+      await this.replaceJson(nextJson);
     });
   };
 
@@ -501,7 +501,7 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
 
     void this.runMutation(async () => {
       const nextJson = await this.postJson('/checkout', fields);
-      this.replaceJson(nextJson);
+      await this.replaceJson(nextJson);
     });
   };
 
@@ -569,6 +569,28 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
     });
   }
 
+  async validateApplePayMerchant(params: { validationURL: string }): Promise<unknown> {
+    const validationURL = params.validationURL.trim();
+
+    if (!validationURL) {
+      throw new Error('Apple Pay validation URL is required.');
+    }
+
+    const response = await this.#fetch(this.resolveUrl('/checkout', { action: 'validate_merchant' }), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+      },
+      body: toFormData({ validationURL }),
+    });
+
+    if (!response.ok) {
+      throw this.createRequestError(response.status, 'Failed to validate Apple Pay merchant.');
+    }
+
+    return (await response.json()) as unknown;
+  }
+
   checkOut = (paymentMethod: unknown): void => {
     if (!this.dispatchCancelable('checkout')) {
       return;
@@ -581,7 +603,7 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
 
     void this.runMutation(async () => {
       const nextJson = await this.postJson('/checkout', payload);
-      this.replaceJson(nextJson);
+      await this.replaceJson(nextJson);
     });
   };
 

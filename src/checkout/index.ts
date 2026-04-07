@@ -29,6 +29,14 @@ export type {
 export { API } from './api';
 export { MockCheckoutAPI } from './implementations/mock-api';
 export { HttpCheckoutAPI } from './implementations/http-api';
+export { canMakeApplePayPayments, ensureApplePayScriptLoaded } from './implementations/base-api';
+export {
+  loadGooglePaySdk,
+  ensureGooglePayScriptLoaded,
+  createGooglePaymentsClient,
+  canMakeGooglePayPayments,
+} from './implementations/base-api';
+export type { GooglePaymentsClient } from './implementations/base-api';
 export {
   ACH_FIELD_ELEMENT_TAG,
   AchFieldElement,

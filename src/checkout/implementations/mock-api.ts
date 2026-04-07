@@ -12,8 +12,8 @@ function nextNumericId(values: Array<{ id: number }>): number {
 }
 
 export class MockCheckoutAPI extends BaseCheckoutAPI {
-  replaceJsonForTesting(nextJson: APIJson): void {
-    this.replaceJson(nextJson);
+  async replaceJsonForTesting(nextJson: APIJson): Promise<void> {
+    await this.replaceJson(nextJson);
   }
 
   updateItemQuantity = (...params: { id: number; quantity: number }[]): void => {
@@ -544,6 +544,10 @@ export class MockCheckoutAPI extends BaseCheckoutAPI {
     if (this.json.debug) {
       console.error(error);
     }
+  }
+
+  async validateApplePayMerchant(params: { validationURL: string }): Promise<unknown> {
+    return { validationURL: params.validationURL };
   }
 
   checkOut = (paymentMethod: unknown): void => {
