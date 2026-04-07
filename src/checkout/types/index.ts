@@ -1,24 +1,25 @@
-export type { TemplateSet } from './template-set';
-export type { Transaction } from './transaction';
-export type { Session } from './session';
-export type { Customer } from './customer';
-export type { Shipment } from './shipment';
-export type { Item, ItemOption } from './item';
-export type { Tax, Coupon, GiftCard, Totals } from './totals';
-export type { BillingAddress } from './billing-address';
-export type { Store } from './store';
-export type { Message } from './message';
-export type { Format } from './format';
-export type { Display } from './display';
-export type { APIJson } from './api-json';
-export type { APIEventMap } from './api-event-map';
-export type { CustomFields } from './custom-fields';
-export type { CustomConfig } from './custom-config';
-export type { ExpressCheckoutType, ExpressCheckoutOption } from './express-checkout-option';
-export type { PaymentOption, StripeV2Gateway } from './payment-option';
+export type { TemplateSet } from './TemplateSet';
+export type { Transaction } from './Transaction';
+export type { Session } from './Session';
+export type { Customer } from './Customer';
+export type { Shipment } from './Shipment';
+export type { Item, ItemOption } from './Item';
+export type { Tax, Coupon, GiftCard, Totals } from './Totals';
+export type { BillingAddress } from './BillingAddress';
+export type { Store } from './Store';
+export type { Message } from './Message';
+export type { Format } from './Format';
+export type { Display } from './Display';
+export type { APIJson } from './APIJson';
+export type { APIEventMap } from './APIEventMap';
+export type { GooglePaymentsClient } from './GooglePaymentsClient';
+export type { CustomFields } from './CustomFields';
+export type { CustomConfig } from './CustomConfig';
+export type { ExpressCheckoutType, ExpressCheckoutOption } from './ExpressCheckoutOption';
+export type { PaymentOption, StripeV2Gateway } from './PaymentOption';
 export type {
   AchHostedFieldsPublicState,
   AchHostedFieldsTokenizeErrorCode,
   CardValidationField,
   CardEmbedTokenizeErrorCode,
-} from './hosted-fields';
+} from './HostedFields';

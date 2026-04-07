@@ -1,19 +1,19 @@
-import type { BillingAddress } from './billing-address';
-import type { CustomConfig } from './custom-config';
-import type { CustomFields } from './custom-fields';
-import type { Customer } from './customer';
-import type { Display } from './display';
-import type { Format } from './format';
-import type { ExpressCheckoutOption } from './express-checkout-option';
-import type { Item } from './item';
-import type { Message } from './message';
-import type { PaymentOption } from './payment-option';
-import type { Session } from './session';
-import type { Shipment } from './shipment';
-import type { Store } from './store';
-import type { TemplateSet } from './template-set';
-import type { Totals } from './totals';
-import type { Transaction } from './transaction';
+import type { BillingAddress } from './BillingAddress';
+import type { CustomConfig } from './CustomConfig';
+import type { CustomFields } from './CustomFields';
+import type { Customer } from './Customer';
+import type { Display } from './Display';
+import type { Format } from './Format';
+import type { ExpressCheckoutOption } from './ExpressCheckoutOption';
+import type { Item } from './Item';
+import type { Message } from './Message';
+import type { PaymentOption } from './PaymentOption';
+import type { Session } from './Session';
+import type { Shipment } from './Shipment';
+import type { Store } from './Store';
+import type { TemplateSet } from './TemplateSet';
+import type { Totals } from './Totals';
+import type { Transaction } from './Transaction';
 
 export type APIJson = {
   /** Public template set info (fx:template_set). */

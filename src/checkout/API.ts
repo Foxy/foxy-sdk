@@ -1,6 +1,12 @@
-import type { APIJson, CustomFields } from '../types';
-
-import { BaseCheckoutAPI, toMutable } from './base-api';
+import type { APIEventMap, APIJson, CustomFields, GooglePaymentsClient } from './types';
+import {
+  StandardACHGateway,
+  StandardCardGateway,
+  StandardRedirectGateway,
+  StripeConnectGateway,
+  StripeV2Gateway,
+} from './types/PaymentOption';
+import type { Listener } from './types/Listener';
 import {
   isNonNegativeInteger,
   isPositiveInteger,
@@ -8,66 +14,207 @@ import {
   validateBillingAddressParams,
   validateCustomFields,
   validateShipmentParams,
-} from './validation';
+} from './v8n';
+import { getApplePayAvailability, loadApplePaySdk } from './utils/applePay';
+import {
+  canMakeGooglePayPayments as canMakeGooglePayPaymentsUtil,
+  createGooglePaymentsClient as createGooglePaymentsClientUtil,
+  loadGooglePaySdk as loadGooglePaySdkUtil,
+} from './utils/googlePay';
+import { cloneApiJson, toMutable } from './utils/json';
+import type { MutableAPIJson } from './utils/json';
+import { toFormData, toQueryString } from './utils/url';
+
+export type { MutableAPIJson } from './utils/json';
+export { cloneApiJson, toMutable };
+export type { GooglePaymentsClient } from './types';
+
+type EventName = keyof APIEventMap;
+type EventWithDetailName = {
+  [K in EventName]: APIEventMap[K] extends CustomEvent<unknown> ? K : never;
+}[EventName];
+
+type EventWithoutDetailName = Exclude<EventName, EventWithDetailName>;
+
+type EventDetail<K extends EventName> = APIEventMap[K] extends CustomEvent<infer D> ? D : never;
+
+async function resolveIncomingApiJson(json: APIJson): Promise<MutableAPIJson> {
+  const nextJson = cloneApiJson(json);
+  const paymentOptions = nextJson.payment_options;
+
+  const hasApplePay = paymentOptions?.some(option => option.type === 'apple-pay');
+  const hasGooglePay = paymentOptions?.some(option => option.type === 'google-pay');
+
+  if (typeof window !== 'undefined') {
+    if (hasApplePay && hasGooglePay) {
+      await Promise.all([API.ensureApplePayScriptLoaded(), API.ensureGooglePayScriptLoaded()]);
+    } else if (hasApplePay) {
+      await API.ensureApplePayScriptLoaded();
+    } else if (hasGooglePay) {
+      await API.ensureGooglePayScriptLoaded();
+    }
+  }
+
+  if (!hasApplePay) {
+    return nextJson;
+  }
+
+  const applePayAvailability = getApplePayAvailability();
+
+  if (applePayAvailability === 'available') {
+    return nextJson;
+  }
+
+  nextJson.payment_options = paymentOptions!.filter(option => option.type !== 'apple-pay');
+
+  console.warn(
+    applePayAvailability === 'non-browser'
+      ? 'Apple Pay payment options were removed because checkout API JSON was processed outside a browser environment.'
+      : 'Apple Pay payment options were removed because Apple Pay is not available in this browser.'
+  );
+
+  return nextJson;
+}
 
 type FetchLike = typeof fetch;
 
-export type HttpCheckoutAPIOptions = {
+type CheckOutPaymentOption =
+  | { gateway: StandardACHGateway; ach_token: string }
+  | { gateway: StandardCardGateway; card_token: string; card_token_format?: 'apple-pay' | 'google-pay' | 'default' }
+  | { gateway: StandardRedirectGateway }
+  | { gateway: StripeConnectGateway; payment_method_id: string }
+  | ({ gateway: StripeV2Gateway } & Record<string, unknown>);
+
+export type APIOptions = {
   baseUrl?: string;
   fetch?: FetchLike;
   initialState?: 'idle' | 'busy';
   onError?: (error: Error) => void;
 };
 
-type Stringifiable = string | number | boolean | null | undefined;
-
-function toFormData(input: Record<string, unknown>): URLSearchParams {
-  const form = new URLSearchParams();
-
-  for (const [key, value] of Object.entries(input)) {
-    if (value === null || value === undefined) {
-      continue;
-    }
-
-    if (typeof value === 'object') {
-      form.set(key, JSON.stringify(value));
-      continue;
-    }
-
-    form.set(key, String(value));
-  }
-
-  return form;
-}
-
-function toQueryString(input: Record<string, Stringifiable>): string {
-  const search = new URLSearchParams();
-
-  for (const [key, value] of Object.entries(input)) {
-    if (value === null || value === undefined) {
-      continue;
-    }
-
-    search.set(key, String(value));
-  }
-
-  return search.toString();
-}
-
-export class HttpCheckoutAPI extends BaseCheckoutAPI {
+/**
+ * This is going to be under SDK.Checkout.API in the @foxy.io/sdk package.
+ * Pages using loader.js will have an initialized instance under window.Foxy.api.
+ *
+ * Fires non-cancelable `update` event whenever `API.json` is updated from the server.
+ */
+export class API extends EventTarget {
+  #state: 'idle' | 'busy';
+  #json: MutableAPIJson;
   readonly #baseUrl: string;
   readonly #fetch: FetchLike;
   readonly #onError?: (error: Error) => void;
 
-  constructor(initialJson: APIJson, options: HttpCheckoutAPIOptions = {}) {
-    super(initialJson, options.initialState ?? 'idle');
+  static canMakeApplePayPayments(): boolean {
+    return getApplePayAvailability() === 'available';
+  }
+
+  static async ensureApplePayScriptLoaded(): Promise<void> {
+    try {
+      await loadApplePaySdk();
+    } catch {
+      return;
+    }
+  }
+
+  static async loadGooglePaySdk(): Promise<void> {
+    await loadGooglePaySdkUtil();
+  }
+
+  static async ensureGooglePayScriptLoaded(): Promise<void> {
+    try {
+      await API.loadGooglePaySdk();
+    } catch {
+      return;
+    }
+  }
+
+  static async createGooglePaymentsClient(environment: 'TEST' | 'PRODUCTION' = 'TEST'): Promise<GooglePaymentsClient> {
+    return createGooglePaymentsClientUtil(environment);
+  }
+
+  static async canMakeGooglePayPayments(allowedPaymentMethod: Record<string, unknown>): Promise<boolean> {
+    return canMakeGooglePayPaymentsUtil(allowedPaymentMethod);
+  }
+
+  constructor(initialJson: APIJson, options: APIOptions = {}) {
+    super();
+    this.#json = cloneApiJson(initialJson);
+    this.#state = options.initialState ?? 'idle';
     this.#baseUrl = options.baseUrl ?? '';
     this.#fetch = options.fetch ?? fetch;
     this.#onError = options.onError;
+    void this.replaceJson(initialJson);
+  }
+
+  addEventListener<K extends keyof APIEventMap>(type: K, listener: Listener<K, API>): void;
+
+  addEventListener(type: string, listener: EventListenerOrEventListenerObject): void;
+
+  addEventListener(type: string, listener: EventListenerOrEventListenerObject): void {
+    return super.addEventListener(type, listener);
+  }
+
+  removeEventListener<K extends keyof APIEventMap>(type: K, listener: Listener<K, API>): void;
+
+  removeEventListener(type: string, listener: EventListenerOrEventListenerObject): void;
+
+  removeEventListener(type: string, listener: EventListenerOrEventListenerObject): void {
+    return super.removeEventListener(type, listener);
+  }
+
+  get state(): 'idle' | 'busy' {
+    return this.#state;
+  }
+
+  get json(): APIJson {
+    return this.#json as APIJson;
+  }
+
+  protected setState(state: 'idle' | 'busy', emitUpdate = true): void {
+    this.#state = state;
+
+    if (emitUpdate) {
+      this.dispatchEvent(new Event('update'));
+    }
+  }
+
+  protected mutateJson(mutator: (json: MutableAPIJson) => void): void {
+    mutator(this.#json);
+    this.dispatchEvent(new Event('update'));
+  }
+
+  protected async replaceJson(nextJson: APIJson): Promise<void> {
+    const resolvedJson = await resolveIncomingApiJson(nextJson);
+    const previousJson = JSON.stringify(this.#json);
+    const nextResolvedJson = JSON.stringify(resolvedJson);
+
+    this.#json = resolvedJson;
+
+    if (previousJson !== nextResolvedJson) {
+      this.dispatchEvent(new Event('update'));
+    }
+  }
+
+  protected dispatchCancelable<K extends EventWithoutDetailName>(type: K): boolean;
+  protected dispatchCancelable<K extends EventWithDetailName>(type: K, detail: EventDetail<K>): boolean;
+  protected dispatchCancelable<K extends EventName>(type: K, detail?: EventDetail<K>): boolean {
+    const event =
+      detail === undefined
+        ? new Event(type, { cancelable: true })
+        : new CustomEvent(type, { cancelable: true, detail });
+
+    return this.dispatchEvent(event);
+  }
+
+  protected addErrorMessage(message: string, context = 'sdk'): void {
+    this.mutateJson(json => {
+      json.messages.push({ context, message, level: 'error' });
+    });
   }
 
   updateItemQuantity = (...params: { id: number; quantity: number }[]): void => {
-    const payload: Record<string, Stringifiable> = {};
+    const payload: Record<string, string | number | boolean | null | undefined> = {};
 
     for (const [index, param] of params.entries()) {
       if (!isPositiveInteger(param.id) || !isNonNegativeInteger(param.quantity)) {
@@ -102,7 +249,7 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
   };
 
   removeItem = (...params: { id: number }[]): void => {
-    const payload: Record<string, Stringifiable> = {};
+    const payload: Record<string, string | number | boolean | null | undefined> = {};
 
     for (const [index, param] of params.entries()) {
       if (!isPositiveInteger(param.id)) {
@@ -399,7 +546,7 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
       return;
     }
 
-    const payload: Record<string, Stringifiable> = {};
+    const payload: Record<string, string | number | boolean | null | undefined> = {};
 
     const map: Array<[keyof typeof params, string]> = [
       ['first_name', `shipto_${index}_first_name`],
@@ -591,7 +738,7 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
     return (await response.json()) as unknown;
   }
 
-  checkOut = (paymentMethod: unknown): void => {
+  checkOut = (paymentMethod: CheckOutPaymentOption): void => {
     if (!this.dispatchCancelable('checkout')) {
       return;
     }
@@ -621,7 +768,7 @@ export class HttpCheckoutAPI extends BaseCheckoutAPI {
     }
   }
 
-  private resolveUrl(path: string, query?: Record<string, Stringifiable>): string {
+  private resolveUrl(path: string, query?: Record<string, string | number | boolean | null | undefined>): string {
     const base = this.#baseUrl.replace(/\/$/, '');
     const normalizedPath = path.startsWith('/') ? path : `/${path}`;
     const suffix = query ? `?${toQueryString(query)}` : '';

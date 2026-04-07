@@ -4,7 +4,7 @@
 
 import type { APIJson } from '../../src/checkout/types';
 
-import { HttpCheckoutAPI } from '../../src/checkout/implementations/http-api';
+import { HttpCheckoutAPI } from '../../src/checkout/API';
 
 const APPLE_PAY_JS_API_URL = 'https://applepay.cdn-apple.com/jsapi/v1/apple-pay-sdk.js';
 
