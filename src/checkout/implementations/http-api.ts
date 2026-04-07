@@ -12,7 +12,7 @@ import {
 
 type FetchLike = typeof fetch;
 
-type HttpCheckoutAPIOptions = {
+export type HttpCheckoutAPIOptions = {
   baseUrl?: string;
   fetch?: FetchLike;
   initialState?: 'idle' | 'busy';
