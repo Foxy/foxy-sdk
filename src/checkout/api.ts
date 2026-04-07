@@ -246,6 +246,13 @@ export abstract class API extends EventTarget {
   abstract logError(error: Error): void;
 
   /**
+   * Validates the merchant URL for Apple Pay transactions.
+   * Calls `POST /checkout?action=validate_merchant&validationURL=ABC`.
+   * This is a helper method – `API.json` is not updated and no events are fired.
+   */
+  abstract validateApplePayMerchant(params: { validationURL: string }): Promise<unknown>;
+
+  /**
    * Submits the order with the given payment method details.
    * Calls `POST /checkout?action=submit` with payment method details in the body.
    * Fires a cancelable `checkout` event before submitting the order.
@@ -262,7 +269,7 @@ export abstract class API extends EventTarget {
   abstract checkOut: (
     paymentOption:
       | { gateway: StandardACHGateway; ach_token: string }
-      | { gateway: StandardCardGateway; card_token: string }
+      | { gateway: StandardCardGateway; card_token: string; card_token_format?: 'apple-pay' | 'google-pay' | 'default' }
       | { gateway: StandardRedirectGateway }
       | { gateway: StripeConnectGateway; payment_method_id: string }
       | ({ gateway: StripeV2Gateway } & Record<string, unknown>)
