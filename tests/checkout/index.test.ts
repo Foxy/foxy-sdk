@@ -4,7 +4,7 @@
 
 import * as Checkout from '../../src/checkout';
 
-import { HttpCheckoutAPI } from '../../src/checkout/implementations/http-api';
+import { HttpCheckoutAPI } from '../../src/checkout/API';
 
 describe('Checkout', () => {
   it('exports concrete API class as API', () => {

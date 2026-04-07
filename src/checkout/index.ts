@@ -26,13 +26,7 @@ export type {
   CardEmbedTokenizeErrorCode,
 } from './types';
 
-export { HttpCheckoutAPI as API } from './implementations/http-api';
-export type { HttpCheckoutAPIOptions as APIOptions } from './implementations/http-api';
-export { canMakeApplePayPayments, ensureApplePayScriptLoaded } from './implementations/base-api';
-export {
-  loadGooglePaySdk,
-  ensureGooglePayScriptLoaded,
-  createGooglePaymentsClient,
-  canMakeGooglePayPayments,
-} from './implementations/base-api';
-export type { GooglePaymentsClient } from './implementations/base-api';
+export type { APIOptions } from './API';
+export type { GooglePaymentsClient } from './types';
+
+export { API } from './API';

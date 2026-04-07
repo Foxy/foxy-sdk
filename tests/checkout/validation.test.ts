@@ -1,9 +1,4 @@
-import {
-  isNonNegativeInteger,
-  isPositiveInteger,
-  isValidEmail,
-  validateCustomFields,
-} from '../../src/checkout/implementations/validation';
+import { isNonNegativeInteger, isPositiveInteger, isValidEmail, validateCustomFields } from '../../src/checkout/v8n';
 
 describe('Checkout validation', () => {
   it('validates email addresses', () => {

@@ -1,6 +1,6 @@
-import type { APIEventMap } from "./api-event-map";
+import type { APIEventMap } from './APIEventMap';
 
 export type Listener<TAPIEventMap extends keyof APIEventMap, TAPI> = (
   this: TAPI,
-  event: APIEventMap[TAPIEventMap],
+  event: APIEventMap[TAPIEventMap]
 ) => void;
