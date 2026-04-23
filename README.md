@@ -10,16 +10,16 @@ Install the package:
 npm i @foxy.io/sdk
 ```
 
-Then import using CommonJS (Node 10-12):
+Then import using CommonJS (Node 22+):
 
 ```js
-const FoxySDK = require('@foxy.io/sdk');
+const FoxySDK = require("@foxy.io/sdk");
 ```
 
-or ES Modules (Node 13+, TypeScript, browsers):
+or ES Modules (Node 22+, TypeScript, browsers):
 
 ```js
-import * as FoxySDK from '@foxy.io/sdk';
+import * as FoxySDK from "@foxy.io/sdk";
 ```
 
 ## Getting started
@@ -34,9 +34,9 @@ Backend and Customer export API client classes for working with the respective e
 
 ```js
 const api = new FoxySDK.Backend.API({
-  refreshToken: 'your refresh token',
-  clientSecret: 'your client secret',
-  clientId: 'your client id',
+  refreshToken: "your refresh token",
+  clientSecret: "your client secret",
+  clientId: "your client id",
 });
 ```
 
@@ -49,7 +49,7 @@ Regardless of the API type you're working with, you'll see the same methods on e
 To access a hAPI endpoint, you don't type in a URL – instead you traverse the API graph via links until you reach your target. For example, to see your transactions, you need to load the bookmark URL (`https://api.foxy.io/`), load your store at `bookmark._links['fx:store'].href` and only then get to the transactions at `store._links['fx:transactions'].href`. With our SDK this lengthy process becomes a one-liner:
 
 ```js
-const transactionsNode = api.follow('fx:store').follow('fx:transactions');
+const transactionsNode = api.follow("fx:store").follow("fx:transactions");
 ```
 
 String bits that start with `fx:` are called Compact URIs (or curies for short), and if you're using an editor that supports code autocompletion based on TypeScript definitions, we'll provide suggestions for available curies where possible.
@@ -78,9 +78,9 @@ Quite often you'll need to fetch a specific set of items, maybe apply some filte
 
 ```js
 const transactionsResponse = await transactionsNode.get({
-  zoom: { customer: ['default_billing_address'] },
-  filters: ['total_order:greaterthan=50', 'attributes:name[color]=red'],
-  fields: ['id', 'total_order', 'currency_code'],
+  zoom: { customer: ["default_billing_address"] },
+  filters: ["total_order:greaterthan=50", "attributes:name[color]=red"],
+  fields: ["id", "total_order", "currency_code"],
   offset: 25,
   limit: 10,
 });
@@ -99,7 +99,11 @@ const nextTransactionsPage = await transactions._links.next.get();
 It also works with embedded resources and following, and you'll get autocompletion and type checking all the way through:
 
 ```js
-const recentSubscriptions = await transactions._embedded['fx:customer']._links['fx:subscriptions'].follow('last').get();
+const recentSubscriptions = await transactions._embedded["fx:customer"]._links[
+  "fx:subscriptions"
+]
+  .follow("last")
+  .get();
 ```
 
 ## Development
