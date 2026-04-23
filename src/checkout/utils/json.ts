@@ -1,8 +1,7 @@
 import type { APIJson } from '../types';
-import cloneDeep from 'lodash/cloneDeep';
 
 export type MutableAPIJson = APIJson;
 
-export const cloneApiJson: (json: APIJson) => MutableAPIJson = cloneDeep;
+export const cloneApiJson = (json: APIJson): MutableAPIJson => structuredClone(json);
 
-export const toMutable = cloneDeep;
+export const toMutable = <T>(value: T): T => structuredClone(value);
