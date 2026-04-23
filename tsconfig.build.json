@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": []
+  },
+  "include": ["src/index.ts", "src/checkout/**/*"],
+  "exclude": [
+    "src/tests/**/*",
+    "src/**/__tests__/**/*",
+    "src/**/*.test.ts",
+    "src/**/*.spec.ts"
+  ]
+}

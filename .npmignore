@@ -1,12 +1,6 @@
-!dist/
-src/
-tests/
-.vscode/
-.coverage/
-.eslintrc.json
-.prettierrc
-.eslintcache
-.babelrc
-.env
-jest.config.json
-tsconfig.json
+# exclude everything by default
+*
+# then include only files inside /dist/
+!dist/**/*
+# except for system files
+.DS_Store

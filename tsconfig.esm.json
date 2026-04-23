@@ -1,7 +1,6 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "module": "ES2015",
-    "plugins": [{ "transform": "./build/switch-lodash.ts" }]
+    "module": "ES2015"
   }
 }
