@@ -1,6 +1,6 @@
 {
   "name": "foxy-sdk",
-  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-20-bookworm",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-22-bookworm",
   "mounts": [
     "source=${localEnv:HOME}/.ssh,target=/home/node/.ssh,type=bind,consistency=cached"
   ],
