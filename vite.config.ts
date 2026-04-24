@@ -18,6 +18,8 @@ const builtins = new Set([
 const entryMap = {
   index: resolve(__dirname, "src/index.ts"),
   checkout: resolve(__dirname, "src/checkout/index.ts"),
+  "checkout/client": resolve(__dirname, "src/checkout/client.ts"),
+  "checkout/loader": resolve(__dirname, "src/checkout/loader.ts"),
 };
 
 function isExternal(id: string): boolean {

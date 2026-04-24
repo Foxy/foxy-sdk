@@ -11,8 +11,16 @@
       "import": "./dist/npm/index.js"
     },
     "./checkout": {
-      "types": "./dist/npm/checkout/index.d.ts",
-      "import": "./dist/npm/checkout/index.js"
+      "types": "./dist/npm/checkout.d.ts",
+      "import": "./dist/npm/checkout.js"
+    },
+    "./checkout/loader": {
+      "types": "./dist/npm/checkout/loader.d.ts",
+      "import": "./dist/npm/checkout/loader.js"
+    },
+    "./checkout/client": {
+      "types": "./dist/npm/checkout/client.d.ts",
+      "import": "./dist/npm/checkout/client.js"
     }
   },
   "scripts": {
