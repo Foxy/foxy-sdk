@@ -75,7 +75,8 @@ class TestHttpCheckoutAPI extends HttpCheckoutAPI {
 }
 
 function createTestApi(json: APIJson): TestHttpCheckoutAPI {
-  return new TestHttpCheckoutAPI(json, {
+  return new TestHttpCheckoutAPI({
+    initialJson: json,
     fetch: (vi.fn() as unknown) as typeof fetch,
   });
 }
@@ -277,7 +278,7 @@ describe('Apple Pay payment option filtering', () => {
 
     await flushTasks();
 
-    expect(api.json.payment_options).toEqual([cardOption]);
+    expect(api.json!.payment_options).toEqual([cardOption]);
     expect(warnSpy).toHaveBeenCalledWith(
       'Apple Pay payment options were removed because checkout API JSON was processed outside a browser environment.'
     );
@@ -289,12 +290,12 @@ describe('Apple Pay payment option filtering', () => {
 
     const api = createTestApi(createApiJson([applePayOption, cardOption]));
 
-    expect(api.json.payment_options).toEqual([applePayOption, cardOption]);
+    expect(api.json!.payment_options).toEqual([applePayOption, cardOption]);
 
     await rejectApplePayScriptLoad();
     await flushTasks();
 
-    expect(api.json.payment_options).toEqual([cardOption]);
+    expect(api.json!.payment_options).toEqual([cardOption]);
     expect(warnSpy).toHaveBeenCalledWith(
       'Apple Pay payment options were removed because Apple Pay is not available in this browser.'
     );
@@ -306,11 +307,11 @@ describe('Apple Pay payment option filtering', () => {
 
     const api = createTestApi(createApiJson([applePayOption, cardOption]));
 
-    expect(api.json.payment_options).toEqual([applePayOption, cardOption]);
+    expect(api.json!.payment_options).toEqual([applePayOption, cardOption]);
 
     await resolveApplePayScriptLoad(true);
 
-    expect(api.json.payment_options).toEqual([applePayOption, cardOption]);
+    expect(api.json!.payment_options).toEqual([applePayOption, cardOption]);
     expect(warnSpy).not.toHaveBeenCalled();
   });
 
@@ -321,12 +322,12 @@ describe('Apple Pay payment option filtering', () => {
 
     const replacePromise = api.replaceJsonForTesting(createApiJson([applePayOption, cardOption]));
 
-    expect(api.json.payment_options).toEqual([cardOption]);
+    expect(api.json!.payment_options).toEqual([cardOption]);
 
     await resolveApplePayScriptLoad(true);
     await replacePromise;
 
-    expect(api.json.payment_options).toEqual([applePayOption, cardOption]);
+    expect(api.json!.payment_options).toEqual([applePayOption, cardOption]);
     expect(warnSpy).not.toHaveBeenCalled();
   });
 });
