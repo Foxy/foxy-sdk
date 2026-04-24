@@ -92,6 +92,10 @@ export type APIOptions = {
   onError?: (error: Error) => void;
 };
 
+export type APIConstructorParams = APIOptions & {
+  initialJson?: APIJson;
+};
+
 /**
  * This is going to be under SDK.Checkout.API in the @foxy.io/sdk package.
  * Pages using loader.js will have an initialized instance under window.Foxy.api.
@@ -100,7 +104,7 @@ export type APIOptions = {
  */
 export class API extends EventTarget {
   #state: 'idle' | 'busy';
-  #json: MutableAPIJson;
+  #json: MutableAPIJson | null;
   readonly #baseUrl: string;
   readonly #fetch: FetchLike;
   readonly #onError?: (error: Error) => void;
@@ -137,14 +141,25 @@ export class API extends EventTarget {
     return canMakeGooglePayPaymentsUtil(allowedPaymentMethod);
   }
 
-  constructor(initialJson: APIJson, options: APIOptions = {}) {
+  constructor(params: APIConstructorParams = {}) {
     super();
-    this.#json = cloneApiJson(initialJson);
-    this.#state = options.initialState ?? 'idle';
-    this.#baseUrl = options.baseUrl ?? '';
-    this.#fetch = options.fetch ?? fetch;
-    this.#onError = options.onError;
-    void this.replaceJson(initialJson);
+    const { initialJson, baseUrl = '', fetch: fetchImpl = fetch, initialState, onError } = params;
+    this.#baseUrl = baseUrl;
+    this.#fetch = fetchImpl;
+    this.#onError = onError;
+
+    if (initialJson !== undefined) {
+      this.#json = cloneApiJson(initialJson);
+      this.#state = initialState ?? 'idle';
+      void this.replaceJson(initialJson);
+    } else {
+      this.#json = null;
+      this.#state = initialState ?? 'busy';
+      void this.runMutation(async () => {
+        const nextJson = await this.getJson('/cart');
+        await this.replaceJson(nextJson);
+      });
+    }
   }
 
   addEventListener<K extends keyof APIEventMap>(type: K, listener: Listener<K, API>): void;
@@ -167,8 +182,8 @@ export class API extends EventTarget {
     return this.#state;
   }
 
-  get json(): APIJson {
-    return this.#json as APIJson;
+  get json(): APIJson | null {
+    return this.#json as APIJson | null;
   }
 
   protected setState(state: 'idle' | 'busy', emitUpdate = true): void {
@@ -180,6 +195,7 @@ export class API extends EventTarget {
   }
 
   protected mutateJson(mutator: (json: MutableAPIJson) => void): void {
+    if (!this.#json) return;
     mutator(this.#json);
     this.dispatchEvent(new Event('update'));
   }
@@ -208,12 +224,14 @@ export class API extends EventTarget {
   }
 
   protected addErrorMessage(message: string, context = 'sdk'): void {
+    if (!this.#json) return;
     this.mutateJson(json => {
       json.messages.push({ context, message, level: 'error' });
     });
   }
 
   updateItemQuantity = (...params: { id: number; quantity: number }[]): void => {
+    if (!this.json) return;
     const payload: Record<string, string | number | boolean | null | undefined> = {};
 
     for (const [index, param] of params.entries()) {
@@ -249,6 +267,7 @@ export class API extends EventTarget {
   };
 
   removeItem = (...params: { id: number }[]): void => {
+    if (!this.json) return;
     const payload: Record<string, string | number | boolean | null | undefined> = {};
 
     for (const [index, param] of params.entries()) {
@@ -311,6 +330,7 @@ export class API extends EventTarget {
   };
 
   removeCouponCode = (params: { couponId: number }): void => {
+    if (!this.json) return;
     if (!isPositiveInteger(params.couponId)) {
       this.addErrorMessage('Coupon id must be a positive integer.', 'coupon-remove');
       return;
@@ -336,6 +356,7 @@ export class API extends EventTarget {
   };
 
   removeGiftCardCode = (params: { giftCardId: number }): void => {
+    if (!this.json) return;
     if (!isPositiveInteger(params.giftCardId)) {
       this.addErrorMessage('Gift card id must be a positive integer.', 'gift-card-remove');
       return;
@@ -361,6 +382,7 @@ export class API extends EventTarget {
   };
 
   addMessage(params: APIJson['messages'][number]): number {
+    if (!this.json) return -1;
     if (!this.dispatchCancelable('messages-add', { message: params })) {
       return -1;
     }
@@ -373,6 +395,7 @@ export class API extends EventTarget {
   }
 
   removeMessage(index: number): void {
+    if (!this.json) return;
     if (!isNonNegativeInteger(index)) {
       this.addErrorMessage('Message index must be a non-negative integer.', 'messages-remove');
       return;
@@ -425,7 +448,7 @@ export class API extends EventTarget {
   }
 
   requestTemporaryPassword(email?: string): void {
-    const emailToUse = (email ?? this.json.customer.email ?? '').trim();
+    const emailToUse = (email ?? this.json?.customer.email ?? '').trim();
 
     if (!isValidEmail(emailToUse)) {
       this.addErrorMessage('A valid email is required for temporary password request.', 'temporary-password-request');
@@ -508,6 +531,7 @@ export class API extends EventTarget {
       return;
     }
 
+    if (!this.json) return;
     const shipment = this.json.shipments[index];
     if (!shipment) {
       this.addErrorMessage(`Shipment ${index} was not found.`, 'shipment-update');
@@ -592,6 +616,7 @@ export class API extends EventTarget {
       country: string;
     }>
   ): void => {
+    if (!this.json) return;
     const nextAddress = {
       ...this.json.billing_address,
       ...params,
@@ -701,7 +726,7 @@ export class API extends EventTarget {
   }
 
   logError(error: Error): void {
-    if (this.json.debug) {
+    if (this.json?.debug) {
       console.error(error);
     }
 
@@ -784,6 +809,16 @@ export class API extends EventTarget {
       },
       body: toFormData({ ...body, output: 'json' }),
     });
+
+    if (!response.ok) {
+      throw this.createRequestError(response.status, `Request failed for ${path}.`);
+    }
+
+    return (await response.json()) as APIJson;
+  }
+
+  private async getJson(path: string): Promise<APIJson> {
+    const response = await this.#fetch(this.resolveUrl(path, { output: 'json' }));
 
     if (!response.ok) {
       throw this.createRequestError(response.status, `Request failed for ${path}.`);
