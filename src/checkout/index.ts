@@ -24,9 +24,9 @@ export type {
   AchHostedFieldsTokenizeErrorCode,
   CardValidationField,
   CardEmbedTokenizeErrorCode,
-} from './types';
+} from "./types";
 
-export type { APIOptions } from './API';
-export type { GooglePaymentsClient } from './types';
+export type { APIOptions } from "./API";
+export type { GooglePaymentsClient } from "./types";
 
-export { API } from './API';
+export { API } from "./API";

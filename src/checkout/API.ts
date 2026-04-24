@@ -128,7 +128,7 @@ type CheckOutPaymentOption =
   | ({ gateway: StripeV2Gateway } & Record<string, unknown>);
 
 export type APIOptions = {
-  storeDomain: string;
+  storeDomain?: string;
   initialState?: "idle" | "busy";
   onError?: (error: Error) => void;
 };
@@ -146,7 +146,7 @@ export type APIConstructorParams = APIOptions & {
 export class API extends EventTarget {
   #state: "idle" | "busy";
   #json: MutableAPIJson | null;
-  readonly #baseUrl: string;
+  #baseUrl: string | null;
   readonly #onError?: (error: Error) => void;
 
   static canMakeApplePayPayments(): boolean {
@@ -185,10 +185,12 @@ export class API extends EventTarget {
     return canMakeGooglePayPaymentsUtil(allowedPaymentMethod);
   }
 
-  constructor(params: APIConstructorParams) {
+  constructor(params?: APIConstructorParams) {
     super();
-    const { initialJson, storeDomain, initialState, onError } = params;
-    this.#baseUrl = resolveBaseUrlFromStoreDomain(storeDomain);
+    const { initialJson, storeDomain, initialState, onError } = params ?? {};
+    this.#baseUrl = storeDomain
+      ? resolveBaseUrlFromStoreDomain(storeDomain)
+      : null;
     this.#onError = onError;
 
     if (initialJson !== undefined) {
@@ -197,7 +199,7 @@ export class API extends EventTarget {
       void this.replaceJson(initialJson);
     } else {
       this.#json = null;
-      this.#state = initialState ?? "busy";
+      this.#state = initialState ?? (this.#baseUrl ? "busy" : "idle");
 
       // WHY USE SETTIMEOUT:
       // An instance of this API is exposed via a loader.js script used both by us on our
@@ -208,7 +210,7 @@ export class API extends EventTarget {
       // JSON loading that may be happening in the same tick, which allows us to avoid an
       // unnecessary additional request for the JSON data on our hosted pages.
       setTimeout(() => {
-        if (this.#json !== null) return;
+        if (this.#json !== null || !this.#baseUrl) return;
 
         void this.runMutation(async () => {
           const nextJson = await this.getJson("/cart");
@@ -258,6 +260,19 @@ export class API extends EventTarget {
 
   get json(): APIJson | null {
     return this.#json as APIJson | null;
+  }
+
+  setStoreDomain(storeDomain: string): void {
+    this.#baseUrl = resolveBaseUrlFromStoreDomain(storeDomain);
+
+    if (this.#json !== null || this.#state === "busy") {
+      return;
+    }
+
+    void this.runMutation(async () => {
+      const nextJson = await this.getJson("/cart");
+      await this.replaceJson(nextJson);
+    });
   }
 
   protected setState(state: "idle" | "busy", emitUpdate = true): void {
@@ -315,6 +330,8 @@ export class API extends EventTarget {
   updateItemQuantity = (
     ...params: { id: number; quantity: number }[]
   ): void => {
+    this.assertStoreDomain();
+
     if (!this.json) return;
     const payload: Record<
       string,
@@ -362,6 +379,8 @@ export class API extends EventTarget {
   };
 
   removeItem = (...params: { id: number }[]): void => {
+    this.assertStoreDomain();
+
     if (!this.json) return;
     const payload: Record<
       string,
@@ -401,6 +420,8 @@ export class API extends EventTarget {
   };
 
   clearCart = (reset?: boolean): void => {
+    this.assertStoreDomain();
+
     if (!this.dispatchCancelable("cart-clear")) {
       return;
     }
@@ -414,6 +435,8 @@ export class API extends EventTarget {
   };
 
   applyCouponOrGiftCardCode = (params: { code: string }): void => {
+    this.assertStoreDomain();
+
     const code = params.code.trim();
 
     if (!code) {
@@ -438,6 +461,8 @@ export class API extends EventTarget {
   };
 
   removeCouponCode = (params: { couponId: number }): void => {
+    this.assertStoreDomain();
+
     if (!this.json) return;
     if (!isPositiveInteger(params.couponId)) {
       this.addErrorMessage(
@@ -472,6 +497,8 @@ export class API extends EventTarget {
   };
 
   removeGiftCardCode = (params: { giftCardId: number }): void => {
+    this.assertStoreDomain();
+
     if (!this.json) return;
     if (!isPositiveInteger(params.giftCardId)) {
       this.addErrorMessage(
@@ -557,6 +584,8 @@ export class API extends EventTarget {
   }
 
   setEmail(email: string, mode?: "guest" | "registered"): void {
+    this.assertStoreDomain();
+
     const normalizedEmail = email.trim();
 
     if (!isValidEmail(normalizedEmail)) {
@@ -578,6 +607,8 @@ export class API extends EventTarget {
   }
 
   requestTemporaryPassword(email?: string): void {
+    this.assertStoreDomain();
+
     const emailToUse = (email ?? this.json?.customer.email ?? "").trim();
 
     if (!isValidEmail(emailToUse)) {
@@ -606,6 +637,8 @@ export class API extends EventTarget {
   }
 
   signIn = (params: { email: string; password: string }): void => {
+    this.assertStoreDomain();
+
     const email = params.email.trim();
     const password = params.password;
 
@@ -633,6 +666,8 @@ export class API extends EventTarget {
   };
 
   signOut(): void {
+    this.assertStoreDomain();
+
     if (!this.dispatchCancelable("sign-out")) {
       return;
     }
@@ -661,6 +696,8 @@ export class API extends EventTarget {
       shipping_service_id: number | null;
     }>,
   ): void => {
+    this.assertStoreDomain();
+
     const index = params.index ?? 0;
 
     if (!isNonNegativeInteger(index)) {
@@ -765,6 +802,8 @@ export class API extends EventTarget {
       country: string;
     }>,
   ): void => {
+    this.assertStoreDomain();
+
     if (!this.json) return;
     const nextAddress = {
       ...this.json.billing_address,
@@ -812,6 +851,8 @@ export class API extends EventTarget {
   };
 
   setCustomFields = (fields: CustomFields): void => {
+    this.assertStoreDomain();
+
     const errors = validateCustomFields(fields);
     if (errors.length > 0) {
       for (const error of errors) {
@@ -843,6 +884,8 @@ export class API extends EventTarget {
       postal_code: string;
     }>
   > {
+    this.assertStoreDomain();
+
     const postalCode = params.postalCode.trim();
     const country = params.country.trim().toUpperCase();
 
@@ -882,6 +925,8 @@ export class API extends EventTarget {
   }
 
   logError(error: Error): void {
+    this.assertStoreDomain();
+
     if (this.json?.debug) {
       console.error(error);
     }
@@ -900,6 +945,8 @@ export class API extends EventTarget {
   async validateApplePayMerchant(params: {
     validationURL: string;
   }): Promise<unknown> {
+    this.assertStoreDomain();
+
     const validationURL = params.validationURL.trim();
 
     if (!validationURL) {
@@ -928,6 +975,8 @@ export class API extends EventTarget {
   }
 
   checkOut = (paymentMethod: CheckOutPaymentOption): void => {
+    this.assertStoreDomain();
+
     if (!this.dispatchCancelable("checkout")) {
       return;
     }
@@ -962,11 +1011,21 @@ export class API extends EventTarget {
     path: string,
     query?: Record<string, string | number | boolean | null | undefined>,
   ): string {
-    const base = this.#baseUrl.replace(/\/$/, "");
+    const base = this.assertStoreDomain().replace(/\/$/, "");
     const normalizedPath = path.startsWith("/") ? path : `/${path}`;
     const suffix = query ? `?${toQueryString(query)}` : "";
 
     return `${base}${normalizedPath}${suffix}`;
+  }
+
+  private assertStoreDomain(): string {
+    if (!this.#baseUrl) {
+      throw new Error(
+        "This API instance is inactive until storeDomain is set.",
+      );
+    }
+
+    return this.#baseUrl;
   }
 
   private async postJson(

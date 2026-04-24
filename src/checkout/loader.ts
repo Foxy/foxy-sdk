@@ -1,10 +1,7 @@
-import { API } from "./API";
+import { client } from "./client";
 
-// This script must be imported with ?store=my-store-domain in the URL
-// to ensure the API is initialized with the correct store domain. On Foxy-hosted
-// pages, this script can be imported without the query parameter.
+client.setStoreDomain(
+  new URL(import.meta.url).searchParams.get("store") ?? location.hostname,
+);
 
-export const api = new API({
-  storeDomain:
-    new URL(import.meta.url).searchParams.get("store") ?? location.hostname,
-});
+export { client };
