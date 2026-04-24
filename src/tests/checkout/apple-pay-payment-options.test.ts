@@ -75,10 +75,7 @@ class TestHttpCheckoutAPI extends HttpCheckoutAPI {
 }
 
 function createTestApi(json: APIJson): TestHttpCheckoutAPI {
-  return new TestHttpCheckoutAPI({
-    initialJson: json,
-    fetch: (vi.fn() as unknown) as typeof fetch,
-  });
+  return new TestHttpCheckoutAPI({ initialJson: json, storeDomain: 'store.test' });
 }
 
 function createApiJson(payment_options?: APIJson['payment_options']): APIJson {

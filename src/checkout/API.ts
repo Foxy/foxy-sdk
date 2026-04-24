@@ -1,12 +1,17 @@
-import type { APIEventMap, APIJson, CustomFields, GooglePaymentsClient } from './types';
+import type {
+  APIEventMap,
+  APIJson,
+  CustomFields,
+  GooglePaymentsClient,
+} from "./types";
 import {
   StandardACHGateway,
   StandardCardGateway,
   StandardRedirectGateway,
   StripeConnectGateway,
   StripeV2Gateway,
-} from './types/PaymentOption';
-import type { Listener } from './types/Listener';
+} from "./types/PaymentOption";
+import type { Listener } from "./types/Listener";
 import {
   isNonNegativeInteger,
   isPositiveInteger,
@@ -14,20 +19,20 @@ import {
   validateBillingAddressParams,
   validateCustomFields,
   validateShipmentParams,
-} from './v8n';
-import { getApplePayAvailability, loadApplePaySdk } from './utils/applePay';
+} from "./v8n";
+import { getApplePayAvailability, loadApplePaySdk } from "./utils/applePay";
 import {
   canMakeGooglePayPayments as canMakeGooglePayPaymentsUtil,
   createGooglePaymentsClient as createGooglePaymentsClientUtil,
   loadGooglePaySdk as loadGooglePaySdkUtil,
-} from './utils/googlePay';
-import { cloneApiJson, toMutable } from './utils/json';
-import type { MutableAPIJson } from './utils/json';
-import { toFormData, toQueryString } from './utils/url';
+} from "./utils/googlePay";
+import { cloneApiJson, toMutable } from "./utils/json";
+import type { MutableAPIJson } from "./utils/json";
+import { toFormData, toQueryString } from "./utils/url";
 
-export type { MutableAPIJson } from './utils/json';
+export type { MutableAPIJson } from "./utils/json";
 export { cloneApiJson, toMutable };
-export type { GooglePaymentsClient } from './types';
+export type { GooglePaymentsClient } from "./types";
 
 type EventName = keyof APIEventMap;
 type EventWithDetailName = {
@@ -36,18 +41,51 @@ type EventWithDetailName = {
 
 type EventWithoutDetailName = Exclude<EventName, EventWithDetailName>;
 
-type EventDetail<K extends EventName> = APIEventMap[K] extends CustomEvent<infer D> ? D : never;
+type EventDetail<K extends EventName> =
+  APIEventMap[K] extends CustomEvent<infer D> ? D : never;
+
+function resolveBaseUrlFromStoreDomain(storeDomain: string): string {
+  const normalizedStoreDomain = storeDomain
+    .trim()
+    .replace(/^https?:\/\//, "")
+    .replace(/\/+$/, "");
+
+  if (!normalizedStoreDomain) {
+    throw new Error("storeDomain is required.");
+  }
+
+  if (normalizedStoreDomain.includes(".")) {
+    return `https://${normalizedStoreDomain}/`;
+  }
+
+  const foxycartDomain = import.meta.env.VITE_FOXYCART_DOMAIN;
+
+  if (!foxycartDomain) {
+    throw new Error(
+      "VITE_FOXYCART_DOMAIN is required when using a Foxy subdomain storeDomain.",
+    );
+  }
+
+  return `https://${normalizedStoreDomain}.${foxycartDomain}/`;
+}
 
 async function resolveIncomingApiJson(json: APIJson): Promise<MutableAPIJson> {
   const nextJson = cloneApiJson(json);
   const paymentOptions = nextJson.payment_options;
 
-  const hasApplePay = paymentOptions?.some(option => option.type === 'apple-pay');
-  const hasGooglePay = paymentOptions?.some(option => option.type === 'google-pay');
+  const hasApplePay = paymentOptions?.some(
+    (option) => option.type === "apple-pay",
+  );
+  const hasGooglePay = paymentOptions?.some(
+    (option) => option.type === "google-pay",
+  );
 
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     if (hasApplePay && hasGooglePay) {
-      await Promise.all([API.ensureApplePayScriptLoaded(), API.ensureGooglePayScriptLoaded()]);
+      await Promise.all([
+        API.ensureApplePayScriptLoaded(),
+        API.ensureGooglePayScriptLoaded(),
+      ]);
     } else if (hasApplePay) {
       await API.ensureApplePayScriptLoaded();
     } else if (hasGooglePay) {
@@ -61,34 +99,37 @@ async function resolveIncomingApiJson(json: APIJson): Promise<MutableAPIJson> {
 
   const applePayAvailability = getApplePayAvailability();
 
-  if (applePayAvailability === 'available') {
+  if (applePayAvailability === "available") {
     return nextJson;
   }
 
-  nextJson.payment_options = paymentOptions!.filter(option => option.type !== 'apple-pay');
+  nextJson.payment_options = paymentOptions!.filter(
+    (option) => option.type !== "apple-pay",
+  );
 
   console.warn(
-    applePayAvailability === 'non-browser'
-      ? 'Apple Pay payment options were removed because checkout API JSON was processed outside a browser environment.'
-      : 'Apple Pay payment options were removed because Apple Pay is not available in this browser.'
+    applePayAvailability === "non-browser"
+      ? "Apple Pay payment options were removed because checkout API JSON was processed outside a browser environment."
+      : "Apple Pay payment options were removed because Apple Pay is not available in this browser.",
   );
 
   return nextJson;
 }
 
-type FetchLike = typeof fetch;
-
 type CheckOutPaymentOption =
   | { gateway: StandardACHGateway; ach_token: string }
-  | { gateway: StandardCardGateway; card_token: string; card_token_format?: 'apple-pay' | 'google-pay' | 'default' }
+  | {
+      gateway: StandardCardGateway;
+      card_token: string;
+      card_token_format?: "apple-pay" | "google-pay" | "default";
+    }
   | { gateway: StandardRedirectGateway }
   | { gateway: StripeConnectGateway; payment_method_id: string }
   | ({ gateway: StripeV2Gateway } & Record<string, unknown>);
 
 export type APIOptions = {
-  baseUrl?: string;
-  fetch?: FetchLike;
-  initialState?: 'idle' | 'busy';
+  storeDomain: string;
+  initialState?: "idle" | "busy";
   onError?: (error: Error) => void;
 };
 
@@ -103,14 +144,13 @@ export type APIConstructorParams = APIOptions & {
  * Fires non-cancelable `update` event whenever `API.json` is updated from the server.
  */
 export class API extends EventTarget {
-  #state: 'idle' | 'busy';
+  #state: "idle" | "busy";
   #json: MutableAPIJson | null;
   readonly #baseUrl: string;
-  readonly #fetch: FetchLike;
   readonly #onError?: (error: Error) => void;
 
   static canMakeApplePayPayments(): boolean {
-    return getApplePayAvailability() === 'available';
+    return getApplePayAvailability() === "available";
   }
 
   static async ensureApplePayScriptLoaded(): Promise<void> {
@@ -133,52 +173,86 @@ export class API extends EventTarget {
     }
   }
 
-  static async createGooglePaymentsClient(environment: 'TEST' | 'PRODUCTION' = 'TEST'): Promise<GooglePaymentsClient> {
+  static async createGooglePaymentsClient(
+    environment: "TEST" | "PRODUCTION" = "TEST",
+  ): Promise<GooglePaymentsClient> {
     return createGooglePaymentsClientUtil(environment);
   }
 
-  static async canMakeGooglePayPayments(allowedPaymentMethod: Record<string, unknown>): Promise<boolean> {
+  static async canMakeGooglePayPayments(
+    allowedPaymentMethod: Record<string, unknown>,
+  ): Promise<boolean> {
     return canMakeGooglePayPaymentsUtil(allowedPaymentMethod);
   }
 
-  constructor(params: APIConstructorParams = {}) {
+  constructor(params: APIConstructorParams) {
     super();
-    const { initialJson, baseUrl = '', fetch: fetchImpl = fetch, initialState, onError } = params;
-    this.#baseUrl = baseUrl;
-    this.#fetch = fetchImpl;
+    const { initialJson, storeDomain, initialState, onError } = params;
+    this.#baseUrl = resolveBaseUrlFromStoreDomain(storeDomain);
     this.#onError = onError;
 
     if (initialJson !== undefined) {
       this.#json = cloneApiJson(initialJson);
-      this.#state = initialState ?? 'idle';
+      this.#state = initialState ?? "idle";
       void this.replaceJson(initialJson);
     } else {
       this.#json = null;
-      this.#state = initialState ?? 'busy';
-      void this.runMutation(async () => {
-        const nextJson = await this.getJson('/cart');
-        await this.replaceJson(nextJson);
-      });
+      this.#state = initialState ?? "busy";
+
+      // WHY USE SETTIMEOUT:
+      // An instance of this API is exposed via a loader.js script used both by us on our
+      // hosted pages and by merchants on theirs. When used on merchant pages, we want this client
+      // to automatically load the JSON data without any extra steps. On our hosted pages, however,
+      // we have an opportunity to inline that JSON data while rendering HTML server-side. By delaying
+      // the automatic JSON loading to the next tick, we give priority to any inline
+      // JSON loading that may be happening in the same tick, which allows us to avoid an
+      // unnecessary additional request for the JSON data on our hosted pages.
+      setTimeout(() => {
+        if (this.#json !== null) return;
+
+        void this.runMutation(async () => {
+          const nextJson = await this.getJson("/cart");
+          await this.replaceJson(nextJson);
+        });
+      }, 0);
     }
   }
 
-  addEventListener<K extends keyof APIEventMap>(type: K, listener: Listener<K, API>): void;
+  addEventListener<K extends keyof APIEventMap>(
+    type: K,
+    listener: Listener<K, API>,
+  ): void;
 
-  addEventListener(type: string, listener: EventListenerOrEventListenerObject): void;
+  addEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject,
+  ): void;
 
-  addEventListener(type: string, listener: EventListenerOrEventListenerObject): void {
+  addEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject,
+  ): void {
     return super.addEventListener(type, listener);
   }
 
-  removeEventListener<K extends keyof APIEventMap>(type: K, listener: Listener<K, API>): void;
+  removeEventListener<K extends keyof APIEventMap>(
+    type: K,
+    listener: Listener<K, API>,
+  ): void;
 
-  removeEventListener(type: string, listener: EventListenerOrEventListenerObject): void;
+  removeEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject,
+  ): void;
 
-  removeEventListener(type: string, listener: EventListenerOrEventListenerObject): void {
+  removeEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject,
+  ): void {
     return super.removeEventListener(type, listener);
   }
 
-  get state(): 'idle' | 'busy' {
+  get state(): "idle" | "busy" {
     return this.#state;
   }
 
@@ -186,18 +260,18 @@ export class API extends EventTarget {
     return this.#json as APIJson | null;
   }
 
-  protected setState(state: 'idle' | 'busy', emitUpdate = true): void {
+  protected setState(state: "idle" | "busy", emitUpdate = true): void {
     this.#state = state;
 
     if (emitUpdate) {
-      this.dispatchEvent(new Event('update'));
+      this.dispatchEvent(new Event("update"));
     }
   }
 
   protected mutateJson(mutator: (json: MutableAPIJson) => void): void {
     if (!this.#json) return;
     mutator(this.#json);
-    this.dispatchEvent(new Event('update'));
+    this.dispatchEvent(new Event("update"));
   }
 
   protected async replaceJson(nextJson: APIJson): Promise<void> {
@@ -208,13 +282,21 @@ export class API extends EventTarget {
     this.#json = resolvedJson;
 
     if (previousJson !== nextResolvedJson) {
-      this.dispatchEvent(new Event('update'));
+      this.dispatchEvent(new Event("update"));
     }
   }
 
-  protected dispatchCancelable<K extends EventWithoutDetailName>(type: K): boolean;
-  protected dispatchCancelable<K extends EventWithDetailName>(type: K, detail: EventDetail<K>): boolean;
-  protected dispatchCancelable<K extends EventName>(type: K, detail?: EventDetail<K>): boolean {
+  protected dispatchCancelable<K extends EventWithoutDetailName>(
+    type: K,
+  ): boolean;
+  protected dispatchCancelable<K extends EventWithDetailName>(
+    type: K,
+    detail: EventDetail<K>,
+  ): boolean;
+  protected dispatchCancelable<K extends EventName>(
+    type: K,
+    detail?: EventDetail<K>,
+  ): boolean {
     const event =
       detail === undefined
         ? new Event(type, { cancelable: true })
@@ -223,31 +305,44 @@ export class API extends EventTarget {
     return this.dispatchEvent(event);
   }
 
-  protected addErrorMessage(message: string, context = 'sdk'): void {
+  protected addErrorMessage(message: string, context = "sdk"): void {
     if (!this.#json) return;
-    this.mutateJson(json => {
-      json.messages.push({ context, message, level: 'error' });
+    this.mutateJson((json) => {
+      json.messages.push({ context, message, level: "error" });
     });
   }
 
-  updateItemQuantity = (...params: { id: number; quantity: number }[]): void => {
+  updateItemQuantity = (
+    ...params: { id: number; quantity: number }[]
+  ): void => {
     if (!this.json) return;
-    const payload: Record<string, string | number | boolean | null | undefined> = {};
+    const payload: Record<
+      string,
+      string | number | boolean | null | undefined
+    > = {};
 
     for (const [index, param] of params.entries()) {
-      if (!isPositiveInteger(param.id) || !isNonNegativeInteger(param.quantity)) {
-        this.addErrorMessage('Each item update requires a positive id and non-negative quantity.', 'item-update');
+      if (
+        !isPositiveInteger(param.id) ||
+        !isNonNegativeInteger(param.quantity)
+      ) {
+        this.addErrorMessage(
+          "Each item update requires a positive id and non-negative quantity.",
+          "item-update",
+        );
         return;
       }
 
-      const item = this.json.items.find(candidate => candidate.id === param.id);
+      const item = this.json.items.find(
+        (candidate) => candidate.id === param.id,
+      );
       if (!item) {
-        this.addErrorMessage(`Item ${param.id} was not found.`, 'item-update');
+        this.addErrorMessage(`Item ${param.id} was not found.`, "item-update");
         return;
       }
 
       if (
-        !this.dispatchCancelable('item-update', {
+        !this.dispatchCancelable("item-update", {
           oldItem: toMutable(item),
           newItem: toMutable({ ...item, quantity: param.quantity }),
         })
@@ -261,28 +356,36 @@ export class API extends EventTarget {
     }
 
     void this.runMutation(async () => {
-      const nextJson = await this.postJson('/cart', payload);
+      const nextJson = await this.postJson("/cart", payload);
       await this.replaceJson(nextJson);
     });
   };
 
   removeItem = (...params: { id: number }[]): void => {
     if (!this.json) return;
-    const payload: Record<string, string | number | boolean | null | undefined> = {};
+    const payload: Record<
+      string,
+      string | number | boolean | null | undefined
+    > = {};
 
     for (const [index, param] of params.entries()) {
       if (!isPositiveInteger(param.id)) {
-        this.addErrorMessage('Each remove call requires a positive item id.', 'item-remove');
+        this.addErrorMessage(
+          "Each remove call requires a positive item id.",
+          "item-remove",
+        );
         return;
       }
 
-      const item = this.json.items.find(candidate => candidate.id === param.id);
+      const item = this.json.items.find(
+        (candidate) => candidate.id === param.id,
+      );
       if (!item) {
-        this.addErrorMessage(`Item ${param.id} was not found.`, 'item-remove');
+        this.addErrorMessage(`Item ${param.id} was not found.`, "item-remove");
         return;
       }
 
-      if (!this.dispatchCancelable('item-remove', { item: toMutable(item) })) {
+      if (!this.dispatchCancelable("item-remove", { item: toMutable(item) })) {
         return;
       }
 
@@ -292,18 +395,20 @@ export class API extends EventTarget {
     }
 
     void this.runMutation(async () => {
-      const nextJson = await this.postJson('/cart', payload);
+      const nextJson = await this.postJson("/cart", payload);
       await this.replaceJson(nextJson);
     });
   };
 
   clearCart = (reset?: boolean): void => {
-    if (!this.dispatchCancelable('cart-clear')) {
+    if (!this.dispatchCancelable("cart-clear")) {
       return;
     }
 
     void this.runMutation(async () => {
-      const nextJson = await this.postJson('/cart', { empty: reset ? 'reset' : 'true' });
+      const nextJson = await this.postJson("/cart", {
+        empty: reset ? "reset" : "true",
+      });
       await this.replaceJson(nextJson);
     });
   };
@@ -312,16 +417,19 @@ export class API extends EventTarget {
     const code = params.code.trim();
 
     if (!code) {
-      this.addErrorMessage('Coupon or gift card code is required.', 'coupon-or-gift-card-apply');
+      this.addErrorMessage(
+        "Coupon or gift card code is required.",
+        "coupon-or-gift-card-apply",
+      );
       return;
     }
 
-    if (!this.dispatchCancelable('coupon-or-gift-card-apply', { code })) {
+    if (!this.dispatchCancelable("coupon-or-gift-card-apply", { code })) {
       return;
     }
 
     void this.runMutation(async () => {
-      const nextJson = await this.postJson('/cart', {
+      const nextJson = await this.postJson("/cart", {
         coupon: code,
         gift_card: code,
       });
@@ -332,23 +440,31 @@ export class API extends EventTarget {
   removeCouponCode = (params: { couponId: number }): void => {
     if (!this.json) return;
     if (!isPositiveInteger(params.couponId)) {
-      this.addErrorMessage('Coupon id must be a positive integer.', 'coupon-remove');
+      this.addErrorMessage(
+        "Coupon id must be a positive integer.",
+        "coupon-remove",
+      );
       return;
     }
 
-    const coupon = this.json.totals[0]?.coupons.find(candidate => candidate.id === params.couponId);
+    const coupon = this.json.totals[0]?.coupons.find(
+      (candidate) => candidate.id === params.couponId,
+    );
     if (!coupon) {
-      this.addErrorMessage(`Coupon ${params.couponId} was not found.`, 'coupon-remove');
+      this.addErrorMessage(
+        `Coupon ${params.couponId} was not found.`,
+        "coupon-remove",
+      );
       return;
     }
 
-    if (!this.dispatchCancelable('coupon-remove', { coupon })) {
+    if (!this.dispatchCancelable("coupon-remove", { coupon })) {
       return;
     }
 
     void this.runMutation(async () => {
-      const nextJson = await this.postJson('/cart', {
-        action: 'remove_coupon',
+      const nextJson = await this.postJson("/cart", {
+        action: "remove_coupon",
         coupon_id: params.couponId,
       });
       await this.replaceJson(nextJson);
@@ -358,36 +474,44 @@ export class API extends EventTarget {
   removeGiftCardCode = (params: { giftCardId: number }): void => {
     if (!this.json) return;
     if (!isPositiveInteger(params.giftCardId)) {
-      this.addErrorMessage('Gift card id must be a positive integer.', 'gift-card-remove');
+      this.addErrorMessage(
+        "Gift card id must be a positive integer.",
+        "gift-card-remove",
+      );
       return;
     }
 
-    const giftCard = this.json.totals[0]?.gift_cards.find(candidate => candidate.id === params.giftCardId);
+    const giftCard = this.json.totals[0]?.gift_cards.find(
+      (candidate) => candidate.id === params.giftCardId,
+    );
     if (!giftCard) {
-      this.addErrorMessage(`Gift card ${params.giftCardId} was not found.`, 'gift-card-remove');
+      this.addErrorMessage(
+        `Gift card ${params.giftCardId} was not found.`,
+        "gift-card-remove",
+      );
       return;
     }
 
-    if (!this.dispatchCancelable('gift-card-remove', { giftCard })) {
+    if (!this.dispatchCancelable("gift-card-remove", { giftCard })) {
       return;
     }
 
     void this.runMutation(async () => {
-      const nextJson = await this.postJson('/cart', {
-        action: 'remove_gift_card',
+      const nextJson = await this.postJson("/cart", {
+        action: "remove_gift_card",
         gift_card_id: params.giftCardId,
       });
       await this.replaceJson(nextJson);
     });
   };
 
-  addMessage(params: APIJson['messages'][number]): number {
+  addMessage(params: APIJson["messages"][number]): number {
     if (!this.json) return -1;
-    if (!this.dispatchCancelable('messages-add', { message: params })) {
+    if (!this.dispatchCancelable("messages-add", { message: params })) {
       return -1;
     }
 
-    this.mutateJson(json => {
+    this.mutateJson((json) => {
       json.messages.push(params);
     });
 
@@ -397,49 +521,55 @@ export class API extends EventTarget {
   removeMessage(index: number): void {
     if (!this.json) return;
     if (!isNonNegativeInteger(index)) {
-      this.addErrorMessage('Message index must be a non-negative integer.', 'messages-remove');
+      this.addErrorMessage(
+        "Message index must be a non-negative integer.",
+        "messages-remove",
+      );
       return;
     }
 
     const message = this.json.messages[index];
     if (!message) {
-      this.addErrorMessage(`Message index ${index} is out of bounds.`, 'messages-remove');
+      this.addErrorMessage(
+        `Message index ${index} is out of bounds.`,
+        "messages-remove",
+      );
       return;
     }
 
-    if (!this.dispatchCancelable('messages-remove', { message })) {
+    if (!this.dispatchCancelable("messages-remove", { message })) {
       return;
     }
 
-    this.mutateJson(json => {
+    this.mutateJson((json) => {
       json.messages.splice(index, 1);
     });
   }
 
   clearMessages(): void {
-    if (!this.dispatchCancelable('messages-clear')) {
+    if (!this.dispatchCancelable("messages-clear")) {
       return;
     }
 
-    this.mutateJson(json => {
+    this.mutateJson((json) => {
       json.messages = [];
     });
   }
 
-  setEmail(email: string, mode?: 'guest' | 'registered'): void {
+  setEmail(email: string, mode?: "guest" | "registered"): void {
     const normalizedEmail = email.trim();
 
     if (!isValidEmail(normalizedEmail)) {
-      this.addErrorMessage('A valid email is required.', 'email-update');
+      this.addErrorMessage("A valid email is required.", "email-update");
       return;
     }
 
-    if (!this.dispatchCancelable('email-update', { email: normalizedEmail })) {
+    if (!this.dispatchCancelable("email-update", { email: normalizedEmail })) {
       return;
     }
 
     void this.runMutation(async () => {
-      const nextJson = await this.postJson('/checkout', {
+      const nextJson = await this.postJson("/checkout", {
         customer_email: normalizedEmail,
         customer_type: mode,
       });
@@ -448,20 +578,27 @@ export class API extends EventTarget {
   }
 
   requestTemporaryPassword(email?: string): void {
-    const emailToUse = (email ?? this.json?.customer.email ?? '').trim();
+    const emailToUse = (email ?? this.json?.customer.email ?? "").trim();
 
     if (!isValidEmail(emailToUse)) {
-      this.addErrorMessage('A valid email is required for temporary password request.', 'temporary-password-request');
+      this.addErrorMessage(
+        "A valid email is required for temporary password request.",
+        "temporary-password-request",
+      );
       return;
     }
 
-    if (!this.dispatchCancelable('temporary-password-request', { email: emailToUse })) {
+    if (
+      !this.dispatchCancelable("temporary-password-request", {
+        email: emailToUse,
+      })
+    ) {
       return;
     }
 
     void this.runMutation(async () => {
-      const nextJson = await this.postJson('/checkout', {
-        action: 'request_temporary_password',
+      const nextJson = await this.postJson("/checkout", {
+        action: "request_temporary_password",
         customer_email: emailToUse,
       });
       await this.replaceJson(nextJson);
@@ -473,21 +610,21 @@ export class API extends EventTarget {
     const password = params.password;
 
     if (!isValidEmail(email)) {
-      this.addErrorMessage('A valid sign-in email is required.', 'sign-in');
+      this.addErrorMessage("A valid sign-in email is required.", "sign-in");
       return;
     }
 
     if (!password.trim()) {
-      this.addErrorMessage('Password is required.', 'sign-in');
+      this.addErrorMessage("Password is required.", "sign-in");
       return;
     }
 
-    if (!this.dispatchCancelable('sign-in', { email, password })) {
+    if (!this.dispatchCancelable("sign-in", { email, password })) {
       return;
     }
 
     void this.runMutation(async () => {
-      const nextJson = await this.postJson('/checkout', {
+      const nextJson = await this.postJson("/checkout", {
         customer_email: email,
         customer_password: password,
       });
@@ -496,13 +633,13 @@ export class API extends EventTarget {
   };
 
   signOut(): void {
-    if (!this.dispatchCancelable('sign-out')) {
+    if (!this.dispatchCancelable("sign-out")) {
       return;
     }
 
     void this.runMutation(async () => {
-      const nextJson = await this.postJson('/checkout', {
-        customer_email: '',
+      const nextJson = await this.postJson("/checkout", {
+        customer_email: "",
       });
       await this.replaceJson(nextJson);
     });
@@ -522,19 +659,25 @@ export class API extends EventTarget {
       postal_code: string;
       country: string;
       shipping_service_id: number | null;
-    }>
+    }>,
   ): void => {
     const index = params.index ?? 0;
 
     if (!isNonNegativeInteger(index)) {
-      this.addErrorMessage('Shipment index must be a non-negative integer.', 'shipment-update');
+      this.addErrorMessage(
+        "Shipment index must be a non-negative integer.",
+        "shipment-update",
+      );
       return;
     }
 
     if (!this.json) return;
     const shipment = this.json.shipments[index];
     if (!shipment) {
-      this.addErrorMessage(`Shipment ${index} was not found.`, 'shipment-update');
+      this.addErrorMessage(
+        `Shipment ${index} was not found.`,
+        "shipment-update",
+      );
       return;
     }
 
@@ -550,7 +693,8 @@ export class API extends EventTarget {
       region: params.region ?? shipment.region,
       postal_code: params.postal_code ?? shipment.postal_code,
       country: params.country ?? shipment.country,
-      shipping_service_id: params.shipping_service_id ?? shipment.shipping_service_id,
+      shipping_service_id:
+        params.shipping_service_id ?? shipment.shipping_service_id,
     };
 
     const shipmentErrors = validateShipmentParams(
@@ -559,30 +703,33 @@ export class API extends EventTarget {
       {
         countryOptions: shipment.country_options,
         regionOptions: shipment.region_options,
-      }
+      },
     );
     for (const err of shipmentErrors) {
       this.addErrorMessage(err.message, err.context);
     }
     if (shipmentErrors.length > 0) return;
 
-    if (!this.dispatchCancelable('shipment-update', nextShipment)) {
+    if (!this.dispatchCancelable("shipment-update", nextShipment)) {
       return;
     }
 
-    const payload: Record<string, string | number | boolean | null | undefined> = {};
+    const payload: Record<
+      string,
+      string | number | boolean | null | undefined
+    > = {};
 
     const map: Array<[keyof typeof params, string]> = [
-      ['first_name', `shipto_${index}_first_name`],
-      ['last_name', `shipto_${index}_last_name`],
-      ['company', `shipto_${index}_company`],
-      ['phone', `shipto_${index}_phone`],
-      ['address1', `shipto_${index}_address1`],
-      ['address2', `shipto_${index}_address2`],
-      ['city', `shipto_${index}_city`],
-      ['region', `shipto_${index}_region`],
-      ['postal_code', `shipto_${index}_postal_code`],
-      ['country', `shipto_${index}_country`],
+      ["first_name", `shipto_${index}_first_name`],
+      ["last_name", `shipto_${index}_last_name`],
+      ["company", `shipto_${index}_company`],
+      ["phone", `shipto_${index}_phone`],
+      ["address1", `shipto_${index}_address1`],
+      ["address2", `shipto_${index}_address2`],
+      ["city", `shipto_${index}_city`],
+      ["region", `shipto_${index}_region`],
+      ["postal_code", `shipto_${index}_postal_code`],
+      ["country", `shipto_${index}_country`],
     ];
 
     for (const [source, target] of map) {
@@ -593,11 +740,13 @@ export class API extends EventTarget {
     }
 
     if (params.shipping_service_id !== undefined) {
-      payload[index === 0 ? 'shipping_service_id' : `shipto_${index}_service_id`] = params.shipping_service_id;
+      payload[
+        index === 0 ? "shipping_service_id" : `shipto_${index}_service_id`
+      ] = params.shipping_service_id;
     }
 
     void this.runMutation(async () => {
-      const nextJson = await this.postJson('/checkout', payload);
+      const nextJson = await this.postJson("/checkout", payload);
       await this.replaceJson(nextJson);
     });
   };
@@ -614,7 +763,7 @@ export class API extends EventTarget {
       region: string;
       postal_code: string;
       country: string;
-    }>
+    }>,
   ): void => {
     if (!this.json) return;
     const nextAddress = {
@@ -626,16 +775,20 @@ export class API extends EventTarget {
       params as Record<string, string | null | undefined>,
       this.json.display,
       {
-        countryOptions: this.json.billing_address.country_options ?? this.json.shipments[0]?.country_options,
-        regionOptions: this.json.billing_address.region_options ?? this.json.shipments[0]?.region_options,
-      }
+        countryOptions:
+          this.json.billing_address.country_options ??
+          this.json.shipments[0]?.country_options,
+        regionOptions:
+          this.json.billing_address.region_options ??
+          this.json.shipments[0]?.region_options,
+      },
     );
     for (const err of billingErrors) {
       this.addErrorMessage(err.message, err.context);
     }
     if (billingErrors.length > 0) return;
 
-    if (!this.dispatchCancelable('billing-address-update', nextAddress)) {
+    if (!this.dispatchCancelable("billing-address-update", nextAddress)) {
       return;
     }
 
@@ -653,7 +806,7 @@ export class API extends EventTarget {
     };
 
     void this.runMutation(async () => {
-      const nextJson = await this.postJson('/checkout', payload);
+      const nextJson = await this.postJson("/checkout", payload);
       await this.replaceJson(nextJson);
     });
   };
@@ -662,17 +815,17 @@ export class API extends EventTarget {
     const errors = validateCustomFields(fields);
     if (errors.length > 0) {
       for (const error of errors) {
-        this.addErrorMessage(error, 'custom-fields-update');
+        this.addErrorMessage(error, "custom-fields-update");
       }
       return;
     }
 
-    if (!this.dispatchCancelable('custom-fields-update', fields)) {
+    if (!this.dispatchCancelable("custom-fields-update", fields)) {
       return;
     }
 
     void this.runMutation(async () => {
-      const nextJson = await this.postJson('/checkout', fields);
+      const nextJson = await this.postJson("/checkout", fields);
       await this.replaceJson(nextJson);
     });
   };
@@ -697,16 +850,19 @@ export class API extends EventTarget {
       return [];
     }
 
-    const response = await this.#fetch(
-      this.resolveUrl('/helpers', {
-        action: 'get_address_suggestions',
+    const response = await fetch(
+      this.resolveUrl("/helpers", {
+        action: "get_address_suggestions",
         country,
         postal_code: postalCode,
-      })
+      }),
     );
 
     if (!response.ok) {
-      throw this.createRequestError(response.status, 'Failed to load address suggestions.');
+      throw this.createRequestError(
+        response.status,
+        "Failed to load address suggestions.",
+      );
     }
 
     const json = (await response.json()) as unknown;
@@ -730,10 +886,10 @@ export class API extends EventTarget {
       console.error(error);
     }
 
-    void this.#fetch(this.resolveUrl('/helpers', { action: 'log_error' }), {
-      method: 'POST',
+    void fetch(this.resolveUrl("/helpers", { action: "log_error" }), {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
       },
       body: toFormData({ error: error.message }),
     }).catch(() => {
@@ -741,87 +897,108 @@ export class API extends EventTarget {
     });
   }
 
-  async validateApplePayMerchant(params: { validationURL: string }): Promise<unknown> {
+  async validateApplePayMerchant(params: {
+    validationURL: string;
+  }): Promise<unknown> {
     const validationURL = params.validationURL.trim();
 
     if (!validationURL) {
-      throw new Error('Apple Pay validation URL is required.');
+      throw new Error("Apple Pay validation URL is required.");
     }
 
-    const response = await this.#fetch(this.resolveUrl('/checkout', { action: 'validate_merchant' }), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+    const response = await fetch(
+      this.resolveUrl("/checkout", { action: "validate_merchant" }),
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+        },
+        body: toFormData({ validationURL }),
       },
-      body: toFormData({ validationURL }),
-    });
+    );
 
     if (!response.ok) {
-      throw this.createRequestError(response.status, 'Failed to validate Apple Pay merchant.');
+      throw this.createRequestError(
+        response.status,
+        "Failed to validate Apple Pay merchant.",
+      );
     }
 
     return (await response.json()) as unknown;
   }
 
   checkOut = (paymentMethod: CheckOutPaymentOption): void => {
-    if (!this.dispatchCancelable('checkout')) {
+    if (!this.dispatchCancelable("checkout")) {
       return;
     }
 
     const payload =
-      paymentMethod && typeof paymentMethod === 'object'
-        ? ({ ...paymentMethod, action: 'submit' } as Record<string, unknown>)
-        : { action: 'submit', payment_method: paymentMethod };
+      paymentMethod && typeof paymentMethod === "object"
+        ? ({ ...paymentMethod, action: "submit" } as Record<string, unknown>)
+        : { action: "submit", payment_method: paymentMethod };
 
     void this.runMutation(async () => {
-      const nextJson = await this.postJson('/checkout', payload);
+      const nextJson = await this.postJson("/checkout", payload);
       await this.replaceJson(nextJson);
     });
   };
 
   private async runMutation(action: () => Promise<void>): Promise<void> {
-    this.setState('busy');
+    this.setState("busy");
 
     try {
       await action();
     } catch (error) {
-      const normalized = error instanceof Error ? error : new Error(String(error));
-      this.addErrorMessage(normalized.message, 'network');
+      const normalized =
+        error instanceof Error ? error : new Error(String(error));
+      this.addErrorMessage(normalized.message, "network");
       this.#onError?.(normalized);
     } finally {
-      this.setState('idle');
+      this.setState("idle");
     }
   }
 
-  private resolveUrl(path: string, query?: Record<string, string | number | boolean | null | undefined>): string {
-    const base = this.#baseUrl.replace(/\/$/, '');
-    const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-    const suffix = query ? `?${toQueryString(query)}` : '';
+  private resolveUrl(
+    path: string,
+    query?: Record<string, string | number | boolean | null | undefined>,
+  ): string {
+    const base = this.#baseUrl.replace(/\/$/, "");
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+    const suffix = query ? `?${toQueryString(query)}` : "";
 
     return `${base}${normalizedPath}${suffix}`;
   }
 
-  private async postJson(path: string, body: Record<string, unknown>): Promise<APIJson> {
-    const response = await this.#fetch(this.resolveUrl(path), {
-      method: 'POST',
+  private async postJson(
+    path: string,
+    body: Record<string, unknown>,
+  ): Promise<APIJson> {
+    const response = await fetch(this.resolveUrl(path), {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
       },
-      body: toFormData({ ...body, output: 'json' }),
+      body: toFormData({ ...body, output: "json" }),
     });
 
     if (!response.ok) {
-      throw this.createRequestError(response.status, `Request failed for ${path}.`);
+      throw this.createRequestError(
+        response.status,
+        `Request failed for ${path}.`,
+      );
     }
 
     return (await response.json()) as APIJson;
   }
 
   private async getJson(path: string): Promise<APIJson> {
-    const response = await this.#fetch(this.resolveUrl(path, { output: 'json' }));
+    const response = await fetch(this.resolveUrl(path, { output: "json" }));
 
     if (!response.ok) {
-      throw this.createRequestError(response.status, `Request failed for ${path}.`);
+      throw this.createRequestError(
+        response.status,
+        `Request failed for ${path}.`,
+      );
     }
 
     return (await response.json()) as APIJson;
