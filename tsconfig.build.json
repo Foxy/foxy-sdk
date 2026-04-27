@@ -3,7 +3,11 @@
   "compilerOptions": {
     "types": []
   },
-  "include": ["src/index.ts", "src/checkout/**/*"],
+  "include": [
+    "src/index.ts",
+    "src/checkout/**/*",
+    "src/vite-env.d.ts"
+  ],
   "exclude": [
     "src/tests/**/*",
     "src/**/__tests__/**/*",
