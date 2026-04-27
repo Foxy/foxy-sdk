@@ -133,6 +133,11 @@ export type APIOptions = {
   onError?: (error: Error) => void;
 };
 
+export type HydrateJsonOptions = {
+  state?: "idle" | "busy";
+  emitUpdate?: boolean;
+};
+
 export type APIConstructorParams = APIOptions & {
   initialJson?: APIJson;
 };
@@ -260,6 +265,25 @@ export class API extends EventTarget {
 
   get json(): APIJson | null {
     return this.#json as APIJson | null;
+  }
+
+  async hydrateJson(
+    nextJson: APIJson,
+    options?: HydrateJsonOptions,
+  ): Promise<void> {
+    const resolvedJson = await resolveIncomingApiJson(nextJson);
+    const previousJson = JSON.stringify(this.#json);
+    const nextResolvedJson = JSON.stringify(resolvedJson);
+    const nextState = options?.state ?? "idle";
+    const emitUpdate = options?.emitUpdate ?? true;
+    const stateChanged = this.#state !== nextState;
+
+    this.#json = resolvedJson;
+    this.#state = nextState;
+
+    if (emitUpdate && (previousJson !== nextResolvedJson || stateChanged)) {
+      this.dispatchEvent(new Event("update"));
+    }
   }
 
   setStoreDomain(storeDomain: string): void {
