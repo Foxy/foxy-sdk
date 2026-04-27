@@ -2,7 +2,6 @@ import { builtinModules } from "module";
 import { defineConfig } from "vite";
 import { resolve } from "path";
 
-import pluginExternal from "vite-plugin-external";
 import dts from "vite-plugin-dts";
 import pkg from "./package.json";
 
@@ -26,6 +25,10 @@ function isExternal(id: string): boolean {
   return builtins.has(id);
 }
 
+function isDependencyExternal(id: string, deps: string[]): boolean {
+  return deps.some((dep) => id === dep || id.startsWith(`${dep}/`));
+}
+
 export default defineConfig(({ mode }) => {
   const isCDN = mode === "cdn";
   const dependencies = Object.keys(
@@ -36,15 +39,11 @@ export default defineConfig(({ mode }) => {
     plugins: isCDN
       ? []
       : [
-          pluginExternal({
-            externalizeDeps: dependencies,
-            nodeBuiltins: true,
-          }),
           dts({
             outDir: "dist/npm",
             rollupTypes: true,
             tsconfigPath: "./tsconfig.build.json",
-            include: ["src/index.ts", "src/checkout"],
+            include: ["src/index.ts", "src/checkout", "src/vite-env.d.ts"],
             exclude: [
               "src/tests/**",
               "src/**/__tests__/**",
@@ -61,7 +60,10 @@ export default defineConfig(({ mode }) => {
       outDir: isCDN ? "dist/cdn" : "dist/npm",
       lib: { entry: entryMap, formats: ["es"] },
       rollupOptions: {
-        external: isCDN ? isExternal : undefined,
+        external: (id) => {
+          if (isCDN) return isExternal(id);
+          return isExternal(id) || isDependencyExternal(id, dependencies);
+        },
         output: {
           format: "es",
           preserveModules: false,
