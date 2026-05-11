@@ -1,127 +1,127 @@
 export type StandardCardGateway =
-  | 'accept_blue'
-  | 'authorize'
-  | 'authorize_cim'
-  | 'bambora'
-  | 'barclaycard'
-  | 'beanstream'
-  | 'bluefin'
-  | 'bluepay'
-  | 'braintree'
-  | 'cardpointe'
-  | 'datacash'
-  | 'digitalriver'
-  | 'durango'
-  | 'ems_pay'
-  | 'epicor_esdm_token'
-  | 'eprocessingnetwork'
-  | 'eway'
-  | 'fatzebra'
-  | 'firstdata'
-  | 'firstdata_e4'
-  | 'fosdick'
-  | 'goemerchant'
-  | 'handepay'
-  | 'helcim'
-  | 'helcim_commerce'
-  | 'inspire'
-  | 'litle'
-  | 'lucy'
-  | 'merchantesolutions'
-  | 'migs_anz_egate'
-  | 'migs_commweb'
-  | 'moneris'
-  | 'netbilling'
-  | 'nmi'
-  | 'nmi_native'
-  | 'orbital_salem'
-  | 'orbital_tampa'
-  | 'paperless'
-  | 'pawapay'
-  | 'payconex'
-  | 'payflowpro'
-  | 'paygate'
-  | 'payjunction'
-  | 'payleap'
-  | 'payline'
-  | 'paylinedata'
-  | 'paymentexpress'
-  | 'paymentsense'
-  | 'paypoint_enterprise'
-  | 'paypoint_gateway'
-  | 'paypoint_metacharge'
-  | 'paytrace'
-  | 'payvector'
-  | 'plugnpay'
-  | 'plugnpay_authnet'
-  | 'propay'
-  | 'quantumgateway'
-  | 'quickbook_payments'
-  | 'quickbooks'
-  | 'realex'
-  | 'sagepayments'
-  | 'securenet'
-  | 'stripe'
-  | 'stripe_omnipay'
-  | 'totalapps'
-  | 'transaction_express'
-  | 'transfirst'
-  | 'usaepay'
-  | 'vanco'
-  | 'vantiv_omnipay'
-  | 'virtualmerchant'
-  | 'wallee'
-  | 'wepay'
-  | 'westpac'
-  | 'xendit';
+  | "accept_blue"
+  | "authorize"
+  | "authorize_cim"
+  | "bambora"
+  | "barclaycard"
+  | "beanstream"
+  | "bluefin"
+  | "bluepay"
+  | "braintree"
+  | "cardpointe"
+  | "datacash"
+  | "digitalriver"
+  | "durango"
+  | "ems_pay"
+  | "epicor_esdm_token"
+  | "eprocessingnetwork"
+  | "eway"
+  | "fatzebra"
+  | "firstdata"
+  | "firstdata_e4"
+  | "fosdick"
+  | "goemerchant"
+  | "handepay"
+  | "helcim"
+  | "helcim_commerce"
+  | "inspire"
+  | "litle"
+  | "lucy"
+  | "merchantesolutions"
+  | "migs_anz_egate"
+  | "migs_commweb"
+  | "moneris"
+  | "netbilling"
+  | "nmi"
+  | "nmi_native"
+  | "orbital_salem"
+  | "orbital_tampa"
+  | "paperless"
+  | "pawapay"
+  | "payconex"
+  | "payflowpro"
+  | "paygate"
+  | "payjunction"
+  | "payleap"
+  | "payline"
+  | "paylinedata"
+  | "paymentexpress"
+  | "paymentsense"
+  | "paypoint_enterprise"
+  | "paypoint_gateway"
+  | "paypoint_metacharge"
+  | "paytrace"
+  | "payvector"
+  | "plugnpay"
+  | "plugnpay_authnet"
+  | "propay"
+  | "quantumgateway"
+  | "quickbook_payments"
+  | "quickbooks"
+  | "realex"
+  | "sagepayments"
+  | "securenet"
+  | "stripe"
+  | "stripe_omnipay"
+  | "totalapps"
+  | "transaction_express"
+  | "transfirst"
+  | "usaepay"
+  | "vanco"
+  | "vantiv_omnipay"
+  | "virtualmerchant"
+  | "wallee"
+  | "wepay"
+  | "westpac"
+  | "xendit";
 
 export type StandardACHGateway =
-  | 'accept_blue_ach'
-  | 'authorize_ach'
-  | 'paperless_ach'
-  | 'payjunction_ach'
-  | 'vantiv_ach';
+  | "accept_blue_ach"
+  | "authorize_ach"
+  | "paperless_ach"
+  | "payjunction_ach"
+  | "vantiv_ach";
 
 export type StandardRedirectGateway =
-  | 'adyen'
-  | 'amazon_fps'
-  | 'bitpay'
-  | 'cardx'
-  | 'ccavenue'
-  | 'coinbase'
-  | 'coinbase_v2'
-  | 'comgate'
-  | 'curbstone'
-  | 'cybersource_pos'
-  | 'cybersource_sa_web'
-  | 'dibs'
-  | 'dwolla'
-  | 'epayments'
-  | 'mercadopago'
-  | 'migs'
-  | 'mollie_omnipay'
-  | 'ogone'
-  | 'paymentexpress_ws'
-  | 'payu_omnipay'
-  | 'pesapal'
-  | 'skrill'
-  | 'smartscreen'
-  | 'tazapay'
-  | 'trustcommerce'
-  | 'twocheckout'
-  | 'vivawallet_checkout'
-  | 'wigwag'
-  | 'worldline_hosted'
-  | 'worldpay_online';
+  | "adyen"
+  | "amazon_fps"
+  | "bitpay"
+  | "cardx"
+  | "ccavenue"
+  | "coinbase"
+  | "coinbase_v2"
+  | "comgate"
+  | "curbstone"
+  | "cybersource_pos"
+  | "cybersource_sa_web"
+  | "dibs"
+  | "dwolla"
+  | "epayments"
+  | "mercadopago"
+  | "migs"
+  | "mollie_omnipay"
+  | "ogone"
+  | "paymentexpress_ws"
+  | "payu_omnipay"
+  | "pesapal"
+  | "skrill"
+  | "smartscreen"
+  | "tazapay"
+  | "trustcommerce"
+  | "twocheckout"
+  | "vivawallet_checkout"
+  | "wigwag"
+  | "worldline_hosted"
+  | "worldpay_online";
 
-export type StripeConnectGateway = 'stripe_connect' | 'stripe_connect_charge';
-export type StripeV2Gateway = 'stripe_v2';
+export type StripeConnectGateway = "stripe_connect" | "stripe_connect_charge";
+export type StripeV2Gateway = "stripe_v2";
 
 export type SavedCardPaymentMethod = {
   /** Payment method identifier. */
   payment_method_id: string;
   /** Payment method type. Only "card" is supported at the moment. */
-  payment_method_type?: 'card';
+  payment_method_type?: "card";
   /** Card brand (e.g., "visa", "mastercard"). */
   brand: string;
   /** Last 4 card digits (e.g., "1234"). */
@@ -135,13 +135,13 @@ export type SavedCardPaymentMethod = {
 export type PaymentOption =
   | {
       /** Payment option type. */
-      type: 'new-card';
+      type: "new-card";
       /** Gateway used for card tokenization submission. */
       gateway: StandardCardGateway;
     }
   | {
       /** Payment option type. */
-      type: 'saved-card';
+      type: "saved-card";
       /** Gateway used for saved card submission. */
       gateway: StandardCardGateway | StripeConnectGateway | StripeV2Gateway;
       /** Saved payment method details for rendering and submission. */
@@ -149,7 +149,7 @@ export type PaymentOption =
     }
   | {
       /** Payment option type. */
-      type: 'apple-pay';
+      type: "apple-pay";
       /** Gateway used for Apple Pay token submission. */
       gateway: StandardCardGateway;
       /** Apple Pay merchant identifier used for this payment option. */
@@ -159,7 +159,7 @@ export type PaymentOption =
     }
   | {
       /** Payment option type. */
-      type: 'google-pay';
+      type: "google-pay";
       /** Gateway used for Google Pay token submission. */
       gateway: StandardCardGateway;
       /** Google Pay merchant identifier. */
@@ -169,23 +169,29 @@ export type PaymentOption =
     }
   | {
       /** Payment option type. */
-      type: 'ach';
+      type: "ach";
       /** Gateway used for ACH token submission. */
       gateway: StandardACHGateway;
       /** Subset and order of ACH fields to render. */
-      fields: ('routing_number' | 'account_number' | 'account_type' | 'account_holder_name' | 'is_account_owner')[];
+      fields: (
+        | "routing_number"
+        | "account_number"
+        | "account_type"
+        | "account_holder_name"
+        | "is_account_owner"
+      )[];
       /** Accepted account types. */
-      account_types: ('checking' | 'savings')[];
+      account_types: ("checking" | "savings")[];
     }
   | {
       /** Payment option type. */
-      type: 'redirect';
+      type: "redirect";
       /** Gateway used for redirect submission. */
       gateway: StandardRedirectGateway;
     }
   | {
       /** Payment option type. */
-      type: 'stripe-card-element';
+      type: "stripe-card-element";
       /** Gateway used for Stripe Card Element token submission. */
       gateway: StripeConnectGateway;
       /** Publishable key for rendering a new Stripe Card Element option. */
@@ -193,7 +199,7 @@ export type PaymentOption =
     }
   | {
       /** Payment option type. */
-      type: 'stripe-payment-element';
+      type: "stripe-payment-element";
       /** Gateway used for Stripe Payment Element submission. */
       gateway: StripeV2Gateway;
       /** Stripe publishable key for initializing Stripe.js. */
