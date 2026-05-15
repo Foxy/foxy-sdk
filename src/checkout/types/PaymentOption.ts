@@ -114,6 +114,7 @@ export type StandardRedirectGateway =
   | "worldline_hosted"
   | "worldpay_online";
 
+export type PayPalPlatformGateway = "paypal_platform";
 export type StripeConnectGateway = "stripe_connect" | "stripe_connect_charge";
 export type StripeV2Gateway = "stripe_v2";
 
@@ -132,7 +133,7 @@ export type SavedCardPaymentMethod = {
   expiry_month: number;
 };
 
-export type PaymentOption =
+export type ServerSentPaymentOption =
   | {
       /** Payment option type. */
       type: "new-card";
@@ -154,8 +155,6 @@ export type PaymentOption =
       gateway: StandardCardGateway;
       /** Apple Pay merchant identifier used for this payment option. */
       merchant_id: string;
-      /** Legacy key accepted by some integrations. */
-      merchant_identifier?: string;
     }
   | {
       /** Payment option type. */
@@ -212,6 +211,120 @@ export type PaymentOption =
       return_url: string;
       /** Capture mode flag from backend. 1 means manual capture, otherwise automatic capture. */
       auth_only: boolean;
-      /** Optional locale override for Stripe Elements. */
-      locale?: string;
+    }
+  | {
+      /** Payment option type. */
+      type: "paypal";
+      /** Gateway used for PayPal submission. */
+      gateway: PayPalPlatformGateway;
+      /** PayPal client ID for rendering and submission. */
+      client_id: string;
     };
+
+export type ClientDiscoveredPaymentOption =
+  | {
+      /** Payment option type. */
+      type: "new-card";
+      /** Gateway used for card tokenization submission. */
+      gateway: PayPalPlatformGateway;
+      /** PayPal client ID for rendering and submission. */
+      client_id: string;
+    }
+  | {
+      /** Payment option type. */
+      type: "apple-pay";
+      /** Gateway used for Apple Pay token submission. */
+      gateway: PayPalPlatformGateway;
+      /** PayPal client ID for rendering and submission. */
+      client_id: string;
+      /** Apple Pay merchant identifier used for this payment option when exposed by PayPal config. */
+      merchant_id?: string;
+    }
+  | {
+      /** Payment option type. */
+      type: "google-pay";
+      /** Gateway used for Google Pay token submission. */
+      gateway: PayPalPlatformGateway;
+      /** PayPal client ID for rendering and submission. */
+      client_id: string;
+      /** Google Pay merchant identifier when exposed by PayPal config. */
+      merchant_id?: string;
+      /** Custom tokenization parameters when exposed by PayPal config: https://developers.google.com/pay/api/web/reference/request-objects#gateway. */
+      gateway_parameters?: Record<string, string>;
+    }
+  | {
+      /** Payment option type. */
+      type: "paypal-pay-later";
+      /** Gateway used for PayPal submission. */
+      gateway: PayPalPlatformGateway;
+      /** PayPal client ID for rendering and submission. */
+      client_id: string;
+    }
+  | {
+      /** Payment option type. */
+      type: "paypal-credit";
+      /** Gateway used for PayPal Venmo submission. */
+      gateway: PayPalPlatformGateway;
+      /** PayPal client ID for rendering and submission. */
+      client_id: string;
+    }
+  | {
+      /** Payment option type. */
+      type: "venmo";
+      /** Gateway used for PayPal Venmo submission. */
+      gateway: PayPalPlatformGateway;
+      /** PayPal client ID for rendering and submission. */
+      client_id: string;
+    }
+  | {
+      /** Payment option type. */
+      type: "sepa";
+      /** Gateway used for SEPA token submission. */
+      gateway: PayPalPlatformGateway;
+      /** PayPal client ID for rendering and submission. */
+      client_id: string;
+    }
+  | {
+      /** Payment option type. */
+      type: "bancontact";
+      /** Gateway used for Bancontact token submission. */
+      gateway: PayPalPlatformGateway;
+      /** PayPal client ID for rendering and submission. */
+      client_id: string;
+    }
+  | {
+      /** Payment option type. */
+      type: "eps";
+      /** Gateway used for EPS token submission. */
+      gateway: PayPalPlatformGateway;
+      /** PayPal client ID for rendering and submission. */
+      client_id: string;
+    }
+  | {
+      /** Payment option type. */
+      type: "blik";
+      /** Gateway used for BLIK token submission. */
+      gateway: PayPalPlatformGateway;
+      /** PayPal client ID for rendering and submission. */
+      client_id: string;
+    }
+  | {
+      /** Payment option type. */
+      type: "ideal";
+      /** Gateway used for iDEAL token submission. */
+      gateway: PayPalPlatformGateway;
+      /** PayPal client ID for rendering and submission. */
+      client_id: string;
+    }
+  | {
+      /** Payment option type. */
+      type: "przelewy24";
+      /** Gateway used for Przelewy24 token submission. */
+      gateway: PayPalPlatformGateway;
+      /** PayPal client ID for rendering and submission. */
+      client_id: string;
+    };
+
+export type PaymentOption =
+  | ServerSentPaymentOption
+  | ClientDiscoveredPaymentOption;

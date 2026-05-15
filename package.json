@@ -77,5 +77,8 @@
         "prerelease": true
       }
     ]
+  },
+  "dependencies": {
+    "@paypal/paypal-js": "^9.7.0"
   }
 }
