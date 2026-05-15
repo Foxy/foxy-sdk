@@ -3,8 +3,11 @@ import type {
   APIJson,
   CustomFields,
   GooglePaymentsClient,
+  PayPalSdkInstance,
 } from "./types";
 import {
+  type PaymentOption,
+  type ServerSentPaymentOption,
   StandardACHGateway,
   StandardCardGateway,
   StandardRedirectGateway,
@@ -26,13 +29,14 @@ import {
   createGooglePaymentsClient as createGooglePaymentsClientUtil,
   loadGooglePaySdk as loadGooglePaySdkUtil,
 } from "./utils/googlePay";
+import { discoverPayPalPaymentOptions } from "./utils/payPal";
 import { cloneApiJson, toMutable } from "./utils/json";
 import type { MutableAPIJson } from "./utils/json";
 import { toFormData, toQueryString } from "./utils/url";
 
 export type { MutableAPIJson } from "./utils/json";
 export { cloneApiJson, toMutable };
-export type { GooglePaymentsClient } from "./types";
+export type { GooglePaymentsClient, PayPalSdkInstance } from "./types";
 
 type EventName = keyof APIEventMap;
 type EventWithDetailName = {
@@ -43,6 +47,16 @@ type EventWithoutDetailName = Exclude<EventName, EventWithDetailName>;
 
 type EventDetail<K extends EventName> =
   APIEventMap[K] extends CustomEvent<infer D> ? D : never;
+
+type PayPalPlatformPaymentOption = Extract<
+  ServerSentPaymentOption,
+  { type: "paypal"; gateway: "paypal_platform" }
+>;
+
+type ResolvedIncomingApiState = {
+  json: MutableAPIJson;
+  paypal: PayPalSdkInstance | null;
+};
 
 function resolveBaseUrlFromStoreDomain(storeDomain: string): string {
   const normalizedStoreDomain = storeDomain
@@ -69,14 +83,68 @@ function resolveBaseUrlFromStoreDomain(storeDomain: string): string {
   return `https://${normalizedStoreDomain}.${foxycartDomain}/`;
 }
 
-async function resolveIncomingApiJson(json: APIJson): Promise<MutableAPIJson> {
+function isPayPalPlatformPaymentOption(
+  option: PaymentOption,
+): option is PayPalPlatformPaymentOption {
+  return option.type === "paypal" && option.gateway === "paypal_platform";
+}
+
+function getPayPalEligibilityAmount(json: APIJson): string | undefined {
+  const currentTotal = json.totals[0]?.total_order;
+
+  if (typeof currentTotal !== "number" || !Number.isFinite(currentTotal)) {
+    return undefined;
+  }
+
+  const maximumFractionDigits = Math.max(
+    0,
+    Math.min(20, json.format.maximum_fraction_digits ?? 2),
+  );
+
+  return currentTotal.toFixed(maximumFractionDigits);
+}
+
+async function resolveIncomingApiState(
+  json: APIJson,
+): Promise<ResolvedIncomingApiState> {
   const nextJson = cloneApiJson(json);
   const paymentOptions = nextJson.payment_options;
+  let nextPaymentOptions = paymentOptions?.slice();
+  let paypal: PayPalSdkInstance | null = null;
 
-  const hasApplePay = paymentOptions?.some(
+  if (paymentOptions) {
+    const expandedPaymentOptions: PaymentOption[] = [];
+
+    for (const option of paymentOptions) {
+      expandedPaymentOptions.push(option);
+
+      if (!isPayPalPlatformPaymentOption(option)) {
+        continue;
+      }
+
+      const discovery = await discoverPayPalPaymentOptions({
+        clientId: option.client_id,
+        customConfig: nextJson.custom_config,
+        amount: getPayPalEligibilityAmount(nextJson),
+        currencyCode: nextJson.format.currency_code,
+        locale: nextJson.format.locale_code,
+        buyerCountry: nextJson.billing_address.country,
+      });
+
+      if (!paypal && discovery.paypal) {
+        paypal = discovery.paypal;
+      }
+
+      expandedPaymentOptions.push(...discovery.options);
+    }
+
+    nextPaymentOptions = expandedPaymentOptions;
+  }
+
+  const hasApplePay = nextPaymentOptions?.some(
     (option) => option.type === "apple-pay",
   );
-  const hasGooglePay = paymentOptions?.some(
+  const hasGooglePay = nextPaymentOptions?.some(
     (option) => option.type === "google-pay",
   );
 
@@ -94,16 +162,18 @@ async function resolveIncomingApiJson(json: APIJson): Promise<MutableAPIJson> {
   }
 
   if (!hasApplePay) {
-    return nextJson;
+    nextJson.payment_options = nextPaymentOptions;
+    return { json: nextJson, paypal };
   }
 
   const applePayAvailability = getApplePayAvailability();
 
   if (applePayAvailability === "available") {
-    return nextJson;
+    nextJson.payment_options = nextPaymentOptions;
+    return { json: nextJson, paypal };
   }
 
-  nextJson.payment_options = paymentOptions!.filter(
+  nextJson.payment_options = nextPaymentOptions!.filter(
     (option) => option.type !== "apple-pay",
   );
 
@@ -113,7 +183,7 @@ async function resolveIncomingApiJson(json: APIJson): Promise<MutableAPIJson> {
       : "Apple Pay payment options were removed because Apple Pay is not available in this browser.",
   );
 
-  return nextJson;
+  return { json: nextJson, paypal };
 }
 
 type CheckOutPaymentOption =
@@ -151,6 +221,7 @@ export type APIConstructorParams = APIOptions & {
 export class API extends EventTarget {
   #state: "idle" | "busy";
   #json: MutableAPIJson | null;
+  #paypal: PayPalSdkInstance | null;
   #baseUrl: string | null;
   readonly #onError?: (error: Error) => void;
 
@@ -200,10 +271,12 @@ export class API extends EventTarget {
 
     if (initialJson !== undefined) {
       this.#json = cloneApiJson(initialJson);
+      this.#paypal = null;
       this.#state = initialState ?? "idle";
       void this.replaceJson(initialJson);
     } else {
       this.#json = null;
+      this.#paypal = null;
       this.#state = initialState ?? (this.#baseUrl ? "busy" : "idle");
 
       // WHY USE SETTIMEOUT:
@@ -267,21 +340,30 @@ export class API extends EventTarget {
     return this.#json as APIJson | null;
   }
 
+  get paypal(): PayPalSdkInstance | null {
+    return this.#paypal;
+  }
+
   async hydrateJson(
     nextJson: APIJson,
     options?: HydrateJsonOptions,
   ): Promise<void> {
-    const resolvedJson = await resolveIncomingApiJson(nextJson);
+    const resolvedState = await resolveIncomingApiState(nextJson);
     const previousJson = JSON.stringify(this.#json);
-    const nextResolvedJson = JSON.stringify(resolvedJson);
+    const nextResolvedJson = JSON.stringify(resolvedState.json);
     const nextState = options?.state ?? "idle";
     const emitUpdate = options?.emitUpdate ?? true;
     const stateChanged = this.#state !== nextState;
+    const paypalChanged = this.#paypal !== resolvedState.paypal;
 
-    this.#json = resolvedJson;
+    this.#json = resolvedState.json;
+    this.#paypal = resolvedState.paypal;
     this.#state = nextState;
 
-    if (emitUpdate && (previousJson !== nextResolvedJson || stateChanged)) {
+    if (
+      emitUpdate &&
+      (previousJson !== nextResolvedJson || stateChanged || paypalChanged)
+    ) {
       this.dispatchEvent(new Event("update"));
     }
   }
@@ -314,13 +396,15 @@ export class API extends EventTarget {
   }
 
   protected async replaceJson(nextJson: APIJson): Promise<void> {
-    const resolvedJson = await resolveIncomingApiJson(nextJson);
+    const resolvedState = await resolveIncomingApiState(nextJson);
     const previousJson = JSON.stringify(this.#json);
-    const nextResolvedJson = JSON.stringify(resolvedJson);
+    const nextResolvedJson = JSON.stringify(resolvedState.json);
+    const paypalChanged = this.#paypal !== resolvedState.paypal;
 
-    this.#json = resolvedJson;
+    this.#json = resolvedState.json;
+    this.#paypal = resolvedState.paypal;
 
-    if (previousJson !== nextResolvedJson) {
+    if (previousJson !== nextResolvedJson || paypalChanged) {
       this.dispatchEvent(new Event("update"));
     }
   }
