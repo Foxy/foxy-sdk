@@ -13,6 +13,7 @@ export type { Display } from "./Display";
 export type { APIJson } from "./APIJson";
 export type { APIEventMap } from "./APIEventMap";
 export type { GooglePaymentsClient } from "./GooglePaymentsClient";
+export type { KlarnaSdkInstance } from "./KlarnaSdkInstance";
 export type { PayPalSdkInstance } from "./PayPalSdkInstance";
 export type { CustomFields } from "./CustomFields";
 export type { CustomConfig } from "./CustomConfig";
