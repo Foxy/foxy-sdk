@@ -244,6 +244,12 @@ export type ServerSentPaymentOption =
       client_token: string;
       /** Klarna payment method categories returned from payment initiation. */
       payment_method_categories: KlarnaPaymentMethodCategory[];
+    }
+  | {
+      /** Payment option type. */
+      type: "sezzle";
+      /** Used when creating a checkout or capturing payment. Find your API keys at https://dashboard.sezzle.com/merchant/settings/apikeys. */
+      public_key: string;
     };
 
 export type ClientDiscoveredPaymentOption =

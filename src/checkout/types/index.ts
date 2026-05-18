@@ -15,6 +15,7 @@ export type { APIEventMap } from "./APIEventMap";
 export type { GooglePaymentsClient } from "./GooglePaymentsClient";
 export type { KlarnaSdkInstance } from "./KlarnaSdkInstance";
 export type { PayPalSdkInstance } from "./PayPalSdkInstance";
+export type { SezzleSdkInstance } from "./SezzleSdkInstance";
 export type { CustomFields } from "./CustomFields";
 export type { CustomConfig } from "./CustomConfig";
 export type {

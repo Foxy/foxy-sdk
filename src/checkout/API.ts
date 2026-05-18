@@ -5,6 +5,7 @@ import type {
   GooglePaymentsClient,
   KlarnaSdkInstance,
   PayPalSdkInstance,
+  SezzleSdkInstance,
 } from "./types";
 import {
   type PaymentOption,
@@ -32,6 +33,7 @@ import {
 } from "./utils/googlePay";
 import { initializeKlarnaSdk } from "./utils/klarna";
 import { discoverPayPalPaymentOptions } from "./utils/payPal";
+import { initializeSezzleSdk } from "./utils/sezzle";
 import { cloneApiJson, toMutable } from "./utils/json";
 import type { MutableAPIJson } from "./utils/json";
 import { toFormData, toQueryString } from "./utils/url";
@@ -64,10 +66,13 @@ type KlarnaPaymentOption = Extract<
   { type: "klarna"; gateway: "klarna" }
 >;
 
+type SezzlePaymentOption = Extract<ServerSentPaymentOption, { type: "sezzle" }>;
+
 type ResolvedIncomingApiState = {
   json: MutableAPIJson;
   paypal: PayPalSdkInstance | null;
   klarna: KlarnaSdkInstance | null;
+  sezzle: SezzleSdkInstance | null;
 };
 
 function resolveBaseUrlFromStoreDomain(storeDomain: string): string {
@@ -107,6 +112,12 @@ function isKlarnaPaymentOption(
   return option.type === "klarna" && option.gateway === "klarna";
 }
 
+function isSezzlePaymentOption(
+  option: PaymentOption,
+): option is SezzlePaymentOption {
+  return option.type === "sezzle";
+}
+
 function getPayPalEligibilityAmount(json: APIJson): string | undefined {
   const currentTotal = json.totals[0]?.total_order;
 
@@ -130,40 +141,53 @@ async function resolveIncomingApiState(
   let nextPaymentOptions = paymentOptions?.slice();
   let paypal: PayPalSdkInstance | null = null;
   let klarna: KlarnaSdkInstance | null = null;
+  let sezzle: SezzleSdkInstance | null = null;
+  const isBrowserEnvironment =
+    typeof window !== "undefined" && typeof document !== "undefined";
 
-  if (paymentOptions) {
-    const expandedPaymentOptions: PaymentOption[] = [];
+  if (paymentOptions?.some(isPayPalPlatformPaymentOption)) {
+    const discoveredPaymentOptions = await Promise.all(
+      paymentOptions.map(async (option) => {
+        if (!isPayPalPlatformPaymentOption(option)) {
+          return {
+            option,
+            discoveredOptions: [] as PaymentOption[],
+            paypal: null as PayPalSdkInstance | null,
+          };
+        }
 
-    for (const option of paymentOptions) {
-      expandedPaymentOptions.push(option);
+        const discovery = await discoverPayPalPaymentOptions({
+          clientId: option.client_id,
+          customConfig: nextJson.custom_config,
+          amount: getPayPalEligibilityAmount(nextJson),
+          currencyCode: nextJson.format.currency_code,
+          locale: nextJson.format.locale_code,
+          buyerCountry: nextJson.billing_address.country,
+        });
 
-      if (!isPayPalPlatformPaymentOption(option)) {
-        continue;
-      }
+        return {
+          option,
+          discoveredOptions: discovery.options,
+          paypal: discovery.paypal,
+        };
+      }),
+    );
 
-      const discovery = await discoverPayPalPaymentOptions({
-        clientId: option.client_id,
-        customConfig: nextJson.custom_config,
-        amount: getPayPalEligibilityAmount(nextJson),
-        currencyCode: nextJson.format.currency_code,
-        locale: nextJson.format.locale_code,
-        buyerCountry: nextJson.billing_address.country,
-      });
+    paypal =
+      discoveredPaymentOptions.find((discovery) => discovery.paypal)?.paypal ??
+      null;
 
-      if (!paypal && discovery.paypal) {
-        paypal = discovery.paypal;
-      }
-
-      expandedPaymentOptions.push(...discovery.options);
-    }
-
-    nextPaymentOptions = expandedPaymentOptions;
+    nextPaymentOptions = discoveredPaymentOptions.flatMap((discovery) => [
+      discovery.option,
+      ...discovery.discoveredOptions,
+    ]);
   }
 
   const klarnaOption = nextPaymentOptions?.find(isKlarnaPaymentOption);
+  const thirdPartySdkTasks: Promise<void>[] = [];
 
   if (klarnaOption) {
-    if (typeof window === "undefined" || typeof document === "undefined") {
+    if (!isBrowserEnvironment) {
       nextPaymentOptions = nextPaymentOptions?.filter(
         (option) => !isKlarnaPaymentOption(option),
       );
@@ -172,17 +196,54 @@ async function resolveIncomingApiState(
         "Klarna payment options were removed because checkout API JSON was processed outside a browser environment.",
       );
     } else {
-      try {
-        klarna = await initializeKlarnaSdk(klarnaOption.client_token);
-      } catch {
-        nextPaymentOptions = nextPaymentOptions?.filter(
-          (option) => !isKlarnaPaymentOption(option),
-        );
+      thirdPartySdkTasks.push(
+        initializeKlarnaSdk(klarnaOption.client_token)
+          .then((instance) => {
+            klarna = instance;
+          })
+          .catch(() => {
+            nextPaymentOptions = nextPaymentOptions?.filter(
+              (option) => !isKlarnaPaymentOption(option),
+            );
 
-        console.warn(
-          "Klarna payment options were removed because the Klarna SDK could not be loaded.",
-        );
-      }
+            console.warn(
+              "Klarna payment options were removed because the Klarna SDK could not be loaded.",
+            );
+          }),
+      );
+    }
+  }
+
+  const sezzleOption = nextPaymentOptions?.find(isSezzlePaymentOption);
+
+  if (sezzleOption) {
+    if (!isBrowserEnvironment) {
+      nextPaymentOptions = nextPaymentOptions?.filter(
+        (option) => !isSezzlePaymentOption(option),
+      );
+
+      console.warn(
+        "Sezzle payment options were removed because checkout API JSON was processed outside a browser environment.",
+      );
+    } else {
+      thirdPartySdkTasks.push(
+        initializeSezzleSdk({
+          publicKey: sezzleOption.public_key,
+          customConfig: nextJson.custom_config,
+        })
+          .then((instance) => {
+            sezzle = instance;
+          })
+          .catch(() => {
+            nextPaymentOptions = nextPaymentOptions?.filter(
+              (option) => !isSezzlePaymentOption(option),
+            );
+
+            console.warn(
+              "Sezzle payment options were removed because the Sezzle SDK could not be loaded.",
+            );
+          }),
+      );
     }
   }
 
@@ -193,29 +254,26 @@ async function resolveIncomingApiState(
     (option) => option.type === "google-pay",
   );
 
-  if (typeof window !== "undefined") {
-    if (hasApplePay && hasGooglePay) {
-      await Promise.all([
-        API.ensureApplePayScriptLoaded(),
-        API.ensureGooglePayScriptLoaded(),
-      ]);
-    } else if (hasApplePay) {
-      await API.ensureApplePayScriptLoaded();
-    } else if (hasGooglePay) {
-      await API.ensureGooglePayScriptLoaded();
-    }
+  if (isBrowserEnvironment && hasApplePay) {
+    thirdPartySdkTasks.push(API.ensureApplePayScriptLoaded());
   }
+
+  if (isBrowserEnvironment && hasGooglePay) {
+    thirdPartySdkTasks.push(API.ensureGooglePayScriptLoaded());
+  }
+
+  await Promise.all(thirdPartySdkTasks);
 
   if (!hasApplePay) {
     nextJson.payment_options = nextPaymentOptions;
-    return { json: nextJson, paypal, klarna };
+    return { json: nextJson, paypal, klarna, sezzle };
   }
 
   const applePayAvailability = getApplePayAvailability();
 
   if (applePayAvailability === "available") {
     nextJson.payment_options = nextPaymentOptions;
-    return { json: nextJson, paypal, klarna };
+    return { json: nextJson, paypal, klarna, sezzle };
   }
 
   nextJson.payment_options = nextPaymentOptions!.filter(
@@ -228,7 +286,7 @@ async function resolveIncomingApiState(
       : "Apple Pay payment options were removed because Apple Pay is not available in this browser.",
   );
 
-  return { json: nextJson, paypal, klarna };
+  return { json: nextJson, paypal, klarna, sezzle };
 }
 
 type CheckOutPaymentOption =
@@ -268,6 +326,7 @@ export class API extends EventTarget {
   #json: MutableAPIJson | null;
   #klarna: KlarnaSdkInstance | null;
   #paypal: PayPalSdkInstance | null;
+  #sezzle: SezzleSdkInstance | null;
   #baseUrl: string | null;
   readonly #onError?: (error: Error) => void;
 
@@ -319,12 +378,14 @@ export class API extends EventTarget {
       this.#json = cloneApiJson(initialJson);
       this.#klarna = null;
       this.#paypal = null;
+      this.#sezzle = null;
       this.#state = initialState ?? "idle";
       void this.replaceJson(initialJson);
     } else {
       this.#json = null;
       this.#klarna = null;
       this.#paypal = null;
+      this.#sezzle = null;
       this.#state = initialState ?? (this.#baseUrl ? "busy" : "idle");
 
       // WHY USE SETTIMEOUT:
@@ -396,6 +457,10 @@ export class API extends EventTarget {
     return this.#paypal;
   }
 
+  get sezzle(): SezzleSdkInstance | null {
+    return this.#sezzle;
+  }
+
   async hydrateJson(
     nextJson: APIJson,
     options?: HydrateJsonOptions,
@@ -408,10 +473,12 @@ export class API extends EventTarget {
     const stateChanged = this.#state !== nextState;
     const klarnaChanged = this.#klarna !== resolvedState.klarna;
     const paypalChanged = this.#paypal !== resolvedState.paypal;
+    const sezzleChanged = this.#sezzle !== resolvedState.sezzle;
 
     this.#json = resolvedState.json;
     this.#klarna = resolvedState.klarna;
     this.#paypal = resolvedState.paypal;
+    this.#sezzle = resolvedState.sezzle;
     this.#state = nextState;
 
     if (
@@ -419,7 +486,8 @@ export class API extends EventTarget {
       (previousJson !== nextResolvedJson ||
         stateChanged ||
         klarnaChanged ||
-        paypalChanged)
+        paypalChanged ||
+        sezzleChanged)
     ) {
       this.dispatchEvent(new Event("update"));
     }
@@ -458,12 +526,19 @@ export class API extends EventTarget {
     const nextResolvedJson = JSON.stringify(resolvedState.json);
     const klarnaChanged = this.#klarna !== resolvedState.klarna;
     const paypalChanged = this.#paypal !== resolvedState.paypal;
+    const sezzleChanged = this.#sezzle !== resolvedState.sezzle;
 
     this.#json = resolvedState.json;
     this.#klarna = resolvedState.klarna;
     this.#paypal = resolvedState.paypal;
+    this.#sezzle = resolvedState.sezzle;
 
-    if (previousJson !== nextResolvedJson || klarnaChanged || paypalChanged) {
+    if (
+      previousJson !== nextResolvedJson ||
+      klarnaChanged ||
+      paypalChanged ||
+      sezzleChanged
+    ) {
       this.dispatchEvent(new Event("update"));
     }
   }
