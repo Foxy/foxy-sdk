@@ -27,6 +27,10 @@ export type {
 } from "./types";
 
 export type { APIOptions } from "./API";
-export type { GooglePaymentsClient, PayPalSdkInstance } from "./types";
+export type {
+  GooglePaymentsClient,
+  KlarnaSdkInstance,
+  PayPalSdkInstance,
+} from "./types";
 
 export { API } from "./API";

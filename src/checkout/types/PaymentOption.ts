@@ -115,8 +115,21 @@ export type StandardRedirectGateway =
   | "worldpay_online";
 
 export type PayPalPlatformGateway = "paypal_platform";
+export type KlarnaGateway = "klarna";
 export type StripeConnectGateway = "stripe_connect" | "stripe_connect_charge";
 export type StripeV2Gateway = "stripe_v2";
+
+export type KlarnaPaymentMethodCategory = {
+  /** Klarna payment method category identifier. */
+  identifier: string;
+  /** Klarna payment method category display name. */
+  name: string;
+  /** Klarna badge asset URLs. */
+  asset_urls: {
+    descriptive: string;
+    standard: string;
+  };
+};
 
 export type SavedCardPaymentMethod = {
   /** Payment method identifier. */
@@ -219,6 +232,18 @@ export type ServerSentPaymentOption =
       gateway: PayPalPlatformGateway;
       /** PayPal client ID for rendering and submission. */
       client_id: string;
+    }
+  | {
+      /** Payment option type. */
+      type: "klarna";
+      /** Gateway used for Klarna submission. */
+      gateway: KlarnaGateway;
+      /** Klarna session identifier returned from payment initiation. */
+      session_id: string;
+      /** Klarna client token used to initialize the SDK. */
+      client_token: string;
+      /** Klarna payment method categories returned from payment initiation. */
+      payment_method_categories: KlarnaPaymentMethodCategory[];
     };
 
 export type ClientDiscoveredPaymentOption =
