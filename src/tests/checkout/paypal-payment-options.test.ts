@@ -52,7 +52,7 @@ type BrowserRuntimeOptions = {
 
 const runtime = globalThis as RuntimeGlobals;
 
-const cardOption = { type: "new-card", gateway: "stripe" } as const;
+const cardOption = { type: "new-card", gateway: "authorize" } as const;
 const paypalOption = {
   type: "paypal",
   gateway: "paypal_platform",

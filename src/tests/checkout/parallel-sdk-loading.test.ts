@@ -139,7 +139,7 @@ vi.mock("../../checkout/utils/googlePay", () => ({
   loadGooglePaySdk: mocks.loadGooglePaySdk,
 }));
 
-const cardOption = { type: "new-card", gateway: "stripe" } as const;
+const cardOption = { type: "new-card", gateway: "authorize" } as const;
 const klarnaOption = {
   type: "klarna",
   gateway: "klarna",
