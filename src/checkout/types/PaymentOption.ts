@@ -8,6 +8,8 @@ export type StandardCardGateway =
   | "bluefin"
   | "bluepay"
   | "braintree"
+  | "braintree_sdk"
+  | "bluesnap"
   | "cardpointe"
   | "datacash"
   | "digitalriver"
