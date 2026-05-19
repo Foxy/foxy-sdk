@@ -13,6 +13,8 @@ export type StandardCardGateway =
   | "digitalriver"
   | "durango"
   | "ems_pay"
+  | "cybersource_rest"
+  | "bank_of_america"
   | "epicor_esdm_token"
   | "eprocessingnetwork"
   | "eway"
