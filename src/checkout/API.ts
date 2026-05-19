@@ -37,6 +37,7 @@ import { initializeSezzleSdk } from "./utils/sezzle";
 import { cloneApiJson, toMutable } from "./utils/json";
 import type { MutableAPIJson } from "./utils/json";
 import { toFormData, toQueryString } from "./utils/url";
+import { loadPayPalSdk } from "./utils/payPal";
 
 export type { MutableAPIJson } from "./utils/json";
 export { cloneApiJson, toMutable };
@@ -106,6 +107,14 @@ function isPayPalPlatformPaymentOption(
   return option.type === "paypal" && option.gateway === "paypal_platform";
 }
 
+function isFlattenedPayPalPlatformPaymentOption(option: PaymentOption): boolean {
+  return (
+    "gateway" in option &&
+    option.gateway === "paypal_platform" &&
+    option.type !== "paypal"
+  );
+}
+
 function isKlarnaPaymentOption(
   option: PaymentOption,
 ): option is KlarnaPaymentOption {
@@ -146,41 +155,73 @@ async function resolveIncomingApiState(
     typeof window !== "undefined" && typeof document !== "undefined";
 
   if (paymentOptions?.some(isPayPalPlatformPaymentOption)) {
-    const discoveredPaymentOptions = await Promise.all(
-      paymentOptions.map(async (option) => {
-        if (!isPayPalPlatformPaymentOption(option)) {
-          return {
-            option,
-            discoveredOptions: [] as PaymentOption[],
-            paypal: null as PayPalSdkInstance | null,
-          };
-        }
-
-        const discovery = await discoverPayPalPaymentOptions({
-          clientId: option.client_id,
-          customConfig: nextJson.custom_config,
-          amount: getPayPalEligibilityAmount(nextJson),
-          currencyCode: nextJson.format.currency_code,
-          locale: nextJson.format.locale_code,
-          buyerCountry: nextJson.billing_address.country,
-        });
-
-        return {
-          option,
-          discoveredOptions: discovery.options,
-          paypal: discovery.paypal,
-        };
-      }),
+    const hasFlattenedPayPalPlatformOptions = paymentOptions.some(
+      isFlattenedPayPalPlatformPaymentOption,
     );
 
-    paypal =
-      discoveredPaymentOptions.find((discovery) => discovery.paypal)?.paypal ??
-      null;
+    if (hasFlattenedPayPalPlatformOptions) {
+      const payPalOptionWithClientId = paymentOptions.find(
+        (
+          option,
+        ): option is Extract<PaymentOption, { gateway: "paypal_platform" }> =>
+          "gateway" in option &&
+          option.gateway === "paypal_platform" &&
+          "client_id" in option &&
+          typeof option.client_id === "string" &&
+          Boolean(option.client_id.trim()),
+      );
 
-    nextPaymentOptions = discoveredPaymentOptions.flatMap((discovery) => [
-      discovery.option,
-      ...discovery.discoveredOptions,
-    ]);
+      if (payPalOptionWithClientId && isBrowserEnvironment) {
+        try {
+          paypal = await loadPayPalSdk({
+            clientId: payPalOptionWithClientId.client_id,
+            customConfig: nextJson.custom_config,
+            amount: getPayPalEligibilityAmount(nextJson),
+            currencyCode: nextJson.format.currency_code,
+            locale: nextJson.format.locale_code,
+            buyerCountry: nextJson.billing_address.country,
+          });
+        } catch {
+          paypal = null;
+        }
+      }
+    } else {
+      const discoveredPaymentOptions = await Promise.all(
+        paymentOptions.map(async (option) => {
+          if (!isPayPalPlatformPaymentOption(option)) {
+            return {
+              option,
+              discoveredOptions: [] as PaymentOption[],
+              paypal: null as PayPalSdkInstance | null,
+            };
+          }
+
+          const discovery = await discoverPayPalPaymentOptions({
+            clientId: option.client_id,
+            customConfig: nextJson.custom_config,
+            amount: getPayPalEligibilityAmount(nextJson),
+            currencyCode: nextJson.format.currency_code,
+            locale: nextJson.format.locale_code,
+            buyerCountry: nextJson.billing_address.country,
+          });
+
+          return {
+            option,
+            discoveredOptions: discovery.options,
+            paypal: discovery.paypal,
+          };
+        }),
+      );
+
+      paypal =
+        discoveredPaymentOptions.find((discovery) => discovery.paypal)
+          ?.paypal ?? null;
+
+      nextPaymentOptions = discoveredPaymentOptions.flatMap((discovery) => [
+        discovery.option,
+        ...discovery.discoveredOptions,
+      ]);
+    }
   }
 
   const klarnaOption = nextPaymentOptions?.find(isKlarnaPaymentOption);
