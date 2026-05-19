@@ -17,7 +17,7 @@ type SezzleWindow = Window & {
   Checkout?: SezzleSdkConstructor;
 };
 
-const cardOption = { type: "new-card", gateway: "stripe" } as const;
+const cardOption = { type: "new-card", gateway: "authorize" } as const;
 const sezzleOption: SezzlePaymentOption = {
   type: "sezzle",
   public_key: "sezzle-public-key",

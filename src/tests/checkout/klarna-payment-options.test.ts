@@ -20,7 +20,7 @@ type KlarnaWindow = Window & {
   klarnaAsyncCallback?: () => void;
 };
 
-const cardOption = { type: "new-card", gateway: "stripe" } as const;
+const cardOption = { type: "new-card", gateway: "authorize" } as const;
 const klarnaOption: KlarnaPaymentOption = {
   type: "klarna",
   gateway: "klarna",
