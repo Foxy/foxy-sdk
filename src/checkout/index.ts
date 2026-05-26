@@ -28,6 +28,13 @@ export type {
 
 export type { APIOptions } from "./API";
 export type {
+  AdyenEmbeddedAmount,
+  AdyenEmbeddedCheckoutConfiguration,
+  AdyenEmbeddedEnvironment,
+  AdyenEmbeddedPaymentMethod,
+  AdyenEmbeddedPaymentMethodsResponse,
+  AdyenEmbeddedSdkInstance,
+  AdyenEmbeddedSdkNamespace,
   GooglePaymentsClient,
   KlarnaSdkInstance,
   PayPalSdkInstance,
