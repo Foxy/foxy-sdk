@@ -12,6 +12,15 @@ export type { Format } from "./Format";
 export type { Display } from "./Display";
 export type { APIJson } from "./APIJson";
 export type { APIEventMap } from "./APIEventMap";
+export type {
+  AdyenEmbeddedAmount,
+  AdyenEmbeddedCheckoutConfiguration,
+  AdyenEmbeddedEnvironment,
+  AdyenEmbeddedPaymentMethod,
+  AdyenEmbeddedPaymentMethodsResponse,
+  AdyenEmbeddedSdkInstance,
+  AdyenEmbeddedSdkNamespace,
+} from "./AdyenEmbeddedSdkInstance";
 export type { GooglePaymentsClient } from "./GooglePaymentsClient";
 export type { KlarnaSdkInstance } from "./KlarnaSdkInstance";
 export type { PayPalSdkInstance } from "./PayPalSdkInstance";
@@ -22,7 +31,7 @@ export type {
   ExpressCheckoutType,
   ExpressCheckoutOption,
 } from "./ExpressCheckoutOption";
-export type { PaymentOption, StripeV2Gateway } from "./PaymentOption";
+export type { PaymentOption } from "./PaymentOption";
 export type {
   AchHostedFieldsPublicState,
   AchHostedFieldsTokenizeErrorCode,
