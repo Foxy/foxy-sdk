@@ -87,7 +87,9 @@ function createApiJson(): APIJson {
       registration: "optional",
     },
     custom_config: {},
-    payment_options: [],
+    saved_payment_methods: [],
+    payment_gateways: [],
+    language_strings: {},
   };
 }
 

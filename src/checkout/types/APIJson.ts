@@ -7,7 +7,8 @@ import type { Format } from "./Format";
 import type { ExpressCheckoutOption } from "./ExpressCheckoutOption";
 import type { Item } from "./Item";
 import type { Message } from "./Message";
-import type { PaymentOption } from "./PaymentOption";
+import type { PaymentGatewayConfig } from "./PaymentGatewayConfig";
+import type { SavedPaymentMethod } from "./SavedPaymentMethod";
 import type { Session } from "./Session";
 import type { Shipment } from "./Shipment";
 import type { Store } from "./Store";
@@ -46,8 +47,10 @@ export type APIJson = {
   display: Display;
   /** Custom configuration options for this checkout. */
   custom_config: CustomConfig;
-  /** Payment options available for this order. */
-  payment_options?: PaymentOption[];
+  /** Saved payment methods available for this order. */
+  saved_payment_methods?: SavedPaymentMethod[];
+  /** Payment gateway configurations available for this order. */
+  payment_gateways?: PaymentGatewayConfig[];
   /** Express checkout options available for this order. */
   express_checkout_options?: ExpressCheckoutOption[];
   /** Language strings for localization, keyed by string identifiers. */

@@ -9,13 +9,12 @@ import type {
   PayPalSdkInstance,
   SezzleSdkInstance,
 } from "./types";
-import {
-  type PaymentOption,
-  type ServerSentPaymentOption,
+import type {
+  PaymentGatewayConfig,
   StandardACHGateway,
   StandardCardGateway,
   StripeConnectGateway,
-} from "./types/PaymentOption";
+} from "./types/PaymentGatewayConfig";
 import type { Listener } from "./types/Listener";
 import { initializeAdyenEmbeddedSdk } from "./utils/adyen";
 import {
@@ -33,7 +32,6 @@ import {
   loadGooglePaySdk as loadGooglePaySdkUtil,
 } from "./utils/googlePay";
 import { initializeKlarnaSdk } from "./utils/klarna";
-import { discoverPayPalPaymentOptions } from "./utils/payPal";
 import { initializeSezzleSdk } from "./utils/sezzle";
 import { cloneApiJson, toMutable } from "./utils/json";
 import type { MutableAPIJson } from "./utils/json";
@@ -58,23 +56,6 @@ type EventWithoutDetailName = Exclude<EventName, EventWithDetailName>;
 
 type EventDetail<K extends EventName> =
   APIEventMap[K] extends CustomEvent<infer D> ? D : never;
-
-type PayPalPlatformPaymentOption = Extract<
-  ServerSentPaymentOption,
-  { type: "paypal"; gateway: "paypal_platform" }
->;
-
-type KlarnaPaymentOption = Extract<
-  ServerSentPaymentOption,
-  { type: "klarna"; gateway: "klarna" }
->;
-
-type AdyenEmbeddedPaymentOption = Extract<
-  ServerSentPaymentOption,
-  { type: "adyen_embedded"; gateway: "adyen_embedded" }
->;
-
-type SezzlePaymentOption = Extract<ServerSentPaymentOption, { type: "sezzle" }>;
 
 type ResolvedIncomingApiState = {
   json: MutableAPIJson;
@@ -109,46 +90,6 @@ function resolveBaseUrlFromStoreDomain(storeDomain: string): string {
   return `https://${normalizedStoreDomain}.${foxycartDomain}/`;
 }
 
-function isPayPalPlatformPaymentOption(
-  option: PaymentOption,
-): option is PayPalPlatformPaymentOption {
-  return option.type === "paypal" && option.gateway === "paypal_platform";
-}
-
-function isFlattenedPayPalPlatformPaymentOption(
-  option: PaymentOption,
-): boolean {
-  return (
-    "gateway" in option &&
-    option.gateway === "paypal_platform" &&
-    option.type !== "paypal"
-  );
-}
-
-function isKlarnaPaymentOption(
-  option: PaymentOption,
-): option is KlarnaPaymentOption {
-  return option.type === "klarna" && option.gateway === "klarna";
-}
-
-function isAdyenEmbeddedPaymentOption(
-  option: PaymentOption,
-): option is AdyenEmbeddedPaymentOption {
-  return (
-    option.type === "adyen_embedded" && option.gateway === "adyen_embedded"
-  );
-}
-
-function isSezzlePaymentOption(
-  option: PaymentOption,
-): option is SezzlePaymentOption {
-  return option.type === "sezzle";
-}
-
-function hasAdyenGateway(option: PaymentOption): boolean {
-  return "gateway" in option && option.gateway === "adyen_embedded";
-}
-
 function getPayPalEligibilityAmount(json: APIJson): string | undefined {
   const currentTotal = json.totals[0]?.total_order;
 
@@ -164,26 +105,33 @@ function getPayPalEligibilityAmount(json: APIJson): string | undefined {
   return currentTotal.toFixed(maximumFractionDigits);
 }
 
-function insertDiscoveredPaymentOptionsAfterAnchor(
-  paymentOptions: PaymentOption[] | undefined,
-  anchorOption: PaymentOption,
-  discoveredOptions: PaymentOption[],
-): PaymentOption[] | undefined {
-  if (!paymentOptions?.length || discoveredOptions.length === 0) {
-    return paymentOptions;
-  }
+function isPaymentGatewayConfigType<
+  GatewayType extends PaymentGatewayConfig["type"],
+>(
+  config: PaymentGatewayConfig,
+  type: GatewayType,
+): config is Extract<PaymentGatewayConfig, { type: GatewayType }> {
+  return config.type === type;
+}
 
-  const anchorIndex = paymentOptions.indexOf(anchorOption);
+function getPaymentGatewayConfigs<
+  GatewayType extends PaymentGatewayConfig["type"],
+>(
+  json: Pick<APIJson, "payment_gateways">,
+  type: GatewayType,
+): Extract<PaymentGatewayConfig, { type: GatewayType }>[] {
+  return (json.payment_gateways ?? []).filter((config) =>
+    isPaymentGatewayConfigType(config, type),
+  );
+}
 
-  if (anchorIndex === -1) {
-    return [...paymentOptions, ...discoveredOptions];
-  }
-
-  return [
-    ...paymentOptions.slice(0, anchorIndex + 1),
-    ...discoveredOptions,
-    ...paymentOptions.slice(anchorIndex + 1),
-  ];
+function getFirstPaymentGatewayConfig<
+  GatewayType extends PaymentGatewayConfig["type"],
+>(
+  json: Pick<APIJson, "payment_gateways">,
+  type: GatewayType,
+): Extract<PaymentGatewayConfig, { type: GatewayType }> | undefined {
+  return getPaymentGatewayConfigs(json, type)[0];
 }
 
 function getAdyenCheckoutAmount(
@@ -221,8 +169,6 @@ async function resolveIncomingApiState(
   json: APIJson,
 ): Promise<ResolvedIncomingApiState> {
   const nextJson = cloneApiJson(json);
-  const paymentOptions = nextJson.payment_options;
-  let nextPaymentOptions = paymentOptions?.slice();
   let adyenEmbedded: AdyenEmbeddedSdkInstance | null = null;
   let paypal: PayPalSdkInstance | null = null;
   let klarna: KlarnaSdkInstance | null = null;
@@ -230,27 +176,17 @@ async function resolveIncomingApiState(
   const isBrowserEnvironment =
     typeof window !== "undefined" && typeof document !== "undefined";
 
-  if (paymentOptions?.some(isPayPalPlatformPaymentOption)) {
-    const hasFlattenedPayPalPlatformOptions = paymentOptions.some(
-      isFlattenedPayPalPlatformPaymentOption,
-    );
+  const payPalGatewayConfigs = getPaymentGatewayConfigs(
+    nextJson,
+    "paypal_platform",
+  );
 
-    if (hasFlattenedPayPalPlatformOptions) {
-      const payPalOptionWithClientId = paymentOptions.find(
-        (
-          option,
-        ): option is Extract<PaymentOption, { gateway: "paypal_platform" }> =>
-          "gateway" in option &&
-          option.gateway === "paypal_platform" &&
-          "client_id" in option &&
-          typeof option.client_id === "string" &&
-          Boolean(option.client_id.trim()),
-      );
-
-      if (payPalOptionWithClientId && isBrowserEnvironment) {
+  if (payPalGatewayConfigs.length && isBrowserEnvironment) {
+    const payPalInstances = await Promise.all(
+      payPalGatewayConfigs.map(async (config) => {
         try {
-          paypal = await loadPayPalSdk({
-            clientId: payPalOptionWithClientId.client_id,
+          return await loadPayPalSdk({
+            clientId: config.client_id,
             customConfig: nextJson.custom_config,
             amount: getPayPalEligibilityAmount(nextJson),
             currencyCode: nextJson.format.currency_code,
@@ -258,215 +194,104 @@ async function resolveIncomingApiState(
             buyerCountry: nextJson.billing_address.country,
           });
         } catch {
-          paypal = null;
+          return null;
         }
-      }
-    } else {
-      const discoveredPaymentOptions = await Promise.all(
-        paymentOptions.map(async (option) => {
-          if (!isPayPalPlatformPaymentOption(option)) {
-            return {
-              option,
-              discoveredOptions: [] as PaymentOption[],
-              paypal: null as PayPalSdkInstance | null,
-            };
-          }
+      }),
+    );
 
-          const discovery = await discoverPayPalPaymentOptions({
-            clientId: option.client_id,
-            customConfig: nextJson.custom_config,
-            amount: getPayPalEligibilityAmount(nextJson),
-            currencyCode: nextJson.format.currency_code,
-            locale: nextJson.format.locale_code,
-            buyerCountry: nextJson.billing_address.country,
-          });
-
-          return {
-            option,
-            discoveredOptions: discovery.options,
-            paypal: discovery.paypal,
-          };
-        }),
-      );
-
-      paypal =
-        discoveredPaymentOptions.find((discovery) => discovery.paypal)
-          ?.paypal ?? null;
-
-      nextPaymentOptions = discoveredPaymentOptions.flatMap((discovery) => [
-        discovery.option,
-        ...discovery.discoveredOptions,
-      ]);
-    }
+    paypal = payPalInstances.find((instance) => instance !== null) ?? null;
   }
 
-  const klarnaOption = nextPaymentOptions?.find(isKlarnaPaymentOption);
+  const klarnaConfig = getFirstPaymentGatewayConfig(nextJson, "klarna");
   const thirdPartySdkTasks: Promise<void>[] = [];
 
-  if (klarnaOption) {
+  if (klarnaConfig) {
     if (!isBrowserEnvironment) {
-      nextPaymentOptions = nextPaymentOptions?.filter(
-        (option) => !isKlarnaPaymentOption(option),
-      );
-
       console.warn(
-        "Klarna payment options were removed because checkout API JSON was processed outside a browser environment.",
+        "Klarna SDK was not initialized because checkout API JSON was processed outside a browser environment.",
       );
     } else {
       thirdPartySdkTasks.push(
-        initializeKlarnaSdk(klarnaOption.client_token)
+        initializeKlarnaSdk(klarnaConfig.client_token)
           .then((instance) => {
             klarna = instance;
           })
           .catch(() => {
-            nextPaymentOptions = nextPaymentOptions?.filter(
-              (option) => !isKlarnaPaymentOption(option),
-            );
-
             console.warn(
-              "Klarna payment options were removed because the Klarna SDK could not be loaded.",
+              "Klarna SDK was not initialized because the Klarna SDK could not be loaded.",
             );
           }),
       );
     }
   }
 
-  const sezzleOption = nextPaymentOptions?.find(isSezzlePaymentOption);
+  const sezzleConfig = getFirstPaymentGatewayConfig(nextJson, "sezzle");
 
-  if (sezzleOption) {
+  if (sezzleConfig) {
     if (!isBrowserEnvironment) {
-      nextPaymentOptions = nextPaymentOptions?.filter(
-        (option) => !isSezzlePaymentOption(option),
-      );
-
       console.warn(
-        "Sezzle payment options were removed because checkout API JSON was processed outside a browser environment.",
+        "Sezzle SDK was not initialized because checkout API JSON was processed outside a browser environment.",
       );
     } else {
       thirdPartySdkTasks.push(
         initializeSezzleSdk({
-          publicKey: sezzleOption.public_key,
+          publicKey: sezzleConfig.public_key,
           customConfig: nextJson.custom_config,
         })
           .then((instance) => {
             sezzle = instance;
           })
           .catch(() => {
-            nextPaymentOptions = nextPaymentOptions?.filter(
-              (option) => !isSezzlePaymentOption(option),
-            );
-
             console.warn(
-              "Sezzle payment options were removed because the Sezzle SDK could not be loaded.",
+              "Sezzle SDK was not initialized because the Sezzle SDK could not be loaded.",
             );
           }),
       );
     }
   }
 
-  const adyenEmbeddedOption = nextPaymentOptions?.find(
-    isAdyenEmbeddedPaymentOption,
+  const adyenEmbeddedConfig = getFirstPaymentGatewayConfig(
+    nextJson,
+    "adyen_embedded",
   );
 
-  if (adyenEmbeddedOption) {
+  if (adyenEmbeddedConfig) {
     if (!isBrowserEnvironment) {
-      nextPaymentOptions = nextPaymentOptions?.filter(
-        (option) => !hasAdyenGateway(option),
-      );
-
       console.warn(
-        "Adyen Embedded payment options were removed because checkout API JSON was processed outside a browser environment.",
+        "Adyen Embedded SDK was not initialized because checkout API JSON was processed outside a browser environment.",
       );
     } else {
       thirdPartySdkTasks.push(
         initializeAdyenEmbeddedSdk({
-          sessionId: adyenEmbeddedOption.session_id,
-          sessionData: adyenEmbeddedOption.session_data,
-          environment: adyenEmbeddedOption.environment,
-          clientKey: adyenEmbeddedOption.client_key,
+          sessionId: adyenEmbeddedConfig.session_id,
+          sessionData: adyenEmbeddedConfig.session_data,
+          environment: adyenEmbeddedConfig.environment,
+          clientKey: adyenEmbeddedConfig.client_key,
           amount: getAdyenCheckoutAmount(nextJson),
           locale: nextJson.format.locale_code,
           countryCode: nextJson.billing_address.country,
         })
-          .then((discovery) => {
-            adyenEmbedded = discovery.adyenEmbedded;
-            nextPaymentOptions = insertDiscoveredPaymentOptionsAfterAnchor(
-              nextPaymentOptions,
-              adyenEmbeddedOption,
-              discovery.options,
-            );
+          .then((instance) => {
+            adyenEmbedded = instance;
           })
           .catch(() => {
-            nextPaymentOptions = nextPaymentOptions?.filter(
-              (option) => !hasAdyenGateway(option),
-            );
-
             console.warn(
-              "Adyen Embedded payment options were removed because the Adyen SDK could not be loaded.",
+              "Adyen Embedded SDK was not initialized because the Adyen SDK could not be loaded.",
             );
           }),
       );
     }
   }
 
-  let hasApplePay =
-    nextPaymentOptions?.some((option) => option.type === "apple-pay") ?? false;
-  let hasGooglePay =
-    nextPaymentOptions?.some((option) => option.type === "google-pay") ?? false;
-
-  if (isBrowserEnvironment && hasApplePay) {
-    thirdPartySdkTasks.push(API.ensureApplePayScriptLoaded());
-  }
-
-  if (isBrowserEnvironment && hasGooglePay) {
-    thirdPartySdkTasks.push(API.ensureGooglePayScriptLoaded());
-  }
-
   await Promise.all(thirdPartySdkTasks);
 
-  const hasDiscoveredApplePay =
-    nextPaymentOptions?.some((option) => option.type === "apple-pay") ?? false;
-  const hasDiscoveredGooglePay =
-    nextPaymentOptions?.some((option) => option.type === "google-pay") ?? false;
-  const postDiscoveryBrowserWalletTasks: Promise<void>[] = [];
-
-  if (isBrowserEnvironment && hasDiscoveredApplePay && !hasApplePay) {
-    postDiscoveryBrowserWalletTasks.push(API.ensureApplePayScriptLoaded());
-  }
-
-  if (isBrowserEnvironment && hasDiscoveredGooglePay && !hasGooglePay) {
-    postDiscoveryBrowserWalletTasks.push(API.ensureGooglePayScriptLoaded());
-  }
-
-  if (postDiscoveryBrowserWalletTasks.length > 0) {
-    await Promise.all(postDiscoveryBrowserWalletTasks);
-  }
-
-  hasApplePay = hasDiscoveredApplePay;
-
-  if (!hasApplePay) {
-    nextJson.payment_options = nextPaymentOptions;
-    return { json: nextJson, adyenEmbedded, paypal, klarna, sezzle };
-  }
-
-  const applePayAvailability = getApplePayAvailability();
-
-  if (applePayAvailability === "available") {
-    nextJson.payment_options = nextPaymentOptions;
-    return { json: nextJson, adyenEmbedded, paypal, klarna, sezzle };
-  }
-
-  nextJson.payment_options = nextPaymentOptions!.filter(
-    (option) => option.type !== "apple-pay",
-  );
-
-  console.warn(
-    applePayAvailability === "non-browser"
-      ? "Apple Pay payment options were removed because checkout API JSON was processed outside a browser environment."
-      : "Apple Pay payment options were removed because Apple Pay is not available in this browser.",
-  );
-
-  return { json: nextJson, adyenEmbedded, paypal, klarna, sezzle };
+  return {
+    json: nextJson,
+    adyenEmbedded,
+    paypal,
+    klarna,
+    sezzle,
+  };
 }
 
 type CheckOutPaymentOption =
@@ -499,7 +324,7 @@ export type APIConstructorParams = APIOptions & {
  * This is going to be under SDK.Checkout.API in the @foxy.io/sdk package.
  * Pages using loader.js will have an initialized instance under window.Foxy.api.
  *
- * Fires non-cancelable `update` event whenever `API.json` is updated from the server.
+ * Fires non-cancelable `update` event whenever the resolved checkout state changes.
  */
 export class API extends EventTarget {
   #state: "idle" | "busy";
@@ -708,6 +533,7 @@ export class API extends EventTarget {
   protected mutateJson(mutator: (json: MutableAPIJson) => void): void {
     if (!this.#json) return;
     mutator(this.#json);
+
     this.dispatchEvent(new Event("update"));
   }
 

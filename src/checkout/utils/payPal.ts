@@ -1,5 +1,4 @@
 import type { CustomConfig } from "../types";
-import type { ClientDiscoveredPaymentOption } from "../types/PaymentOption";
 import type { PayPalSdkInstance } from "../types/PayPalSdkInstance";
 import type {
   FindEligibleMethodsOptions,
@@ -20,14 +19,45 @@ type DiscoverPayPalPaymentOptionsParams = {
 
 type DiscoverPayPalPaymentOptionsResult = {
   paypal: PayPalSdkInstance | null;
-  options: ClientDiscoveredPaymentOption[];
+  options: PayPalDiscoveredPaymentOption[];
 };
+
+type PayPalDiscoveredPaymentOption =
+  | {
+      type: "new-card";
+      gateway: "paypal_platform";
+      client_id: string;
+    }
+  | {
+      type: "apple-pay";
+      gateway: "paypal_platform";
+      client_id: string;
+    }
+  | {
+      type: "google-pay";
+      gateway: "paypal_platform";
+      client_id: string;
+      merchant_id: string;
+      gateway_parameters?: Record<string, string>;
+    }
+  | {
+      type:
+        | "paypal-pay-later"
+        | "paypal-credit"
+        | "venmo"
+        | "bancontact"
+        | "ideal"
+        | "eps"
+        | "blik"
+        | "przelewy24";
+      gateway: "paypal_platform";
+      client_id: string;
+    };
 
 type PayPalSdkComponentProfile = "base" | "extended";
 
 type UndocumentedPayPalFundingSource =
   | "bancontact"
-  | "sepa"
   | "ideal"
   | "eps"
   | "blik"
@@ -35,7 +65,6 @@ type UndocumentedPayPalFundingSource =
 
 type UndocumentedPayPalSessionCreator =
   | "createBancontactOneTimePaymentSession"
-  | "createSepaOneTimePaymentSession"
   | "createIdealOneTimePaymentSession"
   | "createEpsOneTimePaymentSession"
   | "createBlikOneTimePaymentSession"
@@ -44,8 +73,8 @@ type UndocumentedPayPalSessionCreator =
 type PayPalAlternativePaymentMethodDescriptor = {
   eligibilityKey: UndocumentedPayPalFundingSource;
   optionType: Extract<
-    ClientDiscoveredPaymentOption["type"],
-    "bancontact" | "sepa" | "ideal" | "eps" | "blik" | "przelewy24"
+    PayPalDiscoveredPaymentOption["type"],
+    "bancontact" | "ideal" | "eps" | "blik" | "przelewy24"
   >;
   sessionCreator: UndocumentedPayPalSessionCreator;
 };
@@ -72,7 +101,6 @@ const PAYPAL_SDK_BASE_COMPONENTS = [
 
 const PAYPAL_SDK_UNDOCUMENTED_APM_COMPONENTS = [
   "bancontact-payments",
-  "sepa-payments",
   "ideal-payments",
   "eps-payments",
   "blik-payments",
@@ -96,11 +124,6 @@ const PAYPAL_UNDOCUMENTED_APMS: readonly PayPalAlternativePaymentMethodDescripto
       eligibilityKey: "bancontact",
       optionType: "bancontact",
       sessionCreator: "createBancontactOneTimePaymentSession",
-    },
-    {
-      eligibilityKey: "sepa",
-      optionType: "sepa",
-      sessionCreator: "createSepaOneTimePaymentSession",
     },
     {
       eligibilityKey: "ideal",
@@ -436,7 +459,7 @@ export async function discoverPayPalPaymentOptions(
       buildFindEligibleMethodsOptions(params),
     );
 
-    const options: ClientDiscoveredPaymentOption[] = [];
+    const options: PayPalDiscoveredPaymentOption[] = [];
 
     if (
       isPayPalMethodEligible(eligibility, "advanced_cards") &&
