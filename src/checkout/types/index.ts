@@ -25,13 +25,18 @@ export type { GooglePaymentsClient } from "./GooglePaymentsClient";
 export type { KlarnaSdkInstance } from "./KlarnaSdkInstance";
 export type { PayPalSdkInstance } from "./PayPalSdkInstance";
 export type { SezzleSdkInstance } from "./SezzleSdkInstance";
+export type {
+  ApplePayConfig,
+  GooglePayConfig,
+  PaymentGatewayConfig,
+} from "./PaymentGatewayConfig";
 export type { CustomFields } from "./CustomFields";
 export type { CustomConfig } from "./CustomConfig";
 export type {
   ExpressCheckoutType,
   ExpressCheckoutOption,
 } from "./ExpressCheckoutOption";
-export type { PaymentOption } from "./PaymentOption";
+export type { SavedPaymentMethod } from "./SavedPaymentMethod";
 export type {
   AchHostedFieldsPublicState,
   AchHostedFieldsTokenizeErrorCode,

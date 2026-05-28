@@ -1,59 +1,37 @@
+import type { AdyenEmbeddedEnvironment } from "./AdyenEmbeddedSdkInstance";
+
 import type {
-  AdyenEmbeddedEnvironment,
-  AdyenEmbeddedPaymentMethod,
-} from "./AdyenEmbeddedSdkInstance";
+  StandardACHGateway,
+  StandardCardGateway,
+  StripeConnectGateway,
+} from "./PaymentGatewayConfig";
 
-export type StandardCardGateway =
-  | "authorize"
-  | "authorize_cim"
-  | "braintree_sdk"
-  | "bluesnap"
-  | "cybersource_rest"
-  | "bank_of_america"
-  | "eway"
-  | "firstdata_e4"
-  | "moneris"
-  | "nmi_native"
-  | "paytrace"
-  | "quickbook_payments"
-  | "vantiv_omnipay"
-  | "sagepay";
-
-export type StripeConnectGateway = "stripe_connect" | "stripe_connect_charge";
-export type StandardACHGateway = "authorize_ach" | "ach_com";
-export type SavedCardGateway =
-  | StandardCardGateway
-  | StripeConnectGateway
-  | "stripe_v2"
-  | "adyen_embedded";
-
-export type ServerSentPaymentOption =
+export type PaymentOption =
+  | {
+      /** Payment option type. */
+      type: "saved-card";
+      /** Gateway used for saved card submission. */
+      gateway:
+        | StandardCardGateway
+        | StripeConnectGateway
+        | "stripe_v2"
+        | "adyen_embedded";
+      /** Payment method identifier. */
+      id: string;
+      /** Card brand (e.g., "visa", "mastercard"). */
+      brand: string;
+      /** Last 4 card digits (e.g., "1234"). */
+      last_4: string;
+      /** Full expiration year (e.g., 2030). */
+      expiry_year: number;
+      /** Expiration month from 1 to 12. */
+      expiry_month: number;
+    }
   | {
       /** Payment option type. */
       type: "new-card";
       /** Gateway used for card tokenization submission. */
       gateway: StandardCardGateway;
-    }
-  | {
-      /** Payment option type. */
-      type: "saved-card";
-      /** Gateway used for saved card submission. */
-      gateway: SavedCardGateway;
-      /** Saved payment method details for rendering and submission. */
-      payment_method: {
-        /** Payment method identifier. */
-        payment_method_id: string;
-        /** Payment method type. Only "card" is supported at the moment. */
-        payment_method_type?: "card";
-        /** Card brand (e.g., "visa", "mastercard"). */
-        brand: string;
-        /** Last 4 card digits (e.g., "1234"). */
-        last_4: string;
-        /** Full expiration year (e.g., 2030). */
-        expiry_year: number;
-        /** Expiration month from 1 to 12. */
-        expiry_month: number;
-      };
     }
   | {
       /** Payment option type. */
@@ -168,9 +146,7 @@ export type ServerSentPaymentOption =
       environment: AdyenEmbeddedEnvironment;
       /** Adyen client-side authentication key. */
       client_key: string;
-    };
-
-export type ClientDiscoveredPaymentOption =
+    }
   | {
       /** Payment option type. */
       type: "new-card";
@@ -937,20 +913,3 @@ export type ClientDiscoveredPaymentOption =
       /** PayPal client ID for rendering and submission. */
       client_id: string;
     };
-
-type AdyenEmbeddedAlternativePaymentOption = Exclude<
-  Extract<ClientDiscoveredPaymentOption, { gateway: "adyen_embedded" }>,
-  { type: "new-card" }
->;
-
-export type AdyenEmbeddedAlternativePaymentMethodType = Extract<
-  AdyenEmbeddedAlternativePaymentOption,
-  { adyen_payment_method_type: string }
->["adyen_payment_method_type"];
-
-export type AdyenEmbeddedAlternativePaymentOptionType =
-  AdyenEmbeddedAlternativePaymentOption["type"];
-
-export type PaymentOption =
-  | ServerSentPaymentOption
-  | ClientDiscoveredPaymentOption;
