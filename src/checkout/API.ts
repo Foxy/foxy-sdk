@@ -65,6 +65,10 @@ type ResolvedIncomingApiState = {
   sezzle: SezzleSdkInstance | null;
 };
 
+type ResolveIncomingApiStateOptions = {
+  onPayPalResolved?: (state: ResolvedIncomingApiState) => void;
+};
+
 function resolveBaseUrlFromStoreDomain(storeDomain: string): string {
   const normalizedStoreDomain = storeDomain
     .trim()
@@ -167,6 +171,7 @@ function getAdyenCheckoutAmount(
 
 async function resolveIncomingApiState(
   json: APIJson,
+  options: ResolveIncomingApiStateOptions = {},
 ): Promise<ResolvedIncomingApiState> {
   const nextJson = cloneApiJson(json);
   let adyenEmbedded: AdyenEmbeddedSdkInstance | null = null;
@@ -201,6 +206,14 @@ async function resolveIncomingApiState(
 
     paypal = payPalInstances.find((instance) => instance !== null) ?? null;
   }
+
+  options.onPayPalResolved?.({
+    json: nextJson,
+    adyenEmbedded,
+    paypal,
+    klarna,
+    sezzle,
+  });
 
   const klarnaConfig = getFirstPaymentGatewayConfig(nextJson, "klarna");
   const thirdPartySdkTasks: Promise<void>[] = [];
@@ -334,6 +347,7 @@ export class API extends EventTarget {
   #paypal: PayPalSdkInstance | null;
   #sezzle: SezzleSdkInstance | null;
   #baseUrl: string | null;
+  #jsonResolutionVersion = 0;
   readonly #onError?: (error: Error) => void;
 
   static canMakeApplePayPayments(): boolean {
@@ -477,35 +491,23 @@ export class API extends EventTarget {
     nextJson: APIJson,
     options?: HydrateJsonOptions,
   ): Promise<void> {
-    const resolvedState = await resolveIncomingApiState(nextJson);
-    const previousJson = JSON.stringify(this.#json);
-    const nextResolvedJson = JSON.stringify(resolvedState.json);
+    const resolutionVersion = ++this.#jsonResolutionVersion;
     const nextState = options?.state ?? "idle";
     const emitUpdate = options?.emitUpdate ?? true;
-    const stateChanged = this.#state !== nextState;
-    const adyenEmbeddedChanged =
-      this.#adyenEmbedded !== resolvedState.adyenEmbedded;
-    const klarnaChanged = this.#klarna !== resolvedState.klarna;
-    const paypalChanged = this.#paypal !== resolvedState.paypal;
-    const sezzleChanged = this.#sezzle !== resolvedState.sezzle;
 
-    this.#json = resolvedState.json;
-    this.#adyenEmbedded = resolvedState.adyenEmbedded;
-    this.#klarna = resolvedState.klarna;
-    this.#paypal = resolvedState.paypal;
-    this.#sezzle = resolvedState.sezzle;
-    this.#state = nextState;
+    const resolvedState = await resolveIncomingApiState(nextJson, {
+      onPayPalResolved: (payPalResolvedState) => {
+        if (resolutionVersion === this.#jsonResolutionVersion) {
+          this.#applyResolvedState(payPalResolvedState, {
+            state: nextState,
+            emitUpdate,
+          });
+        }
+      },
+    });
 
-    if (
-      emitUpdate &&
-      (previousJson !== nextResolvedJson ||
-        stateChanged ||
-        adyenEmbeddedChanged ||
-        klarnaChanged ||
-        paypalChanged ||
-        sezzleChanged)
-    ) {
-      this.dispatchEvent(new Event("update"));
+    if (resolutionVersion === this.#jsonResolutionVersion) {
+      this.#applyResolvedState(resolvedState, { emitUpdate });
     }
   }
 
@@ -538,9 +540,32 @@ export class API extends EventTarget {
   }
 
   protected async replaceJson(nextJson: APIJson): Promise<void> {
-    const resolvedState = await resolveIncomingApiState(nextJson);
+    const resolutionVersion = ++this.#jsonResolutionVersion;
+
+    const resolvedState = await resolveIncomingApiState(nextJson, {
+      onPayPalResolved: (payPalResolvedState) => {
+        if (resolutionVersion === this.#jsonResolutionVersion) {
+          this.#applyResolvedState(payPalResolvedState);
+        }
+      },
+    });
+
+    if (resolutionVersion !== this.#jsonResolutionVersion) {
+      return;
+    }
+
+    this.#applyResolvedState(resolvedState);
+  }
+
+  #applyResolvedState(
+    resolvedState: ResolvedIncomingApiState,
+    options: { state?: "idle" | "busy"; emitUpdate?: boolean } = {},
+  ): void {
+    const emitUpdate = options.emitUpdate ?? true;
     const previousJson = JSON.stringify(this.#json);
     const nextResolvedJson = JSON.stringify(resolvedState.json);
+    const stateChanged =
+      options.state !== undefined && this.#state !== options.state;
     const adyenEmbeddedChanged =
       this.#adyenEmbedded !== resolvedState.adyenEmbedded;
     const klarnaChanged = this.#klarna !== resolvedState.klarna;
@@ -553,12 +578,18 @@ export class API extends EventTarget {
     this.#paypal = resolvedState.paypal;
     this.#sezzle = resolvedState.sezzle;
 
+    if (options.state !== undefined) {
+      this.#state = options.state;
+    }
+
     if (
-      previousJson !== nextResolvedJson ||
-      adyenEmbeddedChanged ||
-      klarnaChanged ||
-      paypalChanged ||
-      sezzleChanged
+      emitUpdate &&
+      (previousJson !== nextResolvedJson ||
+        stateChanged ||
+        adyenEmbeddedChanged ||
+        klarnaChanged ||
+        paypalChanged ||
+        sezzleChanged)
     ) {
       this.dispatchEvent(new Event("update"));
     }
