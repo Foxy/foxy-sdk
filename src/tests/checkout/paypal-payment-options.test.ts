@@ -9,8 +9,16 @@ const sdkV6Mock = vi.hoisted(() => ({
   loadCoreSdkScript: vi.fn(),
 }));
 
+const sezzleMock = vi.hoisted(() => ({
+  initializeSezzleSdk: vi.fn(),
+}));
+
 vi.mock("@paypal/paypal-js/sdk-v6", () => ({
   loadCoreSdkScript: sdkV6Mock.loadCoreSdkScript,
+}));
+
+vi.mock("../../checkout/utils/sezzle", () => ({
+  initializeSezzleSdk: sezzleMock.initializeSezzleSdk,
 }));
 
 type RuntimeGlobals = typeof globalThis & {
@@ -55,6 +63,10 @@ const authorizeGatewayConfig = { type: "authorize" } as const;
 const paypalGatewayConfig = {
   type: "paypal_platform",
   client_id: "paypal-client-id",
+} as const;
+const sezzleGatewayConfig = {
+  type: "sezzle",
+  public_key: "sezzle-public-key",
 } as const;
 const paypalOption = {
   type: "paypal",
@@ -296,7 +308,6 @@ const sessionCreatorsByFundingSource: Record<
   credit: "createPayPalCreditOneTimePaymentSession",
   venmo: "createVenmoOneTimePaymentSession",
   bancontact: "createBancontactOneTimePaymentSession",
-  sepa: "createSepaOneTimePaymentSession",
   ideal: "createIdealOneTimePaymentSession",
   eps: "createEpsOneTimePaymentSession",
   blik: "createBlikOneTimePaymentSession",
@@ -350,6 +361,7 @@ describe("PayPal payment option discovery", () => {
   beforeEach(() => {
     vi.resetModules();
     sdkV6Mock.loadCoreSdkScript.mockReset();
+    sezzleMock.initializeSezzleSdk.mockReset();
   });
 
   afterEach(() => {
@@ -369,7 +381,55 @@ describe("PayPal payment option discovery", () => {
     expect(sdkV6Mock.loadCoreSdkScript).not.toHaveBeenCalled();
   });
 
-  it.skip("discovers PayPal v6 payment options and exposes the SDK instance", async () => {
+  it("publishes checkout JSON as soon as PayPal SDK initialization settles", async () => {
+    setBrowserRuntime();
+    const paypal = createPayPalInstance(["advanced_cards"]);
+    const createInstance = vi.fn(async () => paypal);
+    const sdkDeferred = createDeferred<{
+      createInstance: typeof createInstance;
+      version: string;
+    }>();
+
+    sdkV6Mock.loadCoreSdkScript.mockReturnValue(sdkDeferred.promise);
+
+    const { API } = await import("../../checkout/API");
+    const api = new API();
+    const updateListener = vi.fn();
+
+    api.addEventListener("update", updateListener);
+
+    const hydratePromise = api.hydrateJson(
+      createApiJson([paypalGatewayConfig]),
+      { state: "idle" },
+    );
+
+    await vi.dynamicImportSettled();
+    await flushTasks();
+
+    expect(api.json).toBeNull();
+    expect(api.paypal).toBeNull();
+    expect(updateListener).not.toHaveBeenCalled();
+    expect(sdkV6Mock.loadCoreSdkScript).toHaveBeenCalledTimes(1);
+
+    let didHydrateResolve = false;
+    void hydratePromise.then(() => {
+      didHydrateResolve = true;
+    });
+
+    await flushTasks();
+
+    expect(didHydrateResolve).toBe(false);
+
+    sdkDeferred.resolve({ createInstance, version: "6.0.0" });
+
+    await hydratePromise;
+
+    expect(api.json?.payment_gateways).toEqual([paypalGatewayConfig]);
+    expect(api.paypal).toBe(paypal);
+    expect(updateListener).toHaveBeenCalledTimes(1);
+  });
+
+  it("discovers PayPal v6 payment options and exposes the resolved options alongside the SDK instance", async () => {
     setBrowserRuntime({ applePayAvailable: true, googlePayAvailable: true });
     const paypal = createPayPalInstance([
       "advanced_cards",
@@ -391,16 +451,19 @@ describe("PayPal payment option discovery", () => {
       version: "6.0.0",
     });
 
-    const api = await createTestApi(
-      createApiJson([paypalGatewayConfig, authorizeGatewayConfig], {
-        paypal_environment: "sandbox",
-      }),
-    );
+    const { discoverPayPalPaymentOptions } =
+      await import("../../checkout/utils/payPal");
 
-    await vi.dynamicImportSettled();
-    await flushTasks();
+    const result = await discoverPayPalPaymentOptions({
+      clientId: paypalOption.client_id,
+      customConfig: { paypal_environment: "sandbox" },
+      amount: "12.34",
+      currencyCode: "USD",
+      locale: "en-US",
+      buyerCountry: "US",
+    });
 
-    expect(api.paypal).toBe(paypal);
+    expect(result.paypal).toBe(paypal);
     expect(createInstance).toHaveBeenCalledWith({
       clientId: paypalOption.client_id,
       components: [
@@ -419,12 +482,12 @@ describe("PayPal payment option discovery", () => {
       pageType: "checkout",
       testBuyerCountry: "US",
     });
-    expect(api.json!.payment_gateways).toEqual([
-      paypalGatewayConfig,
-      authorizeGatewayConfig,
-    ]);
-    expect(api.paymentOptions).toEqual([
-      paypalOption,
+    expect(paypal.findEligibleMethods).toHaveBeenCalledWith({
+      paymentFlow: "ONE_TIME_PAYMENT",
+      amount: "12.34",
+      currencyCode: "USD",
+    });
+    expect(result.options).toEqual([
       {
         type: "new-card",
         gateway: "paypal_platform",
@@ -485,11 +548,10 @@ describe("PayPal payment option discovery", () => {
         gateway: "paypal_platform",
         client_id: paypalOption.client_id,
       },
-      cardOption,
     ]);
   });
 
-  it.skip("requires the matching PayPal session creator before exposing undocumented APM options", async () => {
+  it("requires the matching PayPal session creator before surfacing undocumented APMs", async () => {
     setBrowserRuntime();
     const paypal = createPayPalInstance(
       ["bancontact", "ideal", "eps", "blik", "p24"],
@@ -501,22 +563,20 @@ describe("PayPal payment option discovery", () => {
       version: "6.0.0",
     });
 
-    const api = await createTestApi(
-      createApiJson([paypalGatewayConfig], { paypal_environment: "sandbox" }),
-    );
+    const { discoverPayPalPaymentOptions } =
+      await import("../../checkout/utils/payPal");
 
-    await vi.dynamicImportSettled();
-    await flushTasks();
+    const result = await discoverPayPalPaymentOptions({
+      clientId: paypalOption.client_id,
+      customConfig: { paypal_environment: "sandbox" },
+    });
 
-    expect(api.json!.payment_gateways).toEqual([paypalGatewayConfig]);
-    expect(api.paymentOptions).toEqual([paypalOption]);
+    expect(result.paypal).toBe(paypal);
+    expect(result.options).toEqual([]);
   });
 
-  it.skip("filters discovered Apple Pay options when Apple Pay is unavailable in the browser", async () => {
-    setBrowserRuntime({ applePayAvailable: false, googlePayAvailable: true });
-    const warnSpy = vi
-      .spyOn(console, "warn")
-      .mockImplementation(() => undefined);
+  it("reports Apple Pay discovery before browser-specific filtering", async () => {
+    setBrowserRuntime({ applePayAvailable: false });
     const paypal = createPayPalInstance(["applepay"]);
 
     sdkV6Mock.loadCoreSdkScript.mockResolvedValue({
@@ -524,80 +584,100 @@ describe("PayPal payment option discovery", () => {
       version: "6.0.0",
     });
 
-    const api = await createTestApi(
-      createApiJson([paypalGatewayConfig], { paypal_environment: "sandbox" }),
-    );
+    const { discoverPayPalPaymentOptions } =
+      await import("../../checkout/utils/payPal");
 
-    await vi.dynamicImportSettled();
-    await flushTasks();
-
-    expect(api.json!.payment_gateways).toEqual([paypalGatewayConfig]);
-    expect(api.paymentOptions).toEqual([paypalOption]);
-    expect(warnSpy).toHaveBeenCalledWith(
-      "Apple Pay payment options were removed because Apple Pay is not available in this browser.",
-    );
-  });
-
-  it.skip("emits update when PayPal discovery changes only resolved payment options", async () => {
-    setBrowserRuntime({ googlePayAvailable: true });
-    const deferredEligibility =
-      createDeferred<ReturnType<typeof createEligibility>>();
-    const paypal = {
-      findEligibleMethods: vi.fn(() => deferredEligibility.promise),
-      createPayLaterOneTimePaymentSession: vi.fn(() => ({})),
-      updateLocale: vi.fn(),
-    } as unknown as PayPalSdkInstance;
-
-    sdkV6Mock.loadCoreSdkScript.mockResolvedValue({
-      createInstance: vi.fn(async () => paypal),
-      version: "6.0.0",
+    const result = await discoverPayPalPaymentOptions({
+      clientId: paypalOption.client_id,
+      customConfig: { paypal_environment: "sandbox" },
     });
 
-    const api = await createTestApi(
-      createApiJson([paypalGatewayConfig], { paypal_environment: "sandbox" }),
-    );
-    const updateSpy = vi.fn();
+    expect(result.paypal).toBe(paypal);
+    expect(result.options).toEqual([
+      {
+        type: "apple-pay",
+        gateway: "paypal_platform",
+        client_id: paypalOption.client_id,
+      },
+    ]);
+  });
 
-    api.addEventListener("update", updateSpy);
+  it("emits a follow-up update when later provider SDK initialization changes only provider handles", async () => {
+    setBrowserRuntime();
+    const paypal = createPayPalInstance(["advanced_cards"]);
+    const createInstance = vi.fn(async () => paypal);
+    const sdkDeferred = createDeferred<{
+      createInstance: typeof createInstance;
+      version: string;
+    }>();
+    const sezzle = { startCheckout: vi.fn() };
+    const sezzleDeferred = createDeferred<typeof sezzle>();
+
+    sdkV6Mock.loadCoreSdkScript.mockReturnValue(sdkDeferred.promise);
+    sezzleMock.initializeSezzleSdk.mockReturnValue(sezzleDeferred.promise);
+
+    const { API } = await import("../../checkout/API");
+    const api = new API();
+    const updateListener = vi.fn();
+
+    api.addEventListener("update", updateListener);
+
+    const hydratePromise = api.hydrateJson(
+      createApiJson([paypalGatewayConfig, sezzleGatewayConfig], {
+        paypal_environment: "sandbox",
+      }),
+      { state: "idle" },
+    );
+
+    let didHydrateResolve = false;
+    void hydratePromise.then(() => {
+      didHydrateResolve = true;
+    });
 
     await vi.dynamicImportSettled();
     await flushTasks();
 
-    expect(api.json!.payment_gateways).toEqual([paypalGatewayConfig]);
-    expect(api.paymentOptions).toEqual([paypalOption]);
-    expect(updateSpy).not.toHaveBeenCalled();
+    expect(api.json).toBeNull();
+    expect(api.paypal).toBeNull();
+    expect(api.sezzle).toBeNull();
+    expect(updateListener).not.toHaveBeenCalled();
+    expect(sezzleMock.initializeSezzleSdk).not.toHaveBeenCalled();
 
-    deferredEligibility.resolve(createEligibility(["paylater"]));
+    sdkDeferred.resolve({ createInstance, version: "6.0.0" });
 
     await vi.waitFor(() => {
-      expect(api.paymentOptions).toEqual([
-        paypalOption,
-        {
-          type: "paypal-pay-later",
-          gateway: "paypal_platform",
-          client_id: paypalOption.client_id,
-        },
+      expect(api.json?.payment_gateways).toEqual([
+        paypalGatewayConfig,
+        sezzleGatewayConfig,
       ]);
+      expect(api.paypal).toBe(paypal);
+      expect(api.sezzle).toBeNull();
+      expect(updateListener).toHaveBeenCalledTimes(1);
+      expect(sezzleMock.initializeSezzleSdk).toHaveBeenCalledWith({
+        publicKey: sezzleGatewayConfig.public_key,
+        customConfig: { paypal_environment: "sandbox" },
+      });
     });
+    expect(didHydrateResolve).toBe(false);
 
-    expect(api.json!.payment_gateways).toEqual([paypalGatewayConfig]);
-    expect(updateSpy).toHaveBeenCalledTimes(1);
+    sezzleDeferred.resolve(sezzle);
+
+    await hydratePromise;
+
+    expect(api.sezzle).toBe(sezzle);
+    expect(updateListener).toHaveBeenCalledTimes(2);
   });
 
-  it.skip("updates stored JSON only after PayPal discovery resolves", async () => {
-    setBrowserRuntime({ googlePayAvailable: true });
-    const deferredEligibility =
-      createDeferred<ReturnType<typeof createEligibility>>();
-    const paypal = {
-      findEligibleMethods: vi.fn(() => deferredEligibility.promise),
-      createPayLaterOneTimePaymentSession: vi.fn(() => ({})),
-      updateLocale: vi.fn(),
-    } as unknown as PayPalSdkInstance;
+  it("updates stored JSON only after PayPal SDK initialization resolves", async () => {
+    setBrowserRuntime();
+    const paypal = createPayPalInstance(["advanced_cards"]);
+    const createInstance = vi.fn(async () => paypal);
+    const sdkDeferred = createDeferred<{
+      createInstance: typeof createInstance;
+      version: string;
+    }>();
 
-    sdkV6Mock.loadCoreSdkScript.mockResolvedValue({
-      createInstance: vi.fn(async () => paypal),
-      version: "6.0.0",
-    });
+    sdkV6Mock.loadCoreSdkScript.mockReturnValue(sdkDeferred.promise);
 
     const api = await createTestApi(createApiJson([authorizeGatewayConfig]));
 
@@ -611,31 +691,29 @@ describe("PayPal payment option discovery", () => {
       createApiJson([paypalGatewayConfig], { paypal_environment: "sandbox" }),
     );
 
+    let didReplaceResolve = false;
+    void replacePromise.then(() => {
+      didReplaceResolve = true;
+    });
+
     await vi.dynamicImportSettled();
     await flushTasks();
 
-    expect(api.json!.payment_gateways).toEqual([authorizeGatewayConfig]);
-    expect(api.paymentOptions).toEqual([cardOption]);
+    expect(api.json?.payment_gateways).toEqual([authorizeGatewayConfig]);
+    expect(api.paypal).toBeNull();
     expect(updateSpy).not.toHaveBeenCalled();
+    expect(didReplaceResolve).toBe(false);
 
-    deferredEligibility.resolve(createEligibility(["paylater"]));
+    sdkDeferred.resolve({ createInstance, version: "6.0.0" });
+
     await replacePromise;
-    await vi.dynamicImportSettled();
-    await flushTasks();
 
-    expect(api.json!.payment_gateways).toEqual([paypalGatewayConfig]);
-    expect(api.paymentOptions).toEqual([
-      paypalOption,
-      {
-        type: "paypal-pay-later",
-        gateway: "paypal_platform",
-        client_id: paypalOption.client_id,
-      },
-    ]);
+    expect(api.json?.payment_gateways).toEqual([paypalGatewayConfig]);
+    expect(api.paypal).toBe(paypal);
     expect(updateSpy).toHaveBeenCalledTimes(1);
   });
 
-  it.skip("keeps the server-sent PayPal option when the SDK fails to initialize", async () => {
+  it("keeps the server-sent PayPal gateway when the SDK fails to initialize", async () => {
     setBrowserRuntime();
     sdkV6Mock.loadCoreSdkScript.mockRejectedValue(new Error("boom"));
 
@@ -647,7 +725,6 @@ describe("PayPal payment option discovery", () => {
     await flushTasks();
 
     expect(api.paypal).toBeNull();
-    expect(api.json!.payment_gateways).toEqual([paypalGatewayConfig]);
-    expect(api.paymentOptions).toEqual([paypalOption]);
+    expect(api.json?.payment_gateways).toEqual([paypalGatewayConfig]);
   });
 });

@@ -2,24 +2,17 @@
  * @vitest-environment jsdom
  */
 
-import type {
-  APIJson,
-  PaymentOption,
-  SezzleSdkInstance,
-} from "../../checkout/types";
+import type { APIJson, SezzleSdkInstance } from "../../checkout/types";
 import type { SezzleSdkConstructor } from "../../checkout/types/SezzleSdkInstance";
 
 const SEZZLE_JS_API_URL = "https://checkout-sdk.sezzle.com/checkout.min.js";
-
-type SezzlePaymentOption = Extract<PaymentOption, { type: "sezzle" }>;
 
 type SezzleWindow = Window & {
   Checkout?: SezzleSdkConstructor;
 };
 
-const cardOption = { type: "new-card", gateway: "authorize" } as const;
 const authorizeGatewayConfig = { type: "authorize" } as const;
-const sezzleOption: SezzlePaymentOption = {
+const sezzleOption = {
   type: "sezzle",
   public_key: "sezzle-public-key",
 };
@@ -268,17 +261,25 @@ describe("Sezzle payment option loading", () => {
     expect(secondApi.sezzle).not.toBeNull();
   });
 
-  it.skip("waits for Sezzle readiness before replacing stored JSON and exposes the SDK instance", async () => {
+  it("publishes raw JSON before Sezzle readiness and exposes the SDK instance when ready", async () => {
     setBrowserRuntime();
 
     const api = await createTestApi(createApiJson([authorizeGatewayConfig]));
     const replacePromise = api.replaceJsonForTesting(
       createApiJson([sezzleOption, authorizeGatewayConfig]),
     );
+    let didReplaceResolve = false;
 
-    expect(api.json!.payment_gateways).toEqual([authorizeGatewayConfig]);
-    expect(api.paymentOptions).toEqual([cardOption]);
+    void replacePromise.then(() => {
+      didReplaceResolve = true;
+    });
+
+    expect(api.json!.payment_gateways).toEqual([
+      sezzleOption,
+      authorizeGatewayConfig,
+    ]);
     expect(api.sezzle).toBeNull();
+    expect(didReplaceResolve).toBe(false);
 
     const { Checkout, getLastInstance } = setLoadedSezzle();
 
@@ -292,11 +293,10 @@ describe("Sezzle payment option loading", () => {
       sezzleOption,
       authorizeGatewayConfig,
     ]);
-    expect(api.paymentOptions).toEqual([sezzleOption, cardOption]);
     expect(api.sezzle).toBe(getLastInstance());
   });
 
-  it.skip("removes Sezzle payment options when the Sezzle SDK script fails to load", async () => {
+  it("keeps the raw Sezzle gateway when the Sezzle SDK script fails to load", async () => {
     setBrowserRuntime();
     const warnSpy = vi
       .spyOn(console, "warn")
@@ -314,14 +314,13 @@ describe("Sezzle payment option loading", () => {
       sezzleOption,
       authorizeGatewayConfig,
     ]);
-    expect(api.paymentOptions).toEqual([cardOption]);
     expect(api.sezzle).toBeNull();
     expect(warnSpy).toHaveBeenCalledWith(
-      "Sezzle payment options were removed because the Sezzle SDK could not be loaded.",
+      "Sezzle SDK was not initialized because the Sezzle SDK could not be loaded.",
     );
   });
 
-  it.skip("removes Sezzle payment options when the Sezzle constructor throws", async () => {
+  it("keeps the raw Sezzle gateway when the Sezzle constructor throws", async () => {
     setBrowserRuntime();
     const warnSpy = vi
       .spyOn(console, "warn")
@@ -342,10 +341,9 @@ describe("Sezzle payment option loading", () => {
       sezzleOption,
       authorizeGatewayConfig,
     ]);
-    expect(api.paymentOptions).toEqual([cardOption]);
     expect(api.sezzle).toBeNull();
     expect(warnSpy).toHaveBeenCalledWith(
-      "Sezzle payment options were removed because the Sezzle SDK could not be loaded.",
+      "Sezzle SDK was not initialized because the Sezzle SDK could not be loaded.",
     );
   });
 });

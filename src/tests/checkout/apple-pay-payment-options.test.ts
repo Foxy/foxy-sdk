@@ -27,11 +27,6 @@ const authorizeGatewayConfigWithApplePay = {
     merchant_id: "merchant.example",
   },
 } as const;
-const applePayOption = {
-  type: "apple-pay",
-  gateway: "authorize",
-  merchant_id: "merchant.example",
-} as const;
 
 const hadWindow = "window" in globalThis;
 const hadDocument = "document" in globalThis;
@@ -254,11 +249,9 @@ describe("Apple Pay payment option filtering", () => {
     restoreRuntime();
   });
 
-  it.skip("loads the Apple Pay JS API script when Apple Pay appears in payment options", () => {
+  it("loads the Apple Pay JS API script when requested explicitly", async () => {
     setBrowserRuntime(false);
-    vi.spyOn(console, "warn").mockImplementation(() => undefined);
-
-    createTestApi(createApiJson([authorizeGatewayConfigWithApplePay]));
+    await HttpCheckoutAPI.ensureApplePayScriptLoaded();
 
     const script = getApplePayScript();
 
@@ -289,99 +282,70 @@ describe("Apple Pay payment option filtering", () => {
     ).toHaveLength(1);
   });
 
-  it.skip("keeps raw Apple Pay options and removes them from resolved payment options outside the browser", async () => {
+  it("reports Apple Pay unavailable and does not load the script outside the browser", async () => {
     unsetBrowserRuntime();
-    const warnSpy = vi
-      .spyOn(console, "warn")
-      .mockImplementation(() => undefined);
+    expect(HttpCheckoutAPI.canMakeApplePayPayments()).toBe(false);
+    await HttpCheckoutAPI.ensureApplePayScriptLoaded();
+    expect(getApplePayScript()).toBeNull();
+  });
 
-    const api = createTestApi(
-      createApiJson([authorizeGatewayConfigWithApplePay]),
-    );
+  it("waits for the first Apple Pay SDK load before resolving repeated requests", async () => {
+    setBrowserRuntime();
+    const firstLoadPromise = HttpCheckoutAPI.ensureApplePayScriptLoaded();
+    const secondLoadPromise = HttpCheckoutAPI.ensureApplePayScriptLoaded();
+
+    expect(
+      document.querySelectorAll(`script[src="${APPLE_PAY_JS_API_URL}"]`),
+    ).toHaveLength(1);
+
+    let didResolve = false;
+    void Promise.all([firstLoadPromise, secondLoadPromise]).then(() => {
+      didResolve = true;
+    });
 
     await flushTasks();
 
-    expect(api.json!.payment_gateways).toEqual([
-      authorizeGatewayConfigWithApplePay,
-    ]);
-    expect(api.paymentOptions).toEqual([cardOption]);
-    expect(warnSpy).toHaveBeenCalledWith(
-      "Apple Pay payment options were removed because checkout API JSON was processed outside a browser environment.",
-    );
-  });
-
-  it.skip("waits for the first Apple Pay SDK load before removing unavailable Apple Pay options", async () => {
-    setBrowserRuntime();
-    const warnSpy = vi
-      .spyOn(console, "warn")
-      .mockImplementation(() => undefined);
-
-    const api = createTestApi(
-      createApiJson([authorizeGatewayConfigWithApplePay]),
-    );
-
-    expect(api.json!.payment_gateways).toEqual([
-      authorizeGatewayConfigWithApplePay,
-    ]);
-    expect(api.paymentOptions).toEqual([applePayOption, cardOption]);
-
-    await rejectApplePayScriptLoad();
-    await flushTasks();
-
-    expect(api.json!.payment_gateways).toEqual([
-      authorizeGatewayConfigWithApplePay,
-    ]);
-    expect(api.paymentOptions).toEqual([cardOption]);
-    expect(warnSpy).toHaveBeenCalledWith(
-      "Apple Pay payment options were removed because Apple Pay is not available in this browser.",
-    );
-  });
-
-  it.skip("waits for the first Apple Pay SDK load before keeping available Apple Pay options", async () => {
-    setBrowserRuntime();
-    const warnSpy = vi
-      .spyOn(console, "warn")
-      .mockImplementation(() => undefined);
-
-    const api = createTestApi(
-      createApiJson([authorizeGatewayConfigWithApplePay]),
-    );
-
-    expect(api.json!.payment_gateways).toEqual([
-      authorizeGatewayConfigWithApplePay,
-    ]);
-    expect(api.paymentOptions).toEqual([applePayOption, cardOption]);
+    expect(didResolve).toBe(false);
 
     await resolveApplePayScriptLoad(true);
+    await Promise.all([firstLoadPromise, secondLoadPromise]);
 
-    expect(api.json!.payment_gateways).toEqual([
-      authorizeGatewayConfigWithApplePay,
-    ]);
-    expect(api.paymentOptions).toEqual([applePayOption, cardOption]);
-    expect(warnSpy).not.toHaveBeenCalled();
+    expect(didResolve).toBe(true);
   });
 
-  it.skip("waits for first Apple Pay SDK load before replacing stored JSON", async () => {
+  it("treats a present ApplePaySession as immediately available", async () => {
+    setBrowserRuntime(true);
+
+    expect(HttpCheckoutAPI.canMakeApplePayPayments()).toBe(true);
+
+    await HttpCheckoutAPI.ensureApplePayScriptLoaded();
+
+    expect(getApplePayScript()?.dataset.applePaySdkState).toBe("loaded");
+  });
+
+  it("swallows Apple Pay SDK load failures", async () => {
     setBrowserRuntime();
-    const warnSpy = vi
-      .spyOn(console, "warn")
-      .mockImplementation(() => undefined);
+    const ensurePromise = HttpCheckoutAPI.ensureApplePayScriptLoaded();
+
+    await rejectApplePayScriptLoad();
+    await ensurePromise;
+
+    expect(getApplePayScript()?.dataset.applePaySdkState).toBe("error");
+  });
+
+  it("does not delay replaceJson for authorize Apple Pay config", async () => {
+    setBrowserRuntime();
     const api = createTestApi(createApiJson([authorizeGatewayConfig]));
 
     const replacePromise = api.replaceJsonForTesting(
       createApiJson([authorizeGatewayConfigWithApplePay]),
     );
 
-    expect(api.json!.payment_gateways).toEqual([authorizeGatewayConfig]);
-    expect(api.paymentOptions).toEqual([cardOption]);
-
-    await resolveApplePayScriptLoad(true);
     await replacePromise;
 
     expect(api.json!.payment_gateways).toEqual([
       authorizeGatewayConfigWithApplePay,
     ]);
-    expect(api.paymentOptions).toEqual([applePayOption, cardOption]);
-    expect(warnSpy).not.toHaveBeenCalled();
+    expect(getApplePayScript()).toBeNull();
   });
 });
