@@ -2,25 +2,15 @@
  * @vitest-environment jsdom
  */
 
-import type {
-  APIJson,
-  KlarnaSdkInstance,
-  PaymentOption,
-} from "../../checkout/types";
+import type { APIJson, KlarnaSdkInstance } from "../../checkout/types";
 
 const KLARNA_JS_API_URL = "https://x.klarnacdn.net/kp/lib/v1/api.js";
-
-type KlarnaPaymentOption = Extract<
-  PaymentOption,
-  { type: "klarna"; gateway: "klarna" }
->;
 
 type KlarnaWindow = Window & {
   Klarna?: KlarnaSdkInstance;
   klarnaAsyncCallback?: () => void;
 };
 
-const cardOption = { type: "new-card", gateway: "authorize" } as const;
 const authorizeGatewayConfig = { type: "authorize" } as const;
 const klarnaGatewayConfig = {
   type: "klarna",
@@ -40,7 +30,7 @@ const klarnaGatewayConfig = {
     },
   ],
 } as const;
-const klarnaOption: KlarnaPaymentOption = {
+const klarnaOption = {
   gateway: "klarna",
   ...klarnaGatewayConfig,
 };
@@ -305,22 +295,33 @@ describe("Klarna payment option loading", () => {
     expect(secondApi.klarna).toBe(klarna);
   });
 
-  it.skip("waits for Klarna readiness before replacing stored JSON and exposes the SDK instance", async () => {
+  it("publishes raw JSON before Klarna readiness and exposes the SDK instance when ready", async () => {
     setBrowserRuntime();
 
     const api = await createTestApi(createApiJson([authorizeGatewayConfig]));
     const replacePromise = api.replaceJsonForTesting(
       createApiJson([klarnaGatewayConfig, authorizeGatewayConfig]),
     );
+    let didReplaceResolve = false;
 
-    expect(api.json!.payment_gateways).toEqual([authorizeGatewayConfig]);
-    expect(api.paymentOptions).toEqual([cardOption]);
+    void replacePromise.then(() => {
+      didReplaceResolve = true;
+    });
+
+    expect(api.json!.payment_gateways).toEqual([
+      klarnaGatewayConfig,
+      authorizeGatewayConfig,
+    ]);
     expect(api.klarna).toBeNull();
+    expect(didReplaceResolve).toBe(false);
 
     getKlarnaScript()?.dispatchEvent(new Event("load"));
     await flushTasks();
 
-    expect(api.json!.payment_gateways).toEqual([authorizeGatewayConfig]);
+    expect(api.json!.payment_gateways).toEqual([
+      klarnaGatewayConfig,
+      authorizeGatewayConfig,
+    ]);
     expect(api.klarna).toBeNull();
 
     const { init, klarna } = setLoadedKlarna();
@@ -335,11 +336,10 @@ describe("Klarna payment option loading", () => {
       klarnaGatewayConfig,
       authorizeGatewayConfig,
     ]);
-    expect(api.paymentOptions).toEqual([klarnaOption, cardOption]);
     expect(api.klarna).toBe(klarna);
   });
 
-  it.skip("removes Klarna payment options when the Klarna SDK script fails to load", async () => {
+  it("keeps the raw Klarna gateway when the Klarna SDK script fails to load", async () => {
     setBrowserRuntime();
     const warnSpy = vi
       .spyOn(console, "warn")
@@ -357,14 +357,13 @@ describe("Klarna payment option loading", () => {
       klarnaGatewayConfig,
       authorizeGatewayConfig,
     ]);
-    expect(api.paymentOptions).toEqual([cardOption]);
     expect(api.klarna).toBeNull();
     expect(warnSpy).toHaveBeenCalledWith(
-      "Klarna payment options were removed because the Klarna SDK could not be loaded.",
+      "Klarna SDK was not initialized because the Klarna SDK could not be loaded.",
     );
   });
 
-  it.skip("removes Klarna payment options when Klarna initialization fails", async () => {
+  it("keeps the raw Klarna gateway when Klarna initialization fails", async () => {
     setBrowserRuntime();
     const warnSpy = vi
       .spyOn(console, "warn")
@@ -388,10 +387,9 @@ describe("Klarna payment option loading", () => {
       klarnaGatewayConfig,
       authorizeGatewayConfig,
     ]);
-    expect(api.paymentOptions).toEqual([cardOption]);
     expect(api.klarna).toBeNull();
     expect(warnSpy).toHaveBeenCalledWith(
-      "Klarna payment options were removed because the Klarna SDK could not be loaded.",
+      "Klarna SDK was not initialized because the Klarna SDK could not be loaded.",
     );
   });
 });

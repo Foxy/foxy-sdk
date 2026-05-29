@@ -7,7 +7,6 @@ import type {
   AdyenEmbeddedPaymentMethod,
   AdyenEmbeddedSdkInstance,
   AdyenEmbeddedSdkNamespace,
-  PaymentOption,
 } from "../../checkout/types";
 
 const ADYEN_JS_API_URL =
@@ -15,17 +14,11 @@ const ADYEN_JS_API_URL =
 const APPLE_PAY_JS_API_URL =
   "https://applepay.cdn-apple.com/jsapi/v1/apple-pay-sdk.js";
 
-type AdyenPaymentOption = Extract<
-  PaymentOption,
-  { type: "adyen_embedded"; gateway: "adyen_embedded" }
->;
-
 type AdyenWindow = Window & {
   AdyenWeb?: AdyenEmbeddedSdkNamespace;
   ApplePaySession?: { canMakePayments?: () => boolean };
 };
 
-const cardOption = { type: "new-card", gateway: "authorize" } as const;
 const authorizeGatewayConfig = { type: "authorize" } as const;
 const adyenGatewayConfig = {
   type: "adyen_embedded",
@@ -34,11 +27,6 @@ const adyenGatewayConfig = {
   environment: "test",
   client_key: "test_870be2_client_key",
 } as const;
-const adyenOption: AdyenPaymentOption = {
-  ...adyenGatewayConfig,
-  gateway: "adyen_embedded",
-};
-
 const hadWindow = "window" in globalThis;
 const hadDocument = "document" in globalThis;
 const originalWindow = globalThis.window;
@@ -347,17 +335,25 @@ describe("Adyen Embedded payment option loading", () => {
     expect(firstApi.adyenEmbedded).toBe(secondApi.adyenEmbedded);
   });
 
-  it.skip("waits for Adyen readiness before replacing stored JSON and exposes the SDK instance", async () => {
+  it("publishes raw JSON before Adyen readiness and exposes the SDK instance", async () => {
     setBrowserRuntime(true);
 
     const api = await createTestApi(createApiJson([authorizeGatewayConfig]));
     const replacePromise = api.replaceJsonForTesting(
       createApiJson([adyenGatewayConfig, authorizeGatewayConfig]),
     );
+    let didReplaceResolve = false;
 
-    expect(api.json!.payment_gateways).toEqual([authorizeGatewayConfig]);
-    expect(api.paymentOptions).toEqual([cardOption]);
+    void replacePromise.then(() => {
+      didReplaceResolve = true;
+    });
+
+    expect(api.json!.payment_gateways).toEqual([
+      adyenGatewayConfig,
+      authorizeGatewayConfig,
+    ]);
     expect(api.adyenEmbedded).toBeNull();
+    expect(didReplaceResolve).toBe(false);
 
     const paymentMethods: AdyenEmbeddedPaymentMethod[] = [
       { type: "scheme", name: "Cards" },
@@ -377,61 +373,26 @@ describe("Adyen Embedded payment option loading", () => {
     expect(AdyenCheckout).toHaveBeenCalledTimes(1);
     expect(getLastConfiguration()).toEqual({
       session: {
-        id: adyenOption.session_id,
-        sessionData: adyenOption.session_data,
+        id: adyenGatewayConfig.session_id,
+        sessionData: adyenGatewayConfig.session_data,
       },
-      environment: adyenOption.environment,
+      environment: adyenGatewayConfig.environment,
       amount: { value: 1234, currency: "USD" },
       countryCode: "US",
-      clientKey: adyenOption.client_key,
+      clientKey: adyenGatewayConfig.client_key,
       locale: "en-US",
     });
     expect(api.json!.payment_gateways).toEqual([
       adyenGatewayConfig,
       authorizeGatewayConfig,
     ]);
-    expect(api.paymentOptions).toEqual([
-      adyenOption,
-      {
-        type: "new-card",
-        gateway: "adyen_embedded",
-        adyen_payment_method_type: "scheme",
-      },
-      {
-        type: "bank-transfer",
-        gateway: "adyen_embedded",
-        adyen_payment_method_type: "bankTransfer_IBAN",
-        name: "Bank transfer IBAN",
-        payment_method: paymentMethods[1],
-      },
-      {
-        type: "redirect",
-        gateway: "adyen_redirect",
-        adyen_payment_method_type: "redirect",
-        name: "Redirect",
-        payment_method: paymentMethods[2],
-      },
-      {
-        type: "eps",
-        gateway: "adyen_embedded",
-        adyen_payment_method_type: "eps",
-        name: "EPS",
-        payment_method: paymentMethods[5],
-      },
-      {
-        type: "apple-pay",
-        gateway: "adyen_embedded",
-        adyen_payment_method_type: "applepay",
-        name: "Apple Pay",
-        payment_method: paymentMethods[6],
-      },
-      cardOption,
-    ]);
-    expect(getApplePayScript()?.src).toBe(APPLE_PAY_JS_API_URL);
+    expect(api.adyenEmbedded?.paymentMethodsResponse.paymentMethods).toEqual(
+      paymentMethods,
+    );
     expect(api.adyenEmbedded).toBe(getLastInstance());
   });
 
-  it.skip("surfaces additional documented Adyen payment methods", async () => {
+  it("exposes Adyen checkout instances with additional documented payment methods", async () => {
     setBrowserRuntime();
 
     const api = await createTestApi(createApiJson([authorizeGatewayConfig]));
@@ -459,69 +420,12 @@ describe("Adyen Embedded payment option loading", () => {
       adyenGatewayConfig,
       authorizeGatewayConfig,
     ]);
-    expect(api.paymentOptions).toEqual([
-      adyenOption,
-      {
-        type: "alipay",
-        gateway: "adyen_embedded",
-        adyen_payment_method_type: "alipay",
-        name: "Alipay",
-        payment_method: paymentMethods[0],
-      },
-      {
-        type: "online-banking",
-        gateway: "adyen_embedded",
-        adyen_payment_method_type: "ebanking_FI",
-        name: "Online banking Finland",
-        payment_method: paymentMethods[1],
-      },
-      {
-        type: "boost",
-        gateway: "adyen_embedded",
-        adyen_payment_method_type: "molpay_boost",
-        name: "Boost",
-        payment_method: paymentMethods[2],
-      },
-      {
-        type: "payme",
-        gateway: "adyen_embedded",
-        adyen_payment_method_type: "payme",
-        name: "PayMe",
-        payment_method: paymentMethods[3],
-      },
-      {
-        type: "payco",
-        gateway: "adyen_embedded",
-        adyen_payment_method_type: "kcp_payco",
-        name: "PayCo",
-        payment_method: paymentMethods[4],
-      },
-      {
-        type: "scalapay",
-        gateway: "adyen_embedded",
-        adyen_payment_method_type: "scalapay_3x",
-        name: "Scalapay",
-        payment_method: paymentMethods[5],
-      },
-      {
-        type: "grabpay",
-        gateway: "adyen_embedded",
-        adyen_payment_method_type: "grabpay_SG",
-        name: "GrabPay",
-        payment_method: paymentMethods[6],
-      },
-      {
-        type: "zip",
-        gateway: "adyen_embedded",
-        adyen_payment_method_type: "zip",
-        name: "Zip",
-        payment_method: paymentMethods[7],
-      },
-      cardOption,
-    ]);
+    expect(api.adyenEmbedded?.paymentMethodsResponse.paymentMethods).toEqual(
+      paymentMethods,
+    );
   });
 
-  it.skip("removes Adyen payment options when the Adyen client key is missing", async () => {
+  it("keeps the raw Adyen gateway when the Adyen client key is missing", async () => {
     setBrowserRuntime();
     const warnSpy = vi
       .spyOn(console, "warn")
@@ -545,14 +449,13 @@ describe("Adyen Embedded payment option loading", () => {
       optionWithoutClientKey as unknown as typeof adyenGatewayConfig,
       authorizeGatewayConfig,
     ]);
-    expect(api.paymentOptions).toEqual([cardOption]);
     expect(api.adyenEmbedded).toBeNull();
     expect(warnSpy).toHaveBeenCalledWith(
-      "Adyen Embedded payment options were removed because the Adyen SDK could not be loaded.",
+      "Adyen Embedded SDK was not initialized because the Adyen SDK could not be loaded.",
     );
   });
 
-  it.skip("removes Adyen payment options when the Adyen SDK script fails to load", async () => {
+  it("keeps the raw Adyen gateway when the Adyen SDK script fails to load", async () => {
     setBrowserRuntime();
     const warnSpy = vi
       .spyOn(console, "warn")
@@ -570,14 +473,13 @@ describe("Adyen Embedded payment option loading", () => {
       adyenGatewayConfig,
       authorizeGatewayConfig,
     ]);
-    expect(api.paymentOptions).toEqual([cardOption]);
     expect(api.adyenEmbedded).toBeNull();
     expect(warnSpy).toHaveBeenCalledWith(
-      "Adyen Embedded payment options were removed because the Adyen SDK could not be loaded.",
+      "Adyen Embedded SDK was not initialized because the Adyen SDK could not be loaded.",
     );
   });
 
-  it.skip("removes Adyen payment options when Adyen initialization fails", async () => {
+  it("keeps the raw Adyen gateway when Adyen initialization fails", async () => {
     setBrowserRuntime();
     const warnSpy = vi
       .spyOn(console, "warn")
@@ -598,10 +500,9 @@ describe("Adyen Embedded payment option loading", () => {
       adyenGatewayConfig,
       authorizeGatewayConfig,
     ]);
-    expect(api.paymentOptions).toEqual([cardOption]);
     expect(api.adyenEmbedded).toBeNull();
     expect(warnSpy).toHaveBeenCalledWith(
-      "Adyen Embedded payment options were removed because the Adyen SDK could not be loaded.",
+      "Adyen Embedded SDK was not initialized because the Adyen SDK could not be loaded.",
     );
   });
 });
