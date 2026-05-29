@@ -713,6 +713,55 @@ describe("PayPal payment option discovery", () => {
     expect(updateSpy).toHaveBeenCalledTimes(1);
   });
 
+  it("does not hang forever when PayPal instance creation never settles", async () => {
+    vi.useFakeTimers();
+
+    try {
+      setBrowserRuntime();
+      const createInstance = vi.fn(
+        () => new Promise<PayPalSdkInstance>(() => undefined),
+      );
+
+      sdkV6Mock.loadCoreSdkScript.mockResolvedValue({
+        createInstance,
+        version: "6.0.0",
+      });
+
+      const { API } = await import("../../checkout/API");
+      const api = new API();
+      const updateSpy = vi.fn();
+
+      api.addEventListener("update", updateSpy);
+
+      const hydratePromise = api.hydrateJson(
+        createApiJson([paypalGatewayConfig], { paypal_environment: "sandbox" }),
+        { state: "idle" },
+      );
+
+      let didHydrateResolve = false;
+      void hydratePromise.then(() => {
+        didHydrateResolve = true;
+      });
+
+      await vi.dynamicImportSettled();
+      await flushTasks();
+
+      expect(api.json).toBeNull();
+      expect(api.paypal).toBeNull();
+      expect(didHydrateResolve).toBe(false);
+
+      await vi.runAllTimersAsync();
+      await hydratePromise;
+
+      expect(createInstance).toHaveBeenCalledTimes(1);
+      expect(api.json?.payment_gateways).toEqual([paypalGatewayConfig]);
+      expect(api.paypal).toBeNull();
+      expect(updateSpy).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("keeps the server-sent PayPal gateway when the SDK fails to initialize", async () => {
     setBrowserRuntime();
     sdkV6Mock.loadCoreSdkScript.mockRejectedValue(new Error("boom"));

@@ -199,6 +199,9 @@ async function resolveIncomingApiState(
             buyerCountry: nextJson.billing_address.country,
           });
         } catch {
+          console.warn(
+            "PayPal SDK was not initialized because the PayPal SDK could not be loaded.",
+          );
           return null;
         }
       }),

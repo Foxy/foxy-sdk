@@ -91,6 +91,8 @@ type PayPalSdkCreateInstanceOptions = {
   testBuyerCountry?: string;
 };
 
+class PayPalSdkTimeoutError extends Error {}
+
 const PAYPAL_SDK_BASE_COMPONENTS = [
   "paypal-payments",
   "card-fields",
@@ -153,6 +155,8 @@ const PAYPAL_SDK_NAMESPACE: Record<PayPalEnvironment, string> = {
   sandbox: "foxyPaypalSandbox",
   production: "foxyPaypalProduction",
 };
+
+const PAYPAL_SDK_INSTANCE_TIMEOUT_MS = 500;
 
 let payPalSdkModulePromise: Promise<
   typeof import("@paypal/paypal-js/sdk-v6")
@@ -256,6 +260,29 @@ function getPayPalInstanceKey(
   testBuyerCountry?: string,
 ): string {
   return `${environment}:${clientId}:${componentProfile}:${testBuyerCountry ?? ""}`;
+}
+
+function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  onTimeout: () => Error,
+): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      reject(onTimeout());
+    }, timeoutMs);
+
+    void promise.then(
+      (value) => {
+        clearTimeout(timeoutId);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timeoutId);
+        reject(error);
+      },
+    );
+  });
 }
 
 function toGooglePayGatewayParameters(
@@ -374,14 +401,21 @@ async function createPayPalInstance(
         options: PayPalSdkCreateInstanceOptions,
       ) => Promise<PayPalSdkInstance>;
 
-      return await createInstance({
-        clientId,
-        components: PAYPAL_SDK_COMPONENTS[componentProfile],
-        locale,
-        pageType: "checkout",
-        testBuyerCountry:
-          environment === "sandbox" ? testBuyerCountry : undefined,
-      });
+      return await withTimeout(
+        createInstance({
+          clientId,
+          components: PAYPAL_SDK_COMPONENTS[componentProfile],
+          locale,
+          pageType: "checkout",
+          testBuyerCountry:
+            environment === "sandbox" ? testBuyerCountry : undefined,
+        }),
+        PAYPAL_SDK_INSTANCE_TIMEOUT_MS,
+        () =>
+          new PayPalSdkTimeoutError(
+            `PayPal SDK ${componentProfile} instance initialization timed out.`,
+          ),
+      );
     })();
 
     payPalInstancePromises.set(key, promise);
@@ -426,6 +460,10 @@ export async function loadPayPalSdk(
       );
     } catch (error) {
       lastError = error;
+
+      if (error instanceof PayPalSdkTimeoutError) {
+        continue;
+      }
 
       try {
         return await createPayPalInstance(
