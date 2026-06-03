@@ -130,6 +130,17 @@ type RedirectGatewayConfig = {
   type: "mollie_omnipay";
 };
 
+type SquareUpGatewayConfig = {
+  /** Gateway identifier. */
+  type: "square_up";
+  /** Square Application ID for client-side SDK initialization. */
+  application_id: string;
+  /** Square Location ID for this merchant. */
+  location_id: string;
+  /** Square environment matching the account configuration. */
+  environment: "sandbox" | "production";
+};
+
 export type PaymentGatewayConfig =
   | StandardCardPaymentGatewayConfig
   | StandardAchPaymentGatewayConfig
@@ -139,4 +150,5 @@ export type PaymentGatewayConfig =
   | PayPalPlatformGatewayConfig
   | KlarnaGatewayConfig
   | SezzleGatewayConfig
-  | AdyenEmbeddedGatewayConfig;
+  | AdyenEmbeddedGatewayConfig
+  | SquareUpGatewayConfig;
