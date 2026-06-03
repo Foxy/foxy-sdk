@@ -8,6 +8,7 @@ import type {
   KlarnaSdkInstance,
   PayPalSdkInstance,
   SezzleSdkInstance,
+  SquareSdkInstance,
 } from "./types";
 import type {
   PaymentGatewayConfig,
@@ -33,6 +34,7 @@ import {
 } from "./utils/googlePay";
 import { initializeKlarnaSdk } from "./utils/klarna";
 import { initializeSezzleSdk } from "./utils/sezzle";
+import { initializeSquareSdk } from "./utils/square";
 import { cloneApiJson, toMutable } from "./utils/json";
 import type { MutableAPIJson } from "./utils/json";
 import { toFormData, toQueryString } from "./utils/url";
@@ -45,6 +47,7 @@ export type {
   GooglePaymentsClient,
   KlarnaSdkInstance,
   PayPalSdkInstance,
+  SquareSdkInstance,
 } from "./types";
 
 type EventName = keyof APIEventMap;
@@ -63,6 +66,7 @@ type ResolvedIncomingApiState = {
   paypal: PayPalSdkInstance | null;
   klarna: KlarnaSdkInstance | null;
   sezzle: SezzleSdkInstance | null;
+  square: SquareSdkInstance | null;
 };
 
 type ResolveIncomingApiStateOptions = {
@@ -178,6 +182,7 @@ async function resolveIncomingApiState(
   let paypal: PayPalSdkInstance | null = null;
   let klarna: KlarnaSdkInstance | null = null;
   let sezzle: SezzleSdkInstance | null = null;
+  let square: SquareSdkInstance | null = null;
   const isBrowserEnvironment =
     typeof window !== "undefined" && typeof document !== "undefined";
 
@@ -216,6 +221,7 @@ async function resolveIncomingApiState(
     paypal,
     klarna,
     sezzle,
+    square,
   });
 
   const klarnaConfig = getFirstPaymentGatewayConfig(nextJson, "klarna");
@@ -299,6 +305,32 @@ async function resolveIncomingApiState(
     }
   }
 
+  const squareUpConfig = getFirstPaymentGatewayConfig(nextJson, "square_up");
+
+  if (squareUpConfig) {
+    if (!isBrowserEnvironment) {
+      console.warn(
+        "Square SDK was not initialized because checkout API JSON was processed outside a browser environment.",
+      );
+    } else {
+      thirdPartySdkTasks.push(
+        initializeSquareSdk({
+          applicationId: squareUpConfig.application_id,
+          locationId: squareUpConfig.location_id,
+          environment: squareUpConfig.environment,
+        })
+          .then((instance) => {
+            square = instance;
+          })
+          .catch(() => {
+            console.warn(
+              "Square SDK was not initialized because the Square SDK could not be loaded.",
+            );
+          }),
+      );
+    }
+  }
+
   await Promise.all(thirdPartySdkTasks);
 
   return {
@@ -307,6 +339,7 @@ async function resolveIncomingApiState(
     paypal,
     klarna,
     sezzle,
+    square,
   };
 }
 
@@ -349,6 +382,7 @@ export class API extends EventTarget {
   #klarna: KlarnaSdkInstance | null;
   #paypal: PayPalSdkInstance | null;
   #sezzle: SezzleSdkInstance | null;
+  #square: SquareSdkInstance | null;
   #baseUrl: string | null;
   #jsonResolutionVersion = 0;
   readonly #onError?: (error: Error) => void;
@@ -403,6 +437,7 @@ export class API extends EventTarget {
       this.#klarna = null;
       this.#paypal = null;
       this.#sezzle = null;
+      this.#square = null;
       this.#state = initialState ?? "idle";
       void this.replaceJson(initialJson);
     } else {
@@ -411,6 +446,7 @@ export class API extends EventTarget {
       this.#klarna = null;
       this.#paypal = null;
       this.#sezzle = null;
+      this.#square = null;
       this.#state = initialState ?? (this.#baseUrl ? "busy" : "idle");
 
       // WHY USE SETTIMEOUT:
@@ -488,6 +524,10 @@ export class API extends EventTarget {
 
   get sezzle(): SezzleSdkInstance | null {
     return this.#sezzle;
+  }
+
+  get square(): SquareSdkInstance | null {
+    return this.#square;
   }
 
   async hydrateJson(
@@ -574,12 +614,14 @@ export class API extends EventTarget {
     const klarnaChanged = this.#klarna !== resolvedState.klarna;
     const paypalChanged = this.#paypal !== resolvedState.paypal;
     const sezzleChanged = this.#sezzle !== resolvedState.sezzle;
+    const squareChanged = this.#square !== resolvedState.square;
 
     this.#json = resolvedState.json;
     this.#adyenEmbedded = resolvedState.adyenEmbedded;
     this.#klarna = resolvedState.klarna;
     this.#paypal = resolvedState.paypal;
     this.#sezzle = resolvedState.sezzle;
+    this.#square = resolvedState.square;
 
     if (options.state !== undefined) {
       this.#state = options.state;
@@ -592,7 +634,8 @@ export class API extends EventTarget {
         adyenEmbeddedChanged ||
         klarnaChanged ||
         paypalChanged ||
-        sezzleChanged)
+        sezzleChanged ||
+        squareChanged)
     ) {
       this.dispatchEvent(new Event("update"));
     }
