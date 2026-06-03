@@ -2,11 +2,12 @@
  * @vitest-environment jsdom
  */
 
-import type { APIJson } from '../../checkout/types';
+import type { APIJson } from "../../checkout/types";
 
-import { API as HttpCheckoutAPI } from '../../checkout/API';
+import { API as HttpCheckoutAPI } from "../../checkout/API";
 
-const APPLE_PAY_JS_API_URL = 'https://applepay.cdn-apple.com/jsapi/v1/apple-pay-sdk.js';
+const APPLE_PAY_JS_API_URL =
+  "https://applepay.cdn-apple.com/jsapi/v1/apple-pay-sdk.js";
 
 type RuntimeGlobals = typeof globalThis & {
   ApplePaySession?: { canMakePayments?: () => boolean };
@@ -18,18 +19,24 @@ type ApplePayWindow = Window & {
 
 const runtime = globalThis as RuntimeGlobals;
 
-const cardOption = { type: 'new-card', gateway: 'stripe' } as const;
-const applePayOption = { type: 'apple-pay', gateway: 'stripe', merchant_id: 'merchant.example' } as const;
+const cardOption = { type: "new-card", gateway: "authorize" } as const;
+const authorizeGatewayConfig = { type: "authorize" } as const;
+const authorizeGatewayConfigWithApplePay = {
+  type: "authorize",
+  apple_pay: {
+    merchant_id: "merchant.example",
+  },
+} as const;
 
-const hadWindow = 'window' in globalThis;
-const hadDocument = 'document' in globalThis;
-const hadApplePaySession = 'ApplePaySession' in runtime;
+const hadWindow = "window" in globalThis;
+const hadDocument = "document" in globalThis;
+const hadApplePaySession = "ApplePaySession" in runtime;
 const originalWindow = globalThis.window;
 const originalDocument = globalThis.document;
 const originalApplePaySession = runtime.ApplePaySession;
 
 function getApplePayScript(): HTMLScriptElement | null {
-  if (typeof document === 'undefined') {
+  if (typeof document === "undefined") {
     return null;
   }
 
@@ -40,7 +47,9 @@ function flushTasks(): Promise<void> {
   return Promise.resolve().then(() => undefined);
 }
 
-async function resolveApplePayScriptLoad(applePayAvailable?: boolean): Promise<void> {
+async function resolveApplePayScriptLoad(
+  applePayAvailable?: boolean,
+): Promise<void> {
   if (applePayAvailable !== undefined) {
     (window as ApplePayWindow).ApplePaySession = {
       canMakePayments: vi.fn(() => applePayAvailable),
@@ -50,10 +59,10 @@ async function resolveApplePayScriptLoad(applePayAvailable?: boolean): Promise<v
   const script = getApplePayScript();
 
   if (!script) {
-    throw new Error('Expected Apple Pay script to be present.');
+    throw new Error("Expected Apple Pay script to be present.");
   }
 
-  script.dispatchEvent(new Event('load'));
+  script.dispatchEvent(new Event("load"));
   await flushTasks();
 }
 
@@ -61,10 +70,10 @@ async function rejectApplePayScriptLoad(): Promise<void> {
   const script = getApplePayScript();
 
   if (!script) {
-    throw new Error('Expected Apple Pay script to be present.');
+    throw new Error("Expected Apple Pay script to be present.");
   }
 
-  script.dispatchEvent(new Event('error'));
+  script.dispatchEvent(new Event("error"));
   await flushTasks();
 }
 
@@ -75,13 +84,18 @@ class TestHttpCheckoutAPI extends HttpCheckoutAPI {
 }
 
 function createTestApi(json: APIJson): TestHttpCheckoutAPI {
-  return new TestHttpCheckoutAPI({ initialJson: json, storeDomain: 'store.test' });
+  return new TestHttpCheckoutAPI({
+    initialJson: json,
+    storeDomain: "store.test",
+  });
 }
 
-function createApiJson(payment_options?: APIJson['payment_options']): APIJson {
+function createApiJson(
+  payment_gateways?: APIJson["payment_gateways"],
+): APIJson {
   return {
-    template_set: { code: 'default', id: 1 },
-    session: { name: 'fcsid', id: 'session-id' },
+    template_set: { code: "default", id: 1 },
+    session: { name: "fcsid", id: "session-id" },
     debug: false,
     customer: {
       first_name: null,
@@ -114,26 +128,26 @@ function createApiJson(payment_options?: APIJson['payment_options']): APIJson {
     billing_address: {
       use_customer_shipping_address: false,
       address_id: null,
-      address_name: '',
-      first_name: '',
-      last_name: '',
-      company: '',
-      phone: '',
-      address1: '',
-      address2: '',
-      city: '',
-      region: '',
-      postal_code: '',
-      country: 'US',
+      address_name: "",
+      first_name: "",
+      last_name: "",
+      company: "",
+      phone: "",
+      address1: "",
+      address2: "",
+      city: "",
+      region: "",
+      postal_code: "",
+      country: "US",
     },
     store: {
       id: 1,
-      name: 'Test Store',
-      domain: 'example.com',
-      logo_url: '',
-      website_url: 'https://example.com',
-      checkout_url: 'https://example.com/checkout',
-      cancel_and_continue_url: 'https://example.com',
+      name: "Test Store",
+      domain: "example.com",
+      logo_url: "",
+      website_url: "https://example.com",
+      checkout_url: "https://example.com/checkout",
+      cancel_and_continue_url: "https://example.com",
       has_location_dependent_taxes: false,
       has_eligible_gift_cards: false,
       has_eligible_coupons: false,
@@ -142,10 +156,10 @@ function createApiJson(payment_options?: APIJson['payment_options']): APIJson {
     messages: [],
     custom_fields: {},
     format: {
-      weight_unit: 'pound',
-      locale_code: 'en-US',
-      currency_code: 'USD',
-      currency_display: 'symbol',
+      weight_unit: "pound",
+      locale_code: "en-US",
+      currency_code: "USD",
+      currency_display: "symbol",
       maximum_fraction_digits: 2,
     },
     display: {
@@ -154,29 +168,30 @@ function createApiJson(payment_options?: APIJson['payment_options']): APIJson {
       hidden_form_fields: [],
       use_readonly_cart_on_checkout: false,
       use_tax_inclusive_pricing: false,
-      secure_data_transfer_consent: 'disabled',
-      checkout_flow: 'default',
-      registration: 'optional',
+      secure_data_transfer_consent: "disabled",
+      checkout_flow: "default",
+      registration: "optional",
     },
     custom_config: {},
-    payment_options,
+    payment_gateways,
+    language_strings: {},
   };
 }
 
 function setBrowserRuntime(applePayAvailable?: boolean): void {
-  Object.defineProperty(globalThis, 'window', {
+  Object.defineProperty(globalThis, "window", {
     value: originalWindow,
     configurable: true,
     writable: true,
   });
-  Object.defineProperty(globalThis, 'document', {
+  Object.defineProperty(globalThis, "document", {
     value: originalDocument,
     configurable: true,
     writable: true,
   });
 
   if (applePayAvailable === undefined) {
-    Reflect.deleteProperty(window as ApplePayWindow, 'ApplePaySession');
+    Reflect.deleteProperty(window as ApplePayWindow, "ApplePaySession");
     return;
   }
 
@@ -186,38 +201,38 @@ function setBrowserRuntime(applePayAvailable?: boolean): void {
 }
 
 function unsetBrowserRuntime(): void {
-  Object.defineProperty(globalThis, 'window', {
+  Object.defineProperty(globalThis, "window", {
     value: undefined,
     configurable: true,
     writable: true,
   });
-  Object.defineProperty(globalThis, 'document', {
+  Object.defineProperty(globalThis, "document", {
     value: undefined,
     configurable: true,
     writable: true,
   });
-  Reflect.deleteProperty(runtime, 'ApplePaySession');
+  Reflect.deleteProperty(runtime, "ApplePaySession");
 }
 
 function restoreRuntime(): void {
   if (hadWindow) {
-    Object.defineProperty(globalThis, 'window', {
+    Object.defineProperty(globalThis, "window", {
       value: originalWindow,
       configurable: true,
       writable: true,
     });
   } else {
-    Reflect.deleteProperty(globalThis, 'window');
+    Reflect.deleteProperty(globalThis, "window");
   }
 
   if (hadDocument) {
-    Object.defineProperty(globalThis, 'document', {
+    Object.defineProperty(globalThis, "document", {
       value: originalDocument,
       configurable: true,
       writable: true,
     });
   } else {
-    Reflect.deleteProperty(globalThis, 'document');
+    Reflect.deleteProperty(globalThis, "document");
   }
 
   if (hadApplePaySession) {
@@ -227,18 +242,16 @@ function restoreRuntime(): void {
   }
 }
 
-describe('Apple Pay payment option filtering', () => {
+describe("Apple Pay payment option filtering", () => {
   afterEach(() => {
     vi.restoreAllMocks();
     getApplePayScript()?.remove();
     restoreRuntime();
   });
 
-  it('loads the Apple Pay JS API script when Apple Pay appears in payment options', () => {
+  it("loads the Apple Pay JS API script when requested explicitly", async () => {
     setBrowserRuntime(false);
-    vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-
-    createTestApi(createApiJson([applePayOption, cardOption]));
+    await HttpCheckoutAPI.ensureApplePayScriptLoaded();
 
     const script = getApplePayScript();
 
@@ -246,85 +259,93 @@ describe('Apple Pay payment option filtering', () => {
     expect(script?.src).toBe(APPLE_PAY_JS_API_URL);
   });
 
-  it('does not load the Apple Pay JS API script when Apple Pay is absent', () => {
+  it("does not load the Apple Pay JS API script when Apple Pay is absent", () => {
     setBrowserRuntime(false);
 
-    createTestApi(createApiJson([cardOption]));
+    createTestApi(createApiJson([authorizeGatewayConfig]));
 
     expect(getApplePayScript()).toBeNull();
   });
 
-  it('does not duplicate the Apple Pay JS API script when it is already present', () => {
+  it("does not duplicate the Apple Pay JS API script when it is already present", () => {
     setBrowserRuntime(false);
-    vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    vi.spyOn(console, "warn").mockImplementation(() => undefined);
 
-    const existingScript = document.createElement('script');
+    const existingScript = document.createElement("script");
     existingScript.src = APPLE_PAY_JS_API_URL;
     document.head.appendChild(existingScript);
 
-    createTestApi(createApiJson([applePayOption, cardOption]));
+    createTestApi(createApiJson([authorizeGatewayConfigWithApplePay]));
 
-    expect(document.querySelectorAll(`script[src="${APPLE_PAY_JS_API_URL}"]`)).toHaveLength(1);
+    expect(
+      document.querySelectorAll(`script[src="${APPLE_PAY_JS_API_URL}"]`),
+    ).toHaveLength(1);
   });
 
-  it('removes Apple Pay payment options outside the browser before storing JSON', async () => {
+  it("reports Apple Pay unavailable and does not load the script outside the browser", async () => {
     unsetBrowserRuntime();
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    expect(HttpCheckoutAPI.canMakeApplePayPayments()).toBe(false);
+    await HttpCheckoutAPI.ensureApplePayScriptLoaded();
+    expect(getApplePayScript()).toBeNull();
+  });
 
-    const api = createTestApi(createApiJson([applePayOption, cardOption]));
+  it("waits for the first Apple Pay SDK load before resolving repeated requests", async () => {
+    setBrowserRuntime();
+    const firstLoadPromise = HttpCheckoutAPI.ensureApplePayScriptLoaded();
+    const secondLoadPromise = HttpCheckoutAPI.ensureApplePayScriptLoaded();
+
+    expect(
+      document.querySelectorAll(`script[src="${APPLE_PAY_JS_API_URL}"]`),
+    ).toHaveLength(1);
+
+    let didResolve = false;
+    void Promise.all([firstLoadPromise, secondLoadPromise]).then(() => {
+      didResolve = true;
+    });
 
     await flushTasks();
 
-    expect(api.json!.payment_options).toEqual([cardOption]);
-    expect(warnSpy).toHaveBeenCalledWith(
-      'Apple Pay payment options were removed because checkout API JSON was processed outside a browser environment.'
-    );
+    expect(didResolve).toBe(false);
+
+    await resolveApplePayScriptLoad(true);
+    await Promise.all([firstLoadPromise, secondLoadPromise]);
+
+    expect(didResolve).toBe(true);
   });
 
-  it('waits for the first Apple Pay SDK load before removing unavailable Apple Pay options', async () => {
+  it("treats a present ApplePaySession as immediately available", async () => {
+    setBrowserRuntime(true);
+
+    expect(HttpCheckoutAPI.canMakeApplePayPayments()).toBe(true);
+
+    await HttpCheckoutAPI.ensureApplePayScriptLoaded();
+
+    expect(getApplePayScript()?.dataset.applePaySdkState).toBe("loaded");
+  });
+
+  it("swallows Apple Pay SDK load failures", async () => {
     setBrowserRuntime();
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-
-    const api = createTestApi(createApiJson([applePayOption, cardOption]));
-
-    expect(api.json!.payment_options).toEqual([applePayOption, cardOption]);
+    const ensurePromise = HttpCheckoutAPI.ensureApplePayScriptLoaded();
 
     await rejectApplePayScriptLoad();
-    await flushTasks();
+    await ensurePromise;
 
-    expect(api.json!.payment_options).toEqual([cardOption]);
-    expect(warnSpy).toHaveBeenCalledWith(
-      'Apple Pay payment options were removed because Apple Pay is not available in this browser.'
+    expect(getApplePayScript()?.dataset.applePaySdkState).toBe("error");
+  });
+
+  it("does not delay replaceJson for authorize Apple Pay config", async () => {
+    setBrowserRuntime();
+    const api = createTestApi(createApiJson([authorizeGatewayConfig]));
+
+    const replacePromise = api.replaceJsonForTesting(
+      createApiJson([authorizeGatewayConfigWithApplePay]),
     );
-  });
 
-  it('waits for the first Apple Pay SDK load before keeping available Apple Pay options', async () => {
-    setBrowserRuntime();
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-
-    const api = createTestApi(createApiJson([applePayOption, cardOption]));
-
-    expect(api.json!.payment_options).toEqual([applePayOption, cardOption]);
-
-    await resolveApplePayScriptLoad(true);
-
-    expect(api.json!.payment_options).toEqual([applePayOption, cardOption]);
-    expect(warnSpy).not.toHaveBeenCalled();
-  });
-
-  it('waits for first Apple Pay SDK load before replacing stored JSON', async () => {
-    setBrowserRuntime();
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-    const api = createTestApi(createApiJson([cardOption]));
-
-    const replacePromise = api.replaceJsonForTesting(createApiJson([applePayOption, cardOption]));
-
-    expect(api.json!.payment_options).toEqual([cardOption]);
-
-    await resolveApplePayScriptLoad(true);
     await replacePromise;
 
-    expect(api.json!.payment_options).toEqual([applePayOption, cardOption]);
-    expect(warnSpy).not.toHaveBeenCalled();
+    expect(api.json!.payment_gateways).toEqual([
+      authorizeGatewayConfigWithApplePay,
+    ]);
+    expect(getApplePayScript()).toBeNull();
   });
 });

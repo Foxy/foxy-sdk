@@ -1,19 +1,20 @@
-import type { BillingAddress } from './BillingAddress';
-import type { CustomConfig } from './CustomConfig';
-import type { CustomFields } from './CustomFields';
-import type { Customer } from './Customer';
-import type { Display } from './Display';
-import type { Format } from './Format';
-import type { ExpressCheckoutOption } from './ExpressCheckoutOption';
-import type { Item } from './Item';
-import type { Message } from './Message';
-import type { PaymentOption } from './PaymentOption';
-import type { Session } from './Session';
-import type { Shipment } from './Shipment';
-import type { Store } from './Store';
-import type { TemplateSet } from './TemplateSet';
-import type { Totals } from './Totals';
-import type { Transaction } from './Transaction';
+import type { BillingAddress } from "./BillingAddress";
+import type { CustomConfig } from "./CustomConfig";
+import type { CustomFields } from "./CustomFields";
+import type { Customer } from "./Customer";
+import type { Display } from "./Display";
+import type { Format } from "./Format";
+import type { ExpressCheckoutOption } from "./ExpressCheckoutOption";
+import type { Item } from "./Item";
+import type { Message } from "./Message";
+import type { PaymentGatewayConfig } from "./PaymentGatewayConfig";
+import type { SavedPaymentMethod } from "./SavedPaymentMethod";
+import type { Session } from "./Session";
+import type { Shipment } from "./Shipment";
+import type { Store } from "./Store";
+import type { TemplateSet } from "./TemplateSet";
+import type { Totals } from "./Totals";
+import type { Transaction } from "./Transaction";
 
 export type APIJson = {
   /** Public template set info (fx:template_set). */
@@ -46,8 +47,12 @@ export type APIJson = {
   display: Display;
   /** Custom configuration options for this checkout. */
   custom_config: CustomConfig;
-  /** Payment options available for this order. */
-  payment_options?: PaymentOption[];
+  /** Saved payment methods available for this order. */
+  saved_payment_methods?: SavedPaymentMethod[];
+  /** Payment gateway configurations available for this order. */
+  payment_gateways?: PaymentGatewayConfig[];
   /** Express checkout options available for this order. */
   express_checkout_options?: ExpressCheckoutOption[];
+  /** Language strings for localization, keyed by string identifiers. */
+  language_strings: Record<string, string>;
 };
