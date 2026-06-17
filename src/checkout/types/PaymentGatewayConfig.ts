@@ -49,7 +49,6 @@ type StandardAchPaymentGatewayConfig = {
     | "account_number"
     | "account_type"
     | "account_holder_name"
-    | "is_account_owner"
   )[];
   /** Accepted account types. */
   account_types: ("checking" | "savings")[];

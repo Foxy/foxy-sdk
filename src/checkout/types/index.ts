@@ -33,10 +33,6 @@ export type {
 } from "./PaymentGatewayConfig";
 export type { CustomFields } from "./CustomFields";
 export type { CustomConfig } from "./CustomConfig";
-export type {
-  ExpressCheckoutType,
-  ExpressCheckoutOption,
-} from "./ExpressCheckoutOption";
 export type { SavedPaymentMethod } from "./SavedPaymentMethod";
 export type {
   AchHostedFieldsPublicState,

@@ -4,7 +4,6 @@ import type { CustomFields } from "./CustomFields";
 import type { Customer } from "./Customer";
 import type { Display } from "./Display";
 import type { Format } from "./Format";
-import type { ExpressCheckoutOption } from "./ExpressCheckoutOption";
 import type { Item } from "./Item";
 import type { Message } from "./Message";
 import type { PaymentGatewayConfig } from "./PaymentGatewayConfig";
@@ -15,6 +14,7 @@ import type { Store } from "./Store";
 import type { TemplateSet } from "./TemplateSet";
 import type { Totals } from "./Totals";
 import type { Transaction } from "./Transaction";
+import type { NextAction } from "./NextAction";
 
 export type APIJson = {
   /** Public template set info (fx:template_set). */
@@ -51,8 +51,8 @@ export type APIJson = {
   saved_payment_methods?: SavedPaymentMethod[];
   /** Payment gateway configurations available for this order. */
   payment_gateways?: PaymentGatewayConfig[];
-  /** Express checkout options available for this order. */
-  express_checkout_options?: ExpressCheckoutOption[];
+  /** Gateways like Stripe may require additional client-side actions to be performed as part of the order submisson. If such action is required, its description will appear here. */
+  next_action?: NextAction;
   /** Language strings for localization, keyed by string identifiers. */
   language_strings: Record<string, string>;
 };

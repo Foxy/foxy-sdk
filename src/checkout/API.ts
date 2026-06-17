@@ -344,15 +344,60 @@ async function resolveIncomingApiState(
 }
 
 type CheckOutPaymentOption =
-  | { gateway: StandardACHGateway; ach_token: string }
   | {
-      gateway: StandardCardGateway;
-      card_token: string;
-      card_token_format?: "apple-pay" | "google-pay" | "default";
+      gateway: "adyen_embedded";
+      session_result: string;
     }
-  | { gateway: "mollie_omnipay" }
-  | { gateway: StripeConnectGateway; payment_method_id: string }
-  | ({ gateway: "stripe_v2" } & Record<string, unknown>);
+  | {
+      gateway: "klarna";
+      authorization_token: string;
+    }
+  | ({ gateway: "paypal_platform" } & (
+      | {
+          order_id: string;
+          payer_id: string;
+          payment_id?: string;
+          billing_token?: string;
+        }
+      | { card_token: string }
+      | { apple_pay_token: string }
+      | { google_pay_token: string }
+      | { subscription_id: string; payer_id: string }
+    ))
+  | {
+      gateway: "square_up";
+      payment_token: string;
+    }
+  | {
+      gateway: "purchase_order";
+      purchase_order_number: string;
+    }
+  | {
+      gateway: "sezzle";
+      order_uuid: string;
+      session_uuid?: string;
+    }
+  | {
+      gateway: StandardACHGateway;
+      ach_token: string;
+    }
+  | ({
+      gateway: StandardCardGateway;
+    } & (
+      | { card_token: string }
+      | { apple_pay_token: string }
+      | { google_pay_token: string }
+    ))
+  | {
+      gateway: "standard_redirect";
+    }
+  | {
+      gateway: "stripe_connect" | "stripe_connect_charge";
+      card_token_id: string;
+    }
+  | ({
+      gateway: "stripe_v2";
+    } & ({ confirmation_token_id: string } | { payment_intent_id: string }));
 
 export type APIOptions = {
   storeDomain?: string;
