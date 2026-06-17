@@ -79,6 +79,7 @@
     ]
   },
   "dependencies": {
-    "@paypal/paypal-js": "^9.7.0"
+    "@paypal/paypal-js": "^9.7.0",
+    "@stripe/stripe-js": "^9.8.0"
   }
 }
