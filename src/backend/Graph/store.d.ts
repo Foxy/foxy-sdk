@@ -6,6 +6,7 @@ import type { CheckoutTemplates } from './checkout_templates';
 import type { Coupons } from './coupons';
 import type { CustomerPortalSettings } from './customer_portal_settings';
 import type { Customers } from './customers';
+import type { DataRetentionSettings } from './data_retention_settings';
 import type { Downloadables } from './downloadables';
 import type { EmailTemplates } from './email_templates';
 import type { ErrorEntries } from './error_entries';
@@ -97,6 +98,8 @@ export interface Store extends Graph {
     'fx:hosted_payment_gateways': HostedPaymentGateways;
     /** Configuration of this store's customer portal. */
     'fx:customer_portal_settings': CustomerPortalSettings;
+    /** Data retention / auto-anonymization settings for this store. */
+    'fx:data_retention_settings': DataRetentionSettings;
     /** POST here to resend the daily subscription webhook notification for this store. */
     'fx:process_subscription_webhook': ProcessSubscriptionWebhook;
     /** Add-to-cart URL for the Starter plan with yearly billing. */
