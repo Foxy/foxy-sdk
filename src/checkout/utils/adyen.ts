@@ -2,6 +2,7 @@ import type {
   AdyenEmbeddedAmount,
   AdyenEmbeddedCheckoutConfiguration,
   AdyenEmbeddedEnvironment,
+  AdyenEmbeddedPaymentMethodsResponse,
   AdyenEmbeddedSdkInstance,
   AdyenEmbeddedSdkNamespace,
 } from "../types/AdyenEmbeddedSdkInstance";
@@ -13,8 +14,7 @@ type AdyenWindow = Window & {
 };
 
 type InitializeAdyenEmbeddedSdkParams = {
-  sessionId: string;
-  sessionData: string;
+  paymentMethodsResponse: AdyenEmbeddedPaymentMethodsResponse;
   environment: AdyenEmbeddedEnvironment;
   clientKey: string;
   amount?: AdyenEmbeddedAmount;
@@ -200,21 +200,11 @@ export async function loadAdyenSdk(
 function getAdyenCheckoutConfiguration(
   params: InitializeAdyenEmbeddedSdkParams,
 ): AdyenEmbeddedCheckoutConfiguration {
-  const sessionId = getTrimmedString(params.sessionId);
-  const sessionData = getTrimmedString(params.sessionData);
   const clientKey = getTrimmedString(params.clientKey);
   const locale = getNormalizedLocale(params.locale);
   const countryCode = getNormalizedCountryCode(params.countryCode);
   const currency = getNormalizedCurrencyCode(params.amount?.currency);
   const amountValue = params.amount?.value;
-
-  if (!sessionId) {
-    throw new Error("Adyen session id is required.");
-  }
-
-  if (!sessionData) {
-    throw new Error("Adyen session data is required.");
-  }
 
   if (!clientKey) {
     throw new Error("Adyen client key is required.");
@@ -234,7 +224,7 @@ function getAdyenCheckoutConfiguration(
   }
 
   const configuration: AdyenEmbeddedCheckoutConfiguration = {
-    session: { id: sessionId, sessionData },
+    paymentMethodsResponse: params.paymentMethodsResponse,
     environment: params.environment,
     amount: { value: amountValue, currency },
     countryCode,
@@ -253,8 +243,6 @@ function getAdyenCheckoutKey(
 ): string {
   return [
     configuration.environment,
-    configuration.session.id,
-    configuration.session.sessionData ?? "",
     configuration.clientKey,
     configuration.amount.currency,
     String(configuration.amount.value),

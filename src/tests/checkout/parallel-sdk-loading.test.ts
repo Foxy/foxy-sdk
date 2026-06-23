@@ -29,7 +29,6 @@ const mocks = vi.hoisted(() => {
 
   const adyenSdk = {
     paymentMethodsResponse: { paymentMethods: [], storedPaymentMethods: [] },
-    submitDetails: vi.fn(),
     update: vi.fn(),
   };
 
@@ -101,7 +100,6 @@ const mocks = vi.hoisted(() => {
       state.canMakeGooglePayPayments.mockClear();
       state.payPalSdk.findEligibleMethods.mockClear();
       state.payPalSdk.updateLocale.mockClear();
-      state.adyenSdk.submitDetails.mockClear();
       state.adyenSdk.update.mockClear();
       state.klarnaSdk.Payments.init.mockClear();
       state.klarnaSdk.Payments.load.mockClear();
@@ -171,8 +169,9 @@ const klarnaOption = {
 } as const;
 const adyenGatewayConfig = {
   type: "adyen_embedded",
-  session_id: "adyen-session-id",
-  session_data: "adyen-session-data",
+  payment_methods_response: {
+    paymentMethods: [{ type: "scheme", name: "Cards" }],
+  },
   environment: "test",
   client_key: "test_adyen_client_key",
 } as const;
