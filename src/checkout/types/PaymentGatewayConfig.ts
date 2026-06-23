@@ -1,4 +1,8 @@
-import type { AdyenEmbeddedEnvironment } from "./AdyenEmbeddedSdkInstance";
+import type {
+  AdyenEmbeddedEnvironment,
+  AdyenEmbeddedPaymentMethodsResponse,
+} from "./AdyenEmbeddedSdkInstance";
+import type { PaymentIntent } from "@stripe/stripe-js";
 
 export type StandardCardGateway =
   | "authorize"
@@ -35,9 +39,9 @@ type StandardCardPaymentGatewayConfig = {
   /** Gateway identifier. */
   type: StandardCardGateway;
   /** Apple Pay configuration exposed by this gateway. */
-  apple_pay?: ApplePayConfig;
+  apple_pay: ApplePayConfig | null;
   /** Google Pay configuration exposed by this gateway. */
-  google_pay?: GooglePayConfig;
+  google_pay: GooglePayConfig | null;
 };
 
 type StandardAchPaymentGatewayConfig = {
@@ -67,13 +71,15 @@ type StripePaymentElementGatewayConfig = {
   /** Stripe publishable key for initializing Stripe.js. */
   publishable_key: string;
   /** If present, indicates a pending next_action flow that should be handled via stripe.handleNextAction(). */
-  next_action?: string;
+  next_action: PaymentIntent.NextAction | null;
   /** Connected account ID used as stripeAccount when creating the Stripe client. */
   account_id: string;
   /** Return URL used by Stripe confirmation flows (setup/payment redirects). */
   return_url: string;
   /** Capture mode flag from backend. 1 means manual capture, otherwise automatic capture. */
   auth_only: boolean;
+  /** If present, the backend has pre-created a PaymentIntent; confirmation should use confirmPayment() instead of createConfirmationToken(). */
+  client_secret?: string;
 };
 
 type PayPalPlatformGatewayConfig = {
@@ -109,15 +115,17 @@ type SezzleGatewayConfig = {
   type: "sezzle";
   /** Used when creating a checkout or capturing payment. Find your API keys at https://dashboard.sezzle.com/merchant/settings/apikeys. */
   public_key: string;
+  /** Backend-created Sezzle checkout session URL. When present, tokenize() will open the Sezzle checkout popup and return an order_uuid. */
+  checkout_url?: string;
+  /** When true, the backend created the session in AUTH_ONLY mode; capture must be triggered separately. */
+  auth_only?: boolean;
 };
 
 type AdyenEmbeddedGatewayConfig = {
   /** Gateway identifier. */
   type: "adyen_embedded";
-  /** Adyen session identifier returned from payment initiation. */
-  session_id: string;
-  /** Adyen session data blob returned from payment initiation. */
-  session_data: string;
+  /** Payment methods response from Adyen's /paymentMethods endpoint. */
+  payment_methods_response: AdyenEmbeddedPaymentMethodsResponse;
   /** Adyen environment matching the session region. */
   environment: AdyenEmbeddedEnvironment;
   /** Adyen client-side authentication key. */
