@@ -22,8 +22,12 @@ type AdyenWindow = Window & {
 const authorizeGatewayConfig = { type: "authorize" } as const;
 const adyenGatewayConfig = {
   type: "adyen_embedded",
-  session_id: "CSD9CAC34EBAE225DD",
-  session_data: "Ab02b4c-session-data",
+  payment_methods_response: {
+    paymentMethods: [
+      { type: "scheme", name: "Cards" },
+      { type: "eps", name: "EPS" },
+    ],
+  },
   environment: "test",
   client_key: "test_870be2_client_key",
 } as const;
@@ -217,7 +221,6 @@ function createAdyenCheckoutInstance(
       paymentMethods,
       storedPaymentMethods: [],
     },
-    submitDetails: vi.fn(),
     createFromAction: vi.fn(),
     update,
   } as AdyenEmbeddedSdkInstance;
@@ -372,10 +375,7 @@ describe("Adyen Embedded payment option loading", () => {
 
     expect(AdyenCheckout).toHaveBeenCalledTimes(1);
     expect(getLastConfiguration()).toEqual({
-      session: {
-        id: adyenGatewayConfig.session_id,
-        sessionData: adyenGatewayConfig.session_data,
-      },
+      paymentMethodsResponse: adyenGatewayConfig.payment_methods_response,
       environment: adyenGatewayConfig.environment,
       amount: { value: 1234, currency: "USD" },
       countryCode: "US",

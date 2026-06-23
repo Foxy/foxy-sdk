@@ -285,8 +285,7 @@ async function resolveIncomingApiState(
     } else {
       thirdPartySdkTasks.push(
         initializeAdyenEmbeddedSdk({
-          sessionId: adyenEmbeddedConfig.session_id,
-          sessionData: adyenEmbeddedConfig.session_data,
+          paymentMethodsResponse: adyenEmbeddedConfig.payment_methods_response,
           environment: adyenEmbeddedConfig.environment,
           clientKey: adyenEmbeddedConfig.client_key,
           amount: getAdyenCheckoutAmount(nextJson),
@@ -366,7 +365,7 @@ type CheckOutPaymentOption =
     ))
   | {
       gateway: "square_up";
-      payment_token: string;
+      nonce: string;
     }
   | {
       gateway: "purchase_order";
@@ -375,7 +374,6 @@ type CheckOutPaymentOption =
   | {
       gateway: "sezzle";
       order_uuid: string;
-      session_uuid?: string;
     }
   | {
       gateway: StandardACHGateway;
