@@ -343,10 +343,7 @@ async function resolveIncomingApiState(
 }
 
 type CheckOutPaymentOption =
-  | {
-      gateway: "adyen_embedded";
-      session_result: string;
-    }
+  | { gateway: "adyen_embedded" }
   | {
       gateway: "klarna";
       authorization_token: string;
@@ -1253,6 +1250,58 @@ export class API extends EventTarget {
       await this.replaceJson(nextJson);
     });
   };
+
+  async submitAdyenEmbeddedPayment(
+    data: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
+    this.assertStoreDomain();
+
+    const response = await fetch(
+      this.resolveUrl("/helpers", {
+        action: "submit_adyen_embedded_payment",
+      }),
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data }),
+      },
+    );
+
+    if (!response.ok) {
+      throw this.createRequestError(
+        response.status,
+        "Adyen payment submission failed.",
+      );
+    }
+
+    return (await response.json()) as Record<string, unknown>;
+  }
+
+  async submitAdyenEmbeddedPaymentDetails(
+    data: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
+    this.assertStoreDomain();
+
+    const response = await fetch(
+      this.resolveUrl("/helpers", {
+        action: "submit_adyen_embedded_payment_details",
+      }),
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data }),
+      },
+    );
+
+    if (!response.ok) {
+      throw this.createRequestError(
+        response.status,
+        "Adyen payment details submission failed.",
+      );
+    }
+
+    return (await response.json()) as Record<string, unknown>;
+  }
 
   async getAddressSuggestions(params: {
     postalCode: string;
