@@ -27,6 +27,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "localdev:deploy:cdn": "npm run build:cdn && rm -rf ../foxy-docker-env-build/src/cdn-js/sdk@2 && cp -r dist/cdn ../foxy-docker-env-build/src/cdn-js/sdk@2",
     "build:cdn": "vite build --mode cdn",
     "build:npm": "vite build --mode npm",
     "build:docs": "typedoc --excludePrivate --out dist/docs src/index.ts",
