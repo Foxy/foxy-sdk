@@ -14,13 +14,12 @@ import type { Store } from "./Store";
 import type { TemplateSet } from "./TemplateSet";
 import type { Totals } from "./Totals";
 import type { Transaction } from "./Transaction";
-import type { NextAction } from "./NextAction";
 
 export type APIJson = {
   /** Public template set info (fx:template_set). */
   template_set: TemplateSet;
   /** Public transaction details including ID, date and payments – available after purchase. */
-  transaction?: Transaction;
+  transaction: Transaction | null;
   /** The session information including name (fcsid) and unique identifier. */
   session: Session;
   /** Whether debug mode is enabled for this template set. */
@@ -48,11 +47,9 @@ export type APIJson = {
   /** Custom configuration options for this checkout. */
   custom_config: CustomConfig;
   /** Saved payment methods available for this order. */
-  saved_payment_methods?: SavedPaymentMethod[];
+  saved_payment_methods: SavedPaymentMethod[] | null;
   /** Payment gateway configurations available for this order. */
-  payment_gateways?: PaymentGatewayConfig[];
-  /** Gateways like Stripe may require additional client-side actions to be performed as part of the order submisson. If such action is required, its description will appear here. */
-  next_action?: NextAction;
+  payment_gateways: PaymentGatewayConfig[] | null;
   /** Language strings for localization, keyed by string identifiers. */
   language_strings: Record<string, string>;
 };
