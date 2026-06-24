@@ -1,1 +1,7 @@
-export type CustomConfig = Record<string, unknown>;
+export type CustomConfig =
+  | string
+  | number
+  | boolean
+  | null
+  | CustomConfig[]
+  | { [key: string]: CustomConfig };
