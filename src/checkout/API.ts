@@ -592,6 +592,8 @@ export class API extends EventTarget {
     if (resolutionVersion === this.#jsonResolutionVersion) {
       this.#applyResolvedState(resolvedState, { emitUpdate });
     }
+
+    this.setStoreDomain(nextJson.store.domain);
   }
 
   setStoreDomain(storeDomain: string): void {
