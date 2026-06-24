@@ -506,3 +506,107 @@ describe("Adyen Embedded payment option loading", () => {
     );
   });
 });
+
+describe("submitAdyenEmbeddedPayment", () => {
+  beforeEach(() => {
+    vi.resetModules();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    restoreRuntime();
+  });
+
+  it("posts payment data as JSON to /helpers?action=submit_adyen_embedded_payment", async () => {
+    setBrowserRuntime();
+    const { API } = await import("../../checkout/API");
+    const api = new API({ storeDomain: "store.test" });
+
+    const paymentData = { paymentMethod: { type: "scheme", encryptedCardNumber: "abc" } };
+    const mockResponse = { resultCode: "Authorised", pspReference: "PSP123" };
+
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(JSON.stringify(mockResponse), { status: 200 }),
+    );
+
+    const result = await api.submitAdyenEmbeddedPayment(paymentData);
+
+    expect(fetch).toHaveBeenCalledOnce();
+    const [url, init] = (fetch as ReturnType<typeof vi.fn>).mock.calls[0] as [string, RequestInit];
+    expect(url).toBe("https://store.test/helpers?action=submit_adyen_embedded_payment");
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(init.body as string)).toEqual({ data: paymentData });
+    expect(result).toEqual(mockResponse);
+  });
+
+  it("throws when the response is not ok", async () => {
+    setBrowserRuntime();
+    const { API } = await import("../../checkout/API");
+    const api = new API({ storeDomain: "store.test" });
+
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response("{}", { status: 422 }),
+    );
+
+    await expect(
+      api.submitAdyenEmbeddedPayment({ paymentMethod: { type: "scheme" } }),
+    ).rejects.toThrow("HTTP status 422");
+  });
+
+  it("throws when storeDomain is not set", async () => {
+    setBrowserRuntime();
+    const { API } = await import("../../checkout/API");
+    const api = new API();
+
+    await expect(
+      api.submitAdyenEmbeddedPayment({ paymentMethod: { type: "scheme" } }),
+    ).rejects.toThrow();
+  });
+});
+
+describe("submitAdyenEmbeddedPaymentDetails", () => {
+  beforeEach(() => {
+    vi.resetModules();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    restoreRuntime();
+  });
+
+  it("posts details as JSON to /helpers?action=submit_adyen_embedded_payment_details", async () => {
+    setBrowserRuntime();
+    const { API } = await import("../../checkout/API");
+    const api = new API({ storeDomain: "store.test" });
+
+    const detailsData = { details: { redirectResult: "eyJ..." }, paymentData: "Ab02b4c..." };
+    const mockResponse = { resultCode: "Authorised", pspReference: "PSP456" };
+
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(JSON.stringify(mockResponse), { status: 200 }),
+    );
+
+    const result = await api.submitAdyenEmbeddedPaymentDetails(detailsData);
+
+    expect(fetch).toHaveBeenCalledOnce();
+    const [url, init] = (fetch as ReturnType<typeof vi.fn>).mock.calls[0] as [string, RequestInit];
+    expect(url).toBe("https://store.test/helpers?action=submit_adyen_embedded_payment_details");
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(init.body as string)).toEqual({ data: detailsData });
+    expect(result).toEqual(mockResponse);
+  });
+
+  it("throws when the response is not ok", async () => {
+    setBrowserRuntime();
+    const { API } = await import("../../checkout/API");
+    const api = new API({ storeDomain: "store.test" });
+
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response("{}", { status: 500 }),
+    );
+
+    await expect(
+      api.submitAdyenEmbeddedPaymentDetails({ details: {} }),
+    ).rejects.toThrow("HTTP status 500");
+  });
+});
