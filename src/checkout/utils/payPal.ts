@@ -386,6 +386,7 @@ async function createPayPalInstance(
   locale?: string,
   testBuyerCountry?: string,
 ): Promise<PayPalSdkInstance> {
+  const normalizedLocale = locale?.replace(/_/g, "-");
   const key = getPayPalInstanceKey(
     environment,
     clientId,
@@ -405,7 +406,7 @@ async function createPayPalInstance(
         createInstance({
           clientId,
           components: PAYPAL_SDK_COMPONENTS[componentProfile],
-          locale,
+          locale: normalizedLocale,
           pageType: "checkout",
           testBuyerCountry:
             environment === "sandbox" ? testBuyerCountry : undefined,
@@ -428,8 +429,8 @@ async function createPayPalInstance(
 
   const paypal = await promise;
 
-  if (locale) {
-    paypal.updateLocale(locale);
+  if (normalizedLocale) {
+    paypal.updateLocale(normalizedLocale);
   }
 
   return paypal;
