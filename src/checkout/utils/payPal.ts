@@ -10,6 +10,7 @@ type PayPalEnvironment = "production" | "sandbox";
 
 type DiscoverPayPalPaymentOptionsParams = {
   clientId: string;
+  clientToken?: string;
   customConfig?: CustomConfig;
   amount?: string;
   currencyCode?: string;
@@ -83,8 +84,10 @@ type PayPalEligibility = Awaited<
   ReturnType<PayPalSdkInstance["findEligibleMethods"]>
 >;
 
-type PayPalSdkCreateInstanceOptions = {
-  clientId: string;
+type PayPalSdkCreateInstanceOptions = (
+  | { clientId: string; clientToken?: never }
+  | { clientToken: string; clientId?: never }
+) & {
   components: readonly string[];
   locale?: string;
   pageType: "checkout";
@@ -385,6 +388,7 @@ async function createPayPalInstance(
   componentProfile: PayPalSdkComponentProfile,
   locale?: string,
   testBuyerCountry?: string,
+  clientToken?: string,
 ): Promise<PayPalSdkInstance> {
   const normalizedLocale = locale?.replace(/_/g, "-");
   const key = getPayPalInstanceKey(
@@ -404,7 +408,7 @@ async function createPayPalInstance(
 
       return await withTimeout(
         createInstance({
-          clientId,
+          ...(clientToken ? { clientToken } : { clientId }),
           components: PAYPAL_SDK_COMPONENTS[componentProfile],
           locale: normalizedLocale,
           pageType: "checkout",
@@ -458,6 +462,7 @@ export async function loadPayPalSdk(
         "extended",
         params.locale,
         testBuyerCountry,
+        params.clientToken,
       );
     } catch (error) {
       lastError = error;
@@ -473,6 +478,7 @@ export async function loadPayPalSdk(
           "base",
           params.locale,
           testBuyerCountry,
+          params.clientToken,
         );
       } catch (fallbackError) {
         lastError = fallbackError;
