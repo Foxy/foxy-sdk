@@ -20,6 +20,7 @@ export type StandardCardGateway =
   | "vantiv_omnipay"
   | "sagepay";
 
+export type StandardRedirectGateway = 'mollie_omnipay';
 export type StripeConnectGateway = "stripe_connect" | "stripe_connect_charge";
 export type StandardACHGateway = "authorize_ach" | "ach_com";
 
@@ -87,6 +88,8 @@ type PayPalPlatformGatewayConfig = {
   type: "paypal_platform";
   /** PayPal client ID for rendering and submission. */
   client_id: string;
+  /** Short-lived SDK init client token from the platform; carries the merchant assertion required for find-eligible-methods. */
+  client_token?: string;
 };
 
 type KlarnaGatewayConfig = {
@@ -134,7 +137,7 @@ type AdyenEmbeddedGatewayConfig = {
 
 type RedirectGatewayConfig = {
   /** Gateway identifier. */
-  type: "mollie_omnipay";
+  type: StandardRedirectGateway;
 };
 
 type SquareUpGatewayConfig = {

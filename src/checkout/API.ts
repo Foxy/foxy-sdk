@@ -14,6 +14,7 @@ import type {
   PaymentGatewayConfig,
   StandardACHGateway,
   StandardCardGateway,
+  StandardRedirectGateway,
   StripeConnectGateway,
 } from "./types/PaymentGatewayConfig";
 import type { Listener } from "./types/Listener";
@@ -197,6 +198,7 @@ async function resolveIncomingApiState(
         try {
           return await loadPayPalSdk({
             clientId: config.client_id,
+            clientToken: config.client_token,
             customConfig: nextJson.custom_config,
             amount: getPayPalEligibilityAmount(nextJson),
             currencyCode: nextJson.format.currency_code,
@@ -384,7 +386,7 @@ type CheckOutPaymentOption =
       | { google_pay_token: string }
     ))
   | {
-      gateway: "standard_redirect";
+      gateway: StandardRedirectGateway;
     }
   | {
       gateway: "stripe_connect" | "stripe_connect_charge";
@@ -1471,7 +1473,7 @@ export class API extends EventTarget {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
       },
-      body: toFormData({ ...body, output: "json" }),
+      body: toFormData({ ...body, output: "json", fcsid: this.json?.session.id }),
     });
 
     if (!response.ok) {
@@ -1485,7 +1487,7 @@ export class API extends EventTarget {
   }
 
   private async getJson(path: string): Promise<APIJson> {
-    const response = await fetch(this.resolveUrl(path, { output: "json" }));
+    const response = await fetch(this.resolveUrl(path, { output: "json", fcsid: this.json?.session.id }));
 
     if (!response.ok) {
       throw this.createRequestError(
