@@ -24,7 +24,6 @@ export type {
 export type { GooglePaymentsClient } from "./GooglePaymentsClient";
 export type { KlarnaSdkInstance } from "./KlarnaSdkInstance";
 export type { PayPalSdkInstance } from "./PayPalSdkInstance";
-export type { SezzleSdkInstance } from "./SezzleSdkInstance";
 export type { SquareSdkInstance } from "./SquareSdkInstance";
 export type {
   ApplePayConfig,
