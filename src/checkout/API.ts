@@ -7,7 +7,6 @@ import type {
   GooglePaymentsClient,
   KlarnaSdkInstance,
   PayPalSdkInstance,
-  SezzleSdkInstance,
   SquareSdkInstance,
 } from "./types";
 import type {
@@ -34,7 +33,6 @@ import {
   loadGooglePaySdk as loadGooglePaySdkUtil,
 } from "./utils/googlePay";
 import { initializeKlarnaSdk } from "./utils/klarna";
-import { initializeSezzleSdk } from "./utils/sezzle";
 import { initializeSquareSdk } from "./utils/square";
 import { cloneApiJson, toMutable } from "./utils/json";
 import type { MutableAPIJson } from "./utils/json";
@@ -66,7 +64,6 @@ type ResolvedIncomingApiState = {
   adyenEmbedded: AdyenEmbeddedSdkInstance | null;
   paypal: PayPalSdkInstance | null;
   klarna: KlarnaSdkInstance | null;
-  sezzle: SezzleSdkInstance | null;
   square: SquareSdkInstance | null;
 };
 
@@ -182,7 +179,6 @@ async function resolveIncomingApiState(
   let adyenEmbedded: AdyenEmbeddedSdkInstance | null = null;
   let paypal: PayPalSdkInstance | null = null;
   let klarna: KlarnaSdkInstance | null = null;
-  let sezzle: SezzleSdkInstance | null = null;
   let square: SquareSdkInstance | null = null;
   const isBrowserEnvironment =
     typeof window !== "undefined" && typeof document !== "undefined";
@@ -222,7 +218,6 @@ async function resolveIncomingApiState(
     adyenEmbedded,
     paypal,
     klarna,
-    sezzle,
     square,
   });
 
@@ -243,31 +238,6 @@ async function resolveIncomingApiState(
           .catch(() => {
             console.warn(
               "Klarna SDK was not initialized because the Klarna SDK could not be loaded.",
-            );
-          }),
-      );
-    }
-  }
-
-  const sezzleConfig = getFirstPaymentGatewayConfig(nextJson, "sezzle");
-
-  if (sezzleConfig) {
-    if (!isBrowserEnvironment) {
-      console.warn(
-        "Sezzle SDK was not initialized because checkout API JSON was processed outside a browser environment.",
-      );
-    } else {
-      thirdPartySdkTasks.push(
-        initializeSezzleSdk({
-          publicKey: sezzleConfig.public_key,
-          customConfig: nextJson.custom_config,
-        })
-          .then((instance) => {
-            sezzle = instance;
-          })
-          .catch(() => {
-            console.warn(
-              "Sezzle SDK was not initialized because the Sezzle SDK could not be loaded.",
             );
           }),
       );
@@ -339,7 +309,6 @@ async function resolveIncomingApiState(
     adyenEmbedded,
     paypal,
     klarna,
-    sezzle,
     square,
   };
 }
@@ -369,10 +338,6 @@ type CheckOutPaymentOption =
   | {
       gateway: "purchase_order";
       purchase_order_number: string;
-    }
-  | {
-      gateway: "sezzle";
-      order_uuid: string;
     }
   | {
       gateway: StandardACHGateway;
@@ -423,7 +388,6 @@ export class API extends EventTarget {
   #adyenEmbedded: AdyenEmbeddedSdkInstance | null;
   #klarna: KlarnaSdkInstance | null;
   #paypal: PayPalSdkInstance | null;
-  #sezzle: SezzleSdkInstance | null;
   #square: SquareSdkInstance | null;
   #baseUrl: string | null;
   #jsonResolutionVersion = 0;
@@ -478,7 +442,6 @@ export class API extends EventTarget {
       this.#adyenEmbedded = null;
       this.#klarna = null;
       this.#paypal = null;
-      this.#sezzle = null;
       this.#square = null;
       this.#state = initialState ?? "idle";
       void this.replaceJson(initialJson);
@@ -487,7 +450,6 @@ export class API extends EventTarget {
       this.#adyenEmbedded = null;
       this.#klarna = null;
       this.#paypal = null;
-      this.#sezzle = null;
       this.#square = null;
       this.#state = initialState ?? (this.#baseUrl ? "busy" : "idle");
 
@@ -562,10 +524,6 @@ export class API extends EventTarget {
 
   get paypal(): PayPalSdkInstance | null {
     return this.#paypal;
-  }
-
-  get sezzle(): SezzleSdkInstance | null {
-    return this.#sezzle;
   }
 
   get square(): SquareSdkInstance | null {
@@ -657,14 +615,12 @@ export class API extends EventTarget {
       this.#adyenEmbedded !== resolvedState.adyenEmbedded;
     const klarnaChanged = this.#klarna !== resolvedState.klarna;
     const paypalChanged = this.#paypal !== resolvedState.paypal;
-    const sezzleChanged = this.#sezzle !== resolvedState.sezzle;
     const squareChanged = this.#square !== resolvedState.square;
 
     this.#json = resolvedState.json;
     this.#adyenEmbedded = resolvedState.adyenEmbedded;
     this.#klarna = resolvedState.klarna;
     this.#paypal = resolvedState.paypal;
-    this.#sezzle = resolvedState.sezzle;
     this.#square = resolvedState.square;
 
     if (options.state !== undefined) {
@@ -678,7 +634,6 @@ export class API extends EventTarget {
         adyenEmbeddedChanged ||
         klarnaChanged ||
         paypalChanged ||
-        sezzleChanged ||
         squareChanged)
     ) {
       this.dispatchEvent(new Event("update"));
