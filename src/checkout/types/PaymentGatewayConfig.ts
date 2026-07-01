@@ -20,7 +20,7 @@ export type StandardCardGateway =
   | "vantiv_omnipay"
   | "sagepay";
 
-export type StandardRedirectGateway = 'mollie_omnipay';
+export type StandardRedirectGateway = 'mollie_omnipay' | 'sezzle';
 export type StripeConnectGateway = "stripe_connect" | "stripe_connect_charge";
 export type StandardACHGateway = "authorize_ach" | "ach_com";
 
@@ -113,17 +113,6 @@ type KlarnaGatewayConfig = {
   }[];
 };
 
-type SezzleGatewayConfig = {
-  /** Gateway identifier. */
-  type: "sezzle";
-  /** Used when creating a checkout or capturing payment. Find your API keys at https://dashboard.sezzle.com/merchant/settings/apikeys. */
-  public_key: string;
-  /** Backend-created Sezzle checkout session URL. When present, tokenize() will open the Sezzle checkout popup and return an order_uuid. */
-  checkout_url?: string;
-  /** When true, the backend created the session in AUTH_ONLY mode; capture must be triggered separately. */
-  auth_only?: boolean;
-};
-
 type AdyenEmbeddedGatewayConfig = {
   /** Gateway identifier. */
   type: "adyen_embedded";
@@ -159,6 +148,5 @@ export type PaymentGatewayConfig =
   | StripePaymentElementGatewayConfig
   | PayPalPlatformGatewayConfig
   | KlarnaGatewayConfig
-  | SezzleGatewayConfig
   | AdyenEmbeddedGatewayConfig
   | SquareUpGatewayConfig;
