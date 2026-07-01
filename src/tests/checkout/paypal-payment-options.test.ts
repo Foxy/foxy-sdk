@@ -9,16 +9,8 @@ const sdkV6Mock = vi.hoisted(() => ({
   loadCoreSdkScript: vi.fn(),
 }));
 
-const sezzleMock = vi.hoisted(() => ({
-  initializeSezzleSdk: vi.fn(),
-}));
-
 vi.mock("@paypal/paypal-js/sdk-v6", () => ({
   loadCoreSdkScript: sdkV6Mock.loadCoreSdkScript,
-}));
-
-vi.mock("../../checkout/utils/sezzle", () => ({
-  initializeSezzleSdk: sezzleMock.initializeSezzleSdk,
 }));
 
 type RuntimeGlobals = typeof globalThis & {
@@ -63,10 +55,6 @@ const authorizeGatewayConfig = { type: "authorize" } as const;
 const paypalGatewayConfig = {
   type: "paypal_platform",
   client_id: "paypal-client-id",
-} as const;
-const sezzleGatewayConfig = {
-  type: "sezzle",
-  public_key: "sezzle-public-key",
 } as const;
 const paypalOption = {
   type: "paypal",
@@ -361,7 +349,6 @@ describe("PayPal payment option discovery", () => {
   beforeEach(() => {
     vi.resetModules();
     sdkV6Mock.loadCoreSdkScript.mockReset();
-    sezzleMock.initializeSezzleSdk.mockReset();
   });
 
   afterEach(() => {
@@ -610,11 +597,8 @@ describe("PayPal payment option discovery", () => {
       createInstance: typeof createInstance;
       version: string;
     }>();
-    const sezzle = { startCheckout: vi.fn() };
-    const sezzleDeferred = createDeferred<typeof sezzle>();
 
     sdkV6Mock.loadCoreSdkScript.mockReturnValue(sdkDeferred.promise);
-    sezzleMock.initializeSezzleSdk.mockReturnValue(sezzleDeferred.promise);
 
     const { API } = await import("../../checkout/API");
     const api = new API();
@@ -623,49 +607,26 @@ describe("PayPal payment option discovery", () => {
     api.addEventListener("update", updateListener);
 
     const hydratePromise = api.hydrateJson(
-      createApiJson([paypalGatewayConfig, sezzleGatewayConfig], {
+      createApiJson([paypalGatewayConfig], {
         paypal_environment: "sandbox",
       }),
       { state: "idle" },
     );
-
-    let didHydrateResolve = false;
-    void hydratePromise.then(() => {
-      didHydrateResolve = true;
-    });
 
     await vi.dynamicImportSettled();
     await flushTasks();
 
     expect(api.json).toBeNull();
     expect(api.paypal).toBeNull();
-    expect(api.sezzle).toBeNull();
     expect(updateListener).not.toHaveBeenCalled();
-    expect(sezzleMock.initializeSezzleSdk).not.toHaveBeenCalled();
 
     sdkDeferred.resolve({ createInstance, version: "6.0.0" });
 
-    await vi.waitFor(() => {
-      expect(api.json?.payment_gateways).toEqual([
-        paypalGatewayConfig,
-        sezzleGatewayConfig,
-      ]);
-      expect(api.paypal).toBe(paypal);
-      expect(api.sezzle).toBeNull();
-      expect(updateListener).toHaveBeenCalledTimes(1);
-      expect(sezzleMock.initializeSezzleSdk).toHaveBeenCalledWith({
-        publicKey: sezzleGatewayConfig.public_key,
-        customConfig: { paypal_environment: "sandbox" },
-      });
-    });
-    expect(didHydrateResolve).toBe(false);
-
-    sezzleDeferred.resolve(sezzle);
-
     await hydratePromise;
 
-    expect(api.sezzle).toBe(sezzle);
-    expect(updateListener).toHaveBeenCalledTimes(2);
+    expect(api.json?.payment_gateways).toEqual([paypalGatewayConfig]);
+    expect(api.paypal).toBe(paypal);
+    expect(updateListener).toHaveBeenCalledTimes(1);
   });
 
   it("updates stored JSON only after PayPal SDK initialization resolves", async () => {
