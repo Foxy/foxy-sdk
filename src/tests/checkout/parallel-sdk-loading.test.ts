@@ -45,26 +45,16 @@ const mocks = vi.hoisted(() => {
     },
   };
 
-  const sezzleSdk = {
-    init: vi.fn(),
-    startCheckout: vi.fn(),
-    renderSezzleButton: vi.fn(),
-    capturePayment: vi.fn(),
-    getInstallmentPlan: vi.fn(),
-  };
-
   const state = {
     payPalCalls: [] as string[],
     payPalDeferreds: [] as Array<Deferred<unknown>>,
     adyenDeferred: createDeferred<unknown>(),
     klarnaDeferred: createDeferred<unknown>(),
-    sezzleDeferred: createDeferred<unknown>(),
     applePayDeferred: createDeferred<void>(),
     googlePayDeferred: createDeferred<void>(),
     payPalSdk,
     adyenSdk,
     klarnaSdk,
-    sezzleSdk,
     loadPayPalSdk: vi.fn((params: { clientId: string }) => {
       const deferred = createDeferred<unknown>();
 
@@ -75,7 +65,6 @@ const mocks = vi.hoisted(() => {
     }),
     initializeAdyenEmbeddedSdk: vi.fn(() => state.adyenDeferred.promise),
     initializeKlarnaSdk: vi.fn(() => state.klarnaDeferred.promise),
-    initializeSezzleSdk: vi.fn(() => state.sezzleDeferred.promise),
     loadApplePaySdk: vi.fn(() => state.applePayDeferred.promise),
     loadGooglePaySdk: vi.fn(() => state.googlePayDeferred.promise),
     getApplePayAvailability: vi.fn(() => "available" as const),
@@ -86,13 +75,11 @@ const mocks = vi.hoisted(() => {
       state.payPalDeferreds = [];
       state.adyenDeferred = createDeferred<unknown>();
       state.klarnaDeferred = createDeferred<unknown>();
-      state.sezzleDeferred = createDeferred<unknown>();
       state.applePayDeferred = createDeferred<void>();
       state.googlePayDeferred = createDeferred<void>();
       state.loadPayPalSdk.mockClear();
       state.initializeAdyenEmbeddedSdk.mockClear();
       state.initializeKlarnaSdk.mockClear();
-      state.initializeSezzleSdk.mockClear();
       state.loadApplePaySdk.mockClear();
       state.loadGooglePaySdk.mockClear();
       state.getApplePayAvailability.mockClear();
@@ -109,11 +96,6 @@ const mocks = vi.hoisted(() => {
       state.klarnaSdk.Payments.finalize.mockClear();
       state.klarnaSdk.Payments.on.mockClear();
       state.klarnaSdk.Payments.off.mockClear();
-      state.sezzleSdk.init.mockClear();
-      state.sezzleSdk.startCheckout.mockClear();
-      state.sezzleSdk.renderSezzleButton.mockClear();
-      state.sezzleSdk.capturePayment.mockClear();
-      state.sezzleSdk.getInstallmentPlan.mockClear();
     },
   };
 
@@ -132,10 +114,6 @@ vi.mock("../../checkout/utils/adyen", () => ({
 
 vi.mock("../../checkout/utils/klarna", () => ({
   initializeKlarnaSdk: mocks.initializeKlarnaSdk,
-}));
-
-vi.mock("../../checkout/utils/sezzle", () => ({
-  initializeSezzleSdk: mocks.initializeSezzleSdk,
 }));
 
 vi.mock("../../checkout/utils/applePay", () => ({
@@ -181,7 +159,6 @@ const adyenOption = {
 } as const;
 const sezzleOption = {
   type: "sezzle",
-  public_key: "sezzle-public-key",
 } as const;
 const payPalGatewayConfigOne = {
   type: "paypal_platform",
@@ -374,7 +351,6 @@ describe("resolveIncomingApiState", () => {
     expect(api.paypal).toBeNull();
     expect(mocks.initializeAdyenEmbeddedSdk).not.toHaveBeenCalled();
     expect(mocks.initializeKlarnaSdk).not.toHaveBeenCalled();
-    expect(mocks.initializeSezzleSdk).not.toHaveBeenCalled();
     expect(mocks.loadApplePaySdk).not.toHaveBeenCalled();
     expect(mocks.loadGooglePaySdk).not.toHaveBeenCalled();
     expect(didReplaceResolve).toBe(false);
@@ -385,7 +361,6 @@ describe("resolveIncomingApiState", () => {
     await vi.waitFor(() => {
       expect(mocks.initializeAdyenEmbeddedSdk).toHaveBeenCalledTimes(1);
       expect(mocks.initializeKlarnaSdk).not.toHaveBeenCalled();
-      expect(mocks.initializeSezzleSdk).toHaveBeenCalledTimes(1);
       expect(api.json?.saved_payment_methods).toEqual([savedCardOption]);
       expect(api.json?.payment_gateways).toEqual([
         payPalGatewayConfigOne,
@@ -399,11 +374,9 @@ describe("resolveIncomingApiState", () => {
     expect(mocks.loadApplePaySdk).not.toHaveBeenCalled();
     expect(mocks.loadGooglePaySdk).not.toHaveBeenCalled();
     expect(api.adyenEmbedded).toBeNull();
-    expect(api.sezzle).toBeNull();
     expect(didReplaceResolve).toBe(false);
 
     mocks.adyenDeferred.resolve(mocks.adyenSdk);
-    mocks.sezzleDeferred.resolve(mocks.sezzleSdk);
     mocks.applePayDeferred.resolve();
     mocks.googlePayDeferred.resolve();
 
@@ -412,7 +385,6 @@ describe("resolveIncomingApiState", () => {
     expect(api.adyenEmbedded).toBe(mocks.adyenSdk);
     expect(api.paypal).toBe(mocks.payPalSdk);
     expect(api.klarna).toBeNull();
-    expect(api.sezzle).toBe(mocks.sezzleSdk);
     expect(api.json?.saved_payment_methods).toEqual([savedCardOption]);
     expect(api.json?.payment_gateways).toEqual([
       payPalGatewayConfigOne,
