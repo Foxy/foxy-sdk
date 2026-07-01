@@ -8,6 +8,15 @@ import type {
   SezzleSdkInstance,
 } from "../types/SezzleSdkInstance";
 
+function asConfigObject(
+  c: CustomConfig | undefined,
+): Record<string, CustomConfig> | undefined {
+  if (typeof c === "object" && c !== null && !Array.isArray(c)) {
+    return c as Record<string, CustomConfig>;
+  }
+  return undefined;
+}
+
 const SEZZLE_JS_API_URL = "https://checkout-sdk.sezzle.com/checkout.min.js";
 
 type SezzleWindow = Window & {
@@ -68,7 +77,7 @@ function isSezzleCheckoutMode(value: unknown): value is SezzleCheckoutMode {
 function getNestedSezzleConfig(
   config?: CustomConfig,
 ): Record<string, unknown> | undefined {
-  const nestedConfig = config?.sezzle;
+  const nestedConfig = asConfigObject(config)?.sezzle;
 
   if (typeof nestedConfig !== "object" || nestedConfig === null) {
     return undefined;
@@ -81,9 +90,10 @@ function getSezzleApiMode(
   config?: CustomConfig,
 ): SezzleCheckoutApiMode | undefined {
   const nestedConfig = getNestedSezzleConfig(config);
+  const configObj = asConfigObject(config);
   const candidates = [
-    config?.sezzle_api_mode,
-    config?.sezzleApiMode,
+    configObj?.sezzle_api_mode,
+    configObj?.sezzleApiMode,
     nestedConfig?.api_mode,
     nestedConfig?.apiMode,
   ];
@@ -95,9 +105,10 @@ function getSezzleApiVersion(
   config?: CustomConfig,
 ): SezzleCheckoutApiVersion | undefined {
   const nestedConfig = getNestedSezzleConfig(config);
+  const configObj = asConfigObject(config);
   const candidates = [
-    config?.sezzle_api_version,
-    config?.sezzleApiVersion,
+    configObj?.sezzle_api_version,
+    configObj?.sezzleApiVersion,
     nestedConfig?.api_version,
     nestedConfig?.apiVersion,
   ];
@@ -107,9 +118,10 @@ function getSezzleApiVersion(
 
 function getSezzleMode(config?: CustomConfig): SezzleCheckoutMode | undefined {
   const nestedConfig = getNestedSezzleConfig(config);
+  const configObj = asConfigObject(config);
   const candidates = [
-    config?.sezzle_mode,
-    config?.sezzleMode,
+    configObj?.sezzle_mode,
+    configObj?.sezzleMode,
     nestedConfig?.mode,
   ];
 

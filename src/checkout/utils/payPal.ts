@@ -6,6 +6,15 @@ import type {
   PayPalV6Namespace,
 } from "@paypal/paypal-js/sdk-v6";
 
+function asConfigObject(
+  c: CustomConfig | undefined,
+): Record<string, CustomConfig> | undefined {
+  if (typeof c === "object" && c !== null && !Array.isArray(c)) {
+    return c as Record<string, CustomConfig>;
+  }
+  return undefined;
+}
+
 type PayPalEnvironment = "production" | "sandbox";
 
 type DiscoverPayPalPaymentOptionsParams = {
@@ -199,19 +208,20 @@ function normalizeCountry(value: unknown): string | undefined {
 function getPayPalEnvironment(
   config?: CustomConfig,
 ): PayPalEnvironment | undefined {
-  const directEnvironment = config?.paypal_environment;
+  const configObj = asConfigObject(config);
+  const directEnvironment = configObj?.paypal_environment;
 
   if (isPayPalEnvironment(directEnvironment)) {
     return directEnvironment;
   }
 
-  const camelEnvironment = config?.paypalEnvironment;
+  const camelEnvironment = configObj?.paypalEnvironment;
 
   if (isPayPalEnvironment(camelEnvironment)) {
     return camelEnvironment;
   }
 
-  const nestedPayPal = config?.paypal;
+  const nestedPayPal = configObj?.paypal;
 
   if (typeof nestedPayPal === "object" && nestedPayPal !== null) {
     const nestedEnvironment = (nestedPayPal as { environment?: unknown })
@@ -229,19 +239,20 @@ function getPayPalTestBuyerCountry(
   config?: CustomConfig,
   buyerCountry?: string,
 ): string | undefined {
-  const directCountry = normalizeCountry(config?.paypal_test_buyer_country);
+  const configObj2 = asConfigObject(config);
+  const directCountry = normalizeCountry(configObj2?.paypal_test_buyer_country);
 
   if (directCountry) {
     return directCountry;
   }
 
-  const camelCountry = normalizeCountry(config?.paypalTestBuyerCountry);
+  const camelCountry = normalizeCountry(configObj2?.paypalTestBuyerCountry);
 
   if (camelCountry) {
     return camelCountry;
   }
 
-  const nestedPayPal = config?.paypal;
+  const nestedPayPal = configObj2?.paypal;
 
   if (typeof nestedPayPal === "object" && nestedPayPal !== null) {
     const nestedCountry = normalizeCountry(
