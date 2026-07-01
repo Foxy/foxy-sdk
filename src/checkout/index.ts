@@ -41,7 +41,6 @@ export type {
   GooglePaymentsClient,
   KlarnaSdkInstance,
   PayPalSdkInstance,
-  SezzleSdkInstance,
 } from "./types";
 
 export { API } from "./API";
