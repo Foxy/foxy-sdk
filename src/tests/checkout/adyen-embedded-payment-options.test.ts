@@ -392,6 +392,25 @@ describe("Adyen Embedded payment option loading", () => {
     expect(api.adyenEmbedded).toBe(getLastInstance());
   });
 
+  it("normalizes a POSIX-form locale code before passing it to Adyen", async () => {
+    setBrowserRuntime();
+
+    const api = await createTestApi(createApiJson([authorizeGatewayConfig]));
+    const replacePromise = api.replaceJsonForTesting({
+      ...createApiJson([adyenGatewayConfig, authorizeGatewayConfig]),
+      format: { ...createApiJson().format, locale_code: "en_US" },
+    });
+
+    const { getLastConfiguration } = setLoadedAdyen(() =>
+      createAdyenCheckoutInstance(),
+    );
+
+    getAdyenScript()?.dispatchEvent(new Event("load"));
+    await replacePromise;
+
+    expect(getLastConfiguration()?.locale).toBe("en-US");
+  });
+
   it("exposes Adyen checkout instances with additional documented payment methods", async () => {
     setBrowserRuntime();
 

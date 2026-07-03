@@ -55,7 +55,8 @@ function getNormalizedCurrencyCode(value: unknown): string | undefined {
 }
 
 function getNormalizedLocale(value: unknown): string | undefined {
-  return getTrimmedString(value);
+  const trimmed = getTrimmedString(value);
+  return trimmed?.replace(/_/g, "-");
 }
 
 function getAdyenWindow(): AdyenWindow | undefined {
