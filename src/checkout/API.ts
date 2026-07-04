@@ -1365,7 +1365,10 @@ export class API extends EventTarget {
     return (await response.json()) as unknown;
   }
 
-  checkOut = (paymentMethod: CheckOutPaymentOption): void => {
+  checkOut = (
+    paymentMethod: CheckOutPaymentOption,
+    extra?: { newAccountPassword?: string },
+  ): void => {
     this.assertStoreDomain();
 
     if (!this.dispatchCancelable("checkout")) {
@@ -1374,8 +1377,16 @@ export class API extends EventTarget {
 
     const payload =
       paymentMethod && typeof paymentMethod === "object"
-        ? ({ ...paymentMethod, action: "submit" } as Record<string, unknown>)
-        : { action: "submit", payment_method: paymentMethod };
+        ? ({
+            ...paymentMethod,
+            action: "submit",
+            new_customer_password: extra?.newAccountPassword,
+          } as Record<string, unknown>)
+        : {
+            action: "submit",
+            payment_method: paymentMethod,
+            new_customer_password: extra?.newAccountPassword,
+          };
 
     void this.runMutation(async () => {
       const nextJson = await this.postJson("/checkout", payload);
