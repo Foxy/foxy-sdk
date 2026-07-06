@@ -675,7 +675,7 @@ export class API extends EventTarget {
     const payload: Record<
       string,
       string | number | boolean | null | undefined
-    > = {};
+    > = { action: "update" };
 
     for (const [index, param] of params.entries()) {
       if (
@@ -724,7 +724,7 @@ export class API extends EventTarget {
     const payload: Record<
       string,
       string | number | boolean | null | undefined
-    > = {};
+    > = { action: "update" };
 
     for (const [index, param] of params.entries()) {
       if (!isPositiveInteger(param.id)) {
