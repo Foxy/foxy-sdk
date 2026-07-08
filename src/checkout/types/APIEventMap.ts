@@ -2,6 +2,7 @@ import type { BillingAddress } from './BillingAddress';
 import type { CustomFields } from './CustomFields';
 import type { Item } from './Item';
 import type { Message } from './Message';
+import type { RedirectNextAction, RequiresActionNextAction } from './NextAction';
 import type { Shipment } from './Shipment';
 import type { Coupon, GiftCard } from './Totals';
 
@@ -9,6 +10,7 @@ export type APIEventMap = {
   'billing-address-update': CustomEvent<BillingAddress>;
   'cart-clear': Event;
   'checkout': Event;
+  'checkout-continue': CustomEvent<{ resumeToken: string; sdkResult: Record<string, unknown> }>;
   'coupon-or-gift-card-apply': CustomEvent<{ code: string }>;
   'coupon-remove': CustomEvent<{ coupon: Coupon }>;
   'custom-fields-update': CustomEvent<CustomFields>;
@@ -19,6 +21,8 @@ export type APIEventMap = {
   'messages-add': CustomEvent<{ message: Message }>;
   'messages-clear': Event;
   'messages-remove': CustomEvent<{ message: Message }>;
+  'next-action-redirect': CustomEvent<RedirectNextAction>;
+  'next-action-required': CustomEvent<RequiresActionNextAction>;
   'shipment-update': CustomEvent<Shipment>;
   'sign-in': CustomEvent<{ email: string; password: string }>;
   'sign-out': Event;

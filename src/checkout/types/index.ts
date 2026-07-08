@@ -13,6 +13,12 @@ export type { Display } from "./Display";
 export type { APIJson } from "./APIJson";
 export type { APIEventMap } from "./APIEventMap";
 export type {
+  NextAction,
+  NextActionGateway,
+  RedirectNextAction,
+  RequiresActionNextAction,
+} from "./NextAction";
+export type {
   AdyenEmbeddedAmount,
   AdyenEmbeddedCheckoutConfiguration,
   AdyenEmbeddedEnvironment,

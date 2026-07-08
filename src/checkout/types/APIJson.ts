@@ -6,6 +6,7 @@ import type { Display } from "./Display";
 import type { Format } from "./Format";
 import type { Item } from "./Item";
 import type { Message } from "./Message";
+import type { NextAction } from "./NextAction";
 import type { PaymentGatewayConfig } from "./PaymentGatewayConfig";
 import type { SavedPaymentMethod } from "./SavedPaymentMethod";
 import type { Session } from "./Session";
@@ -52,4 +53,6 @@ export type APIJson = {
   payment_gateways: PaymentGatewayConfig[] | null;
   /** Language strings for localization, keyed by string identifiers. */
   language_strings: Record<string, string>;
+  /** Follow-up action the client must complete before the checkout submission resolves. */
+  next_action?: NextAction | null;
 };

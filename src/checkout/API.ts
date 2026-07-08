@@ -7,6 +7,7 @@ import type {
   GooglePaymentsClient,
   KlarnaSdkInstance,
   PayPalSdkInstance,
+  RedirectNextAction,
   SquareSdkInstance,
 } from "./types";
 import type {
@@ -1391,8 +1392,71 @@ export class API extends EventTarget {
     void this.runMutation(async () => {
       const nextJson = await this.postJson("/checkout", payload);
       await this.replaceJson(nextJson);
+      this.#handleNextAction(nextJson);
     });
   };
+
+  continueCheckOut = (params: {
+    resumeToken: string;
+    sdkResult: Record<string, unknown>;
+  }): void => {
+    this.assertStoreDomain();
+
+    if (!this.dispatchCancelable("checkout-continue", params)) {
+      return;
+    }
+
+    void this.runMutation(async () => {
+      const nextJson = await this.postJson("/checkout", {
+        action: "continue",
+        resume_token: params.resumeToken,
+        sdk_result: params.sdkResult,
+      });
+      await this.replaceJson(nextJson);
+      this.#handleNextAction(nextJson);
+    });
+  };
+
+  #handleNextAction(json: APIJson): void {
+    const nextAction = json.next_action;
+    if (!nextAction) return;
+
+    if (nextAction.type === "redirect") {
+      if (this.dispatchCancelable("next-action-redirect", nextAction)) {
+        this.#performRedirect(nextAction);
+      }
+      return;
+    }
+
+    this.dispatchCancelable("next-action-required", nextAction);
+  }
+
+  #performRedirect(nextAction: RedirectNextAction): void {
+    if (typeof window === "undefined" || typeof document === "undefined") {
+      return;
+    }
+
+    if (nextAction.method === "GET") {
+      window.location.assign(nextAction.url);
+      return;
+    }
+
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = nextAction.url;
+    form.style.display = "none";
+
+    for (const [key, value] of Object.entries(nextAction.body ?? {})) {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = key;
+      input.value = value;
+      form.appendChild(input);
+    }
+
+    document.body.appendChild(form);
+    form.submit();
+  }
 
   private async runMutation(action: () => Promise<void>): Promise<void> {
     this.setState("busy");
