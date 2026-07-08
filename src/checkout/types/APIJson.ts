@@ -54,5 +54,5 @@ export type APIJson = {
   /** Language strings for localization, keyed by string identifiers. */
   language_strings: Record<string, string>;
   /** Follow-up action the client must complete before the checkout submission resolves. */
-  next_action?: NextAction | null;
+  next_action: NextAction | null;
 };
