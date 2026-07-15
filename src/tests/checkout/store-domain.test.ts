@@ -8,8 +8,10 @@ function flushTasks(): Promise<void> {
 
 function createApiJson(): APIJson {
   return {
+    transaction: null,
+    next_action: null,
     template_set: { code: "default", id: 1 },
-    session: { name: "fcsid", id: "session-id" },
+    session: { id: "session-id" },
     debug: false,
     customer: {
       first_name: null,

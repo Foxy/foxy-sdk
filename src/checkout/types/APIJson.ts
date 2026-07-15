@@ -21,7 +21,7 @@ export type APIJson = {
   template_set: TemplateSet;
   /** Public transaction details including ID, date and payments – available after purchase. */
   transaction: Transaction | null;
-  /** The session information including name (fcsid) and unique identifier. */
+  /** The session information including the unique identifier. */
   session: Session;
   /** Whether debug mode is enabled for this template set. */
   debug: boolean;

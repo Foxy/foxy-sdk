@@ -66,7 +66,7 @@ function createApiJson(
 ): APIJson {
   return {
     template_set: { code: "default", id: 1 },
-    session: { name: "fcsid", id: "session-id" },
+    session: { id: "session-id" },
     debug: false,
     customer: {
       first_name: null,
@@ -541,7 +541,9 @@ describe("submitAdyenEmbeddedPayment", () => {
     const { API } = await import("../../checkout/API");
     const api = new API({ storeDomain: "store.test" });
 
-    const paymentData = { paymentMethod: { type: "scheme", encryptedCardNumber: "abc" } };
+    const paymentData = {
+      paymentMethod: { type: "scheme", encryptedCardNumber: "abc" },
+    };
     const mockResponse = { resultCode: "Authorised", pspReference: "PSP123" };
 
     vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
@@ -551,8 +553,13 @@ describe("submitAdyenEmbeddedPayment", () => {
     const result = await api.submitAdyenEmbeddedPayment(paymentData);
 
     expect(fetch).toHaveBeenCalledOnce();
-    const [url, init] = (fetch as ReturnType<typeof vi.fn>).mock.calls[0] as [string, RequestInit];
-    expect(url).toBe("https://store.test/helpers?action=submit_adyen_embedded_payment");
+    const [url, init] = (fetch as ReturnType<typeof vi.fn>).mock.calls[0] as [
+      string,
+      RequestInit,
+    ];
+    expect(url).toBe(
+      "https://store.test/helpers?action=submit_adyen_embedded_payment",
+    );
     expect(init.method).toBe("POST");
     expect(JSON.parse(init.body as string)).toEqual({ data: paymentData });
     expect(result).toEqual(mockResponse);
@@ -598,7 +605,10 @@ describe("submitAdyenEmbeddedPaymentDetails", () => {
     const { API } = await import("../../checkout/API");
     const api = new API({ storeDomain: "store.test" });
 
-    const detailsData = { details: { redirectResult: "eyJ..." }, paymentData: "Ab02b4c..." };
+    const detailsData = {
+      details: { redirectResult: "eyJ..." },
+      paymentData: "Ab02b4c...",
+    };
     const mockResponse = { resultCode: "Authorised", pspReference: "PSP456" };
 
     vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
@@ -608,8 +618,13 @@ describe("submitAdyenEmbeddedPaymentDetails", () => {
     const result = await api.submitAdyenEmbeddedPaymentDetails(detailsData);
 
     expect(fetch).toHaveBeenCalledOnce();
-    const [url, init] = (fetch as ReturnType<typeof vi.fn>).mock.calls[0] as [string, RequestInit];
-    expect(url).toBe("https://store.test/helpers?action=submit_adyen_embedded_payment_details");
+    const [url, init] = (fetch as ReturnType<typeof vi.fn>).mock.calls[0] as [
+      string,
+      RequestInit,
+    ];
+    expect(url).toBe(
+      "https://store.test/helpers?action=submit_adyen_embedded_payment_details",
+    );
     expect(init.method).toBe("POST");
     expect(JSON.parse(init.body as string)).toEqual({ data: detailsData });
     expect(result).toEqual(mockResponse);
