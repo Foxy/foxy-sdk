@@ -1503,7 +1503,11 @@ export class API extends EventTarget {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
       },
-      body: toFormData({ ...body, output: "json", fcsid: this.json?.session.id }),
+      body: toFormData({
+        ...body,
+        output: "json",
+        session_id: this.json?.session.id,
+      }),
     });
 
     if (!response.ok) {
@@ -1517,7 +1521,12 @@ export class API extends EventTarget {
   }
 
   private async getJson(path: string): Promise<APIJson> {
-    const response = await fetch(this.resolveUrl(path, { output: "json", fcsid: this.json?.session.id }));
+    const response = await fetch(
+      this.resolveUrl(path, {
+        output: "json",
+        session_id: this.json?.session.id,
+      }),
+    );
 
     if (!response.ok) {
       throw this.createRequestError(

@@ -4,8 +4,10 @@ import { API } from "../../checkout/API";
 
 function createApiJson(): APIJson {
   return {
+    transaction: null,
+    next_action: null,
     template_set: { code: "default", id: 1 },
-    session: { name: "fcsid", id: "session-id" },
+    session: { id: "session-id" },
     debug: false,
     customer: {
       first_name: null,
@@ -119,7 +121,9 @@ describe("checkOut", () => {
     expect(url).toBe("https://store.test/checkout");
 
     const body = init?.body as URLSearchParams;
-    expect(body.get("new_customer_password")).toBe("correct horse battery staple");
+    expect(body.get("new_customer_password")).toBe(
+      "correct horse battery staple",
+    );
     expect(body.get("gateway")).toBe("purchase_order");
     expect(body.get("action")).toBe("submit");
   });
@@ -135,7 +139,10 @@ describe("checkOut", () => {
 
     const api = new API({ initialJson: json, storeDomain: "store.test" });
 
-    api.checkOut({ gateway: "purchase_order", purchase_order_number: "PO-123" });
+    api.checkOut({
+      gateway: "purchase_order",
+      purchase_order_number: "PO-123",
+    });
 
     await vi.waitFor(() => {
       expect(api.state).toBe("idle");
