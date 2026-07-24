@@ -38,7 +38,7 @@ function createApiJson(): APIJson {
       },
     ],
     billing_address: {
-      use_separate_billing_address: true,
+      use_separate_billing_address: false,
       address_id: null,
       address_name: "",
       first_name: "",
@@ -91,12 +91,12 @@ function createApiJson(): APIJson {
   };
 }
 
-describe("checkOut", () => {
+describe("updateBillingAddress", () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it("includes new_customer_password in the submit payload when provided", async () => {
+  it("sends use_separate_billing_address as a boolean true", async () => {
     const json = createApiJson();
     const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(JSON.stringify(json), {
@@ -107,48 +107,57 @@ describe("checkOut", () => {
 
     const api = new API({ initialJson: json, storeDomain: "store.test" });
 
-    api.checkOut(
-      { gateway: "purchase_order", purchase_order_number: "PO-123" },
-      { newAccountPassword: "correct horse battery staple" },
-    );
-
-    await vi.waitFor(() => {
-      expect(api.state).toBe("idle");
-    });
-
-    expect(fetchSpy).toHaveBeenCalledTimes(1);
-    const [url, init] = fetchSpy.mock.calls[0];
-    expect(url).toBe("https://store.test/checkout");
-
-    const body = init?.body as URLSearchParams;
-    expect(body.get("new_customer_password")).toBe(
-      "correct horse battery staple",
-    );
-    expect(body.get("gateway")).toBe("purchase_order");
-    expect(body.get("action")).toBe("submit");
-  });
-
-  it("omits new_customer_password from the submit payload when not provided", async () => {
-    const json = createApiJson();
-    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response(JSON.stringify(json), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }),
-    );
-
-    const api = new API({ initialJson: json, storeDomain: "store.test" });
-
-    api.checkOut({
-      gateway: "purchase_order",
-      purchase_order_number: "PO-123",
-    });
+    api.updateBillingAddress({ use_separate_billing_address: true });
 
     await vi.waitFor(() => {
       expect(api.state).toBe("idle");
     });
 
     const body = fetchSpy.mock.calls[0][1]?.body as URLSearchParams;
-    expect(body.has("new_customer_password")).toBe(false);
+    expect(body.get("use_separate_billing_address")).toBe("true");
+    expect(body.has("use_different_addresses")).toBe(false);
+  });
+
+  it("sends use_separate_billing_address as a boolean false", async () => {
+    const json = createApiJson();
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify(json), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+
+    const api = new API({ initialJson: json, storeDomain: "store.test" });
+
+    api.updateBillingAddress({ use_separate_billing_address: false });
+
+    await vi.waitFor(() => {
+      expect(api.state).toBe("idle");
+    });
+
+    const body = fetchSpy.mock.calls[0][1]?.body as URLSearchParams;
+    expect(body.get("use_separate_billing_address")).toBe("false");
+  });
+
+  it("omits use_separate_billing_address when the flag isn't part of the patch", async () => {
+    const json = createApiJson();
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify(json), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+
+    const api = new API({ initialJson: json, storeDomain: "store.test" });
+
+    api.updateBillingAddress({ first_name: "Jane" });
+
+    await vi.waitFor(() => {
+      expect(api.state).toBe("idle");
+    });
+
+    const body = fetchSpy.mock.calls[0][1]?.body as URLSearchParams;
+    expect(body.has("use_separate_billing_address")).toBe(false);
+    expect(body.get("billing_first_name")).toBe("Jane");
   });
 });

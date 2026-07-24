@@ -1,6 +1,6 @@
 export type BillingAddress = {
-  /** Whether to use the customer's shipping address as the billing address. */
-  use_customer_shipping_address: boolean;
+  /** Whether the shopper is entering a billing address separate from shipping. */
+  use_separate_billing_address: boolean;
   /** Unique identifier for the saved address. */
   address_id: number | null;
   /** Name or label for this address. */

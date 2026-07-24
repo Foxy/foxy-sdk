@@ -1130,6 +1130,7 @@ export class API extends EventTarget {
 
   updateBillingAddress = (
     params: Partial<{
+      use_separate_billing_address: boolean;
       first_name: string;
       last_name: string;
       company: string;
@@ -1172,6 +1173,7 @@ export class API extends EventTarget {
     }
 
     const payload = {
+      use_separate_billing_address: params.use_separate_billing_address,
       billing_first_name: params.first_name,
       billing_last_name: params.last_name,
       billing_company: params.company,
