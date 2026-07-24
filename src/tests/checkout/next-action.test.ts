@@ -41,7 +41,7 @@ function createApiJson(): APIJson {
       },
     ],
     billing_address: {
-      use_customer_shipping_address: false,
+      use_separate_billing_address: true,
       address_id: null,
       address_name: "",
       first_name: "",
