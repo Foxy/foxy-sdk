@@ -1151,16 +1151,16 @@ export class API extends EventTarget {
       ...params,
     };
 
+    // Billing restrictions are resolved independently of shipping ones — a
+    // store can ship to US/CA while accepting billing addresses worldwide.
+    // Falling back to the shipment's lists here silently applied the shipping
+    // restrictions to billing.
     const billingErrors = validateBillingAddressParams(
       params as Record<string, string | null | undefined>,
       this.json.display,
       {
-        countryOptions:
-          this.json.billing_address.country_options ??
-          this.json.shipments[0]?.country_options,
-        regionOptions:
-          this.json.billing_address.region_options ??
-          this.json.shipments[0]?.region_options,
+        countryOptions: this.json.billing_address.country_options,
+        regionOptions: this.json.billing_address.region_options,
       },
     );
     for (const err of billingErrors) {
