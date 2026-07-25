@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { toCountryOptions } from "../../checkout/countryOptions";
 
@@ -25,7 +25,7 @@ describe("toCountryOptions", () => {
     expect(toCountryOptions(["AT", "DE"], "sv-SE").map((o) => o.value)).toEqual(["DE", "AT"]);
   });
 
-  it("uppercases lowercase codes instead of throwing", () => {
+  it("uppercases lowercase codes (lowercase would otherwise silently fall back to the raw code, not throw)", () => {
     expect(toCountryOptions(["de"], "en-US")).toEqual([{ value: "DE", label: "Germany" }]);
   });
 
@@ -49,5 +49,52 @@ describe("toCountryOptions", () => {
 
   it("returns an empty array for an empty input", () => {
     expect(toCountryOptions([], "en-US")).toEqual([]);
+  });
+
+  // FINDING 1: malformed string codes must be dropped like null/"", not
+  // reach Intl.DisplayNames#of and throw. `country_options` is untyped
+  // server JSON, so any of these shapes is reachable at runtime.
+  it("drops malformed string codes instead of throwing (finding 1)", () => {
+    expect(toCountryOptions(["USA", "DE"], "en-US")).toEqual([
+      { value: "DE", label: "Germany" },
+    ]);
+    expect(toCountryOptions(["!!", "DE"], "en-US")).toEqual([
+      { value: "DE", label: "Germany" },
+    ]);
+  });
+
+  it("returns an empty array when every code is malformed (finding 1)", () => {
+    expect(toCountryOptions(["1"], "en-US")).toEqual([]);
+  });
+
+  // FINDING 2: `format.locale_code` arrives POSIX-form (underscore) from the
+  // API, and must be normalized rather than thrown on. `de_DE` is used
+  // (rather than `en_US`) so the assertion can only pass if the underscore
+  // was actually converted and the resulting locale used for real -- a stub
+  // that silently defaults to "en-US" would produce "Germany", not
+  // "Deutschland", and fail this assertion.
+  it("normalizes a POSIX-form (underscore) locale instead of throwing (finding 2)", () => {
+    expect(toCountryOptions(["DE"], "de_DE")[0].label).toBe("Deutschland");
+  });
+
+  it("falls back to a default locale instead of throwing on an unusable locale (finding 2)", () => {
+    expect(toCountryOptions(["DE"], "")).toEqual([{ value: "DE", label: "Germany" }]);
+    expect(toCountryOptions(["DE"], "!!!")).toEqual([{ value: "DE", label: "Germany" }]);
+  });
+
+  // FINDING 3: Intl.Collator construction is expensive and must be cached
+  // per locale, same as Intl.DisplayNames already is. Uses a locale no other
+  // test in this file touches, since the cache is module-level and persists
+  // across tests -- a previously-warmed locale would make the spy see 0
+  // calls instead of 1 on the second invocation.
+  it("caches the Intl.Collator instance per locale instead of rebuilding it every call (finding 3)", () => {
+    const spy = vi.spyOn(Intl, "Collator");
+    try {
+      toCountryOptions(["DE"], "nl-NL");
+      toCountryOptions(["DE"], "nl-NL");
+      expect(spy).toHaveBeenCalledTimes(1);
+    } finally {
+      spy.mockRestore();
+    }
   });
 });
