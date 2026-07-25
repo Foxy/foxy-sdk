@@ -44,3 +44,5 @@ export type {
 } from "./types";
 
 export { API } from "./API";
+export { toCountryOptions } from "./countryOptions";
+export type { CountryOption } from "./countryOptions";
