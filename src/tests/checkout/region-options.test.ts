@@ -8,6 +8,7 @@ import {
   resolveCatalog,
   toRegionOptions,
 } from "../../checkout/regionOptions";
+import { validateBillingAddressParams } from "../../checkout/v8n";
 
 describe("regionMessageId", () => {
   it("lowercases and underscore-separates", () => {
@@ -426,5 +427,47 @@ describe("generator --out-dir handling", () => {
       // Defensive cleanup in case a bug ever lets the write through.
       rmSync(trackedFallbackPath, { force: true });
     }
+  });
+});
+
+// Cross-repo seam: the country field's uppercase-versus-case-sensitive-
+// allowlist bug survived two review rounds because nothing exercised
+// `toRegionOptions` and `validateBillingAddressParams` together — consumer
+// tests mock `updateBillingAddress` so the validator never runs, and the SDK
+// suite has no consumer. Any value `toRegionOptions` produces from a server
+// list must also be accepted by the validator against that same list.
+describe("region options and validation agree", () => {
+  const display = { required_form_fields: [], hidden_form_fields: [] };
+
+  it("accepts every value toRegionOptions produced from the same list", () => {
+    // Whatever the UI can offer, the validator must accept. Spain is the case
+    // that breaks if anyone applies the country field's uppercasing here.
+    const serverList = ["A Coruna", "Barcelona", "Madrid"];
+    const options = toRegionOptions(serverList, "ES");
+
+    for (const option of options) {
+      const errors = validateBillingAddressParams({ region: option.value }, display, {
+        regionOptions: serverList,
+      });
+      expect(errors, `region ${option.value} should validate`).toEqual([]);
+    }
+  });
+
+  it("accepts numeric region codes", () => {
+    const serverList = ["23", "01"];
+    for (const option of toRegionOptions(serverList, "JP")) {
+      expect(
+        validateBillingAddressParams({ region: option.value }, display, {
+          regionOptions: serverList,
+        }),
+      ).toEqual([]);
+    }
+  });
+
+  it("still rejects a region absent from the list", () => {
+    const errors = validateBillingAddressParams({ region: "ZZ" }, display, {
+      regionOptions: ["MN", "WI"],
+    });
+    expect(errors.length).toBeGreaterThan(0);
   });
 });
