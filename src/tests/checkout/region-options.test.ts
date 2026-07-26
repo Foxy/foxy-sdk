@@ -35,6 +35,16 @@ describe("regionMessageId", () => {
   it("trims leading and trailing separators", () => {
     expect(regionMessageId("ES", " Las Palmas ")).toBe("region_es_las_palmas");
   });
+
+  it("trims a padded country code before lowercasing it", () => {
+    // The region segment is already trimmed above; the country segment was
+    // not, so a padded country code (e.g. from a server response with
+    // stray whitespace) silently produced a key like "region_ us _mn" that
+    // never matches a catalog entry — every region name for that shipment
+    // degrades to its raw code with no error anywhere.
+    expect(regionMessageId(" US ", "MN")).toBe("region_us_mn");
+    expect(regionMessageId("\tJP\n", "23")).toBe("region_jp_23");
+  });
 });
 
 describe("REGION_TYPE_BY_COUNTRY", () => {
