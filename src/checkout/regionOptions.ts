@@ -47,7 +47,7 @@ export const REGION_TYPE_BY_COUNTRY: Readonly<Record<string, RegionType | undefi
  * stable, collision-free key for all 330 of Foxy's entries.
  */
 export function regionMessageId(countryCode: string, regionCode: string): string {
-  const country = String(countryCode).toLowerCase();
+  const country = String(countryCode).trim().toLowerCase();
   const region = String(regionCode)
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "_")
