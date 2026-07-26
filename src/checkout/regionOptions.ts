@@ -97,28 +97,31 @@ export function toRegionOptions(codes: unknown, countryCode: string): RegionOpti
     });
 }
 
-// Exported (read-only in practice) so tests can register synthetic locales
-// and spy on/replace a loader without reimplementing the lookup or resetting
-// modules — production code never mutates it after module init.
-export const regionMessagesByLocale = new Map<string, Promise<Record<string, string>>>();
+// Module-level memoization cache: keyed by the *matched* catalog locale (not
+// the requested one), so `en-GB` and `en-US` share a single entry. Every
+// production read goes through `resolveCatalog`, which is the only code that
+// calls `.get()` / `.set()` / `.delete()` on it — this map is mutated on
+// every load, not just at module init.
+const regionMessagesByLocale = new Map<string, Promise<Record<string, string>>>();
 
 // Static map rather than a template-literal `import()`: the set of shipped
 // catalogs is known at build time, and an explicit map lets the bundler emit
-// exactly one lazy chunk per locale with no dynamic-path guesswork.
-//
-// Exported for the same reason as `regionMessagesByLocale` above: tests need
-// to register extra locales (e.g. two same-language catalogs) or a
-// deliberately-rejecting loader to exercise paths a static "en-US" map alone
-// cannot reach.
-export const REGION_CATALOG_LOADERS: Record<
-  string,
-  () => Promise<{ default: Record<string, string> }>
-> = {
-  "en-US": () => import("./locales/regions/en-US.json"),
-};
+// exactly one lazy chunk per locale with no dynamic-path guesswork. This is
+// the loader registry `resolveCatalog` reads to find a locale's chunk; it is
+// not mutated at runtime by production code.
+const REGION_CATALOG_LOADERS: Record<string, () => Promise<{ default: Record<string, string> }>> =
+  {
+    "en-US": () => import("./locales/regions/en-US.json"),
+  };
 
 /**
- * Lazily loads the region-name catalog for `locale`.
+ * Resolves `locale` to a message catalog using the given loader map and
+ * cache.
+ *
+ * This is the whole lookup, factored out so tests can pass their own loader
+ * map and cache instead of registering synthetic locales on the module-level
+ * ones — no shared mutable state, no cleanup hooks, no risk of a fake locale
+ * leaking into another test's lookup.
  *
  * Each catalog is a separate chunk, so locales a shopper never sees are never
  * downloaded. Falls back to the base language (`en-GB` → `en-US`) and then to
@@ -131,31 +134,45 @@ export const REGION_CATALOG_LOADERS: Record<
  * base language (e.g. `es-ES` and `es-MX`), silently handing a shopper the
  * wrong country's catalog.
  */
-export function loadRegionMessages(locale: string): Promise<Record<string, string>> {
+export function resolveCatalog(
+  loaders: Record<string, () => Promise<{ default: Record<string, string> }>>,
+  cache: Map<string, Promise<Record<string, string>>>,
+  locale: string,
+): Promise<Record<string, string>> {
   const requested = String(locale).replace(/_/g, "-").trim();
   const requestedLower = requested.toLowerCase();
   const baseLower = (requested.split("-")[0] ?? "").toLowerCase();
 
-  const available = Object.keys(REGION_CATALOG_LOADERS);
+  const available = Object.keys(loaders);
   const matched =
     available.find((candidate) => candidate.toLowerCase() === requestedLower) ??
     available.find((candidate) => candidate.toLowerCase().split("-")[0] === baseLower);
 
   if (!matched) return Promise.resolve({});
 
-  const cached = regionMessagesByLocale.get(matched);
+  const cached = cache.get(matched);
   if (cached) return cached;
 
-  const loading = REGION_CATALOG_LOADERS[matched]()
+  const loading = loaders[matched]()
     .then((module) => module.default)
     // A chunk that fails to load must not break the field; codes remain. Do
     // not cache the failure itself — a transient failure would otherwise
     // permanently serve raw codes for the rest of the page's life.
     .catch(() => {
-      regionMessagesByLocale.delete(matched);
+      cache.delete(matched);
       return {} as Record<string, string>;
     });
 
-  regionMessagesByLocale.set(matched, loading);
+  cache.set(matched, loading);
   return loading;
+}
+
+/**
+ * Lazily loads the region-name catalog for `locale`, memoized against the
+ * module-level catalog registry and cache. See `resolveCatalog` for the
+ * resolution rule; this wrapper exists so callers never need to know the
+ * loader map or cache exist.
+ */
+export function loadRegionMessages(locale: string): Promise<Record<string, string>> {
+  return resolveCatalog(REGION_CATALOG_LOADERS, regionMessagesByLocale, locale);
 }
