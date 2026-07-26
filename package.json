@@ -32,6 +32,7 @@
     "build:cdn": "vite build --mode cdn",
     "build:npm": "vite build --mode npm",
     "build:docs": "typedoc --excludePrivate --out dist/docs src/index.ts",
+    "generate:regions": "node scripts/generate-region-messages.mjs",
     "prepack": "npm run build:npm"
   },
   "repository": {

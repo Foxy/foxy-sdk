@@ -18,20 +18,21 @@ const DEFAULT_REGION_TYPE: RegionType = "state";
  * unreachable from an anonymous checkout. Delete this map once the backend
  * sends `regions_type` alongside `region_options`.
  */
-export const REGION_TYPE_BY_COUNTRY: Readonly<Record<string, RegionType>> = {
-  AT: "state",
-  AU: "state",
-  BQ: "state",
-  CA: "province",
-  CH: "canton",
-  DE: "state",
-  ES: "province",
-  IE: "county",
-  IN: "state",
-  JP: "prefecture",
-  NO: "county",
-  US: "state",
-};
+export const REGION_TYPE_BY_COUNTRY: Readonly<Record<string, RegionType | undefined>> =
+  Object.freeze({
+    AT: "state",
+    AU: "state",
+    BQ: "state",
+    CA: "province",
+    CH: "canton",
+    DE: "state",
+    ES: "province",
+    IE: "county",
+    IN: "state",
+    JP: "prefecture",
+    NO: "county",
+    US: "state",
+  } as const satisfies Record<string, RegionType>);
 
 /**
  * Builds the react-intl message id for one region's name.
@@ -96,15 +97,25 @@ export function toRegionOptions(codes: unknown, countryCode: string): RegionOpti
     });
 }
 
-const regionMessagesByLocale = new Map<string, Promise<Record<string, string>>>();
+// Exported (read-only in practice) so tests can register synthetic locales
+// and spy on/replace a loader without reimplementing the lookup or resetting
+// modules — production code never mutates it after module init.
+export const regionMessagesByLocale = new Map<string, Promise<Record<string, string>>>();
 
 // Static map rather than a template-literal `import()`: the set of shipped
 // catalogs is known at build time, and an explicit map lets the bundler emit
 // exactly one lazy chunk per locale with no dynamic-path guesswork.
-const REGION_CATALOG_LOADERS: Record<string, () => Promise<{ default: Record<string, string> }>> =
-  {
-    "en-US": () => import("./locales/regions/en-US.json"),
-  };
+//
+// Exported for the same reason as `regionMessagesByLocale` above: tests need
+// to register extra locales (e.g. two same-language catalogs) or a
+// deliberately-rejecting loader to exercise paths a static "en-US" map alone
+// cannot reach.
+export const REGION_CATALOG_LOADERS: Record<
+  string,
+  () => Promise<{ default: Record<string, string> }>
+> = {
+  "en-US": () => import("./locales/regions/en-US.json"),
+};
 
 /**
  * Lazily loads the region-name catalog for `locale`.
@@ -113,26 +124,37 @@ const REGION_CATALOG_LOADERS: Record<string, () => Promise<{ default: Record<str
  * downloaded. Falls back to the base language (`en-GB` → `en-US`) and then to
  * an empty object — a missing catalog is not an error, it just leaves labels
  * showing their codes, which is the pre-existing behavior.
+ *
+ * Exact match is resolved in its own pass before the base-language fallback
+ * is even considered: a single `.find()` over `exact || base` would let
+ * insertion order decide the winner whenever more than one catalog shares a
+ * base language (e.g. `es-ES` and `es-MX`), silently handing a shopper the
+ * wrong country's catalog.
  */
 export function loadRegionMessages(locale: string): Promise<Record<string, string>> {
   const requested = String(locale).replace(/_/g, "-").trim();
-  const base = requested.split("-")[0] ?? "";
+  const requestedLower = requested.toLowerCase();
+  const baseLower = (requested.split("-")[0] ?? "").toLowerCase();
 
-  const matched = Object.keys(REGION_CATALOG_LOADERS).find(
-    (available) =>
-      available.toLowerCase() === requested.toLowerCase() ||
-      available.toLowerCase().split("-")[0] === base.toLowerCase(),
-  );
+  const available = Object.keys(REGION_CATALOG_LOADERS);
+  const matched =
+    available.find((candidate) => candidate.toLowerCase() === requestedLower) ??
+    available.find((candidate) => candidate.toLowerCase().split("-")[0] === baseLower);
 
   if (!matched) return Promise.resolve({});
 
   const cached = regionMessagesByLocale.get(matched);
   if (cached) return cached;
 
-  const loading = REGION_CATALOG_LOADERS[matched]!()
+  const loading = REGION_CATALOG_LOADERS[matched]()
     .then((module) => module.default)
-    // A chunk that fails to load must not break the field; codes remain.
-    .catch(() => ({}) as Record<string, string>);
+    // A chunk that fails to load must not break the field; codes remain. Do
+    // not cache the failure itself — a transient failure would otherwise
+    // permanently serve raw codes for the rest of the page's life.
+    .catch(() => {
+      regionMessagesByLocale.delete(matched);
+      return {} as Record<string, string>;
+    });
 
   regionMessagesByLocale.set(matched, loading);
   return loading;
