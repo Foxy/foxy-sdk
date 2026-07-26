@@ -14,7 +14,11 @@
 //   2. From the hypermedia API: GET /property_helpers/countries?include_regions=true
 //      and reshape `values` the same way.
 //
-// Usage: node scripts/generate-region-messages.mjs --input /tmp/regions-dump.json --locale en-US
+// Usage: node scripts/generate-region-messages.mjs --input /tmp/regions-dump.json --locale en-US [--out-dir <dir>]
+//
+// --out-dir defaults to src/checkout/locales/regions/ (the shipped catalog
+// location). Tests pass a temp directory so a run never writes into tracked
+// source.
 
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -28,6 +32,7 @@ function arg(name, fallback) {
 
 const inputPath = arg("input");
 const locale = arg("locale", "en-US");
+const outDir = arg("out-dir");
 if (!inputPath) {
   console.error("usage: node scripts/generate-region-messages.mjs --input <dump.json> [--locale en-US]");
   process.exit(2);
@@ -63,7 +68,9 @@ if (collisions.length) {
 }
 
 const sorted = Object.fromEntries(Object.entries(catalog).sort(([a], [b]) => a.localeCompare(b)));
-const outPath = resolve(import.meta.dirname, `../src/checkout/locales/regions/${locale}.json`);
+const outPath = outDir
+  ? resolve(outDir, `${locale}.json`)
+  : resolve(import.meta.dirname, `../src/checkout/locales/regions/${locale}.json`);
 mkdirSync(dirname(outPath), { recursive: true });
 writeFileSync(outPath, `${JSON.stringify(sorted, null, 2)}\n`);
 

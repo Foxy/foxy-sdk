@@ -1,9 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import {
   loadRegionMessages,
+  REGION_CATALOG_LOADERS,
+  REGION_TYPE_BY_COUNTRY,
   regionLabelMessageId,
   regionMessageId,
+  regionMessagesByLocale,
   toRegionOptions,
 } from "../../checkout/regionOptions";
 
@@ -31,6 +34,18 @@ describe("regionMessageId", () => {
 
   it("trims leading and trailing separators", () => {
     expect(regionMessageId("ES", " Las Palmas ")).toBe("region_es_las_palmas");
+  });
+});
+
+describe("REGION_TYPE_BY_COUNTRY", () => {
+  it("is frozen: assigning to it throws rather than silently mutating the shared map", () => {
+    // The test file is an ES module, so it already runs in strict mode,
+    // where an assignment to a frozen property throws instead of silently
+    // no-oping.
+    expect(() => {
+      // @ts-expect-error intentionally violating the readonly type at runtime
+      REGION_TYPE_BY_COUNTRY.US = "county";
+    }).toThrow(TypeError);
   });
 });
 
@@ -129,18 +144,101 @@ describe("loadRegionMessages", () => {
   it("resolves to an empty object for an unknown locale rather than throwing", async () => {
     await expect(loadRegionMessages("zz-ZZ")).resolves.toEqual({});
   });
+});
 
-  it("returns the same object for repeated calls (cached)", async () => {
-    const a = await loadRegionMessages("en-US");
-    const b = await loadRegionMessages("en-US");
+// These register synthetic locales directly on the exported loader map so
+// each test can exercise a path the shipped "en-US"-only catalog can't reach
+// (a second same-language locale, a rejecting loader, a counted loader),
+// without reimplementing loadRegionMessages' resolution rule or touching the
+// real catalog files. Every test cleans up both the loader entry and any
+// cache entry it may have created so nothing leaks into other tests.
+describe("loadRegionMessages exact-match resolution", () => {
+  afterEach(() => {
+    delete REGION_CATALOG_LOADERS["es-ES"];
+    delete REGION_CATALOG_LOADERS["es-MX"];
+    regionMessagesByLocale.delete("es-ES");
+    regionMessagesByLocale.delete("es-MX");
+  });
+
+  it("prefers an exact locale match over a same-language catalog registered earlier", async () => {
+    // Insertion order matters for the bug this guards against: es-ES is
+    // registered (and therefore iterated) before es-MX.
+    const esES = { region_es_provincia: "Provincia (ES)" };
+    const esMX = { region_mx_estado: "Estado (MX)" };
+    REGION_CATALOG_LOADERS["es-ES"] = () => Promise.resolve({ default: esES });
+    REGION_CATALOG_LOADERS["es-MX"] = () => Promise.resolve({ default: esMX });
+
+    const messages = await loadRegionMessages("es-MX");
+
+    expect(messages).toBe(esMX);
+  });
+});
+
+describe("loadRegionMessages failure handling", () => {
+  afterEach(() => {
+    delete REGION_CATALOG_LOADERS["zz-reject"];
+    regionMessagesByLocale.delete("zz-reject");
+  });
+
+  it("resolves to an empty object when the catalog chunk rejects, and does not cache the failure", async () => {
+    let calls = 0;
+    REGION_CATALOG_LOADERS["zz-reject"] = () => {
+      calls += 1;
+      return Promise.reject(new Error("simulated chunk load failure"));
+    };
+
+    const first = await loadRegionMessages("zz-reject");
+    expect(first).toEqual({});
+    // A cached failure would mean this locale serves raw codes for the rest
+    // of the page's life after one transient error; the entry must be gone.
+    expect(regionMessagesByLocale.has("zz-reject")).toBe(false);
+
+    const second = await loadRegionMessages("zz-reject");
+    expect(second).toEqual({});
+    // Proves the failure wasn't cached: the loader ran again rather than
+    // returning a memoized rejection-turned-{}.
+    expect(calls).toBe(2);
+  });
+});
+
+describe("loadRegionMessages caching", () => {
+  afterEach(() => {
+    delete REGION_CATALOG_LOADERS["zz-memo"];
+    regionMessagesByLocale.delete("zz-memo");
+  });
+
+  // The previous version of this test (`returns the same object for
+  // repeated calls (cached)`) passed even with `regionMessagesByLocale`
+  // deleted entirely: `import()` hits Node/Vite's own module registry and
+  // `.then(m => m.default)` returns the same object identity regardless of
+  // this module's cache. It could not fail, so it is replaced (not just
+  // retitled) with a synthetic, call-counted loader that genuinely
+  // distinguishes "cached" from "not cached".
+  it("invokes the loader once and reuses the result for a repeated locale", async () => {
+    let calls = 0;
+    const payload = { region_zz_memo: "Memo" };
+    REGION_CATALOG_LOADERS["zz-memo"] = () => {
+      calls += 1;
+      return Promise.resolve({ default: payload });
+    };
+
+    const a = await loadRegionMessages("zz-memo");
+    const b = await loadRegionMessages("zz-memo");
+
     expect(a).toBe(b);
+    expect(calls).toBe(1);
   });
 });
 
 describe("catalog integrity", () => {
-  it("every catalog key is reproducible from its country and code by regionMessageId", async () => {
-    // The generator and the runtime lookup must agree. If they drift, every
-    // label silently degrades to a raw code with no error anywhere.
+  // NOTE: this does not actually reproduce all 330 keys from their raw
+  // (country, code) pairs — the shipped catalog is only `key → name`, the
+  // raw pairs that produced each key aren't shipped alongside it, so there's
+  // nothing here to re-derive them from. It checks catalog size and key
+  // shape only; the companion test below ("keys resolve via regionMessageId
+  // for every code shape the catalog contains") is what actually closes the
+  // loop for a representative code from each shape.
+  it("has exactly 330 keys, each shaped region_<country>_<code>", async () => {
     const messages = await loadRegionMessages("en-US");
     const keys = Object.keys(messages);
 
@@ -183,31 +281,21 @@ describe("generator collision detection", () => {
   // guard the catalog's integrity rests on is verified directly rather than
   // inferred from the shipped catalog's key count.
   it("aborts with a non-zero exit code when two raw codes normalize to the same key", async () => {
-    // The repo's tsconfig `types` is scoped to `vitest/globals` only (no
-    // `@types/node`), so these Node builtin imports have no type
-    // declarations in this project. `@ts-expect-error` suppresses that
-    // without speculatively widening the shared tsconfig for one test.
-    // @ts-expect-error no @types/node in this project's tsconfig "types"
     const { mkdtempSync, writeFileSync, existsSync, rmSync } = await import("node:fs");
-    // @ts-expect-error no @types/node in this project's tsconfig "types"
     const { tmpdir } = await import("node:os");
-    // @ts-expect-error no @types/node in this project's tsconfig "types"
-    const { join, dirname } = await import("node:path");
-    // @ts-expect-error no @types/node in this project's tsconfig "types"
+    const { join } = await import("node:path");
+    const { fileURLToPath } = await import("node:url");
     const { execFileSync } = await import("node:child_process");
 
-    const scriptPath = new URL("../../../scripts/generate-region-messages.mjs", import.meta.url)
-      .pathname;
-    // The generator resolves its output path relative to its OWN location,
-    // not cwd, so the would-be output lands in the real locales directory
-    // regardless of where the input dump lives.
-    const locale = "zz-collision-test";
-    const realOutPath = join(
-      dirname(scriptPath),
-      "..",
-      "src/checkout/locales/regions",
-      `${locale}.json`,
+    const scriptPath = fileURLToPath(
+      new URL("../../../scripts/generate-region-messages.mjs", import.meta.url),
     );
+    // `--out-dir` points the generator at an isolated temp directory so this
+    // test can never write into tracked source, even if the abort itself
+    // regressed.
+    const locale = "zz-collision-test";
+    const outDir = mkdtempSync(join(tmpdir(), "region-gen-out-"));
+    const outPath = join(outDir, `${locale}.json`);
 
     const dir = mkdtempSync(join(tmpdir(), "region-gen-collision-"));
     const dumpPath = join(dir, "dump.json");
@@ -226,21 +314,32 @@ describe("generator collision detection", () => {
     );
 
     try {
-      expect(() =>
-        // "node" rather than `process.execPath`: `process` also has no type
-        // declarations here (see note above), and the plain command name is
-        // sufficient — this repo's generator itself requires plain `node`.
-        execFileSync("node", [scriptPath, "--input", dumpPath, "--locale", locale], {
-          stdio: "pipe",
-        }),
-      ).toThrow();
+      let caught: unknown;
+      try {
+        // `process.execPath` rather than the plain command name "node": this
+        // guarantees the script runs on the exact same Node binary running
+        // this test, not whatever "node" resolves to first on PATH.
+        execFileSync(
+          process.execPath,
+          [scriptPath, "--input", dumpPath, "--locale", locale, "--out-dir", outDir],
+          { stdio: "pipe" },
+        );
+      } catch (error) {
+        caught = error;
+      }
 
-      // The abort happens before writeFileSync, so no stray catalog file
-      // should exist for the colliding locale.
-      expect(existsSync(realOutPath)).toBe(false);
+      expect(caught).toBeDefined();
+      const err = caught as { status?: number; stderr?: Buffer | string };
+      expect(err.status).toBe(1);
+      expect(String(err.stderr)).toMatch(/ABORT/);
+
+      // The abort happens before writeFileSync, so no catalog file should
+      // exist in the isolated out-dir for the colliding locale.
+      expect(existsSync(outPath)).toBe(false);
     } finally {
       // Defensive cleanup in case a bug ever lets the write through.
-      if (existsSync(realOutPath)) rmSync(realOutPath);
+      rmSync(dir, { recursive: true, force: true });
+      rmSync(outDir, { recursive: true, force: true });
     }
   });
 });
