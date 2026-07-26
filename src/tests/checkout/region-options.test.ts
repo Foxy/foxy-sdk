@@ -1,12 +1,11 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import {
   loadRegionMessages,
-  REGION_CATALOG_LOADERS,
   REGION_TYPE_BY_COUNTRY,
   regionLabelMessageId,
   regionMessageId,
-  regionMessagesByLocale,
+  resolveCatalog,
   toRegionOptions,
 } from "../../checkout/regionOptions";
 
@@ -144,56 +143,64 @@ describe("loadRegionMessages", () => {
   it("resolves to an empty object for an unknown locale rather than throwing", async () => {
     await expect(loadRegionMessages("zz-ZZ")).resolves.toEqual({});
   });
+
+  // `resolveCatalog` is exercised directly (below) with a test-local loader
+  // map and cache, so it can never leak a fake locale into the module-level
+  // cache `loadRegionMessages` shares with the rest of the app. That means
+  // no test proves `loadRegionMessages` itself is actually memoized against
+  // a stable, shared cache rather than, say, a wrapper that builds a fresh
+  // `new Map()` on every call (which would satisfy every awaited-result
+  // assertion above while defeating memoization entirely — Node's own
+  // module registry already makes `import()` return the same object
+  // identity either way, so awaited equality can't distinguish the two).
+  // Comparing the *unawaited* promises is the one assertion that can only
+  // pass if both calls hit the same cache entry.
+  it("returns the identical in-flight promise for a repeated locale (module-level memoization)", () => {
+    expect(loadRegionMessages("en-US")).toBe(loadRegionMessages("en-US"));
+  });
 });
 
-// These register synthetic locales directly on the exported loader map so
-// each test can exercise a path the shipped "en-US"-only catalog can't reach
-// (a second same-language locale, a rejecting loader, a counted loader),
-// without reimplementing loadRegionMessages' resolution rule or touching the
-// real catalog files. Every test cleans up both the loader entry and any
-// cache entry it may have created so nothing leaks into other tests.
-describe("loadRegionMessages exact-match resolution", () => {
-  afterEach(() => {
-    delete REGION_CATALOG_LOADERS["es-ES"];
-    delete REGION_CATALOG_LOADERS["es-MX"];
-    regionMessagesByLocale.delete("es-ES");
-    regionMessagesByLocale.delete("es-MX");
-  });
-
+// These call `resolveCatalog` directly with a test-local loader map and
+// cache, so each test can exercise a path the shipped "en-US"-only catalog
+// can't reach (a second same-language locale, a rejecting loader, a counted
+// loader) without touching `loadRegionMessages`' module-level state at all.
+// Nothing here can leak into another test or into a real lookup.
+describe("resolveCatalog exact-match resolution", () => {
   it("prefers an exact locale match over a same-language catalog registered earlier", async () => {
     // Insertion order matters for the bug this guards against: es-ES is
     // registered (and therefore iterated) before es-MX.
     const esES = { region_es_provincia: "Provincia (ES)" };
     const esMX = { region_mx_estado: "Estado (MX)" };
-    REGION_CATALOG_LOADERS["es-ES"] = () => Promise.resolve({ default: esES });
-    REGION_CATALOG_LOADERS["es-MX"] = () => Promise.resolve({ default: esMX });
+    const loaders = {
+      "es-ES": () => Promise.resolve({ default: esES }),
+      "es-MX": () => Promise.resolve({ default: esMX }),
+    };
+    const cache = new Map<string, Promise<Record<string, string>>>();
 
-    const messages = await loadRegionMessages("es-MX");
+    const messages = await resolveCatalog(loaders, cache, "es-MX");
 
     expect(messages).toBe(esMX);
   });
 });
 
-describe("loadRegionMessages failure handling", () => {
-  afterEach(() => {
-    delete REGION_CATALOG_LOADERS["zz-reject"];
-    regionMessagesByLocale.delete("zz-reject");
-  });
-
+describe("resolveCatalog failure handling", () => {
   it("resolves to an empty object when the catalog chunk rejects, and does not cache the failure", async () => {
     let calls = 0;
-    REGION_CATALOG_LOADERS["zz-reject"] = () => {
-      calls += 1;
-      return Promise.reject(new Error("simulated chunk load failure"));
+    const loaders = {
+      "qb-reject": () => {
+        calls += 1;
+        return Promise.reject(new Error("simulated chunk load failure"));
+      },
     };
+    const cache = new Map<string, Promise<Record<string, string>>>();
 
-    const first = await loadRegionMessages("zz-reject");
+    const first = await resolveCatalog(loaders, cache, "qb-reject");
     expect(first).toEqual({});
     // A cached failure would mean this locale serves raw codes for the rest
     // of the page's life after one transient error; the entry must be gone.
-    expect(regionMessagesByLocale.has("zz-reject")).toBe(false);
+    expect(cache.has("qb-reject")).toBe(false);
 
-    const second = await loadRegionMessages("zz-reject");
+    const second = await resolveCatalog(loaders, cache, "qb-reject");
     expect(second).toEqual({});
     // Proves the failure wasn't cached: the loader ran again rather than
     // returning a memoized rejection-turned-{}.
@@ -201,29 +208,24 @@ describe("loadRegionMessages failure handling", () => {
   });
 });
 
-describe("loadRegionMessages caching", () => {
-  afterEach(() => {
-    delete REGION_CATALOG_LOADERS["zz-memo"];
-    regionMessagesByLocale.delete("zz-memo");
-  });
-
-  // The previous version of this test (`returns the same object for
-  // repeated calls (cached)`) passed even with `regionMessagesByLocale`
-  // deleted entirely: `import()` hits Node/Vite's own module registry and
-  // `.then(m => m.default)` returns the same object identity regardless of
-  // this module's cache. It could not fail, so it is replaced (not just
-  // retitled) with a synthetic, call-counted loader that genuinely
-  // distinguishes "cached" from "not cached".
+describe("resolveCatalog caching", () => {
+  // A synthetic, call-counted loader genuinely distinguishes "cached" from
+  // "not cached" — unlike a real `import()`, whose result would come back
+  // identical from Node/Vite's own module registry regardless of whether
+  // this cache is consulted at all.
   it("invokes the loader once and reuses the result for a repeated locale", async () => {
     let calls = 0;
-    const payload = { region_zz_memo: "Memo" };
-    REGION_CATALOG_LOADERS["zz-memo"] = () => {
-      calls += 1;
-      return Promise.resolve({ default: payload });
+    const payload = { region_qa_memo: "Memo" };
+    const loaders = {
+      "qa-memo": () => {
+        calls += 1;
+        return Promise.resolve({ default: payload });
+      },
     };
+    const cache = new Map<string, Promise<Record<string, string>>>();
 
-    const a = await loadRegionMessages("zz-memo");
-    const b = await loadRegionMessages("zz-memo");
+    const a = await resolveCatalog(loaders, cache, "qa-memo");
+    const b = await resolveCatalog(loaders, cache, "qa-memo");
 
     expect(a).toBe(b);
     expect(calls).toBe(1);
@@ -340,6 +342,89 @@ describe("generator collision detection", () => {
       // Defensive cleanup in case a bug ever lets the write through.
       rmSync(dir, { recursive: true, force: true });
       rmSync(outDir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("generator --out-dir handling", () => {
+  it("mentions --out-dir in the usage string", async () => {
+    const { fileURLToPath } = await import("node:url");
+    const { execFileSync } = await import("node:child_process");
+
+    const scriptPath = fileURLToPath(
+      new URL("../../../scripts/generate-region-messages.mjs", import.meta.url),
+    );
+
+    let caught: unknown;
+    try {
+      // No --input at all: this is the "print usage and exit" path.
+      execFileSync(process.execPath, [scriptPath], { stdio: "pipe" });
+    } catch (error) {
+      caught = error;
+    }
+
+    expect(caught).toBeDefined();
+    const err = caught as { status?: number; stderr?: Buffer | string };
+    expect(err.status).toBe(2);
+    expect(String(err.stderr)).toMatch(/--out-dir/);
+  });
+
+  it("errors rather than silently falling back when --out-dir is passed with no value", async () => {
+    const { mkdtempSync, writeFileSync, existsSync, rmSync } = await import("node:fs");
+    const { tmpdir } = await import("node:os");
+    const { join, resolve: pathResolve } = await import("node:path");
+    const { fileURLToPath } = await import("node:url");
+    const { execFileSync } = await import("node:child_process");
+
+    const scriptPath = fileURLToPath(
+      new URL("../../../scripts/generate-region-messages.mjs", import.meta.url),
+    );
+
+    const dir = mkdtempSync(join(tmpdir(), "region-gen-outdir-valueless-"));
+    const dumpPath = join(dir, "dump.json");
+    writeFileSync(
+      dumpPath,
+      JSON.stringify({
+        US: { regions_type: "state", regions: [{ code: "MN", name: "Minnesota" }] },
+      }),
+    );
+
+    // A locale that can never collide with a real shipped catalog, so that
+    // IF the bug this guards against ever regressed, it would land a file
+    // under tracked source with an unmistakably-fake, easily-swept-up name
+    // rather than colliding with `en-US.json`.
+    const locale = "zz-out-dir-valueless-test";
+    const trackedFallbackPath = fileURLToPath(
+      new URL(`../../checkout/locales/regions/${locale}.json`, import.meta.url),
+    );
+
+    try {
+      let caught: unknown;
+      try {
+        // `--out-dir` is the last argv token: `arg()` would read past the
+        // end of argv and get `undefined` for its value.
+        execFileSync(
+          process.execPath,
+          [scriptPath, "--input", dumpPath, "--locale", locale, "--out-dir"],
+          { stdio: "pipe" },
+        );
+      } catch (error) {
+        caught = error;
+      }
+
+      expect(caught).toBeDefined();
+      const err = caught as { status?: number; stderr?: Buffer | string };
+      expect(err.status).toBe(2);
+      expect(String(err.stderr)).toMatch(/--out-dir/);
+
+      // The whole point: a malformed --out-dir must never fall back to
+      // writing into tracked source.
+      expect(existsSync(trackedFallbackPath)).toBe(false);
+      expect(existsSync(pathResolve(dir, `${locale}.json`))).toBe(false);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+      // Defensive cleanup in case a bug ever lets the write through.
+      rmSync(trackedFallbackPath, { force: true });
     }
   });
 });

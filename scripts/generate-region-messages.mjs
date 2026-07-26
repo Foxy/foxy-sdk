@@ -30,13 +30,30 @@ function arg(name, fallback) {
   return index === -1 ? fallback : process.argv[index + 1];
 }
 
+const usage =
+  "usage: node scripts/generate-region-messages.mjs --input <dump.json> [--locale en-US] [--out-dir <dir>]";
+
 const inputPath = arg("input");
 const locale = arg("locale", "en-US");
-const outDir = arg("out-dir");
 if (!inputPath) {
-  console.error("usage: node scripts/generate-region-messages.mjs --input <dump.json> [--locale en-US]");
+  console.error(usage);
   process.exit(2);
 }
+
+// `arg()` returns `undefined` both when `--out-dir` is absent AND when it is
+// present but has no following value (e.g. it's the last argv token, or
+// immediately followed by another flag). The former is fine — it means "use
+// the default". The latter must be an error: silently falling back to the
+// default would mean a malformed `--out-dir` writes into tracked source
+// (`src/checkout/locales/regions/`) instead of failing loudly.
+const outDirIndex = process.argv.indexOf("--out-dir");
+const outDirGiven = outDirIndex !== -1;
+const outDirValue = outDirIndex === -1 ? undefined : process.argv[outDirIndex + 1];
+if (outDirGiven && (outDirValue === undefined || outDirValue.startsWith("--"))) {
+  console.error(`--out-dir requires a value\n${usage}`);
+  process.exit(2);
+}
+const outDir = outDirValue;
 
 const dump = JSON.parse(readFileSync(inputPath, "utf8"));
 const catalog = {};
