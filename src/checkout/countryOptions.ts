@@ -19,18 +19,29 @@ const formattersByLocale = new Map<string, LocaleFormatters>();
 
 /**
  * Converts a possibly POSIX-form (`en_US`) or otherwise unusable locale
- * string into one safe to pass to `Intl.DisplayNames`/`Intl.Collator`,
+ * value into one safe to pass to `Intl.DisplayNames`/`Intl.Collator`,
  * falling back to `DEFAULT_LOCALE` rather than letting a bad value throw.
+ *
+ * `locale` is typed `unknown` (rather than `string`) because the runtime
+ * `typeof` guard below is the actual contract — typing it `string` would
+ * claim a guarantee the function doesn't get from its caller (a public API
+ * accepting arbitrary server-shaped input).
+ *
+ * Returns the *canonicalized* tag from `Intl.getCanonicalLocales`, not the
+ * merely hyphenated input: this is also the cache key in `getFormatters`,
+ * so `en-US`, `en_US`, `en-us`, and `EN_US` must resolve to the same string
+ * or each spelling silently gets its own `Intl.DisplayNames`/`Intl.Collator`
+ * pair.
  */
-function normalizeLocale(locale: string): string {
+function normalizeLocale(locale: unknown): string {
   const trimmed = typeof locale === "string" ? locale.replace(/_/g, "-").trim() : "";
   if (!trimmed) return DEFAULT_LOCALE;
 
   try {
     // Throws a RangeError for malformed BCP 47 tags without allocating a
     // DisplayNames/Collator instance.
-    Intl.getCanonicalLocales(trimmed);
-    return trimmed;
+    const [canonical] = Intl.getCanonicalLocales(trimmed);
+    return canonical ?? DEFAULT_LOCALE;
   } catch {
     return DEFAULT_LOCALE;
   }

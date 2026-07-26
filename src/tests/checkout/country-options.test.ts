@@ -97,4 +97,33 @@ describe("toCountryOptions", () => {
       spy.mockRestore();
     }
   });
+
+  // ALSO-FIX 1: `normalizeLocale` must cache by the *canonicalized* locale,
+  // not by the raw (merely hyphenated) input string — otherwise "en-US",
+  // "en_US", "en-us", and "EN_US" each build and cache their own
+  // Intl.DisplayNames/Intl.Collator pair instead of sharing one. Uses
+  // "pt-BR" and its spelling variants because no other test in this
+  // module-level-cached file has warmed that locale.
+  it("shares one cache entry across spelling variants of the same canonical locale (also-fix 1)", () => {
+    const spy = vi.spyOn(Intl, "Collator");
+    try {
+      toCountryOptions(["DE"], "pt-BR");
+      toCountryOptions(["DE"], "pt_BR");
+      toCountryOptions(["DE"], "pt-br");
+      toCountryOptions(["DE"], "PT_BR");
+      expect(spy).toHaveBeenCalledTimes(1);
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  // ALSO-FIX 2/3: `normalizeLocale`'s `typeof locale === "string"` guard is
+  // load-bearing — `locale` is typed `unknown` internally — but was
+  // previously untested. A non-string `locale` (e.g. from untyped upstream
+  // data) must fall back to the default locale instead of throwing.
+  it("falls back to the default locale instead of throwing for a non-string locale (also-fix 2/3)", () => {
+    expect(toCountryOptions(["DE"], null as unknown as string)).toEqual([
+      { value: "DE", label: "Germany" },
+    ]);
+  });
 });
