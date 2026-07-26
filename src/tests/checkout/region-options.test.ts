@@ -470,4 +470,21 @@ describe("region options and validation agree", () => {
     });
     expect(errors.length).toBeGreaterThan(0);
   });
+
+  it("accepts every value toRegionOptions produced from whitespace-padded server codes", () => {
+    // Trim-semantics divergence: toRegionOptions calls .trim() on the value,
+    // and the validator also calls .trim(). If either side's trimming ever
+    // changes (e.g., non-breaking-space handling), they would disagree and a
+    // shopper's valid selection would be rejected. This fixture ensures the
+    // cross-repo seam stays synchronized.
+    const serverList = ["  MN  ", "WI"];
+    const options = toRegionOptions(serverList, "US");
+
+    for (const option of options) {
+      const errors = validateBillingAddressParams({ region: option.value }, display, {
+        regionOptions: serverList,
+      });
+      expect(errors, `region ${option.value} should validate`).toEqual([]);
+    }
+  });
 });

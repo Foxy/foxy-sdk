@@ -49,13 +49,13 @@ export function validateProvidedAddressFields(
     // (and `toCountryOptions` uppercases every option value it produces), but
     // `allowedValues` here is the raw, unmodified server list — a store
     // emitting lowercase `country_options`/`region_options` must not have
-    // every edit rejected client-side. Case-fold both sides for the
+    // every edit rejected client-side. Case-fold and trim both sides for the
     // membership check only; `trimmed` itself (used below for constraint
     // checks, and by the caller for the outgoing payload) is left untouched.
     if (
       allowedValues &&
       allowedValues.length > 0 &&
-      !allowedValues.some((allowedValue) => allowedValue.toUpperCase() === trimmed.toUpperCase())
+      !allowedValues.some((allowedValue) => allowedValue.trim().toUpperCase() === trimmed.toUpperCase())
     ) {
       errors.push({
         context,
