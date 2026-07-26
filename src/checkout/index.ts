@@ -46,3 +46,11 @@ export type {
 export { API } from "./API";
 export { toCountryOptions } from "./countryOptions";
 export type { CountryOption } from "./countryOptions";
+export {
+  REGION_TYPE_BY_COUNTRY,
+  loadRegionMessages,
+  regionLabelMessageId,
+  regionMessageId,
+  toRegionOptions,
+} from "./regionOptions";
+export type { RegionOption, RegionType } from "./regionOptions";
