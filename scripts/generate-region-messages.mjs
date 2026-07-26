@@ -1,0 +1,61 @@
+// Regenerates the region-name catalogs from Foxy's own region data.
+//
+// Input: a JSON dump shaped { "<CC>": { regions_type, regions: [{code, name}] } }.
+// Produce it from the hypermedia API: GET /property_helpers/countries with
+// ?include_regions=true, then reshape `values` into that shape. An offline dump
+// of the same shape, taken from the backend's own location data, works too.
+//
+// Usage: node scripts/generate-region-messages.mjs --input /tmp/regions-dump.json --locale en-US
+
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+
+import { REGION_TYPE_BY_COUNTRY, regionMessageId } from "../src/checkout/regionOptions.ts";
+
+function arg(name, fallback) {
+  const index = process.argv.indexOf(`--${name}`);
+  return index === -1 ? fallback : process.argv[index + 1];
+}
+
+const inputPath = arg("input");
+const locale = arg("locale", "en-US");
+if (!inputPath) {
+  console.error("usage: node scripts/generate-region-messages.mjs --input <dump.json> [--locale en-US]");
+  process.exit(2);
+}
+
+const dump = JSON.parse(readFileSync(inputPath, "utf8"));
+const catalog = {};
+const collisions = [];
+
+for (const [countryCode, country] of Object.entries(dump)) {
+  for (const region of country.regions ?? []) {
+    // Same function the runtime uses — this import is the whole point.
+    const key = regionMessageId(countryCode, region.code);
+    if (key in catalog) collisions.push(`${key} (${countryCode}/${region.code})`);
+    catalog[key] = region.name;
+  }
+
+  const expectedType = REGION_TYPE_BY_COUNTRY[countryCode.toUpperCase()];
+  if (country.regions_type && expectedType && country.regions_type !== expectedType) {
+    console.warn(
+      `warning: ${countryCode} regions_type is "${country.regions_type}" but ` +
+        `REGION_TYPE_BY_COUNTRY says "${expectedType}" — update the map in regionOptions.ts`,
+    );
+  }
+  if (country.regions?.length && !expectedType) {
+    console.warn(`warning: ${countryCode} has regions but is missing from REGION_TYPE_BY_COUNTRY`);
+  }
+}
+
+if (collisions.length) {
+  console.error(`ABORT: ${collisions.length} key collision(s):\n  ${collisions.join("\n  ")}`);
+  process.exit(1);
+}
+
+const sorted = Object.fromEntries(Object.entries(catalog).sort(([a], [b]) => a.localeCompare(b)));
+const outPath = resolve(import.meta.dirname, `../src/checkout/locales/regions/${locale}.json`);
+mkdirSync(dirname(outPath), { recursive: true });
+writeFileSync(outPath, `${JSON.stringify(sorted, null, 2)}\n`);
+
+console.log(`wrote ${outPath}: ${Object.keys(sorted).length} messages`);
