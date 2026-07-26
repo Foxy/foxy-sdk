@@ -175,3 +175,71 @@ describe("billing country options isolation", () => {
     ).toBe(false);
   });
 });
+
+// Consumers (foxy-elements, foxy-checkout) normalize the value they submit to
+// `.trim().toUpperCase()`, and `toCountryOptions` uppercases every option
+// value it produces for display — but neither of those touches the *raw*
+// `country_options`/`region_options` arrays the server actually sends, which
+// `validateProvidedAddressFields` compares against. A store emitting
+// lowercase (or mixed-case) options must not have every edit rejected
+// client-side before it reaches the network. This exercises the fix through
+// `API#updateBillingAddress`, the real consumer entry point — a unit test of
+// the validator alone wouldn't catch a regression here, since nothing else
+// in this file drives it.
+describe("case-insensitive allowlist comparison", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("validates an uppercase submitted country against a lowercase country_options list", () => {
+    const json = createApiJson();
+    (json.billing_address as { country_options?: string[] }).country_options = ["gb", "fr"];
+    const api = createApi(json);
+
+    api.updateBillingAddress({ country: "GB" });
+
+    const messages = api.json?.messages ?? [];
+    expect(
+      messages.some((message) => message.context === "billing-address-update"),
+    ).toBe(false);
+  });
+
+  it("validates a lowercase submitted country against an uppercase country_options list", () => {
+    // createApiJson()'s billing_address.country_options is ["GB", "FR"].
+    const json = createApiJson();
+    const api = createApi(json);
+
+    api.updateBillingAddress({ country: "gb" });
+
+    const messages = api.json?.messages ?? [];
+    expect(
+      messages.some((message) => message.context === "billing-address-update"),
+    ).toBe(false);
+  });
+
+  it("validates an uppercase submitted region against a lowercase region_options list", () => {
+    const json = createApiJson();
+    (json.billing_address as { region_options?: string[] }).region_options = ["ca", "ny"];
+    const api = createApi(json);
+
+    api.updateBillingAddress({ region: "CA" });
+
+    const messages = api.json?.messages ?? [];
+    expect(
+      messages.some((message) => message.context === "billing-address-update"),
+    ).toBe(false);
+  });
+
+  it("still rejects a region absent from the list regardless of case", () => {
+    const json = createApiJson();
+    (json.billing_address as { region_options?: string[] }).region_options = ["ca", "ny"];
+    const api = createApi(json);
+
+    api.updateBillingAddress({ region: "TX" });
+
+    const messages = api.json?.messages ?? [];
+    expect(
+      messages.some((message) => message.context === "billing-address-update"),
+    ).toBe(true);
+  });
+});
