@@ -6,7 +6,6 @@ import type { CheckoutTemplates } from './checkout_templates';
 import type { Coupons } from './coupons';
 import type { CustomerPortalSettings } from './customer_portal_settings';
 import type { Customers } from './customers';
-import type { DataRetentionSettings } from './data_retention_settings';
 import type { Downloadables } from './downloadables';
 import type { EmailTemplates } from './email_templates';
 import type { ErrorEntries } from './error_entries';
@@ -98,8 +97,6 @@ export interface Store extends Graph {
     'fx:hosted_payment_gateways': HostedPaymentGateways;
     /** Configuration of this store's customer portal. */
     'fx:customer_portal_settings': CustomerPortalSettings;
-    /** Data retention / auto-anonymization settings for this store. */
-    'fx:data_retention_settings': DataRetentionSettings;
     /** POST here to resend the daily subscription webhook notification for this store. */
     'fx:process_subscription_webhook': ProcessSubscriptionWebhook;
     /** Add-to-cart URL for the Starter plan with yearly billing. */
@@ -193,6 +190,8 @@ export interface Store extends Graph {
     unified_order_entry_password: string;
     /** Instead of displaying the Foxy Transaction ID, you can display your own custom display ID on your store's receipt and receipt emails. This JSON config determines how those display ids will work. The JSON supports the following fields: `enabled`, `start`, `length`, `prefix`, `suffix`. */
     custom_display_id_config: string;
+    /** Per-store data retention settings controlling automatic anonymization of old customer PII. `auto_anonymize` opts in; `auto_anonymize_days` (minimum 90) is the age threshold and is required when `auto_anonymize` is true. Null when unset. */
+    data_retention: { auto_anonymize: boolean; auto_anonymize_days: number | null } | null;
     /** This can only be set during store creation. Contact us if you need this value changed later. */
     affiliate_id: number;
     /** This settings makes your checkout page completely non-functioning. Your customers will see the maintenance notification language string instead. The default is false. */

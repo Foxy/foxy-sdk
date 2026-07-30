@@ -43,7 +43,6 @@ export * from './Graph/customer_email_template';
 export * from './Graph/customer_password_hash_types';
 export * from './Graph/customer_portal_settings';
 export * from './Graph/customers';
-export * from './Graph/data_retention_settings';
 export * from './Graph/default_billing_address';
 export * from './Graph/default_payment_method';
 export * from './Graph/default_shipping_address';
