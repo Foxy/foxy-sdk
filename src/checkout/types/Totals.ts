@@ -1,7 +1,7 @@
 export type Tax = {
   /** Tax name. */
   name: string;
-  /** Tax rate as a decimal (e.g., 0.08 for 8%). */
+  /** Tax rate as a percentage (e.g., 8.875 for 8.875%), not a decimal fraction. */
   rate: number;
   /** Tax amount. */
   amount: number;
