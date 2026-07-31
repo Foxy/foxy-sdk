@@ -32,6 +32,17 @@ type ACHPayment = {
   gateway: string;
 };
 
+type POSPayment = {
+  /** Payment type. */
+  type: 'pos';
+  /** Date when the payment was processed. ISO 8601 format. */
+  date: string;
+  /** Payment amount in the currency of the transaction. */
+  amount: number;
+  /** Payment gateway used for this transaction. */
+  gateway: string;
+};
+
 type PurchaseOrderPayment = {
   /** Payment type. */
   type: 'purchase_order';
@@ -63,7 +74,7 @@ export type Transaction = {
     | 'problem'
     | 'pending_fraud_review';
   /** Array of payments associated with this transaction. */
-  payments: (CardPayment | ACHPayment | PurchaseOrderPayment)[];
+  payments: (CardPayment | ACHPayment | POSPayment | PurchaseOrderPayment)[];
   /** Date and time when the transaction occurred. */
   transaction_date: string;
 };
