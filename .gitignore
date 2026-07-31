@@ -6,3 +6,6 @@ dist
 .vitest-*
 .env
 *.tgz
+.vscode
+.superpowers
+docs/superpowers
