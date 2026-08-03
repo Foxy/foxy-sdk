@@ -1,6 +1,8 @@
 export type BillingAddress = {
-  /** Whether the shopper is entering a billing address separate from shipping. */
-  use_separate_billing_address: boolean;
+  // `use_separate_billing_address` is deliberately NOT here. It reads like a
+  // member of this object, but the wire sends it at the top level of the
+  // checkout JSON — see `APIJson.use_separate_billing_address`. It was declared
+  // here for a while, and every consumer reading it got `undefined`.
   /** Unique identifier for the saved address. */
   address_id: number | null;
   /** Name or label for this address. */

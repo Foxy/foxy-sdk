@@ -125,8 +125,8 @@ function createApiJson(
         total_order: 0,
       },
     ],
+    use_separate_billing_address: true,
     billing_address: {
-      use_separate_billing_address: true,
       address_id: null,
       address_name: "",
       first_name: "",

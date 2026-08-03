@@ -37,8 +37,8 @@ function createApiJson(): APIJson {
         total_order: 0,
       },
     ],
+    use_separate_billing_address: false,
     billing_address: {
-      use_separate_billing_address: false,
       address_id: null,
       address_name: "",
       first_name: "",
