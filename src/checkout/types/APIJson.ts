@@ -33,6 +33,8 @@ export type APIJson = {
   items: Item[];
   /** Array of totals for this order, ordered from current to future. */
   totals: Totals[];
+  /** Whether the shopper is entering a billing address separate from shipping. */
+  use_separate_billing_address?: boolean;
   /** Billing address information. */
   billing_address: BillingAddress;
   /** Store configuration and information. */
