@@ -1,4 +1,5 @@
 import type {
+  AddressSuggestion,
   AdyenEmbeddedAmount,
   AdyenEmbeddedSdkInstance,
   APIEventMap,
@@ -49,6 +50,21 @@ export type {
   PayPalSdkInstance,
   SquareSdkInstance,
 } from "./types";
+
+/**
+ * Shortest input worth sending to the lookup endpoint.
+ *
+ * The shortest `pc.regex` among the countries where lookup is available is
+ * `\d{3}`, so nothing below three characters can be a complete postal code
+ * anywhere the field is shown. This is a request suppressor only — three
+ * characters is not a promise that the endpoint can resolve the input, and the
+ * endpoint answers `[]` rather than an error for anything it cannot.
+ *
+ * Universal rather than per-country on purpose: a per-country minimum would be
+ * new data to author and keep in sync, and the debounce already absorbs most
+ * of the traffic this guards against.
+ */
+export const MIN_POSTAL_CODE_LOOKUP_LENGTH = 3;
 
 type EventName = keyof APIEventMap;
 type EventWithDetailName = {
@@ -1268,22 +1284,13 @@ export class API extends EventTarget {
   async getAddressSuggestions(params: {
     postalCode: string;
     country: string;
-  }): Promise<
-    Array<{
-      country: string;
-      region: string;
-      city: string;
-      address1: string;
-      address2: string;
-      postal_code: string;
-    }>
-  > {
+  }): Promise<AddressSuggestion[]> {
     this.assertStoreDomain();
 
     const postalCode = params.postalCode.trim();
     const country = params.country.trim().toUpperCase();
 
-    if (!postalCode || !country) {
+    if (postalCode.length < MIN_POSTAL_CODE_LOOKUP_LENGTH || !country) {
       return [];
     }
 
@@ -1308,14 +1315,7 @@ export class API extends EventTarget {
       return [];
     }
 
-    return json as Array<{
-      country: string;
-      region: string;
-      city: string;
-      address1: string;
-      address2: string;
-      postal_code: string;
-    }>;
+    return json as AddressSuggestion[];
   }
 
   logError(error: Error): void {

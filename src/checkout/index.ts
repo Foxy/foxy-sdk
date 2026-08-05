@@ -1,4 +1,5 @@
 export type {
+  AddressSuggestion,
   TemplateSet,
   Transaction,
   Session,
@@ -43,7 +44,7 @@ export type {
   PayPalSdkInstance,
 } from "./types";
 
-export { API } from "./API";
+export { API, MIN_POSTAL_CODE_LOOKUP_LENGTH } from "./API";
 export { toCountryOptions } from "./countryOptions";
 export type { CountryOption } from "./countryOptions";
 export {

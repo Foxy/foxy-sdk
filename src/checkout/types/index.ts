@@ -1,3 +1,4 @@
+export type { AddressSuggestion } from "./AddressSuggestion";
 export type { TemplateSet } from "./TemplateSet";
 export type { Transaction } from "./Transaction";
 export type { Session } from "./Session";

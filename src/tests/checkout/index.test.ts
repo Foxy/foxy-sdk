@@ -25,6 +25,7 @@ describe('Checkout', () => {
   it('exports exactly the intended set of value bindings, nothing more', () => {
     expect(Object.keys(Checkout).sort()).toEqual([
       'API',
+      'MIN_POSTAL_CODE_LOOKUP_LENGTH',
       'REGION_TYPE_BY_COUNTRY',
       'loadRegionMessages',
       'regionLabelMessageId',

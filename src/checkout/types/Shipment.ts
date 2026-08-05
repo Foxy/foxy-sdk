@@ -33,6 +33,14 @@ export type Shipment = {
   region_options?: string[];
   /** Available country options for shipping. */
   country_options?: string[];
+  /**
+   * Whether postal-code lookup applies to this address. Resolved server-side
+   * from the store's `postal_code_lookup` setting AND whether this address's
+   * country supports lookup at all — the two conditions the shopper sees as
+   * one. Absent on payloads from a backend that predates the feature, which
+   * reads as disabled.
+   */
+  postal_code_lookup?: boolean;
   /** Available shipping service options for this shipment with their costs. */
   shipping_service_options?: { id: number; name: string; cost: number }[];
 };
