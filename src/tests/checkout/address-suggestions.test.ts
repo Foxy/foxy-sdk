@@ -145,6 +145,16 @@ describe("getAddressSuggestions input floor", () => {
       "https://store.test/helpers?action=get_address_suggestions&country=US&postal_code=902",
     );
   });
+
+  it("throws for an inactive API even below the floor", async () => {
+    const api = new API({ initialJson: createApiJson() });
+
+    await expect(
+      api.getAddressSuggestions({ postalCode: "90", country: "US" }),
+    ).rejects.toThrow(
+      "This API instance is inactive until storeDomain is set.",
+    );
+  });
 });
 
 describe("getAddressSuggestions response parsing", () => {
