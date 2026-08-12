@@ -128,7 +128,7 @@ describe("next action handling", () => {
     const listener = vi.fn();
     api.addEventListener("next-action-required", listener);
 
-    api.checkOut({ gateway: "stripe_v2", payment_intent_id: "pi_123" });
+    api.checkOut({ gateway: "stripe_v2" });
 
     await vi.waitFor(() => {
       expect(api.state).toBe("idle");
@@ -264,7 +264,7 @@ describe("next action handling", () => {
     expect(assign).not.toHaveBeenCalled();
   });
 
-  it("posts action=continue with resume_token and sdk_result", async () => {
+  it("posts action=continue with nothing but the resume_token", async () => {
     const json = createApiJson();
     const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(JSON.stringify(json), {
@@ -275,10 +275,7 @@ describe("next action handling", () => {
 
     const api = new API({ initialJson: json, storeDomain: "store.test" });
 
-    api.continueCheckOut({
-      resumeToken: "resume-token-abc",
-      sdkResult: { status: "succeeded" },
-    });
+    api.continueCheckOut({ resumeToken: "resume-token-abc" });
 
     await vi.waitFor(() => {
       expect(api.state).toBe("idle");
@@ -291,8 +288,8 @@ describe("next action handling", () => {
     const body = init?.body as URLSearchParams;
     expect(body.get("action")).toBe("continue");
     expect(body.get("resume_token")).toBe("resume-token-abc");
-    expect(body.get("sdk_result")).toBe(
-      JSON.stringify({ status: "succeeded" }),
-    );
+    // the outcome of the client-side step is never sent — the server re-reads
+    // it from the gateway
+    expect(body.has("sdk_result")).toBe(false);
   });
 });

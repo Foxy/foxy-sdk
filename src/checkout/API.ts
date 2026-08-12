@@ -374,9 +374,11 @@ type CheckOutPaymentOption =
       gateway: "stripe_connect" | "stripe_connect_charge";
       card_token_id: string;
     }
-  | ({
-      gateway: "stripe_v2";
-    } & ({ confirmation_token_id: string } | { payment_intent_id: string }));
+  // stripe_v2 carries no token: the submit leg creates an unconfirmed
+  // PaymentIntent server-side and answers with a `confirm_intent` next action.
+  // The card never reaches us — it is confirmed in the Stripe iframe from the
+  // returned client secret, then `continueCheckOut` resumes the transaction.
+  | { gateway: "stripe_v2" };
 
 export type APIOptions = {
   storeDomain?: string;
@@ -1398,10 +1400,15 @@ export class API extends EventTarget {
     });
   };
 
-  continueCheckOut = (params: {
-    resumeToken: string;
-    sdkResult: Record<string, unknown>;
-  }): void => {
+  /**
+   * Resume a submission that came back with a `requires_action` next action,
+   * once the client-side step it asked for has been completed.
+   *
+   * The resume token is the only thing sent: the outcome of the step is never
+   * taken from the client — the server re-reads it from the gateway before it
+   * completes or reopens the transaction.
+   */
+  continueCheckOut = (params: { resumeToken: string }): void => {
     this.assertStoreDomain();
 
     if (!this.dispatchCancelable("checkout-continue", params)) {
@@ -1412,7 +1419,6 @@ export class API extends EventTarget {
       const nextJson = await this.postJson("/checkout", {
         action: "continue",
         resume_token: params.resumeToken,
-        sdk_result: params.sdkResult,
       });
       await this.replaceJson(nextJson);
       this.#handleNextAction(nextJson);
