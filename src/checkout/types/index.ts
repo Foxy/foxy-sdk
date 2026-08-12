@@ -18,6 +18,7 @@ export type {
   NextActionGateway,
   RedirectNextAction,
   RequiresActionNextAction,
+  StripeConfirmIntentParams,
 } from "./NextAction";
 export type {
   AdyenEmbeddedAmount,
