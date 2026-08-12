@@ -2,7 +2,6 @@ import type {
   AdyenEmbeddedEnvironment,
   AdyenEmbeddedPaymentMethodsResponse,
 } from "./AdyenEmbeddedSdkInstance";
-import type { PaymentIntent } from "@stripe/stripe-js";
 
 export type StandardCardGateway =
   | "authorize"
@@ -71,16 +70,29 @@ type StripePaymentElementGatewayConfig = {
   type: "stripe_v2";
   /** Stripe publishable key for initializing Stripe.js. */
   publishable_key: string;
-  /** If present, indicates a pending next_action flow that should be handled via stripe.handleNextAction(). */
-  next_action: PaymentIntent.NextAction | null;
+  /**
+   * Client secret of an intent left needing a client-side step by the legacy
+   * server-confirm path. Not part of the checkout flow: v3 raises that step as
+   * a `confirm_intent` next action on the submit response instead.
+   */
+  next_action: string | null;
   /** Connected account ID used as stripeAccount when creating the Stripe client. */
   account_id: string;
-  /** Return URL used by Stripe confirmation flows (setup/payment redirects). */
+  /**
+   * Return URL registered with the gateway by the legacy (non-v3) flow.
+   *
+   * Not usable as a Stripe `return_url` here: it is only rewritten to the v3
+   * `?action=return&ref=` landing for full-page-redirect gateways, so on this
+   * path it still points at the legacy endpoint. The client sends the shopper's
+   * own checkout URL instead.
+   */
   return_url: string;
-  /** Capture mode flag from backend. 1 means manual capture, otherwise automatic capture. */
+  /**
+   * True when the gateway is configured to authorize only. Mirrors the
+   * PaymentIntent's `capture_method: manual`, which the Payment Element has to
+   * match to confirm a deferred intent.
+   */
   auth_only: boolean;
-  /** If present, the backend has pre-created a PaymentIntent; confirmation should use confirmPayment() instead of createConfirmationToken(). */
-  client_secret?: string;
 };
 
 type PayPalPlatformGatewayConfig = {

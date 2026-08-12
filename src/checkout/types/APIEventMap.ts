@@ -10,7 +10,7 @@ export type APIEventMap = {
   'billing-address-update': CustomEvent<BillingAddress>;
   'cart-clear': Event;
   'checkout': Event;
-  'checkout-continue': CustomEvent<{ resumeToken: string; sdkResult: Record<string, unknown> }>;
+  'checkout-continue': CustomEvent<{ resumeToken: string }>;
   'coupon-or-gift-card-apply': CustomEvent<{ code: string }>;
   'coupon-remove': CustomEvent<{ coupon: Coupon }>;
   'custom-fields-update': CustomEvent<CustomFields>;
