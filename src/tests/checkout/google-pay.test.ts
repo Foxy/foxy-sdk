@@ -128,6 +128,7 @@ describe("Google Pay SDK loading", () => {
     expect(script.src).toBe(GOOGLE_PAY_JS_API_URL);
     expect(script.async).toBe(true);
     expect(script.parentElement).toBe(document.head);
+    expect(script.dataset.googlePaySdkState).toBe("loading");
 
     script.dispatchEvent(new Event("load"));
 
@@ -160,12 +161,59 @@ describe("Google Pay SDK loading", () => {
     await expect(second).resolves.toBeUndefined();
   });
 
-  // Documents current behaviour, not desired behaviour. A script tag already in
-  // the page (server-rendered, or left behind by an earlier failed attempt) is
-  // adopted by attaching load/error listeners to it. If that script has already
-  // finished loading, no further event ever fires and the returned promise never
-  // settles — there is no check of a "loaded" marker the way applePay.ts has one.
-  it("never settles when it adopts a script that has already finished loading", async () => {
+  it("resolves against a pre-existing script already marked loaded, without waiting for an event", async () => {
+    // No namespace on window, so only the marker can settle this: a bare
+    // adoption path would attach listeners and hang.
+    const existing = document.createElement("script");
+    existing.src = GOOGLE_PAY_JS_API_URL;
+    existing.dataset.googlePaySdkState = "loaded";
+    document.head.appendChild(existing);
+
+    const { loadGooglePaySdk } = await importGooglePay();
+
+    await expect(loadGooglePaySdk()).resolves.toBeUndefined();
+    expect(getScripts()).toEqual([existing]);
+  });
+
+  it("rejects immediately against a pre-existing script already marked failed", async () => {
+    const existing = document.createElement("script");
+    existing.src = GOOGLE_PAY_JS_API_URL;
+    existing.dataset.googlePaySdkState = "error";
+    document.head.appendChild(existing);
+
+    const { loadGooglePaySdk } = await importGooglePay();
+    const pending = loadGooglePaySdk();
+    const tracker = track(pending);
+
+    await flushMacrotasks();
+
+    expect(tracker.settled()).toBe(true);
+    await expect(pending).rejects.toThrow("Failed to load Google Pay JS API.");
+  });
+
+  it("marks the script it adopted as loaded once the namespace appears", async () => {
+    const existing = document.createElement("script");
+    existing.src = GOOGLE_PAY_JS_API_URL;
+    document.head.appendChild(existing);
+
+    const { loadGooglePaySdk } = await importGooglePay();
+
+    const pending = loadGooglePaySdk();
+    await flushTasks();
+
+    setLoadedGooglePay();
+    existing.dispatchEvent(new Event("load"));
+
+    await expect(pending).resolves.toBeUndefined();
+    expect(existing.dataset.googlePaySdkState).toBe("loaded");
+  });
+
+  // A script that carries no state marker and has not exposed the namespace is
+  // indistinguishable from one that is still downloading — no DOM API reports a
+  // load event that already fired. It is therefore treated as in flight.
+  // applePay.ts has the same limitation. A pre-existing script that genuinely
+  // finished is caught earlier, by the namespace check.
+  it("waits for an event on an unmarked pre-existing script", async () => {
     const existing = document.createElement("script");
     existing.src = GOOGLE_PAY_JS_API_URL;
     document.head.appendChild(existing);
@@ -179,17 +227,11 @@ describe("Google Pay SDK loading", () => {
 
     expect(tracker.settled()).toBe(false);
 
-    // Only a fresh load event unblocks it.
     existing.dispatchEvent(new Event("load"));
     await expect(pending).resolves.toBeUndefined();
   });
 
-  // Documents current behaviour, not desired behaviour. The created-script path
-  // clears the cached promise in its onload/onerror handlers, but the
-  // adopted-script path never does, so one failure poisons the module for the
-  // lifetime of the page: later callers await the same rejected promise instead
-  // of retrying.
-  it("keeps rejecting after an adopted script fails, without retrying", async () => {
+  it("retries with a fresh script after an adopted script fails", async () => {
     const existing = document.createElement("script");
     existing.src = GOOGLE_PAY_JS_API_URL;
     document.head.appendChild(existing);
@@ -202,24 +244,24 @@ describe("Google Pay SDK loading", () => {
     existing.dispatchEvent(new Event("error"));
 
     await expect(first).rejects.toThrow("Failed to load Google Pay JS API.");
+    // The failed script is gone, so nothing is left for the next call to adopt.
+    expect(getScripts()).toHaveLength(0);
 
-    // No event is dispatched for this call: a genuine retry would attach fresh
-    // listeners and stay pending, so an immediate rejection proves the poisoned
-    // promise is being reused.
     const second = loadGooglePaySdk();
     const tracker = track(second);
 
     await flushMacrotasks();
 
-    expect(tracker.settled()).toBe(true);
-    await expect(second).rejects.toThrow("Failed to load Google Pay JS API.");
-    expect(getScripts()).toHaveLength(1);
+    const retryScript = getScript();
+
+    expect(retryScript).not.toBe(existing);
+    expect(tracker.settled()).toBe(false);
+
+    retryScript.dispatchEvent(new Event("load"));
+    await expect(second).resolves.toBeUndefined();
   });
 
-  // Documents current behaviour, not desired behaviour: the failed script stays
-  // in the document, so the next attempt adopts it instead of appending a
-  // replacement and waits for an event that will never come.
-  it("adopts its own failed script on retry instead of appending a new one", async () => {
+  it("retries with a fresh script after the script it appended fails", async () => {
     const { loadGooglePaySdk } = await importGooglePay();
 
     const first = loadGooglePaySdk();
@@ -235,11 +277,34 @@ describe("Google Pay SDK loading", () => {
 
     await flushMacrotasks();
 
+    const retryScript = getScript();
+
     expect(getScripts()).toHaveLength(1);
+    expect(retryScript).not.toBe(script);
     expect(tracker.settled()).toBe(false);
 
-    script.dispatchEvent(new Event("load"));
+    retryScript.dispatchEvent(new Event("load"));
     await expect(second).resolves.toBeUndefined();
+  });
+
+  it("stops listening to a script once it has settled", async () => {
+    const { loadGooglePaySdk } = await importGooglePay();
+
+    const pending = loadGooglePaySdk();
+    await flushTasks();
+
+    const script = getScript();
+    script.dispatchEvent(new Event("load"));
+
+    await expect(pending).resolves.toBeUndefined();
+    expect(script.dataset.googlePaySdkState).toBe("loaded");
+
+    // A late error event on the settled script must not mark it failed, which
+    // would make the next call reject against a script that loaded fine.
+    script.dispatchEvent(new Event("error"));
+
+    expect(script.dataset.googlePaySdkState).toBe("loaded");
+    expect(getScripts()).toEqual([script]);
   });
 });
 

@@ -25,38 +25,77 @@ function getGooglePayNamespace():
     | undefined;
 }
 
+function getGooglePayScript(): HTMLScriptElement | null {
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return null;
+  }
+
+  return document.querySelector(`script[src="${GOOGLE_PAY_JS_API_URL}"]`);
+}
+
+function createGooglePayScriptLoadPromise(script: HTMLScriptElement): Promise<void> {
+  if (getGooglePayNamespace()?.payments?.api?.PaymentsClient) {
+    script.dataset.googlePaySdkState = 'loaded';
+    return Promise.resolve();
+  }
+
+  if (script.dataset.googlePaySdkState === 'loaded') {
+    return Promise.resolve();
+  }
+
+  if (script.dataset.googlePaySdkState === 'error') {
+    return Promise.reject(new Error('Failed to load Google Pay JS API.'));
+  }
+
+  if (googlePayScriptLoadPromise) {
+    return googlePayScriptLoadPromise;
+  }
+
+  googlePayScriptLoadPromise = new Promise<void>((resolve, reject) => {
+    const cleanup = (): void => {
+      script.removeEventListener('load', handleLoad);
+      script.removeEventListener('error', handleError);
+      googlePayScriptLoadPromise = null;
+    };
+
+    const handleLoad = (): void => {
+      script.dataset.googlePaySdkState = 'loaded';
+      cleanup();
+      resolve();
+    };
+
+    const handleError = (): void => {
+      script.dataset.googlePaySdkState = 'error';
+      cleanup();
+      // Dropped from the document so the next call appends a fresh script
+      // instead of adopting one whose error event has already fired.
+      script.remove();
+      reject(new Error('Failed to load Google Pay JS API.'));
+    };
+
+    script.addEventListener('load', handleLoad, { once: true });
+    script.addEventListener('error', handleError, { once: true });
+  });
+
+  return googlePayScriptLoadPromise;
+}
+
 export async function loadGooglePaySdk(): Promise<void> {
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
   if (getGooglePayNamespace()?.payments?.api?.PaymentsClient) return;
 
-  if (!googlePayScriptLoadPromise) {
-    googlePayScriptLoadPromise = new Promise<void>((resolve, reject) => {
-      const existingScript = document.querySelector<HTMLScriptElement>(`script[src="${GOOGLE_PAY_JS_API_URL}"]`);
+  let script = getGooglePayScript();
 
-      if (existingScript) {
-        existingScript.addEventListener('load', () => resolve(), { once: true });
-        existingScript.addEventListener('error', () => reject(new Error('Failed to load Google Pay JS API.')), {
-          once: true,
-        });
-        return;
-      }
+  if (!script) {
+    script = document.createElement('script');
+    script.async = true;
+    script.dataset.googlePaySdkState = 'loading';
+    script.src = GOOGLE_PAY_JS_API_URL;
 
-      const script = document.createElement('script');
-      script.src = GOOGLE_PAY_JS_API_URL;
-      script.async = true;
-      script.onload = () => {
-        googlePayScriptLoadPromise = null;
-        resolve();
-      };
-      script.onerror = () => {
-        googlePayScriptLoadPromise = null;
-        reject(new Error('Failed to load Google Pay JS API.'));
-      };
-      (document.head || document.documentElement).appendChild(script);
-    });
+    (document.head || document.documentElement).appendChild(script);
   }
 
-  await googlePayScriptLoadPromise;
+  await createGooglePayScriptLoadPromise(script);
 }
 
 export async function createGooglePaymentsClient(
