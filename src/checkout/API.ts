@@ -84,8 +84,14 @@ type ResolvedIncomingApiState = {
   square: SquareSdkInstance | null;
 };
 
+// The early PayPal snapshot is taken before the other SDKs have loaded, so it
+// describes PayPal only. Keys it leaves out mean "not resolved yet", not "null".
+type PartialResolvedIncomingApiState = {
+  json: MutableAPIJson;
+} & Partial<Omit<ResolvedIncomingApiState, "json">>;
+
 type ResolveIncomingApiStateOptions = {
-  onPayPalResolved?: (state: ResolvedIncomingApiState) => void;
+  onPayPalResolved?: (state: PartialResolvedIncomingApiState) => void;
 };
 
 function resolveBaseUrlFromStoreDomain(storeDomain: string): string {
@@ -232,10 +238,7 @@ async function resolveIncomingApiState(
 
   options.onPayPalResolved?.({
     json: nextJson,
-    adyenEmbedded,
     paypal,
-    klarna,
-    square,
   });
 
   const klarnaConfig = getFirstPaymentGatewayConfig(nextJson, "klarna");
@@ -622,7 +625,7 @@ export class API extends EventTarget {
   }
 
   #applyResolvedState(
-    resolvedState: ResolvedIncomingApiState,
+    resolvedState: PartialResolvedIncomingApiState,
     options: { state?: "idle" | "busy"; emitUpdate?: boolean } = {},
   ): void {
     const emitUpdate = options.emitUpdate ?? true;
@@ -630,17 +633,39 @@ export class API extends EventTarget {
     const nextResolvedJson = JSON.stringify(resolvedState.json);
     const stateChanged =
       options.state !== undefined && this.#state !== options.state;
-    const adyenEmbeddedChanged =
-      this.#adyenEmbedded !== resolvedState.adyenEmbedded;
-    const klarnaChanged = this.#klarna !== resolvedState.klarna;
-    const paypalChanged = this.#paypal !== resolvedState.paypal;
-    const squareChanged = this.#square !== resolvedState.square;
+
+    // A snapshot that omits an SDK keeps whatever is already exposed. Reading
+    // the omitted key as null instead would blank a live SDK until the next
+    // snapshot restores it — consumers that read it mid-hydrate would see a
+    // gateway that is not there, and every re-hydrate would report a change
+    // even when nothing about the checkout changed.
+    const nextAdyenEmbedded =
+      "adyenEmbedded" in resolvedState
+        ? (resolvedState.adyenEmbedded ?? null)
+        : this.#adyenEmbedded;
+    const nextKlarna =
+      "klarna" in resolvedState
+        ? (resolvedState.klarna ?? null)
+        : this.#klarna;
+    const nextPaypal =
+      "paypal" in resolvedState
+        ? (resolvedState.paypal ?? null)
+        : this.#paypal;
+    const nextSquare =
+      "square" in resolvedState
+        ? (resolvedState.square ?? null)
+        : this.#square;
+
+    const adyenEmbeddedChanged = this.#adyenEmbedded !== nextAdyenEmbedded;
+    const klarnaChanged = this.#klarna !== nextKlarna;
+    const paypalChanged = this.#paypal !== nextPaypal;
+    const squareChanged = this.#square !== nextSquare;
 
     this.#json = resolvedState.json;
-    this.#adyenEmbedded = resolvedState.adyenEmbedded;
-    this.#klarna = resolvedState.klarna;
-    this.#paypal = resolvedState.paypal;
-    this.#square = resolvedState.square;
+    this.#adyenEmbedded = nextAdyenEmbedded;
+    this.#klarna = nextKlarna;
+    this.#paypal = nextPaypal;
+    this.#square = nextSquare;
 
     if (options.state !== undefined) {
       this.#state = options.state;
