@@ -393,3 +393,70 @@ describe("Klarna payment option loading", () => {
     );
   });
 });
+
+describe("hydrateJson with a Klarna gateway", () => {
+  beforeEach(() => {
+    vi.resetModules();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    getKlarnaScript()?.remove();
+    restoreRuntime();
+  });
+
+  async function createHydratedApi() {
+    setBrowserRuntime();
+
+    const api = await createTestApi(createApiJson([authorizeGatewayConfig]));
+    const hydratePromise = api.hydrateJson(
+      createApiJson([klarnaGatewayConfig, authorizeGatewayConfig]),
+    );
+
+    getKlarnaScript()?.dispatchEvent(new Event("load"));
+    await flushTasks();
+    setLoadedKlarna();
+    (window as KlarnaWindow).klarnaAsyncCallback?.();
+    await hydratePromise;
+
+    return api;
+  }
+
+  // Consumers re-hydrate on every render (see foxy-checkout's Payment element).
+  // An update event feeds back into that render, so a hydrate that changes
+  // nothing must stay silent or the two sides drive each other in a loop.
+  it("does not emit an update when re-hydrating identical JSON", async () => {
+    const api = await createHydratedApi();
+    expect(api.klarna).not.toBeNull();
+
+    let updates = 0;
+    api.addEventListener("update", () => {
+      updates++;
+    });
+
+    await api.hydrateJson(
+      createApiJson([klarnaGatewayConfig, authorizeGatewayConfig]),
+    );
+
+    expect(updates).toBe(0);
+  });
+
+  // Anything reading `klarna` mid-hydrate must never observe a null gap.
+  it("keeps the Klarna SDK instance exposed throughout a re-hydrate", async () => {
+    const api = await createHydratedApi();
+    const instance = api.klarna;
+    expect(instance).not.toBeNull();
+
+    const observed: (typeof instance)[] = [];
+    api.addEventListener("update", () => {
+      observed.push(api.klarna);
+    });
+
+    await api.hydrateJson(
+      createApiJson([klarnaGatewayConfig, authorizeGatewayConfig]),
+    );
+
+    expect(observed).not.toContain(null);
+    expect(api.klarna).toBe(instance);
+  });
+});

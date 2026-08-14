@@ -25,6 +25,9 @@
   },
   "scripts": {
     "test": "vitest run",
+    "typecheck": "tsc --noEmit -p tsconfig.verify.json",
+    "verify": "npm run typecheck && npm test",
+    "prepare": "git config core.hooksPath .githooks || true",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "localdev:deploy:cdn": "npm run localdev:build:cdn && rm -rf ../foxy-docker-env-build/src/cdn-js/sdk@2 && cp -r dist/cdn ../foxy-docker-env-build/src/cdn-js/sdk@2",

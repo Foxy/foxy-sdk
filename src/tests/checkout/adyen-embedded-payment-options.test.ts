@@ -644,3 +644,94 @@ describe("submitAdyenEmbeddedPaymentDetails", () => {
     ).rejects.toThrow("HTTP status 500");
   });
 });
+
+describe("hydrateJson with an Adyen gateway", () => {
+  beforeEach(() => {
+    vi.resetModules();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    getAdyenScript()?.remove();
+    getApplePayScript()?.remove();
+    restoreRuntime();
+  });
+
+  async function createHydratedApi() {
+    setBrowserRuntime();
+
+    const api = await createTestApi(createApiJson([authorizeGatewayConfig]));
+    const hydratePromise = api.hydrateJson(
+      createApiJson([adyenGatewayConfig, authorizeGatewayConfig]),
+    );
+
+    setLoadedAdyen();
+    getAdyenScript()?.dispatchEvent(new Event("load"));
+    await hydratePromise;
+
+    return api;
+  }
+
+  // The counterpart of the two tests below: staying silent for an unchanged
+  // hydrate must not make the SDK arriving go unannounced.
+  it("announces the Adyen SDK to listeners on the first hydrate", async () => {
+    setBrowserRuntime();
+
+    const api = await createTestApi(createApiJson([authorizeGatewayConfig]));
+    const observed: (AdyenEmbeddedSdkInstance | null)[] = [];
+    api.addEventListener("update", () => {
+      observed.push(api.adyenEmbedded);
+    });
+
+    const hydratePromise = api.hydrateJson(
+      createApiJson([adyenGatewayConfig, authorizeGatewayConfig]),
+    );
+
+    setLoadedAdyen();
+    getAdyenScript()?.dispatchEvent(new Event("load"));
+    await hydratePromise;
+
+    expect(api.adyenEmbedded).not.toBeNull();
+    expect(observed.at(-1)).toBe(api.adyenEmbedded);
+  });
+
+  // Consumers re-hydrate on every render (see foxy-checkout's Payment element).
+  // An update event feeds back into that render, so a hydrate that changes
+  // nothing must stay silent or the two sides drive each other in a loop.
+  it("does not emit an update when re-hydrating identical JSON", async () => {
+    const api = await createHydratedApi();
+    expect(api.adyenEmbedded).not.toBeNull();
+
+    let updates = 0;
+    api.addEventListener("update", () => {
+      updates++;
+    });
+
+    await api.hydrateJson(
+      createApiJson([adyenGatewayConfig, authorizeGatewayConfig]),
+    );
+
+    expect(updates).toBe(0);
+  });
+
+  // The SDK instance is cached by configuration, so a re-hydrate resolves the
+  // very same Adyen checkout. Anything reading `adyenEmbedded` mid-hydrate
+  // (the Drop-in embed does, at mount) must never observe a null gap.
+  it("keeps the Adyen SDK instance exposed throughout a re-hydrate", async () => {
+    const api = await createHydratedApi();
+    const instance = api.adyenEmbedded;
+    expect(instance).not.toBeNull();
+
+    const observed: (typeof instance)[] = [];
+    api.addEventListener("update", () => {
+      observed.push(api.adyenEmbedded);
+    });
+
+    await api.hydrateJson(
+      createApiJson([adyenGatewayConfig, authorizeGatewayConfig]),
+    );
+
+    expect(observed).not.toContain(null);
+    expect(api.adyenEmbedded).toBe(instance);
+  });
+});
