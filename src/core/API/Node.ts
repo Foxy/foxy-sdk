@@ -13,7 +13,7 @@ const NULL_BODY_STATUSES = new Set([204, 205, 304]);
  * Links of a graph node with the optionality of `Graph['links']` removed, so that
  * indexing into it is known to produce a {@link Graph}.
  */
-type Links<TGraph extends Graph> = NonNullable<TGraph['links']>;
+type GraphLinks<TGraph extends Graph> = NonNullable<TGraph['links']>;
 
 /** Chain of curies leading to a hAPI resource starting with a base URL. */
 type CurieChain = [URL, ...string[]];
@@ -74,7 +74,19 @@ function stringifyOrder(order: unknown): string {
 export class Node<TGraph extends Graph> {
   static readonly ResolutionError = ResolutionError;
 
-  static readonly Response = Response;
+  /**
+   * This SDK's {@link Response} class.
+   *
+   * A getter, not a static field. `Response.ts` imports this module for
+   * `addFollowableLinks`, so the two form a value cycle. A static field is read
+   * during this class's static initialization, which under plain ESM happens
+   * while `Response.ts` is still evaluating whenever `Response.ts` is the entry
+   * point, and the binding is still in its temporal dead zone. A getter defers
+   * the read until the first access, by which time both modules are done.
+   */
+  static get Response(): typeof Response {
+    return Response;
+  }
 
   /** Shared {@link Logger} instance. */
   protected readonly _console: Logger;
@@ -206,13 +218,13 @@ export class Node<TGraph extends Graph> {
    * @param curie Curie to follow.
    * @returns Instance of {@link APINode} representing the resource at curie location.
    */
-  follow<C extends keyof Links<TGraph>>(curie: C): Node<Links<TGraph>[C]> {
+  follow<C extends keyof GraphLinks<TGraph>>(curie: C): Node<GraphLinks<TGraph>[C]> {
     assertCurie(curie);
 
     const config = { cache: this._cache, console: this._console, fetch: this._fetch };
     const path = this._path.concat(curie as string) as CurieChain;
 
-    return new Node<Links<TGraph>[C]>({ ...config, path });
+    return new Node<GraphLinks<TGraph>[C]>({ ...config, path });
   }
 
   /**
