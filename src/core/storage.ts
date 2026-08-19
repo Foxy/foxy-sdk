@@ -3,10 +3,13 @@
  * [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API).
  * Used as the default for `storage` and `cache` on API clients. Replaces the
  * `fake-storage` dependency v1 used for the same purpose.
+ *
+ * No index signature is declared. `Storage` declares `[name: string]: any`, and
+ * TypeScript does not require an implementing class to match an index signature
+ * whose type is `any`. Declaring one would make every property access on an
+ * instance typecheck, silencing typos.
  */
 export class MemoryStorage implements Storage {
-  [key: string]: unknown;
-
   #items = new Map<string, string>();
 
   get length(): number {

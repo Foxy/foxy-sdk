@@ -47,5 +47,11 @@ describe('Core', () => {
       expect(storage.key(1)).toBe('b');
       expect(storage.key(2)).toBeNull();
     });
+
+    it('satisfies the Web Storage interface at a use site', () => {
+      const storage: Storage = new MemoryStorage();
+      storage.setItem('foo', 'bar');
+      expect(storage.getItem('foo')).toBe('bar');
+    });
   });
 });
