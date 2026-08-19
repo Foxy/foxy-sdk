@@ -119,7 +119,9 @@ describe('Core', () => {
       };
 
       expect(() => assertSignUpParams(valid)).not.toThrow();
-      expect(() => assertSignUpParams({ ...valid, verification: { token: 't', type: 'recaptcha' } })).toThrow(TypeError);
+      expect(() => assertSignUpParams({ ...valid, verification: { token: 't', type: 'recaptcha' } })).toThrow(
+        TypeError,
+      );
       expect(() => assertSignUpParams({ ...valid, email: 'a'.repeat(101) })).toThrow(TypeError);
       expect(() => assertSignUpParams({ ...valid, first_name: 'a'.repeat(51) })).toThrow(TypeError);
       expect(() => assertSignUpParams({ ...valid, password: 'a'.repeat(51) })).toThrow(TypeError);
