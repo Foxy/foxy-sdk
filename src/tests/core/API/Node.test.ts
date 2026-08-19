@@ -212,7 +212,8 @@ describe('Core', () => {
 
       it("throws ResolutionError if link doesn't exist", async () => {
         const path = [new URL('https://example.com/'), 'nope'] as [URL, ...string[]];
-        const fetch = vi.fn().mockResolvedValue(new Response(null, { status: 500 }));
+        const body = JSON.stringify({ _links: { self: { href: 'https://example.com/' } } });
+        const fetch = vi.fn().mockResolvedValue(new Response(body, { status: 200 }));
         const promise = new Node({ cache, console, fetch, path }).get();
 
         await expect(promise).rejects.toThrow(ResolutionError);
