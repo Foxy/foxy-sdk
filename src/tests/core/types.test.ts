@@ -1,6 +1,4 @@
-import type { Graph } from '../../core/Graph';
-import type { Query } from '../../core/Query/Query';
-import type { Resource } from '../../core/Resource/Resource';
+import type { Graph, Query, Resource } from '../../core/index.js';
 
 interface Item extends Graph {
   curie: 'fx:item';
