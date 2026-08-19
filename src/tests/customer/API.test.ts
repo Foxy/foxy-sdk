@@ -35,6 +35,10 @@ const sampleStoredExpiredSession = Object.assign({}, sampleSession, {
   expires_in: 0,
 });
 
+const sampleStoredRecentSession = Object.assign({}, sampleSession, {
+  date_created: new Date(Date.now() - 5 * 60_000).toISOString(),
+});
+
 describe('Customer', () => {
   describe('API', () => {
     it('exposes storage key for session as static property', () => {
@@ -67,12 +71,45 @@ describe('Customer', () => {
       fetchMock.mockResolvedValue(new Response(null));
 
       const api = new CustomerAPI(commonInit);
+
       api.storage.setItem(CustomerAPI.SESSION, JSON.stringify(sampleStoredExpiredSession));
+      api.cache.setItem('https://demo.foxycart.test/s/customer/ > attributes', 'https://demo.foxycart.test/a/');
       await api.fetch(api.base.toString());
+
+      expect(api.storage).toHaveLength(0);
+      expect(api.cache).toHaveLength(0);
+
+      const request = fetchMock.mock.calls[0][0] as Request;
+      expect(request.headers.get('Authorization')).toBeNull();
+    });
+
+    it('treats a session older than its expires_in window as expired', async () => {
+      fetchMock.mockResolvedValue(new Response(null));
+
+      const session = { ...sampleStoredRecentSession, expires_in: 60 };
+      const api = new CustomerAPI(commonInit);
+
+      api.storage.setItem(CustomerAPI.SESSION, JSON.stringify(session));
+      await api.fetch(api.base.toString());
+
       expect(api.storage).toHaveLength(0);
 
       const request = fetchMock.mock.calls[0][0] as Request;
       expect(request.headers.get('Authorization')).toBeNull();
+    });
+
+    it('treats a session still inside its expires_in window as live', async () => {
+      fetchMock.mockResolvedValue(new Response(null));
+
+      const api = new CustomerAPI(commonInit);
+
+      api.storage.setItem(CustomerAPI.SESSION, JSON.stringify(sampleStoredRecentSession));
+      await api.fetch(api.base.toString());
+
+      expect(api.storage).toHaveLength(1);
+
+      const request = fetchMock.mock.calls[0][0] as Request;
+      expect(request.headers.get('Authorization')).toBe(`Bearer ${sampleSession.session_token}`);
     });
 
     it('makes an unauthenticated request when there is no session token', async () => {
@@ -128,6 +165,7 @@ describe('Customer', () => {
     it('throws an error when .signIn() is called with invalid params', async () => {
       const params = ({ email: 0, passw0rd: 'foo' } as unknown) as Credentials;
       await expect(new CustomerAPI(commonInit).signIn(params)).rejects.toThrow(TypeError);
+      expect(fetchMock).not.toHaveBeenCalled();
     });
 
     it('in .signIn(), throws Core.API.AuthError with code UNAUTHORIZED on 401', async () => {
@@ -151,9 +189,11 @@ describe('Customer', () => {
       const url = new URL('./authenticate', api.base).toString();
 
       api.storage.setItem(CustomerAPI.SESSION, JSON.stringify(sampleStoredSession));
+      api.cache.setItem('https://demo.foxycart.test/s/customer/ > attributes', 'https://demo.foxycart.test/a/');
       await api.signOut();
 
       expect(api.storage).toHaveLength(0);
+      expect(api.cache).toHaveLength(0);
 
       const request = fetchMock.mock.calls[0][0] as Request;
 
@@ -190,6 +230,7 @@ describe('Customer', () => {
     it('throws an error when .sendPasswordResetEmail() is called with invalid params', async () => {
       const params = ({ email: 0 } as unknown) as { email: string };
       await expect(new CustomerAPI(commonInit).sendPasswordResetEmail(params)).rejects.toThrow(TypeError);
+      expect(fetchMock).not.toHaveBeenCalled();
     });
 
     it('in .sendPasswordResetEmail(), throws Core.API.AuthError with code UNKNOWN on statuses other than 2XX', async () => {
