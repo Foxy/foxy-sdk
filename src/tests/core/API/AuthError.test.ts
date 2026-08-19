@@ -33,6 +33,10 @@ describe('Core', () => {
         const error = new AuthError({ code: AuthError.UNKNOWN, originalError });
         expect(error).toHaveProperty('originalError', originalError);
       });
+
+      it('rejects an unknown error code', () => {
+        expect(() => new AuthError({ code: 'NOPE' } as never)).toThrow(TypeError);
+      });
     });
   });
 });
