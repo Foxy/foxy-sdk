@@ -83,6 +83,8 @@
   },
   "dependencies": {
     "@paypal/paypal-js": "^9.7.0",
-    "@stripe/stripe-js": "^9.8.0"
+    "@stripe/stripe-js": "^9.8.0",
+    "jsonata": "^1.8.9",
+    "parse-duration": "^2.1.8"
   }
 }
