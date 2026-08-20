@@ -16,5 +16,16 @@ describe('Core', () => {
       expect(Core).not.toHaveProperty('Nucleon');
       expect(Core).not.toHaveProperty('Rumour');
     });
+
+    it('exports exactly the documented surface and nothing more', () => {
+      expect(Object.keys(Core).sort()).toStrictEqual([
+        'API',
+        'AuthError',
+        'Node',
+        'ResolutionError',
+        'Response',
+        'getResourceId',
+      ]);
+    });
   });
 });

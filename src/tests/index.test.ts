@@ -19,4 +19,8 @@ describe('Index', () => {
   it('exports customer sdk modules as Customer', () => {
     expect(FoxySDK).toHaveProperty('Customer', FoxySDKCustomer);
   });
+
+  it('exports exactly the documented namespaces and nothing more', () => {
+    expect(Object.keys(FoxySDK).sort()).toStrictEqual(['Checkout', 'Core', 'Customer']);
+  });
 });
