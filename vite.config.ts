@@ -19,6 +19,8 @@ const entryMap = {
   checkout: resolve(__dirname, "src/checkout/index.ts"),
   "checkout/client": resolve(__dirname, "src/checkout/client.ts"),
   "checkout/loader": resolve(__dirname, "src/checkout/loader.ts"),
+  core: resolve(__dirname, "src/core/index.ts"),
+  customer: resolve(__dirname, "src/customer/index.ts"),
 };
 
 function isExternal(id: string): boolean {
@@ -41,9 +43,18 @@ export default defineConfig(({ mode }) => {
       : [
           dts({
             outDir: "dist/npm",
-            rollupTypes: true,
+            copyDtsFiles: true,
+            insertTypesEntry: true,
+            rollupTypes: false,
             tsconfigPath: "./tsconfig.build.json",
-            include: ["src/index.ts", "src/checkout", "src/vite-env.d.ts"],
+            include: [
+              "src/index.ts",
+              "src/checkout",
+              "src/core",
+              "src/customer",
+              "src/rules",
+              "src/vite-env.d.ts",
+            ],
             exclude: [
               "src/tests/**",
               "src/**/__tests__/**",

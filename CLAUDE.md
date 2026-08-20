@@ -7,8 +7,15 @@
 
 ## What Is In This Branch
 
-- `release/2.0.0` ships the **Checkout API only**. `src/` contains `checkout/` and nothing else; `src/index.ts` is a single re-export of it.
-- The Backend and Customer clients, and `core/` (which holds Nucleon), still live in v1 and have not been ported. Do not assume a `Backend`, `Customer` or `core` namespace exists here — check before referencing one.
+- `release/2.0.0` ships the **Checkout, Core and Customer** clients. `src/` holds
+  `checkout/`, `core/`, `customer/` and `rules/`; `src/index.ts` re-exports the
+  first three as namespaces.
+- The Backend client has not been ported and neither has Nucleon. `BooleanSelector`,
+  `Nucleon` and `Rumour` were deliberately left in v1 — do not assume a `Backend`
+  namespace exists here, and check before referencing one.
+- `src/rules/` is internal: it evaluates `customer_portal_settings` gating rules
+  against the camelCase shapes the admin hAPI returns. `src/customer/` adapts the
+  Customer API's snake_case settings onto it. It has no subpath and must not gain one.
 
 ## Testing
 
@@ -19,14 +26,54 @@
 
 `vite.config.ts` keys everything off `mode`:
 
-- `build:npm` — dependencies stay **external**, and `vite-plugin-dts` emits rolled-up types to `dist/npm`. This is what `prepack` runs.
+- `build:npm` — dependencies stay **external**, and `vite-plugin-dts` emits types to `dist/npm`. This is what `prepack` runs.
 - `build:cdn` — dependencies are **bundled and minified**, only Node builtins are external, and a `LICENSE.md` covering the bundled deps is emitted alongside.
 
 A dependency that is fine for npm consumers is shipped to every browser in the CDN build. Weigh new runtime dependencies accordingly.
 
+`jsonata` is pinned to `^1.8` on purpose: `evaluate()` is synchronous there and
+returns a `Promise` in 2.x, which would force the three gating helpers in
+`src/customer/` to become async and change their public signatures.
+
+`dts()` runs with `rollupTypes: false`, `copyDtsFiles: true` and
+`insertTypesEntry: true`, not with `rollupTypes: true`. The `core`/`customer`
+type layer is ~44 hand-written `.d.ts` files; tsc does not re-emit declaration
+inputs, so `@microsoft/api-extractor` never sees them and a rolled-up
+`customer.d.ts` ends up full of unresolvable relative imports — which
+`skipLibCheck` silently turns into `any`. See FX-274 notes before changing this.
+
+Caveat that applies **only under `rollupTypes: true`**: with that setting, a tree
+reached from `src/index.ts` but missing from the `dts()` `include` array fails the
+build outright with `Internal Error: getResolvedModule() could not resolve module
+name`. Under the committed `rollupTypes: false` it fails silently instead — see
+Entry Points.
+
 ## Entry Points
 
-`entryMap` in `vite.config.ts` and `exports` in `package.json` are two hand-maintained lists of the same four entries — `index`, `checkout`, `checkout/client`, `checkout/loader`. Adding an entry means editing both; nothing checks that they agree.
+`exports` in `package.json`, `entryMap` in `vite.config.ts`, the `include` array
+in the `dts()` plugin call, and `include` in `tsconfig.build.json` are four
+hand-maintained lists covering the same entries — `index`, `checkout`,
+`checkout/client`, `checkout/loader`, `core`, `customer`. Adding an entry means
+editing all four; nothing checks that they agree.
+
+The two type lists do not fail the same way, and only one of them gates emission:
+
+- The `dts()` `include` array **is** load-bearing. Omit an entry's tree and
+  `build:npm` still succeeds, but `dist/npm/<entry>.d.ts` comes out as a bare
+  `export {}` with no declaration tree behind it. Nothing surfaces until a
+  consumer imports from it and gets `TS2305 has no exported member` on each named
+  import — not `TS2307` on the module path, which would at least point at the
+  missing module. This is the least diagnosable failure mode of the four lists.
+- `include` in `tsconfig.build.json` is **not** load-bearing for type emission
+  under the current config: omitting an entry's tree there still emits the full
+  declaration tree, because the `dts()` `include` drives what gets processed and
+  TypeScript pulls transitively-imported files in regardless. Keep it in sync
+  anyway — it scopes what the build tsconfig covers, and keeping the four lists
+  identical is what makes them checkable by eye.
+
+`src/rules` appears in the last two lists but in neither of the first two — it is
+internal, and `./customer` re-exports `getTimeFromFrequency` and `Constraints`
+from it, so the emitted types need it.
 
 - `checkout/client.ts` is a **singleton** — `export const client = new API()`. Importing it twice gives the same instance.
 - `checkout/loader.ts` is the browser drop-in. It reads `?store=` from its own `import.meta.url` and falls back to `location.hostname`, then re-exports the same singleton. Anything that must run before first use belongs here, not in `client.ts`.
