@@ -263,6 +263,26 @@ describe('Customer', () => {
       expect(await request.text()).toBe(expectedBody);
     });
 
+    it('can register a customer without a password', async () => {
+      const params: SignUpParams = {
+        verification: { type: 'hcaptcha', token: 'abc123' },
+        email: 'test@example.com',
+      };
+
+      const expectedUrl = new URL('./sign_up', commonInit.base).toString();
+
+      fetchMock.mockResolvedValue(new Response(JSON.stringify({ success: true })));
+
+      await new CustomerAPI(commonInit).signUp(params);
+
+      const request = fetchMock.mock.calls[0][0] as Request;
+      const body = JSON.parse(await request.text());
+
+      expect(request.url).toBe(expectedUrl);
+      expect(request.method).toBe('POST');
+      expect(body).not.toHaveProperty('password');
+    });
+
     it('throws an error with code UNAVAILABLE if the email is already taken', async () => {
       const params: SignUpParams = {
         verification: { type: 'hcaptcha', token: 'abc123' },
