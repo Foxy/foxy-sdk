@@ -54,10 +54,22 @@ Entry Points.
 in the `dts()` plugin call, and `include` in `tsconfig.build.json` are four
 hand-maintained lists covering the same entries — `index`, `checkout`,
 `checkout/client`, `checkout/loader`, `core`, `customer`. Adding an entry means
-editing all four; nothing checks that they agree. Missing either of the last two
-means **no emitted types rather than a build error**: `build:npm` still succeeds,
-and `dist/npm/<entry>.d.ts` is emitted as a bare `export {}` with no declaration
-tree behind it. Nothing surfaces until a consumer hits `TS2307`/`TS2305`.
+editing all four; nothing checks that they agree.
+
+The two type lists do not fail the same way, and only one of them gates emission:
+
+- The `dts()` `include` array **is** load-bearing. Omit an entry's tree and
+  `build:npm` still succeeds, but `dist/npm/<entry>.d.ts` comes out as a bare
+  `export {}` with no declaration tree behind it. Nothing surfaces until a
+  consumer imports from it and gets `TS2305 has no exported member` on each named
+  import — not `TS2307` on the module path, which would at least point at the
+  missing module. This is the least diagnosable failure mode of the four lists.
+- `include` in `tsconfig.build.json` is **not** load-bearing for type emission
+  under the current config: omitting an entry's tree there still emits the full
+  declaration tree, because the `dts()` `include` drives what gets processed and
+  TypeScript pulls transitively-imported files in regardless. Keep it in sync
+  anyway — it scopes what the build tsconfig covers, and keeping the four lists
+  identical is what makes them checkable by eye.
 
 `src/rules` appears in the last two lists but in neither of the first two — it is
 internal, and `./customer` re-exports `getTimeFromFrequency` and `Constraints`
