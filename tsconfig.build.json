@@ -6,6 +6,9 @@
   "include": [
     "src/index.ts",
     "src/checkout/**/*",
+    "src/core/**/*",
+    "src/customer/**/*",
+    "src/rules/**/*",
     "src/vite-env.d.ts"
   ],
   "exclude": [
