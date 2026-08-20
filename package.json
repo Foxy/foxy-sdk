@@ -21,6 +21,14 @@
     "./checkout/client": {
       "types": "./dist/npm/checkout/client.d.ts",
       "import": "./dist/npm/checkout/client.js"
+    },
+    "./core": {
+      "types": "./dist/npm/core.d.ts",
+      "import": "./dist/npm/core.js"
+    },
+    "./customer": {
+      "types": "./dist/npm/customer.d.ts",
+      "import": "./dist/npm/customer.js"
     }
   },
   "scripts": {
@@ -86,6 +94,8 @@
   },
   "dependencies": {
     "@paypal/paypal-js": "^9.7.0",
-    "@stripe/stripe-js": "^9.8.0"
+    "@stripe/stripe-js": "^9.8.0",
+    "jsonata": "^1.8.9",
+    "parse-duration": "^2.1.8"
   }
 }
