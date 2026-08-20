@@ -42,6 +42,12 @@ inputs, so `@microsoft/api-extractor` never sees them and a rolled-up
 `customer.d.ts` ends up full of unresolvable relative imports — which
 `skipLibCheck` silently turns into `any`. See FX-274 notes before changing this.
 
+Caveat that applies **only under `rollupTypes: true`**: with that setting, a tree
+reached from `src/index.ts` but missing from the `dts()` `include` array fails the
+build outright with `Internal Error: getResolvedModule() could not resolve module
+name`. Under the committed `rollupTypes: false` it fails silently instead — see
+Entry Points.
+
 ## Entry Points
 
 `exports` in `package.json`, `entryMap` in `vite.config.ts`, the `include` array
@@ -49,8 +55,9 @@ in the `dts()` plugin call, and `include` in `tsconfig.build.json` are four
 hand-maintained lists covering the same entries — `index`, `checkout`,
 `checkout/client`, `checkout/loader`, `core`, `customer`. Adding an entry means
 editing all four; nothing checks that they agree. Missing either of the last two
-does not degrade gracefully: `build:npm` fails outright in `vite-plugin-dts`
-(`getResolvedModule() could not resolve module name`).
+means **no emitted types rather than a build error**: `build:npm` still succeeds,
+and `dist/npm/<entry>.d.ts` is emitted as a bare `export {}` with no declaration
+tree behind it. Nothing surfaces until a consumer hits `TS2307`/`TS2305`.
 
 `src/rules` appears in the last two lists but in neither of the first two — it is
 internal, and `./customer` re-exports `getTimeFromFrequency` and `Constraints`
