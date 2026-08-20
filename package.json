@@ -21,6 +21,14 @@
     "./checkout/client": {
       "types": "./dist/npm/checkout/client.d.ts",
       "import": "./dist/npm/checkout/client.js"
+    },
+    "./core": {
+      "types": "./dist/npm/core.d.ts",
+      "import": "./dist/npm/core.js"
+    },
+    "./customer": {
+      "types": "./dist/npm/customer.d.ts",
+      "import": "./dist/npm/customer.js"
     }
   },
   "scripts": {
