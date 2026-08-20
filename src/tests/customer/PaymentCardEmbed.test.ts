@@ -271,6 +271,60 @@ describe('Customer', () => {
       expect(testIframe.style.height).toBe('200px');
     });
 
+    it('does not throw on a late "resize" message after .unmount()', async () => {
+      const embed = new TestPaymentCardEmbed({ url: 'https://embed.foxy.test/v1.html?demo=default' });
+      const mountingPromise = embed.mount((new TestElement() as unknown) as Element);
+
+      // Mount the mock embed
+      const loadListener = testIframe.addEventListener.mock.calls.find(([event]) => event === 'load')![1];
+      const messageListener = testMessageChannel.port1.addEventListener.mock.calls.find(([e]) => e === 'message')![1];
+      await new Promise(resolve => setTimeout(resolve, 0));
+      loadListener({ currentTarget: testIframe });
+      messageListener({ data: JSON.stringify({ type: 'ready' }) });
+      await mountingPromise;
+
+      // Tear the embed down, then simulate a "resize" message arriving after the iframe is gone.
+      // The stub's .removeEventListener() does not actually detach anything, so the captured
+      // messageListener reference is still the same handler and can be invoked directly.
+      embed.unmount();
+      const heightBeforeLateMessage = testIframe.style.height;
+
+      // eslint-disable-next-line sort-keys
+      expect(() => messageListener({ data: JSON.stringify({ type: 'resize', height: '999px' }) })).not.toThrow();
+      expect(testIframe.style.height).toBe(heightBeforeLateMessage);
+    });
+
+    it('does not throw on a late "load" event after .unmount()', async () => {
+      const embed = new TestPaymentCardEmbed({ url: 'https://embed.foxy.test/v1.html?demo=default' });
+      const mountingPromise = embed.mount((new TestElement() as unknown) as Element);
+
+      // Mount the mock embed
+      const loadListener = testIframe.addEventListener.mock.calls.find(([event]) => event === 'load')![1];
+      const messageListener = testMessageChannel.port1.addEventListener.mock.calls.find(([e]) => e === 'message')![1];
+      await new Promise(resolve => setTimeout(resolve, 0));
+      loadListener({ currentTarget: testIframe });
+      messageListener({ data: JSON.stringify({ type: 'ready' }) });
+      await mountingPromise;
+
+      // Tear the embed down, then simulate a "load" event arriving after the channel is gone
+      embed.unmount();
+      vi.clearAllMocks();
+
+      expect(() => loadListener({ currentTarget: testIframe })).not.toThrow();
+      expect(testIframe.contentWindow.postMessage).not.toHaveBeenCalled();
+    });
+
+    it('throws if the iframe has no content window on "load"', () => {
+      const embed = new TestPaymentCardEmbed({ url: 'https://embed.foxy.test/v1.html?demo=default' });
+      embed.mount((new TestElement() as unknown) as Element);
+
+      const loadListener = testIframe.addEventListener.mock.calls.find(([event]) => event === 'load')![1];
+
+      expect(() => loadListener({ currentTarget: { contentWindow: null } })).toThrow(
+        'Content window is not available.'
+      );
+    });
+
     it('calls .onsubmit on "submit" event', async () => {
       const embed = new TestPaymentCardEmbed({ url: 'https://embed.foxy.test/v1.html?demo=default' });
       const mountingPromise = embed.mount((new TestElement() as unknown) as Element);
