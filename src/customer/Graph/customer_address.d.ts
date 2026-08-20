@@ -1,4 +1,4 @@
-import type { Customer } from './customer';
+import type { Graph as Customer } from './index';
 import type { Graph } from '../../core';
 
 export interface CustomerAddress extends Graph {
