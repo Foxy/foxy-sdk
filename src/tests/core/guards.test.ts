@@ -20,9 +20,21 @@ describe('Core', () => {
     });
 
     it('assertStorage rejects partial implementations', () => {
-      const partial = { clear: () => undefined, getItem: () => null };
+      const partial = { clear: () => undefined, getItem: () => null, length: 0 };
       expect(() => assertStorage(partial, 'storage')).toThrow(TypeError);
       expect(() => assertStorage(null, 'storage')).toThrow(TypeError);
+    });
+
+    it('assertStorage rejects an implementation missing a single method', () => {
+      const missingKey = {
+        clear: () => undefined,
+        getItem: () => null,
+        length: 0,
+        removeItem: () => undefined,
+        setItem: () => undefined,
+      };
+
+      expect(() => assertStorage(missingKey, 'storage')).toThrow(TypeError);
     });
 
     it('assertCoreAPIInit accepts a bare base URL', () => {
@@ -126,6 +138,15 @@ describe('Core', () => {
       expect(() => assertSignUpParams({ ...valid, first_name: 'a'.repeat(51) })).toThrow(TypeError);
       expect(() => assertSignUpParams({ ...valid, password: 'a'.repeat(51) })).toThrow(TypeError);
       expect(() => assertSignUpParams({ verification: { token: 't', type: 'hcaptcha' } })).toThrow(TypeError);
+    });
+
+    it('assertSignUpParams accepts params with no password', () => {
+      const noPassword = {
+        email: 'a@b.c',
+        verification: { token: 't', type: 'hcaptcha' },
+      };
+
+      expect(() => assertSignUpParams(noPassword)).not.toThrow();
     });
 
     it('assertEmail and assertBoolean check primitives', () => {
