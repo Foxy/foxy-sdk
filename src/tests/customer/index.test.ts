@@ -16,5 +16,16 @@ describe('Customer', () => {
       expect(Customer).toHaveProperty('isNextTransactionDate');
       expect(Customer).toHaveProperty('getTimeFromFrequency');
     });
+
+    it('exports exactly the documented surface and nothing more', () => {
+      expect(Object.keys(Customer).sort()).toStrictEqual([
+        'API',
+        'PaymentCardEmbed',
+        'getAllowedFrequencies',
+        'getNextTransactionDateConstraints',
+        'getTimeFromFrequency',
+        'isNextTransactionDate',
+      ]);
+    });
   });
 });
