@@ -67,9 +67,9 @@
   },
   "homepage": "https://sdk.foxy.dev",
   "devDependencies": {
+    "@types/jsdom": "^30.0.0",
     "@types/node": "^22.0.0",
     "@vitest/coverage-v8": "^4.1.5",
-    "jsdom": "^29.0.2",
     "typedoc": "^0.28.19",
     "typescript": "~5.9.3",
     "vite": "^8.0.10",
@@ -96,6 +96,7 @@
     "@paypal/paypal-js": "^9.7.0",
     "@stripe/stripe-js": "^9.8.0",
     "jsonata": "^1.8.9",
+    "jsdom": "^29.0.2",
     "parse-duration": "^2.1.8"
   }
 }
