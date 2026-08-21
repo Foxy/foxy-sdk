@@ -16,6 +16,7 @@ const builtins = new Set([
 
 const entryMap = {
   index: resolve(__dirname, "src/index.ts"),
+  admin: resolve(__dirname, "src/admin/index.ts"),
   checkout: resolve(__dirname, "src/checkout/index.ts"),
   "checkout/client": resolve(__dirname, "src/checkout/client.ts"),
   "checkout/loader": resolve(__dirname, "src/checkout/loader.ts"),
@@ -49,6 +50,7 @@ export default defineConfig(({ mode }) => {
             tsconfigPath: "./tsconfig.build.json",
             include: [
               "src/index.ts",
+              "src/admin",
               "src/checkout",
               "src/core",
               "src/customer",

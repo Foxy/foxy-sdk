@@ -10,6 +10,10 @@
       "types": "./dist/npm/index.d.ts",
       "import": "./dist/npm/index.js"
     },
+    "./admin": {
+      "types": "./dist/npm/admin.d.ts",
+      "import": "./dist/npm/admin.js"
+    },
     "./checkout": {
       "types": "./dist/npm/checkout.d.ts",
       "import": "./dist/npm/checkout.js"
