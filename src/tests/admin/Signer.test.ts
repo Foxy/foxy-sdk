@@ -260,6 +260,41 @@ describe('Signer', () => {
     const signed = signer.signHtml(noParent);
     expect(signed.match(/3ce339bde0689065ad4f18698603d5f957581bc8ef819e1a6d5a11ddefddc46a/)).toHaveLength(1);
   });
+
+  it('Does not re-sign a URL that is already signed', () => {
+    const alreadySigned = `https://foo.com/cart?code=1||${'a'.repeat(64)}`;
+    const consoleError = console.error;
+    console.error = vi.fn();
+    expect(signer.signUrl(alreadySigned)).toBe(alreadySigned);
+    expect(console.error).toHaveBeenCalledWith('Attempt to sign a signed URL', alreadySigned);
+    console.error = consoleError;
+  });
+
+  it('Does not sign a malformed URL that matches the cart path', () => {
+    const malformed = 'not-a-url/cart?code=test';
+    expect(signer.signUrl(malformed)).toBe(malformed);
+  });
+
+  it('Does not sign a cart URL with no code parameter', () => {
+    const noCode = 'https://foo.com/cart?name=test';
+    expect(signer.signUrl(noCode)).toBe(noCode);
+  });
+
+  it('Rejects signFile() when the write callback reports an error', async () => {
+    const inputPath = './test/mocks/html/onepagewithforms.html';
+    const readFunc = (_: string) => Promise.resolve(new JSDOM(htmlPageWithForm));
+    const writeError = new Error('disk full');
+    const writeFuncFail = (_: any, __: string, callback: (err: any) => void) => {
+      callback(writeError);
+    };
+    await expect(signer.signFile(inputPath, 'foo', readFunc, writeFuncFail)).rejects.toBe(writeError);
+  });
+
+  it('Skips a "0:"-prefixed name matching an excluded prefix', () => {
+    const excludedPrefix = Signer.cartExcludePrefixes[0];
+    const name = `0:${excludedPrefix}foo`;
+    expect(signer.signName(name, 'nonce')).toEqual(name);
+  });
 });
 
 /** Test helper content **/
