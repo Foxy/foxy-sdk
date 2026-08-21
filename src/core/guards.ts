@@ -5,7 +5,8 @@ export type AuthErrorCode =
   | 'UNAUTHORIZED'
   | 'INVALID_FORM'
   | 'UNAVAILABLE'
-  | 'UNKNOWN';
+  | 'UNKNOWN'
+  | 'TOKEN_REFRESH_FAILED';
 
 const AUTH_ERROR_CODES: readonly AuthErrorCode[] = [
   'NEW_PASSWORD_REQUIRED',
@@ -14,6 +15,7 @@ const AUTH_ERROR_CODES: readonly AuthErrorCode[] = [
   'INVALID_FORM',
   'UNAVAILABLE',
   'UNKNOWN',
+  'TOKEN_REFRESH_FAILED',
 ];
 
 const STORAGE_METHODS = ['clear', 'getItem', 'key', 'removeItem', 'setItem'] as const;
@@ -199,4 +201,78 @@ export function assertEmail(value: unknown): void {
  */
 export function assertBoolean(value: unknown, label: string): void {
   if (typeof value !== 'boolean') fail(label, 'a boolean');
+}
+
+/**
+ * Checks the Admin-specific fields of the Admin API constructor params
+ * (`clientId`/`clientSecret`/`refreshToken`/`version`). The shared
+ * `base`/`cache`/`storage`/`level` fields are intentionally left to
+ * `assertCoreAPIInit`, which `Core.API`'s own constructor already runs —
+ * duplicating that check here would just repeat the same validation twice.
+ *
+ * @param value Value to check.
+ * @throws TypeError when any member is of the wrong type.
+ */
+export function assertAdminAPIInit(value: unknown): void {
+  if (!isRecord(value)) fail('init', 'an object');
+
+  const { clientId, clientSecret, refreshToken, version } = value;
+
+  checkRequiredString(clientId, 'init.clientId');
+  checkRequiredString(clientSecret, 'init.clientSecret');
+  checkRequiredString(refreshToken, 'init.refreshToken');
+  if (version !== undefined && version !== '1') fail('init.version', '"1"');
+}
+
+/**
+ * Checks the options passed to Admin API's static `getToken()` method.
+ *
+ * @param value Value to check.
+ * @throws TypeError when any member is of the wrong type, or neither `code` nor `refreshToken` is present.
+ */
+export function assertAdminGetTokenOpts(value: unknown): void {
+  if (!isRecord(value)) fail('opts', 'an object');
+
+  const { base, clientId, clientSecret, code, refreshToken, version } = value;
+
+  if (code === undefined && refreshToken === undefined) {
+    fail('opts', 'an object with a "code" or "refreshToken" property');
+  }
+  if (code !== undefined) checkRequiredString(code, 'opts.code');
+  if (refreshToken !== undefined) checkRequiredString(refreshToken, 'opts.refreshToken');
+  checkRequiredString(clientId, 'opts.clientId');
+  checkRequiredString(clientSecret, 'opts.clientSecret');
+  if (base !== undefined && !(base instanceof URL)) fail('opts.base', 'an instance of URL');
+  if (version !== undefined && version !== '1') fail('opts.version', '"1"');
+}
+
+/**
+ * Checks the options passed to `createSSOURL()`.
+ *
+ * @param value Value to check.
+ * @throws TypeError when any member is of the wrong type.
+ */
+export function assertSSOURLOptions(value: unknown): void {
+  if (!isRecord(value)) fail('options', 'an object');
+
+  const { customer, domain, secret, session, timestamp } = value;
+
+  if (typeof customer !== 'number') fail('options.customer', 'a number');
+  checkRequiredString(domain, 'options.domain');
+  checkRequiredString(secret, 'options.secret');
+  checkOptionalString(session, 'options.session');
+  if (timestamp !== undefined && typeof timestamp !== 'number') fail('options.timestamp', 'a number');
+}
+
+/**
+ * Checks the webhook payload passed to `verifyWebhookSignature()`.
+ *
+ * @param value Value to check.
+ * @throws TypeError when any member is missing or of the wrong type.
+ */
+export function assertWebhookSignaturePayload(value: unknown): void {
+  if (!isRecord(value)) fail('webhook', 'an object');
+  checkRequiredString(value.key, 'webhook.key');
+  checkRequiredString(value.payload, 'webhook.payload');
+  checkRequiredString(value.signature, 'webhook.signature');
 }
