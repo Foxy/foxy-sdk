@@ -183,6 +183,7 @@ describe('Core', () => {
       expect(() => assertAdminGetTokenOpts(base)).toThrow(TypeError);
       expect(() => assertAdminGetTokenOpts({ ...base, code: 'x', base: 'not-a-url' })).toThrow(TypeError);
       expect(() => assertAdminGetTokenOpts({ clientId: 'a', code: 'x' })).toThrow(TypeError);
+      expect(() => assertAdminGetTokenOpts(null)).toThrow(TypeError);
     });
 
     it('assertSSOURLOptions enforces the required SSO fields', () => {
@@ -192,6 +193,7 @@ describe('Core', () => {
       expect(() => assertSSOURLOptions({ ...valid, session: 's', timestamp: 1 })).not.toThrow();
       expect(() => assertSSOURLOptions({ ...valid, customer: 'not-a-number' })).toThrow(TypeError);
       expect(() => assertSSOURLOptions({ domain: 'x', secret: 'y' })).toThrow(TypeError);
+      expect(() => assertSSOURLOptions(null)).toThrow(TypeError);
     });
 
     it('assertWebhookSignaturePayload requires key, payload and signature strings', () => {
@@ -200,6 +202,7 @@ describe('Core', () => {
       expect(() => assertWebhookSignaturePayload(valid)).not.toThrow();
       expect(() => assertWebhookSignaturePayload({ ...valid, key: 0 })).toThrow(TypeError);
       expect(() => assertWebhookSignaturePayload({})).toThrow(TypeError);
+      expect(() => assertWebhookSignaturePayload(null)).toThrow(TypeError);
     });
   });
 });
