@@ -10,6 +10,7 @@ describe('Core', () => {
         expect(AuthError).toHaveProperty('INVALID_FORM');
         expect(AuthError).toHaveProperty('UNAVAILABLE');
         expect(AuthError).toHaveProperty('UNKNOWN');
+        expect(AuthError).toHaveProperty('TOKEN_REFRESH_FAILED');
       });
 
       it('extends Error', () => {

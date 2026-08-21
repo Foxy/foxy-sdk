@@ -1,4 +1,6 @@
 import {
+  assertAdminAPIInit,
+  assertAdminGetTokenOpts,
   assertAuthErrorParams,
   assertBoolean,
   assertCoreAPIInit,
@@ -8,7 +10,9 @@ import {
   assertEmail,
   assertQuery,
   assertSignUpParams,
+  assertSSOURLOptions,
   assertStorage,
+  assertWebhookSignaturePayload,
 } from '../../core/guards.js';
 
 import { MemoryStorage } from '../../core/storage.js';
@@ -154,6 +158,48 @@ describe('Core', () => {
       expect(() => assertEmail(123)).toThrow(TypeError);
       expect(() => assertBoolean(true, 'value')).not.toThrow();
       expect(() => assertBoolean('true', 'value')).toThrow(TypeError);
+    });
+
+    it('assertAdminAPIInit validates the admin-specific constructor params', () => {
+      // base/cache/storage/level are intentionally NOT checked here: they're
+      // validated downstream by Core.API's own assertCoreAPIInit inside
+      // super(), so Admin's own guard only covers the fields Core doesn't
+      // know about (avoids duplicating Core's validation).
+      const valid = { clientId: 'a', clientSecret: 'b', refreshToken: 'c' };
+
+      expect(() => assertAdminAPIInit(valid)).not.toThrow();
+      expect(() => assertAdminAPIInit({ ...valid, version: '1' })).not.toThrow();
+      expect(() => assertAdminAPIInit({ clientId: 'a', clientSecret: 'b' })).toThrow(TypeError);
+      expect(() => assertAdminAPIInit({ ...valid, clientId: 0 })).toThrow(TypeError);
+      expect(() => assertAdminAPIInit({ ...valid, version: '2' })).toThrow(TypeError);
+      expect(() => assertAdminAPIInit(null)).toThrow(TypeError);
+    });
+
+    it('assertAdminGetTokenOpts requires a code or a refresh token plus client credentials', () => {
+      const base = { clientId: 'a', clientSecret: 'b' };
+
+      expect(() => assertAdminGetTokenOpts({ ...base, code: 'x' })).not.toThrow();
+      expect(() => assertAdminGetTokenOpts({ ...base, refreshToken: 'x' })).not.toThrow();
+      expect(() => assertAdminGetTokenOpts(base)).toThrow(TypeError);
+      expect(() => assertAdminGetTokenOpts({ ...base, code: 'x', base: 'not-a-url' })).toThrow(TypeError);
+      expect(() => assertAdminGetTokenOpts({ clientId: 'a', code: 'x' })).toThrow(TypeError);
+    });
+
+    it('assertSSOURLOptions enforces the required SSO fields', () => {
+      const valid = { customer: 1, domain: 'https://example.com', secret: 's' };
+
+      expect(() => assertSSOURLOptions(valid)).not.toThrow();
+      expect(() => assertSSOURLOptions({ ...valid, session: 's', timestamp: 1 })).not.toThrow();
+      expect(() => assertSSOURLOptions({ ...valid, customer: 'not-a-number' })).toThrow(TypeError);
+      expect(() => assertSSOURLOptions({ domain: 'x', secret: 'y' })).toThrow(TypeError);
+    });
+
+    it('assertWebhookSignaturePayload requires key, payload and signature strings', () => {
+      const valid = { key: 'k', payload: 'p', signature: 's' };
+
+      expect(() => assertWebhookSignaturePayload(valid)).not.toThrow();
+      expect(() => assertWebhookSignaturePayload({ ...valid, key: 0 })).toThrow(TypeError);
+      expect(() => assertWebhookSignaturePayload({})).toThrow(TypeError);
     });
   });
 });

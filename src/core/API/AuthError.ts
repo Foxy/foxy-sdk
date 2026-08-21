@@ -32,6 +32,9 @@ export class AuthError extends Error {
   /** Any other or internal error that interrupted authentication. */
   static readonly UNKNOWN = 'UNKNOWN';
 
+  /** OAuth token refresh failed — the refresh token, client ID, or client secret may be invalid, or the token endpoint is unreachable. */
+  static readonly TOKEN_REFRESH_FAILED = 'TOKEN_REFRESH_FAILED';
+
   /** Exception that triggered this error, if present. */
   readonly originalError?: unknown;
 
