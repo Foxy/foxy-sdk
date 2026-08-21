@@ -249,5 +249,40 @@ describe('Admin', () => {
       expect(request.url).toBe(url);
       expect(request.headers.get('Authorization')).toBe(`Bearer ${sampleStoredToken.access_token}`);
     });
+
+    it('does not overwrite Authorization, Content-Type or FOXY-API-VERSION headers already set on the request', async () => {
+      fetchMock.mockResolvedValue(new Response(null));
+
+      const api = new AdminAPI(commonInit);
+      const url = api.base.toString();
+
+      api.storage.setItem(AdminAPI.ACCESS_TOKEN, JSON.stringify(sampleStoredToken));
+      await api.fetch(url, {
+        headers: {
+          Authorization: 'Bearer preset-token',
+          'Content-Type': 'text/plain',
+          'FOXY-API-VERSION': '2',
+        },
+      });
+
+      const request = fetchMock.mock.calls[0][0] as Request;
+      expect(request.headers.get('Authorization')).toBe('Bearer preset-token');
+      expect(request.headers.get('Content-Type')).toBe('text/plain');
+      expect(request.headers.get('FOXY-API-VERSION')).toBe('2');
+    });
+
+    it('does not retry when a 401 response reports an error other than invalid_token', async () => {
+      const unauthorized = new Response(JSON.stringify({ error: 'access_denied' }), { status: 401 });
+      fetchMock.mockResolvedValue(unauthorized);
+
+      const api = new AdminAPI(commonInit);
+      const url = api.base.toString();
+
+      api.storage.setItem(AdminAPI.ACCESS_TOKEN, JSON.stringify(sampleStoredToken));
+      const response = await api.fetch(url);
+
+      expect(response.status).toBe(401);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
   });
 });
