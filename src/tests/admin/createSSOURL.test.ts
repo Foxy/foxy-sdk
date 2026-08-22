@@ -5,7 +5,7 @@ describe('Admin', () => {
     beforeAll(() => vi.spyOn(Date, 'now').mockImplementation(() => 1585402055672));
     afterAll(() => vi.restoreAllMocks());
 
-    it('errors with incorrect params', () => {
+    it('errors with incorrect params', async () => {
       const incorrectParams = ({
         customer: 'oh no, it is a string!',
         domain: 321,
@@ -14,11 +14,11 @@ describe('Admin', () => {
         timestamp: 'i am not a unix timestamp',
       } as unknown) as Parameters<typeof createSSOURL>[0];
 
-      expect(() => createSSOURL(incorrectParams)).toThrow(TypeError);
+      await expect(createSSOURL(incorrectParams)).rejects.toThrow(TypeError);
     });
 
-    it('works with required params', () => {
-      const url = createSSOURL({
+    it('works with required params', async () => {
+      const url = await createSSOURL({
         customer: 12345,
         domain: 'https://foxy-demo.foxycart.com',
         secret: 'yes, very',
@@ -29,8 +29,8 @@ describe('Admin', () => {
       );
     });
 
-    it('explicitly sets the timestamp if provided', () => {
-      const url = createSSOURL({
+    it('explicitly sets the timestamp if provided', async () => {
+      const url = await createSSOURL({
         customer: 12345,
         domain: 'https://foxy-demo.foxycart.com',
         secret: 'yes, very',
@@ -42,8 +42,8 @@ describe('Admin', () => {
       );
     });
 
-    it('sets fcsid query param if session value is passed in', () => {
-      const url = createSSOURL({
+    it('sets fcsid query param if session value is passed in', async () => {
+      const url = await createSSOURL({
         customer: 12345,
         domain: 'https://foxy-demo.foxycart.com',
         secret: 'yes, very',

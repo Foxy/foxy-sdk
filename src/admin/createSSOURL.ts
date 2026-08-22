@@ -1,7 +1,3 @@
-import * as crypto from 'crypto';
-
-import { URL } from 'url';
-
 import { assertSSOURLOptions } from '../core/guards.js';
 
 interface Options {
@@ -54,12 +50,17 @@ interface Options {
   domain: string;
 }
 
+// SECURITY: `options.secret` is the store's API key. This function must only
+// run in a trusted, authenticated context — e.g. a store admin's own
+// dashboard session — and never in code served to or executed by end
+// customers.
+
 /**
  * Generates an SSO url for the given configuration.
  *
  * @example
  *
- * const url = FoxySDK.Admin.createSSOURL({
+ * const url = await FoxySDK.Admin.createSSOURL({
  *   customer: 123,
  *   secret: "...",
  *   domain: "https://yourdomain.foxycart.com"
@@ -69,16 +70,19 @@ interface Options {
  * @tutorial https://docs.foxycart.com/v/2.0/sso#the_details
  * @returns SSO URL as string.
  */
-export function createSSOURL(options: Options): string {
+export async function createSSOURL(options: Options): Promise<string> {
   assertSSOURLOptions(options);
 
   const timestamp = options.timestamp ?? Math.floor(Date.now() / 1000) + 3600;
   const decodedToken = `${options.customer}|${timestamp}|${options.secret}`;
-  const encodedToken = crypto.createHash('sha1').update(decodedToken);
+  const digestBuffer = await globalThis.crypto.subtle.digest('SHA-1', new TextEncoder().encode(decodedToken));
+  const encodedToken = Array.from(new Uint8Array(digestBuffer))
+    .map(byte => byte.toString(16).padStart(2, '0'))
+    .join('');
   const url = new URL('/checkout', options.domain);
 
   url.searchParams.append('fc_customer_id', options.customer.toString());
-  url.searchParams.append('fc_auth_token', encodedToken.digest('hex'));
+  url.searchParams.append('fc_auth_token', encodedToken);
   url.searchParams.append('timestamp', String(timestamp));
 
   if (typeof options.session === 'string') {
