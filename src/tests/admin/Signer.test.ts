@@ -254,6 +254,61 @@ describe('Signer', () => {
     const name = `0:${excludedPrefix}foo`;
     expect(await signName(SECRET, name, 'nonce')).toEqual(name);
   });
+
+  it('Leaves non-signable anchor hrefs untouched', async () => {
+    const nonCartHtml = `<html><head></head><body>
+      <a href="relative/page">link</a>
+      <form>
+        <input name="code" value="test">
+        <input name="price" value="10">
+      </form>
+    </body></html>`;
+    expect(await signHtmlForTest(nonCartHtml)).toContain('href="relative/page"');
+
+    // A resolvable base is needed for this anchor to reach the cart URL
+    // pattern check at all: against about:blank (signHtmlForTest's default),
+    // `new URL('/cart?name=test')` throws and parseCartUrl bails out via its
+    // catch, not via the no-`code` branch this case is meant to exercise.
+    const dom = new JSDOM(
+      `<html><head></head><body>
+        <a href="/cart?name=test">cart link without a code</a>
+        <form>
+          <input name="code" value="test">
+          <input name="price" value="10">
+        </form>
+      </body></html>`,
+      { url: 'https://foo.com/' }
+    );
+    await signFragment(SECRET, dom.window.document);
+    // Matches the cart URL pattern but has no `code` param, so parseCartUrl
+    // returns null via its no-`code` check and signFragment must never
+    // rewrite the href — unlike v1's signHtml, which resolved it to an
+    // absolute URL regardless.
+    expect(dom.window.document.querySelector('a')!.getAttribute('href')).toBe('/cart?name=test');
+  });
+
+  it('Does not sign a skip-listed field inside a signed form', async () => {
+    const html = `<html><head></head><body>
+      <form>
+        <input name="code" value="test">
+        <input name="cart" value="should-not-be-signed">
+        <input type="radio" name="cart" value="should-not-be-signed">
+      </form>
+    </body></html>`;
+    const signed = await signHtmlForTest(html);
+    // signNameWithKey's skip-listed early return (plain input -> name attribute).
+    expect(signed).toContain('name="0:cart"');
+    expect(signed).not.toContain('name="0:cart||');
+    // signValueWithKey's skip-listed early return (radio -> value attribute).
+    expect(signed).toContain('value="0:should-not-be-signed"');
+    expect(signed).not.toContain('value="0:should-not-be-signed||');
+  });
+
+  it('Does not require a secret for a fragment with no cart content', async () => {
+    const html = `<html><head></head><body><p>Nothing to sign here</p></body></html>`;
+    const dom = new JSDOM(html);
+    await expect(signFragment('', dom.window.document)).resolves.toBeDefined();
+  });
 });
 /** Test helper content **/
 
