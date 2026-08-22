@@ -9,6 +9,21 @@ interface Webhook {
   key: string;
 }
 
+const HEX_PATTERN = /^[0-9a-f]+$/i;
+
+function hexToBytes(hex: string): Uint8Array<ArrayBuffer> | null {
+  if (hex.length % 2 !== 0 || !HEX_PATTERN.test(hex)) {
+    return null;
+  }
+
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < bytes.length; i++) {
+    bytes[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16);
+  }
+
+  return bytes;
+}
+
 // SECURITY: `webhook.key` is a store secret. This function must only run in
 // a trusted, authenticated context — e.g. a store admin's own dashboard
 // session or your own webhook receiver — and never in code served to or
@@ -33,17 +48,18 @@ export async function verifyWebhookSignature(webhook: Webhook): Promise<boolean>
     return false;
   }
 
+  const signatureBytes = hexToBytes(webhook.signature);
+  if (!signatureBytes) {
+    return false;
+  }
+
   const key = await globalThis.crypto.subtle.importKey(
     'raw',
     new TextEncoder().encode(webhook.key),
     { name: 'HMAC', hash: 'SHA-256' },
     false,
-    ['sign'],
+    ['verify'],
   );
-  const signatureBuffer = await globalThis.crypto.subtle.sign('HMAC', key, new TextEncoder().encode(webhook.payload));
-  const computedSignature = Array.from(new Uint8Array(signatureBuffer))
-    .map(byte => byte.toString(16).padStart(2, '0'))
-    .join('');
 
-  return webhook.signature === computedSignature;
+  return globalThis.crypto.subtle.verify('HMAC', key, signatureBytes, new TextEncoder().encode(webhook.payload));
 }
