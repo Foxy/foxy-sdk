@@ -30,13 +30,6 @@
 
 A dependency that is fine for npm consumers is shipped to every browser in the CDN build. Weigh new runtime dependencies accordingly.
 
-Known issue, not yet fixed: shipping `src/admin/` means the CDN build's root
-`index.js` chunk statically pulls in `admin`'s `Signer.ts`, which imports Node
-builtins (`fs`, `crypto`, `url`) directly. Those don't resolve in a browser, so
-the root CDN entry currently fails to load there — not just `admin`'s own CDN
-entry. This needs isolating `admin`/`Signer` out of the root chunk before the
-CDN build is browser-safe again.
-
 `jsonata` is pinned to `^1.8` on purpose: `evaluate()` is synchronous there and
 returns a `Promise` in 2.x, which would force the three gating helpers in
 `src/customer/` to become async and change their public signatures.
