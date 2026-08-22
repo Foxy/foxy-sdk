@@ -1,5 +1,5 @@
 export { API } from './API.js';
-export { Signer } from './Signer.js';
+export { cartExcludes, cartExcludePrefixes, signFragment, signName, signUrl, signValue } from './Signer.js';
 export { createSSOURL } from './createSSOURL.js';
 export { verifyWebhookSignature } from './verifyWebhookSignature.js';
 export { getAllowedFrequencies } from '../rules/getAllowedFrequencies.js';
