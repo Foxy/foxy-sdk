@@ -53,7 +53,8 @@ interface Options {
 // SECURITY: `options.secret` is the store's API key. This function must only
 // run in a trusted, authenticated context — e.g. a store admin's own
 // dashboard session — and never in code served to or executed by end
-// customers.
+// customers. In a browser, this also requires a secure context (HTTPS or
+// localhost) — globalThis.crypto.subtle is undefined otherwise.
 
 /**
  * Generates an SSO url for the given configuration.
@@ -66,7 +67,9 @@ interface Options {
  *   domain: "https://yourdomain.foxycart.com"
  * });
  *
- * @param options sso url configuration
+ * @param options sso url configuration. `options.secret` is the store's API key — only ever
+ * call this in a trusted, authenticated context (e.g. a store admin's own dashboard session)
+ * — never in code served to or executed by end customers.
  * @tutorial https://docs.foxycart.com/v/2.0/sso#the_details
  * @returns SSO URL as string.
  */

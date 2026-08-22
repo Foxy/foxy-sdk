@@ -69,6 +69,8 @@ export const cartExcludePrefixes: readonly string[] = ['h:', 'x:', '__', 'utm_']
 // authenticated context — e.g. a store admin's own dashboard session — and
 // never in code served to or executed by end customers. Anyone who can read
 // this secret can forge signatures Foxy's checkout will treat as authentic.
+// In a browser, this also requires a secure context (HTTPS or localhost) —
+// globalThis.crypto.subtle is undefined otherwise.
 
 async function importSigningKey(secret: string): Promise<CryptoKey> {
   if (typeof secret !== 'string' || secret.length === 0) {
@@ -350,7 +352,9 @@ async function signParsedUrl(key: CryptoKey, parsed: ParsedCartUrl): Promise<str
 /**
  * Signs input name.
  *
- * @param secret Store API key (`webhook_key`) — see the security note above.
+ * @param secret Store API key (the `webhook_key` field on the store's `fx:store` resource).
+ * Only ever call this in a trusted, authenticated context (e.g. a store admin's own dashboard
+ * session) — never in code served to or executed by end customers.
  * @param name Name of the input element.
  * @param code Product code.
  * @param parentCode Parent product code.
@@ -375,7 +379,9 @@ export async function signName(
 /**
  * Signs input value.
  *
- * @param secret Store API key (`webhook_key`) — see the security note above.
+ * @param secret Store API key (the `webhook_key` field on the store's `fx:store` resource).
+ * Only ever call this in a trusted, authenticated context (e.g. a store admin's own dashboard
+ * session) — never in code served to or executed by end customers.
  * @param name Name of the input element.
  * @param code Product code.
  * @param parentCode Parent product code.
@@ -401,7 +407,9 @@ export async function signValue(
  * Signs a query string. All query fields within the query string will be
  * signed, provided it is a proper URL and there is a code field.
  *
- * @param secret Store API key (`webhook_key`) — see the security note above.
+ * @param secret Store API key (the `webhook_key` field on the store's `fx:store` resource).
+ * Only ever call this in a trusted, authenticated context (e.g. a store admin's own dashboard
+ * session) — never in code served to or executed by end customers.
  * @param urlStr Full URL including the query string that needs to be signed.
  * @returns the signed query string.
  */
@@ -420,7 +428,17 @@ export async function signUrl(secret: string, urlStr: string): Promise<string> {
  * parser (e.g. jsdom's `new JSDOM(str).window.document` in Node) — this
  * function only needs standard DOM interfaces, not a specific environment.
  *
- * @param secret Store API key (`webhook_key`) — see the security note above.
+ * If signing any form or anchor throws (e.g. a form with multiple product
+ * codes), the tree may be left partially signed — anchors and forms
+ * processed before the failure keep their signed state.
+ *
+ * Anchors whose href doesn't need signing (not a cart URL, or missing a code
+ * parameter) are left untouched — their href attribute is not rewritten to
+ * an absolute URL, unlike v1's signHtml.
+ *
+ * @param secret Store API key (the `webhook_key` field on the store's `fx:store` resource).
+ * Only ever call this in a trusted, authenticated context (e.g. a store admin's own dashboard
+ * session) — never in code served to or executed by end customers.
  * @param root the DOM tree to sign.
  * @returns the same tree, mutated in place.
  */

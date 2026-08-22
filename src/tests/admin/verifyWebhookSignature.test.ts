@@ -31,5 +31,9 @@ describe('Admin', () => {
 
       expect(result).toBe(true);
     });
+
+    it('returns false for an empty key instead of throwing', async () => {
+      await expect(verifyWebhookSignature({ key: '', payload: 'x', signature: 'y' })).resolves.toBe(false);
+    });
   });
 });
