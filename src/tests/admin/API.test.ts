@@ -207,6 +207,38 @@ describe('Admin', () => {
       expect(retriedRequest.headers.get('Authorization')).toBe(`Bearer ${sampleToken.access_token}`);
     });
 
+    it('retries a bodied POST request without throwing when the stored token is rejected as invalid_token', async () => {
+      fetchMock
+        .mockResolvedValueOnce(new Response(JSON.stringify({ error: 'invalid_token' }), { status: 401 }))
+        .mockResolvedValueOnce(new Response(JSON.stringify(sampleToken)))
+        .mockResolvedValueOnce(new Response(null));
+
+      const api = new AdminAPI(commonInit);
+      const url = api.base.toString();
+      const body = JSON.stringify({ foo: 'bar' });
+      const bodiedRequest = new Request(url, { method: 'POST', body });
+
+      api.storage.setItem(AdminAPI.ACCESS_TOKEN, JSON.stringify(sampleStoredToken));
+
+      const response = await api.fetch(bodiedRequest);
+
+      expect(response.status).toBe(200);
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+
+      const firstRequest = fetchMock.mock.calls[0][0] as Request;
+      expect(firstRequest.method).toBe('POST');
+      expect(firstRequest.headers.get('Authorization')).toBe(`Bearer ${sampleStoredToken.access_token}`);
+      expect(await firstRequest.clone().text()).toBe(body);
+
+      const tokenCall = fetchMock.mock.calls[1] as unknown as [string, RequestInit];
+      expect(tokenCall[0]).toBe(new URL('token', api.base).toString());
+
+      const retriedRequest = fetchMock.mock.calls[2][0] as Request;
+      expect(retriedRequest.method).toBe('POST');
+      expect(retriedRequest.headers.get('Authorization')).toBe(`Bearer ${sampleToken.access_token}`);
+      expect(await retriedRequest.clone().text()).toBe(body);
+    });
+
     it('throws Core.API.AuthError with code TOKEN_REFRESH_FAILED when refresh fails', async () => {
       fetchMock.mockResolvedValue(new Response('server error', { status: 500 }));
 

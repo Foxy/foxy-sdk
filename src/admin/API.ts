@@ -117,6 +117,7 @@ export class API extends Core.API<Graph> {
   private async __fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
     let request = new Request(input, init);
     let headers = request.headers;
+    const retryableRequest = request.clone();
 
     const fetchNewAccessToken = async (): Promise<StoredToken> => {
       if (this.__tokenRefreshPromise) {
@@ -182,8 +183,9 @@ export class API extends Core.API<Graph> {
 
         token = await fetchNewAccessToken();
 
-        request = new Request(input, init);
+        request = retryableRequest;
         headers = request.headers;
+        headers.delete('Authorization');
         setHeaders(token.access_token);
         this.console.trace(`Retrying ${method} ${request.url}`);
         response = await globalThis.fetch(request);
