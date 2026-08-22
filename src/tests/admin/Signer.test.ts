@@ -202,6 +202,17 @@ describe('Signer', () => {
     await expect(signUrl('', 'http://signthis.foxycart.com/cart?code=test&price=5')).rejects.toThrow(TypeError);
   });
 
+  it('Does not require a secret to skip an excluded name', async () => {
+    const excluded = cartExcludes[0];
+    await expect(signName('', excluded, 'nonce')).resolves.toEqual(excluded);
+    await expect(signValue('', excluded, 'nonce', '', 'foo')).resolves.toEqual('foo');
+  });
+
+  it('Does not require a secret for a cart URL with no code parameter', async () => {
+    const noCode = 'https://foo.com/cart?name=test';
+    await expect(signUrl('', noCode)).resolves.toBe(noCode);
+  });
+
   it('Does not sign invalid URL', async () => {
     const badURL = `href="what://code=test"`;
     const attemptSigned = await signUrl(SECRET, badURL);

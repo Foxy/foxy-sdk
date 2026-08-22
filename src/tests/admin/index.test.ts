@@ -6,8 +6,13 @@ describe('Admin', () => {
       expect(Admin).toHaveProperty('API');
     });
 
-    it('exports the Signer utility', () => {
-      expect(Admin).toHaveProperty('Signer');
+    it('exports the Signer functions', () => {
+      expect(Admin).toHaveProperty('signName');
+      expect(Admin).toHaveProperty('signValue');
+      expect(Admin).toHaveProperty('signUrl');
+      expect(Admin).toHaveProperty('signFragment');
+      expect(Admin).toHaveProperty('cartExcludes');
+      expect(Admin).toHaveProperty('cartExcludePrefixes');
     });
 
     it('exports createSSOURL', () => {
@@ -30,12 +35,17 @@ describe('Admin', () => {
       expect(Object.keys(Admin).sort()).toStrictEqual([
         'API',
         'InvalidFrequencyError',
-        'Signer',
+        'cartExcludePrefixes',
+        'cartExcludes',
         'createSSOURL',
         'getAllowedFrequencies',
         'getNextTransactionDateConstraints',
         'getTimeFromFrequency',
         'isNextTransactionDate',
+        'signFragment',
+        'signName',
+        'signUrl',
+        'signValue',
         'verifyWebhookSignature',
       ]);
     });
