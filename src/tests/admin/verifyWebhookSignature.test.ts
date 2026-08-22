@@ -35,5 +35,25 @@ describe('Admin', () => {
     it('returns false for an empty key instead of throwing', async () => {
       await expect(verifyWebhookSignature({ key: '', payload: 'x', signature: 'y' })).resolves.toBe(false);
     });
+
+    it('returns false for a signature with an odd hex length instead of throwing', async () => {
+      const result = await verifyWebhookSignature({
+        key: 'is definitely right',
+        payload: 'this, on the other hand',
+        signature: '055c620a2d1e459b9c4ed676146a6cce9d2ec2e7caf3dba64608c30c4477f53',
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for a signature with non-hex characters instead of throwing', async () => {
+      const result = await verifyWebhookSignature({
+        key: 'is definitely right',
+        payload: 'this, on the other hand',
+        signature: 'zzzc620a2d1e459b9c4ed676146a6cce9d2ec2e7caf3dba64608c30c4477f532',
+      });
+
+      expect(result).toBe(false);
+    });
   });
 });
