@@ -7,12 +7,11 @@
 
 ## What Is In This Branch
 
-- `release/2.0.0` ships the **Checkout, Core and Customer** clients. `src/` holds
-  `checkout/`, `core/`, `customer/` and `rules/`; `src/index.ts` re-exports the
-  first three as namespaces.
-- The Backend client has not been ported and neither has Nucleon. `BooleanSelector`,
-  `Nucleon` and `Rumour` were deliberately left in v1 — do not assume a `Backend`
-  namespace exists here, and check before referencing one.
+- `release/2.0.0` ships the **Checkout, Core, Customer and Admin** clients. `src/`
+  holds `checkout/`, `core/`, `customer/`, `admin/` and `rules/`; `src/index.ts`
+  re-exports the first four as namespaces.
+- Admin is v1's Backend client, ported and renamed. Nucleon has not been ported;
+  `BooleanSelector`, `Nucleon` and `Rumour` were deliberately left in v1.
 - `src/rules/` is internal: it evaluates `customer_portal_settings` gating rules
   against the camelCase shapes the admin hAPI returns. `src/customer/` adapts the
   Customer API's snake_case settings onto it. It has no subpath and must not gain one.
@@ -30,6 +29,13 @@
 - `build:cdn` — dependencies are **bundled and minified**, only Node builtins are external, and a `LICENSE.md` covering the bundled deps is emitted alongside.
 
 A dependency that is fine for npm consumers is shipped to every browser in the CDN build. Weigh new runtime dependencies accordingly.
+
+Known issue, not yet fixed: shipping `src/admin/` means the CDN build's root
+`index.js` chunk statically pulls in `admin`'s `Signer.ts`, which imports Node
+builtins (`fs`, `crypto`, `url`) directly. Those don't resolve in a browser, so
+the root CDN entry currently fails to load there — not just `admin`'s own CDN
+entry. This needs isolating `admin`/`Signer` out of the root chunk before the
+CDN build is browser-safe again.
 
 `jsonata` is pinned to `^1.8` on purpose: `evaluate()` is synchronous there and
 returns a `Promise` in 2.x, which would force the three gating helpers in
@@ -53,8 +59,8 @@ Entry Points.
 `exports` in `package.json`, `entryMap` in `vite.config.ts`, the `include` array
 in the `dts()` plugin call, and `include` in `tsconfig.build.json` are four
 hand-maintained lists covering the same entries — `index`, `checkout`,
-`checkout/client`, `checkout/loader`, `core`, `customer`. Adding an entry means
-editing all four; nothing checks that they agree.
+`checkout/client`, `checkout/loader`, `core`, `customer`, `admin`. Adding an
+entry means editing all four; nothing checks that they agree.
 
 The two type lists do not fail the same way, and only one of them gates emission:
 
