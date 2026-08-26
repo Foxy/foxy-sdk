@@ -42,7 +42,7 @@
     "prepare": "git config core.hooksPath .githooks || true",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "localdev:deploy:cdn": "npm run localdev:build:cdn && rm -rf ../foxy-docker-env-build/src/cdn-js/sdk@2 && cp -r dist/cdn ../foxy-docker-env-build/src/cdn-js/sdk@2",
+    "localdev:watch:cdn": "VITE_FOXYCART_DOMAIN=foxycart.test vite build --mode cdn --watch",
     "localdev:build:cdn": "VITE_FOXYCART_DOMAIN=foxycart.test vite build --mode cdn",
     "build:cdn": "vite build --mode cdn",
     "build:npm": "vite build --mode npm",

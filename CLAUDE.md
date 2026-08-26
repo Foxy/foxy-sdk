@@ -92,4 +92,8 @@ from it, so the emitted types need it.
 
 ## Localdev
 
-`npm run localdev:deploy:cdn` builds with `VITE_FOXYCART_DOMAIN=foxycart.test`, then `rm -rf`s and replaces `../foxy-docker-env-build/src/cdn-js/sdk@2`. It writes into a sibling repo — make sure that repo is where you expect before running it.
+`npm run localdev:watch:cdn` builds with `VITE_FOXYCART_DOMAIN=foxycart.test` and rebuilds on every save. There is no deploy step: the localdev `cdn-js` container bind-mounts this repo's `dist/` and serves `dist/cdn/` at `https://cdn-js.foxy.test/sdk@2/`, so a finished rebuild is live on the next browser refresh.
+
+`npm run localdev:build:cdn` is the same build without the watcher.
+
+This only works when the repo is checked out as the `src/sdk` submodule of `foxy-docker-env-build`, which is what the container mounts. A standalone clone elsewhere builds fine but is not served.
