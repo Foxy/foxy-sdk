@@ -190,6 +190,8 @@ export interface Store extends Graph {
     unified_order_entry_password: string;
     /** Instead of displaying the Foxy Transaction ID, you can display your own custom display ID on your store's receipt and receipt emails. This JSON config determines how those display ids will work. The JSON supports the following fields: `enabled`, `start`, `length`, `prefix`, `suffix`. */
     custom_display_id_config: string;
+    /** Per-store data retention settings controlling automatic anonymization of old customer PII. `auto_anonymize` opts in; `auto_anonymize_days` (minimum 90) is the age threshold and is required when `auto_anonymize` is true. Null when unset. */
+    data_retention: { auto_anonymize: boolean; auto_anonymize_days: number | null } | null;
     /** This can only be set during store creation. Contact us if you need this value changed later. */
     affiliate_id: number;
     /** This settings makes your checkout page completely non-functioning. Your customers will see the maintenance notification language string instead. The default is false. */
