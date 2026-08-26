@@ -339,6 +339,41 @@ describe("Klarna payment option loading", () => {
     expect(api.klarna).toBe(klarna);
   });
 
+  // Klarna sets window.Klarna before Payments is ready, so a truthy namespace
+  // without Payments.init is a normal mid-init state. The loader used to resolve
+  // with it, and initializeKlarnaSdk then tripped over Payments.init as a bare
+  // TypeError, which read like a bug in the caller rather than an SDK that had
+  // not finished initialising. It must wait for the async callback instead.
+  it("waits for a usable namespace when window.Klarna has no Payments.init", async () => {
+    setBrowserRuntime();
+    (window as KlarnaWindow).Klarna = {} as KlarnaSdkInstance;
+
+    const api = await createTestApi(createApiJson([authorizeGatewayConfig]));
+    const replacePromise = api.replaceJsonForTesting(
+      createApiJson([klarnaGatewayConfig, authorizeGatewayConfig]),
+    );
+    let didReplaceResolve = false;
+
+    void replacePromise.then(() => {
+      didReplaceResolve = true;
+    });
+
+    await flushTasks();
+
+    expect(didReplaceResolve).toBe(false);
+    expect(api.klarna).toBeNull();
+
+    const { init, klarna } = setLoadedKlarna();
+
+    (window as KlarnaWindow).klarnaAsyncCallback?.();
+    await replacePromise;
+
+    expect(init).toHaveBeenCalledWith({
+      client_token: klarnaOption.client_token,
+    });
+    expect(api.klarna).toBe(klarna);
+  });
+
   it("keeps the raw Klarna gateway when the Klarna SDK script fails to load", async () => {
     setBrowserRuntime();
     const warnSpy = vi
