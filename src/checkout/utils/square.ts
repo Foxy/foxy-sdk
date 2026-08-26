@@ -52,13 +52,6 @@ function createSquareScriptLoadPromise(
   script: HTMLScriptElement,
   environment: "sandbox" | "production",
 ): Promise<SquareSdkNamespace> {
-  const existingNamespace = getSquareNamespace();
-
-  if (existingNamespace) {
-    script.dataset.squareSdkState = "loaded";
-    return Promise.resolve(existingNamespace);
-  }
-
   if (script.dataset.squareSdkState === "error") {
     return Promise.reject(new Error("Failed to load Square SDK."));
   }
@@ -117,10 +110,12 @@ export async function loadSquareSdk(
     throw new Error("Square SDK can only be loaded in a browser environment.");
   }
 
-  const existingNamespace = getSquareNamespace();
-
-  if (existingNamespace) {
-    return existingNamespace;
+  // A truthy window.Square is not necessarily a usable one: mid-load, or after
+  // a partial script failure, it can be present without a callable payments().
+  // Validating here keeps the diagnosable "Square SDK is not available." error
+  // instead of letting a caller trip over payments() as a bare TypeError.
+  if (getSquareNamespace()) {
+    return getRequiredSquareNamespace();
   }
 
   let script = getSquareScript(environment);

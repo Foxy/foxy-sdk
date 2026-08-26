@@ -135,18 +135,20 @@ describe("Square SDK loading", () => {
     expect(script.dataset.squareSdkState).toBe("error");
   });
 
-  // Documents current behaviour, not desired behaviour: loadSquareSdk hands
-  // back any truthy window.Square without checking that payments() exists,
-  // even though the load-event path does check. A half-initialized namespace
-  // therefore fails later, inside initializeSquareSdk, as a bare TypeError
-  // rather than as the "Square SDK is not available." error.
-  it("returns a window.Square without payments() instead of rejecting", async () => {
+  // A window.Square that is present but has no callable payments() is what a
+  // half-initialized or partially failed script leaves behind. The fast path
+  // used to hand it straight back, so the failure surfaced one layer later as
+  // a bare TypeError from initializeSquareSdk, pointing at the wrong place
+  // (FX-225). Both entry points must report the load failure instead.
+  it("rejects a window.Square without payments() rather than returning it", async () => {
     const incomplete = {} as SquareSdkNamespace;
     (window as SquareWindow).Square = incomplete;
 
     const { initializeSquareSdk, loadSquareSdk } = await importSquare();
 
-    await expect(loadSquareSdk("sandbox")).resolves.toBe(incomplete);
+    await expect(loadSquareSdk("sandbox")).rejects.toThrow(
+      "Square SDK is not available.",
+    );
     expect(getScripts("sandbox")).toHaveLength(0);
 
     await expect(
@@ -155,7 +157,7 @@ describe("Square SDK loading", () => {
         environment: "sandbox",
         locationId: "location-id",
       }),
-    ).rejects.toThrow(TypeError);
+    ).rejects.toThrow("Square SDK is not available.");
   });
 
   it("rejects and marks the script errored when the script fails", async () => {
