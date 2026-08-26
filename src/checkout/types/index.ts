@@ -32,7 +32,10 @@ export type {
 export type { GooglePaymentsClient } from "./GooglePaymentsClient";
 export type { KlarnaSdkInstance } from "./KlarnaSdkInstance";
 export type { PayPalSdkInstance } from "./PayPalSdkInstance";
-export type { SquareSdkInstance } from "./SquareSdkInstance";
+export type {
+  SquareSdkInstance,
+  SquareSdkNamespace,
+} from "./SquareSdkInstance";
 export type {
   ApplePayConfig,
   GooglePayConfig,
