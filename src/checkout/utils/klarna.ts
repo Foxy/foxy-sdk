@@ -42,9 +42,15 @@ function getKlarnaScript(): HTMLScriptElement | null {
 function createKlarnaScriptLoadPromise(
   script: HTMLScriptElement,
 ): Promise<KlarnaSdkInstance> {
+  // Only a namespace that already carries Payments.init can be handed back.
+  // Klarna's init is two-phase — the script's load event fires first, and the
+  // SDK calls klarnaAsyncCallback once Payments is ready — so a truthy but
+  // incomplete window.Klarna is a normal mid-init state, not a failure. Falling
+  // through lets the callback path below resolve it once it is usable; resolving
+  // here instead surfaced as a bare TypeError from Payments.init in the caller.
   const existingKlarna = getKlarnaNamespace();
 
-  if (existingKlarna) {
+  if (existingKlarna && typeof existingKlarna.Payments?.init === "function") {
     script.dataset.klarnaSdkState = "loaded";
     return Promise.resolve(existingKlarna);
   }
