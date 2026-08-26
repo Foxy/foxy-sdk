@@ -1,4 +1,5 @@
 import type { KlarnaSdkInstance } from "../types";
+import { isSettledForeignScript } from "./adoptedScript";
 
 const KLARNA_JS_API_URL = "https://x.klarnacdn.net/kp/lib/v1/api.js";
 
@@ -68,6 +69,19 @@ function createKlarnaScriptLoadPromise(
   if (!klarnaWindow || typeof document === "undefined") {
     return Promise.reject(
       new Error("Klarna SDK can only be loaded in a browser environment."),
+    );
+  }
+
+  // Guarded on the namespace being absent as well: the other four loaders all
+  // return early while one is present, and klarna must match. Once its fast path
+  // above requires Payments.init (FX-304), a truthy-but-incomplete window.Klarna
+  // reaches here — and that means the script did run, so a finished fetch says
+  // nothing about whether klarnaAsyncCallback is still to come.
+  if (!existingKlarna && isSettledForeignScript(script, "klarnaSdkState")) {
+    return Promise.reject(
+      new Error(
+        "A Klarna SDK script added outside the Foxy SDK has already failed to load. Remove the duplicate script tag so the SDK can load it.",
+      ),
     );
   }
 

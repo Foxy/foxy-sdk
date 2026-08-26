@@ -1,3 +1,5 @@
+import { isSettledForeignScript } from './adoptedScript';
+
 const APPLE_PAY_JS_API_URL = 'https://applepay.cdn-apple.com/jsapi/v1/apple-pay-sdk.js';
 
 let applePayScriptLoadPromise: Promise<void> | null = null;
@@ -29,6 +31,14 @@ function createApplePayScriptLoadPromise(script: HTMLScriptElement): Promise<voi
 
   if (applePayScriptLoadPromise) {
     return applePayScriptLoadPromise;
+  }
+
+  if (isSettledForeignScript(script, 'applePaySdkState')) {
+    return Promise.reject(
+      new Error(
+        'An Apple Pay JS API script added outside the Foxy SDK has already failed to load. Remove the duplicate script tag so the SDK can load it.',
+      ),
+    );
   }
 
   applePayScriptLoadPromise = new Promise((resolve, reject) => {

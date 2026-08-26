@@ -1,4 +1,5 @@
 import type { GooglePaymentsClient } from '../types';
+import { isSettledForeignScript } from './adoptedScript';
 
 const GOOGLE_PAY_JS_API_URL = 'https://pay.google.com/gp/p/js/pay.js';
 
@@ -49,6 +50,14 @@ function createGooglePayScriptLoadPromise(script: HTMLScriptElement): Promise<vo
 
   if (googlePayScriptLoadPromise) {
     return googlePayScriptLoadPromise;
+  }
+
+  if (isSettledForeignScript(script, 'googlePaySdkState')) {
+    return Promise.reject(
+      new Error(
+        'A Google Pay JS API script added outside the Foxy SDK has already failed to load. Remove the duplicate script tag so the SDK can load it.',
+      ),
+    );
   }
 
   googlePayScriptLoadPromise = new Promise<void>((resolve, reject) => {
