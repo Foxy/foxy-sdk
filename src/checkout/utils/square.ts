@@ -1,4 +1,5 @@
 import type { SquareSdkInstance, SquareSdkNamespace } from "../types/SquareSdkInstance";
+import { isSettledForeignScript } from "./adoptedScript";
 
 const SQUARE_JS_API_URL = {
   sandbox: "https://sandbox.web.squarecdn.com/v1/square.js",
@@ -64,6 +65,14 @@ function createSquareScriptLoadPromise(
   if (!getSquareWindow() || typeof document === "undefined") {
     return Promise.reject(
       new Error("Square SDK can only be loaded in a browser environment."),
+    );
+  }
+
+  if (isSettledForeignScript(script, "squareSdkState")) {
+    return Promise.reject(
+      new Error(
+        "A Square SDK script added outside the Foxy SDK has already failed to load. Remove the duplicate script tag so the SDK can load it.",
+      ),
     );
   }
 
