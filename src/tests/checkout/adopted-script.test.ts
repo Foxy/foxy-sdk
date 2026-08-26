@@ -2,17 +2,26 @@
  * @vitest-environment jsdom
  */
 
+import type { KlarnaSdkInstance } from "../../checkout/types";
 import type { SquareSdkNamespace } from "../../checkout/types/SquareSdkInstance";
 import { isSettledForeignScript } from "../../checkout/utils/adoptedScript";
 
 const SQUARE_SANDBOX_URL = "https://sandbox.web.squarecdn.com/v1/square.js";
+const KLARNA_URL = "https://x.klarnacdn.net/kp/lib/v1/api.js";
 
 type SquareWindow = Window & { Square?: SquareSdkNamespace };
+type KlarnaWindow = Window & {
+  Klarna?: KlarnaSdkInstance;
+  klarnaAsyncCallback?: () => void;
+};
 
 /** Appends a script tag, optionally marked as one this SDK created. */
-function appendScript(ownState?: string): HTMLScriptElement {
+function appendScript(
+  url = SQUARE_SANDBOX_URL,
+  ownState?: string,
+): HTMLScriptElement {
   const script = document.createElement("script");
-  script.src = SQUARE_SANDBOX_URL;
+  script.src = url;
 
   if (ownState !== undefined) {
     script.dataset.squareSdkState = ownState;
@@ -47,7 +56,7 @@ describe("isSettledForeignScript", () => {
   // tags always have live listeners attached, so a timing entry on one says
   // nothing interesting — the load event is still coming or has been handled.
   it("is false for a script this SDK created, entry or not", () => {
-    const script = appendScript("loading");
+    const script = appendScript(SQUARE_SANDBOX_URL, "loading");
     stubResourceTimings(SQUARE_SANDBOX_URL);
 
     expect(isSettledForeignScript(script, "squareSdkState")).toBe(false);
@@ -132,5 +141,52 @@ describe("loadSquareSdk with a script it did not create", () => {
     script.dispatchEvent(new Event("load"));
 
     await expect(pending).resolves.toBe(namespace);
+  });
+});
+
+describe("loadKlarnaSdk with a script it did not create", () => {
+  beforeEach(() => {
+    vi.resetModules();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    Reflect.deleteProperty(window as KlarnaWindow, "Klarna");
+    Reflect.deleteProperty(window as KlarnaWindow, "klarnaAsyncCallback");
+    document.querySelectorAll("script").forEach((script) => script.remove());
+  });
+
+  it("rejects an already-settled foreign script when no namespace exists", async () => {
+    appendScript(KLARNA_URL);
+    stubResourceTimings(KLARNA_URL);
+
+    const { loadKlarnaSdk } = await import("../../checkout/utils/klarna");
+
+    await expect(loadKlarnaSdk()).rejects.toThrow(
+      "A Klarna SDK script added outside the Foxy SDK has already failed to load.",
+    );
+  });
+
+  // Klarna signals readiness through klarnaAsyncCallback, not through the
+  // script's load event, so once a namespace is present a finished fetch says
+  // nothing about whether the callback is still to come. This must hold both
+  // before and after FX-304 tightens the fast path above the guard: an
+  // incomplete namespace may start waiting, but must never be rejected as a
+  // duplicate tag.
+  it("never reports a duplicate tag once a namespace is present", async () => {
+    appendScript(KLARNA_URL);
+    stubResourceTimings(KLARNA_URL);
+    (window as KlarnaWindow).Klarna = {} as KlarnaSdkInstance;
+
+    const { loadKlarnaSdk } = await import("../../checkout/utils/klarna");
+
+    let rejection: unknown = null;
+    void loadKlarnaSdk().catch((error: unknown) => {
+      rejection = error;
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(rejection).toBeNull();
   });
 });
