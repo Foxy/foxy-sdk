@@ -6,6 +6,7 @@ import type {
   AdyenEmbeddedSdkInstance,
   AdyenEmbeddedSdkNamespace,
 } from "../types/AdyenEmbeddedSdkInstance";
+import { isSettledForeignScript } from "./adoptedScript";
 
 const ADYEN_WEB_VERSION = "6.36.0";
 
@@ -128,6 +129,14 @@ function createAdyenScriptLoadPromise(
   if (!getAdyenWindow() || typeof document === "undefined") {
     return Promise.reject(
       new Error("Adyen SDK can only be loaded in a browser environment."),
+    );
+  }
+
+  if (isSettledForeignScript(script, "adyenSdkState")) {
+    return Promise.reject(
+      new Error(
+        "An Adyen SDK script added outside the Foxy SDK has already failed to load. Remove the duplicate script tag so the SDK can load it.",
+      ),
     );
   }
 

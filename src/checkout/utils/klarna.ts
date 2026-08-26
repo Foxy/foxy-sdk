@@ -1,4 +1,5 @@
 import type { KlarnaSdkInstance } from "../types";
+import { isSettledForeignScript } from "./adoptedScript";
 
 const KLARNA_JS_API_URL = "https://x.klarnacdn.net/kp/lib/v1/api.js";
 
@@ -62,6 +63,14 @@ function createKlarnaScriptLoadPromise(
   if (!klarnaWindow || typeof document === "undefined") {
     return Promise.reject(
       new Error("Klarna SDK can only be loaded in a browser environment."),
+    );
+  }
+
+  if (isSettledForeignScript(script, "klarnaSdkState")) {
+    return Promise.reject(
+      new Error(
+        "A Klarna SDK script added outside the Foxy SDK has already failed to load. Remove the duplicate script tag so the SDK can load it.",
+      ),
     );
   }
 
