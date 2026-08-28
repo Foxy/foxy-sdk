@@ -40,6 +40,8 @@
     "format:eslint": "eslint --ext .ts,.html . --fix --ignore-path .gitignore",
     "format:prettier": "prettier \"**/*.ts\" --write --ignore-path .gitignore",
     "build:cdn": "webpack",
+    "localdev:build:cdn": "webpack",
+    "localdev:watch:cdn": "webpack --watch",
     "build:cjs": "tsc --outdir \"dist/cjs\"",
     "build:esm": "ttsc --project tsconfig.esm.json --outdir \"dist/esm\" && copyfiles --up 1 \"./build/esm/**/*\" \"./dist\"",
     "build:docs": "typedoc --excludePrivate --out docs src/index.ts",
