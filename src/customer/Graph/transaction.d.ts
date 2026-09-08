@@ -3,7 +3,9 @@ import type { CustomFields } from './custom_fields';
 import type { Graph as Customer } from './index';
 import type { Graph } from '../../core';
 import type { Items } from './items';
+import type { Payments } from './payments';
 import type { Receipt } from './receipt';
+import type { Shipments } from './shipments';
 
 export interface Transaction extends Graph {
   curie: 'fx:transaction';
@@ -21,6 +23,10 @@ export interface Transaction extends Graph {
     'fx:attributes': Attributes;
     /** List of custom fields on this transaction. */
     'fx:custom_fields': CustomFields;
+    /** List of shipments in this transaction. */
+    'fx:shipments': Shipments;
+    /** List of payments for this transaction. */
+    'fx:payments': Payments;
   };
 
   props: {
@@ -94,5 +100,7 @@ export interface Transaction extends Graph {
     attributes: Attributes;
     customer?: Customer;
     items?: Items;
+    shipments?: Shipments;
+    payments?: Payments;
   };
 }
