@@ -5,6 +5,13 @@ import type { PaymentCardEmbedConfig } from './types';
  * this class to embed the payment card iframe, but it provides a more convenient
  * way to interact with the iframe and listen to its events.
  *
+ * This wraps the **`/v1.html` embed**, whose `tokenize()` resolves with a
+ * self-contained encrypted card blob. It is not the v3 vault path: that one
+ * loads the card-entry shell, mints an opaque `tok_` reference, and reports
+ * refusals as `CardEmbedTokenizeErrorCode` contexts — none of which this class
+ * models, since `tokenize()` here rejects without a reason. Reach for
+ * `foxy-payment-card-field` in foxy-elements for the vault flow.
+ *
  * @example
  * const embed = new PaymentCardEmbed({
  *   url: 'https://embed.foxy.io/v1.html?template_set_id=123'
