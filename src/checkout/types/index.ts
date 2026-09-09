@@ -48,5 +48,6 @@ export type {
   AchHostedFieldsPublicState,
   AchHostedFieldsTokenizeErrorCode,
   CardValidationField,
+  CardEmbedConfigErrorCode,
   CardEmbedTokenizeErrorCode,
 } from "./HostedFields";
