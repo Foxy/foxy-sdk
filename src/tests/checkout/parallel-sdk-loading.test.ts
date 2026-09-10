@@ -2,7 +2,7 @@
  * @vitest-environment jsdom
  */
 
-import type { APIJson } from "../../checkout/types";
+import type { APIJson, PaymentGatewayConfig } from "../../checkout/types";
 
 type Deferred<T> = {
   promise: Promise<T>;
@@ -128,7 +128,11 @@ vi.mock("../../checkout/utils/googlePay", () => ({
 }));
 
 const cardOption = { type: "new-card", gateway: "authorize" } as const;
-const authorizeGatewayConfig = { type: "authorize" } as const;
+const authorizeGatewayConfig = {
+  type: "authorize",
+  apple_pay: null,
+  google_pay: null,
+} satisfies PaymentGatewayConfig;
 const savedCardOption = {
   type: "card",
   gateway: "authorize",
@@ -152,7 +156,7 @@ const adyenGatewayConfig = {
   },
   environment: "test",
   client_key: "test_adyen_client_key",
-} as const;
+} satisfies PaymentGatewayConfig;
 const adyenOption = {
   gateway: "adyen_embedded",
   ...adyenGatewayConfig,
@@ -210,14 +214,16 @@ function flushTasks(): Promise<void> {
 }
 
 function createApiJson({
-  saved_payment_methods,
-  payment_gateways,
+  saved_payment_methods = null,
+  payment_gateways = null,
 }: {
   saved_payment_methods?: APIJson["saved_payment_methods"];
   payment_gateways?: APIJson["payment_gateways"];
 } = {}): APIJson {
   return {
     template_set: { code: "default", id: 1 },
+    transaction: null,
+    next_action: null,
     session: { id: "session-id" },
     debug: false,
     customer: {
