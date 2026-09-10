@@ -1,12 +1,11 @@
 {
-  // `npm run typecheck` uses this rather than tsconfig.json for two reasons:
-  // the base config emits (it has no outDir, so `tsc -b` drops .js files next
-  // to the sources), and `src/tests` carries a backlog of type errors that has
-  // never been checked — vitest transpiles without type-checking. Source is
-  // gated now; dropping the exclude is what closes the backlog.
+  // `npm run typecheck` uses this rather than tsconfig.json because the base
+  // config emits: it has no outDir, so `tsc -b` drops .js files next to the
+  // sources. Nothing is excluded — `src/tests` is checked too, which is the
+  // only thing that catches fixtures shaped like payloads the API never sends
+  // (vitest transpiles without type-checking, so tests go green regardless).
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "noEmit": true
-  },
-  "exclude": ["src/tests"]
+  }
 }

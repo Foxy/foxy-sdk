@@ -2,7 +2,11 @@
  * @vitest-environment jsdom
  */
 
-import type { APIJson, KlarnaSdkInstance } from "../../checkout/types";
+import type {
+  APIJson,
+  KlarnaSdkInstance,
+  PaymentGatewayConfig,
+} from "../../checkout/types";
 
 const KLARNA_JS_API_URL = "https://x.klarnacdn.net/kp/lib/v1/api.js";
 
@@ -11,7 +15,11 @@ type KlarnaWindow = Window & {
   klarnaAsyncCallback?: () => void;
 };
 
-const authorizeGatewayConfig = { type: "authorize" } as const;
+const authorizeGatewayConfig = {
+  type: "authorize",
+  apple_pay: null,
+  google_pay: null,
+} satisfies PaymentGatewayConfig;
 const klarnaGatewayConfig = {
   type: "klarna",
   session_id: "068df369-13a7-4d47-a564-62f8408bb760",
@@ -29,7 +37,7 @@ const klarnaGatewayConfig = {
       },
     },
   ],
-} as const;
+} satisfies PaymentGatewayConfig;
 const klarnaOption = {
   gateway: "klarna",
   ...klarnaGatewayConfig,
@@ -56,10 +64,12 @@ function flushTasks(): Promise<void> {
 }
 
 function createApiJson(
-  payment_gateways?: APIJson["payment_gateways"],
+  payment_gateways: APIJson["payment_gateways"] = null,
 ): APIJson {
   return {
     template_set: { code: "default", id: 1 },
+    transaction: null,
+    next_action: null,
     session: { id: "session-id" },
     debug: false,
     customer: {
@@ -138,6 +148,7 @@ function createApiJson(
       registration: "optional",
     },
     custom_config: {},
+    saved_payment_methods: null,
     payment_gateways,
     language_strings: {},
   };
