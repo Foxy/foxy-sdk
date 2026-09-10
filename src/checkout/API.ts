@@ -440,15 +440,16 @@ export class API extends EventTarget {
   }
 
   static async createGooglePaymentsClient(
-    environment: "TEST" | "PRODUCTION" = "TEST",
+    environment: "TEST" | "PRODUCTION",
   ): Promise<GooglePaymentsClient> {
     return createGooglePaymentsClientUtil(environment);
   }
 
   static async canMakeGooglePayPayments(
     allowedPaymentMethod: Record<string, unknown>,
+    environment: "TEST" | "PRODUCTION",
   ): Promise<boolean> {
-    return canMakeGooglePayPaymentsUtil(allowedPaymentMethod);
+    return canMakeGooglePayPaymentsUtil(allowedPaymentMethod, environment);
   }
 
   constructor(params?: APIConstructorParams) {
