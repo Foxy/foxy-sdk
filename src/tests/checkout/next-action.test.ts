@@ -9,6 +9,7 @@ import { API } from "../../checkout/API";
 function createApiJson(): APIJson {
   return {
     transaction: null,
+    next_action: null,
     template_set: { code: "default", id: 1 },
     session: { id: "session-id" },
     debug: false,

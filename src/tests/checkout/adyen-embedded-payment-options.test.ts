@@ -7,6 +7,7 @@ import type {
   AdyenEmbeddedPaymentMethod,
   AdyenEmbeddedSdkInstance,
   AdyenEmbeddedSdkNamespace,
+  PaymentGatewayConfig,
 } from "../../checkout/types";
 
 const ADYEN_JS_API_URL =
@@ -14,12 +15,16 @@ const ADYEN_JS_API_URL =
 const APPLE_PAY_JS_API_URL =
   "https://applepay.cdn-apple.com/jsapi/v1/apple-pay-sdk.js";
 
-type AdyenWindow = Window & {
+type AdyenWindow = Omit<Window, "ApplePaySession"> & {
   AdyenWeb?: AdyenEmbeddedSdkNamespace;
   ApplePaySession?: { canMakePayments?: () => boolean };
 };
 
-const authorizeGatewayConfig = { type: "authorize" } as const;
+const authorizeGatewayConfig = {
+  type: "authorize",
+  apple_pay: null,
+  google_pay: null,
+} satisfies PaymentGatewayConfig;
 const adyenGatewayConfig = {
   type: "adyen_embedded",
   payment_methods_response: {
@@ -30,7 +35,7 @@ const adyenGatewayConfig = {
   },
   environment: "test",
   client_key: "test_870be2_client_key",
-} as const;
+} satisfies PaymentGatewayConfig;
 const hadWindow = "window" in globalThis;
 const hadDocument = "document" in globalThis;
 const originalWindow = globalThis.window;
@@ -62,10 +67,12 @@ function flushTasks(): Promise<void> {
 }
 
 function createApiJson(
-  payment_gateways?: APIJson["payment_gateways"],
+  payment_gateways: APIJson["payment_gateways"] = null,
 ): APIJson {
   return {
     template_set: { code: "default", id: 1 },
+    transaction: null,
+    next_action: null,
     session: { id: "session-id" },
     debug: false,
     customer: {
@@ -144,6 +151,7 @@ function createApiJson(
       registration: "optional",
     },
     custom_config: {},
+    saved_payment_methods: null,
     payment_gateways,
     language_strings: {},
   };

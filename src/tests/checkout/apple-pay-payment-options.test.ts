@@ -2,31 +2,36 @@
  * @vitest-environment jsdom
  */
 
-import type { APIJson } from "../../checkout/types";
+import type { APIJson, PaymentGatewayConfig } from "../../checkout/types";
 
 import { API as HttpCheckoutAPI } from "../../checkout/API";
 
 const APPLE_PAY_JS_API_URL =
   "https://applepay.cdn-apple.com/jsapi/v1/apple-pay-sdk.js";
 
-type RuntimeGlobals = typeof globalThis & {
+type RuntimeGlobals = Omit<typeof globalThis, "ApplePaySession"> & {
   ApplePaySession?: { canMakePayments?: () => boolean };
 };
 
-type ApplePayWindow = Window & {
+type ApplePayWindow = Omit<Window, "ApplePaySession"> & {
   ApplePaySession?: { canMakePayments?: () => boolean };
 };
 
 const runtime = globalThis as RuntimeGlobals;
 
 const cardOption = { type: "new-card", gateway: "authorize" } as const;
-const authorizeGatewayConfig = { type: "authorize" } as const;
+const authorizeGatewayConfig = {
+  type: "authorize",
+  apple_pay: null,
+  google_pay: null,
+} satisfies PaymentGatewayConfig;
 const authorizeGatewayConfigWithApplePay = {
   type: "authorize",
   apple_pay: {
     merchant_id: "merchant.example",
   },
-} as const;
+  google_pay: null,
+} satisfies PaymentGatewayConfig;
 
 const hadWindow = "window" in globalThis;
 const hadDocument = "document" in globalThis;
@@ -91,10 +96,12 @@ function createTestApi(json: APIJson): TestHttpCheckoutAPI {
 }
 
 function createApiJson(
-  payment_gateways?: APIJson["payment_gateways"],
+  payment_gateways: APIJson["payment_gateways"] = null,
 ): APIJson {
   return {
     template_set: { code: "default", id: 1 },
+    transaction: null,
+    next_action: null,
     session: { id: "session-id" },
     debug: false,
     customer: {
@@ -173,6 +180,7 @@ function createApiJson(
       registration: "optional",
     },
     custom_config: {},
+    saved_payment_methods: null,
     payment_gateways,
     language_strings: {},
   };

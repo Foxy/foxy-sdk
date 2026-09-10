@@ -2,7 +2,7 @@
  * @vitest-environment jsdom
  */
 
-import type { APIJson } from "../../checkout/types";
+import type { APIJson, PaymentGatewayConfig } from "../../checkout/types";
 import type { PayPalSdkInstance } from "../../checkout/types/PayPalSdkInstance";
 
 const sdkV6Mock = vi.hoisted(() => ({
@@ -51,7 +51,11 @@ type BrowserRuntimeOptions = {
 const runtime = globalThis as RuntimeGlobals;
 
 const cardOption = { type: "new-card", gateway: "authorize" } as const;
-const authorizeGatewayConfig = { type: "authorize" } as const;
+const authorizeGatewayConfig = {
+  type: "authorize",
+  apple_pay: null,
+  google_pay: null,
+} satisfies PaymentGatewayConfig;
 const paypalGatewayConfig = {
   type: "paypal_platform",
   client_id: "paypal-client-id",
@@ -74,11 +78,13 @@ function flushTasks(): Promise<void> {
 }
 
 function createApiJson(
-  payment_gateways?: APIJson["payment_gateways"],
+  payment_gateways: APIJson["payment_gateways"] = null,
   custom_config: APIJson["custom_config"] = {},
 ): APIJson {
   return {
     template_set: { code: "default", id: 1 },
+    transaction: null,
+    next_action: null,
     session: { id: "session-id" },
     debug: false,
     customer: {
@@ -157,6 +163,7 @@ function createApiJson(
       registration: "optional",
     },
     custom_config,
+    saved_payment_methods: null,
     payment_gateways,
     language_strings: {},
   };
