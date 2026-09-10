@@ -1,6 +1,8 @@
 import type { GooglePaymentsClient } from '../types';
 import { isSettledForeignScript } from './adoptedScript';
 
+type GooglePayEnvironment = 'TEST' | 'PRODUCTION';
+
 const GOOGLE_PAY_JS_API_URL = 'https://pay.google.com/gp/p/js/pay.js';
 
 let googlePayScriptLoadPromise: Promise<void> | null = null;
@@ -108,7 +110,7 @@ export async function loadGooglePaySdk(): Promise<void> {
 }
 
 export async function createGooglePaymentsClient(
-  environment: 'TEST' | 'PRODUCTION' = 'TEST'
+  environment: GooglePayEnvironment
 ): Promise<GooglePaymentsClient> {
   await loadGooglePaySdk();
 
@@ -120,9 +122,12 @@ export async function createGooglePaymentsClient(
   return new PaymentsClient({ environment });
 }
 
-export async function canMakeGooglePayPayments(allowedPaymentMethod: Record<string, unknown>): Promise<boolean> {
+export async function canMakeGooglePayPayments(
+  allowedPaymentMethod: Record<string, unknown>,
+  environment: GooglePayEnvironment
+): Promise<boolean> {
   try {
-    const client = await createGooglePaymentsClient('TEST');
+    const client = await createGooglePaymentsClient(environment);
     const readiness = await client.isReadyToPay({
       apiVersion: 2,
       apiVersionMinor: 0,

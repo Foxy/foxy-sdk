@@ -110,10 +110,12 @@ describe("Google Pay SDK loading", () => {
       await importGooglePay();
 
     await expect(loadGooglePaySdk()).resolves.toBeUndefined();
-    await expect(createGooglePaymentsClient()).rejects.toThrow(
+    await expect(createGooglePaymentsClient("PRODUCTION")).rejects.toThrow(
       "Google Pay SDK is not available.",
     );
-    await expect(canMakeGooglePayPayments({ type: "CARD" })).resolves.toBe(false);
+    await expect(
+      canMakeGooglePayPayments({ type: "CARD" }, "PRODUCTION"),
+    ).resolves.toBe(false);
     expect(getScripts()).toHaveLength(0);
   });
 
@@ -327,11 +329,11 @@ describe("Google Pay payments client", () => {
     expect(PaymentsClient).toHaveBeenCalledWith({ environment: "PRODUCTION" });
   });
 
-  it("defaults to the TEST environment", async () => {
+  it("constructs a TEST client when TEST is requested", async () => {
     const { PaymentsClient } = setLoadedGooglePay();
     const { createGooglePaymentsClient } = await importGooglePay();
 
-    await createGooglePaymentsClient();
+    await createGooglePaymentsClient("TEST");
 
     expect(PaymentsClient).toHaveBeenCalledWith({ environment: "TEST" });
   });
@@ -339,7 +341,7 @@ describe("Google Pay payments client", () => {
   it("throws when the script loads without exposing PaymentsClient", async () => {
     const { createGooglePaymentsClient } = await importGooglePay();
 
-    const pending = createGooglePaymentsClient();
+    const pending = createGooglePaymentsClient("TEST");
     await flushTasks();
 
     getScript().dispatchEvent(new Event("load"));
@@ -370,9 +372,9 @@ describe("Google Pay availability", () => {
     const { canMakeGooglePayPayments } = await importGooglePay();
     const allowedPaymentMethod = { type: "CARD" };
 
-    await expect(canMakeGooglePayPayments(allowedPaymentMethod)).resolves.toBe(
-      true,
-    );
+    await expect(
+      canMakeGooglePayPayments(allowedPaymentMethod, "PRODUCTION"),
+    ).resolves.toBe(true);
 
     expect(isReadyToPay).toHaveBeenCalledWith({
       allowedPaymentMethods: [allowedPaymentMethod],
@@ -380,8 +382,20 @@ describe("Google Pay availability", () => {
       apiVersionMinor: 0,
     });
 
-    // The availability probe always builds a TEST client, even when the
-    // checkout is otherwise configured for production.
+    // The probe has to run against the environment the payment will use, or a
+    // production shopper is offered Google Pay on a TEST-environment "yes".
+    expect(PaymentsClient).toHaveBeenCalledWith({ environment: "PRODUCTION" });
+  });
+
+  it("probes the TEST environment when TEST is requested", async () => {
+    const { PaymentsClient } = setLoadedGooglePay();
+
+    const { canMakeGooglePayPayments } = await importGooglePay();
+
+    await expect(
+      canMakeGooglePayPayments({ type: "CARD" }, "TEST"),
+    ).resolves.toBe(true);
+
     expect(PaymentsClient).toHaveBeenCalledWith({ environment: "TEST" });
   });
 
@@ -394,9 +408,9 @@ describe("Google Pay availability", () => {
 
     const { canMakeGooglePayPayments } = await importGooglePay();
 
-    await expect(canMakeGooglePayPayments({ type: "CARD" })).resolves.toBe(
-      false,
-    );
+    await expect(
+      canMakeGooglePayPayments({ type: "CARD" }, "PRODUCTION"),
+    ).resolves.toBe(false);
   });
 
   it("swallows errors from isReadyToPay and reports unavailable", async () => {
@@ -410,8 +424,8 @@ describe("Google Pay availability", () => {
 
     const { canMakeGooglePayPayments } = await importGooglePay();
 
-    await expect(canMakeGooglePayPayments({ type: "CARD" })).resolves.toBe(
-      false,
-    );
+    await expect(
+      canMakeGooglePayPayments({ type: "CARD" }, "PRODUCTION"),
+    ).resolves.toBe(false);
   });
 });
