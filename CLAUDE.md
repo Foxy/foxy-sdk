@@ -20,6 +20,9 @@
 
 - `npm test` runs `vitest run`. Tests live in `src/tests/**/*.test.ts`, separate from the source, and are `environment: 'node'` with `globals: true` (no import of `describe`/`it`/`expect` needed).
 - `npm run test:coverage` enforces 80% on branches, functions, lines and statements. Adding source without tests can fail the threshold even when every test passes.
+- `npm run verify` is the gate: `typecheck` (`tsc --noEmit -p tsconfig.verify.json`) then `npm test`. `.githooks/pre-push` runs it, and `.github/workflows/verify.yml` runs it on every PR.
+- `tsconfig.verify.json` excludes nothing, so `src/tests` is type-checked. Vitest transpiles without type-checking, so a fixture can otherwise go green against a payload shape the API never sends. Fix fixtures to satisfy the real types; do not widen the types or re-add an exclude.
+- `@paypal/paypal-js` declares a global `ApplePaySession`. A test window typed as `Window & { ApplePaySession?: ... }` intersects with it and accepts nothing but the real class, so stub it through `Omit<Window, "ApplePaySession"> & { ApplePaySession?: ... }`.
 
 ## The Two Build Modes Are Not Interchangeable
 

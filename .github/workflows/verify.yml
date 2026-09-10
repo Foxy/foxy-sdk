@@ -1,0 +1,23 @@
+name: Verify
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - beta
+      - release/2.0.0
+jobs:
+  verify:
+    name: Verify
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm ci
+      - name: Verify
+        run: npm run verify
