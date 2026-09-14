@@ -83,8 +83,14 @@ export interface Transaction extends Graph {
       | 'refunded'
       | 'voided'
       | 'verified';
-    /** The type of transaction that has occurred. */
-    type: '' | 'updateinfo' | 'subscription_modification' | 'subscription_renewal' | 'subscription_cancellation';
+    /** The type of transaction that has occurred. A plain order is `transaction`. Transactions created before 2020-09-27 report `''` regardless of type. */
+    type:
+      | ''
+      | 'transaction'
+      | 'updateinfo'
+      | 'subscription_modification'
+      | 'subscription_renewal'
+      | 'subscription_cancellation';
     /** The 3 character ISO code for the currency. */
     currency_code: string;
     /** The currency symbol, such as $, £, €, etc. */
