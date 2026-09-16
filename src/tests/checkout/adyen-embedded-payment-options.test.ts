@@ -404,10 +404,16 @@ describe("Adyen Embedded payment option loading", () => {
   it("normalizes a POSIX-form locale code before passing it to Adyen", async () => {
     setBrowserRuntime();
 
+    const baseFormat = createApiJson().format;
+
+    if (baseFormat === null) {
+      throw new Error("fixture must carry a format");
+    }
+
     const api = await createTestApi(createApiJson([authorizeGatewayConfig]));
     const replacePromise = api.replaceJsonForTesting({
       ...createApiJson([adyenGatewayConfig, authorizeGatewayConfig]),
-      format: { ...createApiJson().format, locale_code: "en_US" },
+      format: { ...baseFormat, locale_code: "en_US" },
     });
 
     const { getLastConfiguration } = setLoadedAdyen(() =>

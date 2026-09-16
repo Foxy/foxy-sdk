@@ -21,12 +21,15 @@ export type APIJson = {
   template_set: TemplateSet;
   /** Public transaction details including ID, date and payments – available after purchase. */
   transaction: Transaction | null;
-  /** The session information including the unique identifier. */
-  session: Session;
+  /**
+   * The session information including the unique identifier. Null on a receipt
+   * the backend could not find — see the note above `format`.
+   */
+  session: Session | null;
   /** Whether debug mode is enabled for this template set. */
   debug: boolean;
-  /** Current customer information. */
-  customer: Customer;
+  /** Current customer information. Null on a receipt that was not found. */
+  customer: Customer | null;
   /** Array of shipment addresses and their associated details. */
   shipments: Shipment[];
   /** Array of cart items. */
@@ -35,18 +38,26 @@ export type APIJson = {
   totals: Totals[];
   /** Whether the shopper is entering a billing address separate from shipping. */
   use_separate_billing_address?: boolean;
-  /** Billing address information. */
-  billing_address: BillingAddress;
+  /** Billing address information. Null on a receipt that was not found. */
+  billing_address: BillingAddress | null;
   /** Store configuration and information. */
   store: Store;
   /** Array of messages (errors, warnings, or informational). */
   messages: Message[];
   /** Custom fields with keys prefixed by 'h:'. */
   custom_fields: CustomFields;
-  /** Formatting and localization settings. */
-  format: Format;
-  /** Display and UI configuration options. */
-  display: Display;
+  /**
+   * Formatting and localization settings. Null on a receipt that was not found.
+   *
+   * The receipt page hydrates the client even when it cannot load the receipt,
+   * so that the shopper sees the error. That payload carries `store`,
+   * `messages`, `template_set` and empty arrays, and nulls everything the
+   * backend builds from a transaction: this field, `session`, `customer`,
+   * `billing_address` and `display`. A checkout payload never nulls them.
+   */
+  format: Format | null;
+  /** Display and UI configuration options. Null on a receipt that was not found. */
+  display: Display | null;
   /** Custom configuration options for this checkout. */
   custom_config: CustomConfig;
   /** Saved payment methods available for this order. */

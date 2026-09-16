@@ -128,7 +128,7 @@ function getPayPalEligibilityAmount(json: APIJson): string | undefined {
 
   const maximumFractionDigits = Math.max(
     0,
-    Math.min(20, json.format.maximum_fraction_digits ?? 2),
+    Math.min(20, json.format?.maximum_fraction_digits ?? 2),
   );
 
   return currentTotal.toFixed(maximumFractionDigits);
@@ -167,7 +167,7 @@ function getAdyenCheckoutAmount(
   json: APIJson,
 ): AdyenEmbeddedAmount | undefined {
   const currentTotal = json.totals[0]?.total_order;
-  const rawCurrencyCode = json.format.currency_code;
+  const rawCurrencyCode = json.format?.currency_code;
 
   if (typeof currentTotal !== "number" || !Number.isFinite(currentTotal)) {
     return undefined;
@@ -179,7 +179,7 @@ function getAdyenCheckoutAmount(
 
   const maximumFractionDigits = Math.max(
     0,
-    Math.min(20, json.format.maximum_fraction_digits ?? 2),
+    Math.min(20, json.format?.maximum_fraction_digits ?? 2),
   );
   const multiplier = 10 ** maximumFractionDigits;
   const value = Math.round((currentTotal + Number.EPSILON) * multiplier);
@@ -220,9 +220,9 @@ async function resolveIncomingApiState(
             clientToken: config.client_token,
             customConfig: nextJson.custom_config,
             amount: getPayPalEligibilityAmount(nextJson),
-            currencyCode: nextJson.format.currency_code,
-            locale: nextJson.format.locale_code,
-            buyerCountry: nextJson.billing_address.country ?? undefined,
+            currencyCode: nextJson.format?.currency_code,
+            locale: nextJson.format?.locale_code,
+            buyerCountry: nextJson.billing_address?.country ?? undefined,
           });
         } catch {
           console.warn(
@@ -281,8 +281,8 @@ async function resolveIncomingApiState(
           environment: adyenEmbeddedConfig.environment,
           clientKey: adyenEmbeddedConfig.client_key,
           amount: getAdyenCheckoutAmount(nextJson),
-          locale: nextJson.format.locale_code,
-          countryCode: nextJson.billing_address.country ?? undefined,
+          locale: nextJson.format?.locale_code,
+          countryCode: nextJson.billing_address?.country ?? undefined,
         })
           .then((instance) => {
             adyenEmbedded = instance;
@@ -576,7 +576,12 @@ export class API extends EventTarget {
       this.#applyResolvedState(resolvedState, { emitUpdate });
     }
 
-    this.setStoreDomain(nextJson.store.domain);
+    // A receipt the backend could not find still hydrates the client so the
+    // shopper sees the error, and every string on `store` can come back null.
+    // Calling through with a null domain threw out of hydrateJson entirely.
+    if (nextJson.store.domain) {
+      this.setStoreDomain(nextJson.store.domain);
+    }
   }
 
   setStoreDomain(storeDomain: string): void {
@@ -993,7 +998,7 @@ export class API extends EventTarget {
   requestTemporaryPassword(email?: string): void {
     this.assertStoreDomain();
 
-    const emailToUse = (email ?? this.json?.customer.email ?? "").trim();
+    const emailToUse = (email ?? this.json?.customer?.email ?? "").trim();
 
     if (!isValidEmail(emailToUse)) {
       this.addErrorMessage(
@@ -1093,6 +1098,19 @@ export class API extends EventTarget {
     }
 
     if (!this.json) return;
+
+    // Null on a receipt the backend could not find, which hydrates the client
+    // with no checkout behind it. There is nothing to validate against and
+    // nothing to update.
+    const display = this.json.display;
+    if (!display) {
+      this.addErrorMessage(
+        "Shipments cannot be updated because no checkout is loaded.",
+        "shipment-update",
+      );
+      return;
+    }
+
     const shipment = this.json.shipments[index];
     if (!shipment) {
       this.addErrorMessage(
@@ -1120,7 +1138,7 @@ export class API extends EventTarget {
 
     const shipmentErrors = validateShipmentParams(
       params as Record<string, string | null | undefined>,
-      this.json.display,
+      display,
       {
         countryOptions: shipment.country_options,
         regionOptions: shipment.region_options,
@@ -1208,8 +1226,21 @@ export class API extends EventTarget {
     this.assertStoreDomain();
 
     if (!this.json) return;
+
+    // Both are null on a receipt the backend could not find — see the guard in
+    // updateShipment.
+    const display = this.json.display;
+    const billingAddress = this.json.billing_address;
+    if (!display || !billingAddress) {
+      this.addErrorMessage(
+        "The billing address cannot be updated because no checkout is loaded.",
+        "billing-address-update",
+      );
+      return;
+    }
+
     const nextAddress = {
-      ...this.json.billing_address,
+      ...billingAddress,
       ...params,
     };
 
@@ -1219,10 +1250,10 @@ export class API extends EventTarget {
     // restrictions to billing.
     const billingErrors = validateBillingAddressParams(
       params as Record<string, string | null | undefined>,
-      this.json.display,
+      display,
       {
-        countryOptions: this.json.billing_address.country_options,
-        regionOptions: this.json.billing_address.region_options,
+        countryOptions: billingAddress.country_options,
+        regionOptions: billingAddress.region_options,
       },
     );
     for (const err of billingErrors) {
@@ -1558,7 +1589,7 @@ export class API extends EventTarget {
       body: toFormData({
         ...body,
         output: "json",
-        session_id: this.json?.session.id,
+        session_id: this.json?.session?.id,
       }),
     });
 
@@ -1576,7 +1607,7 @@ export class API extends EventTarget {
     const response = await fetch(
       this.resolveUrl(path, {
         output: "json",
-        session_id: this.json?.session.id,
+        session_id: this.json?.session?.id,
       }),
     );
 

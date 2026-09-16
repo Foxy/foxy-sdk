@@ -22,11 +22,21 @@ describe("Checkout JSON helpers", () => {
     expect(clone.items).not.toBe(json.items);
     expect(clone.items[0]).not.toBe(json.items[0]);
 
+    // `session` is nullable on APIJson because a receipt the backend could not
+    // find sends null. This fixture always carries one, so narrow rather than
+    // asserting past the type.
+    const clonedSession = clone.session;
+    const sourceSession = json.session;
+
+    if (clonedSession === null || sourceSession === null) {
+      throw new Error("fixture must carry a session");
+    }
+
     clone.items[0].quantity = 99;
-    clone.session.id = "other-session-id";
+    clonedSession.id = "other-session-id";
 
     expect(json.items[0].quantity).toBe(1);
-    expect(json.session.id).toBe("session-id");
+    expect(sourceSession.id).toBe("session-id");
   });
 
   it("deep-clones arbitrary values with toMutable", () => {
