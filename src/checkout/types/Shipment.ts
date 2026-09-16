@@ -1,8 +1,12 @@
 export type Shipment = {
   /** Unique identifier for the saved address, if available. */
   address_id: number | null;
-  /** Name or label for this address. */
-  address_name: string;
+  /**
+   * Name or label for this address. Null on a non-multiship transaction,
+   * which reports a single unnamed shipment built from the customer's
+   * shipping contact rather than from a named `shipto`.
+   */
+  address_name: string | null;
   /** Recipient's first name. */
   first_name: string;
   /** Recipient's last name. */

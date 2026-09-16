@@ -2,7 +2,7 @@ import type { APIJson, Shipment } from "../../checkout/types";
 
 import { API } from "../../checkout/API";
 
-function createShipment(addressName: string): Shipment {
+function createShipment(addressName: string | null): Shipment {
   return {
     address_id: null,
     address_name: addressName,
@@ -167,6 +167,25 @@ describe("updateShipment", () => {
     const secondBody = fetchSpy.mock.calls[1][1]?.body as URLSearchParams;
     expect(secondBody.get("shipto_1_first_name")).toBe("Wanda");
     expect(secondBody.has("shipping_first_name")).toBe(false);
+  });
+
+  // A non-multiship transaction reports its one shipment with a null address
+  // name — the checkout JSON turns the empty name into null on the wire.
+  it("uses the shipping_ prefix when a single shipment has a null address name", async () => {
+    const json = createApiJson([createShipment(null)]);
+    const fetchSpy = mockFetch(json);
+    const api = new API({ initialJson: json, storeDomain: "store.test" });
+
+    api.updateShipment({ first_name: "Alice", shipping_service_id: 12 });
+
+    await vi.waitFor(() => {
+      expect(api.state).toBe("idle");
+    });
+
+    const body = fetchSpy.mock.calls[0][1]?.body as URLSearchParams;
+    expect(body.get("shipping_first_name")).toBe("Alice");
+    expect(body.has("shipto_0_first_name")).toBe(false);
+    expect(body.get("shipping_service_id")).toBe("12");
   });
 
   // A cart whose items all carry the same non-default `shipto` is multiship on

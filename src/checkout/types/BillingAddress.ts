@@ -5,8 +5,12 @@ export type BillingAddress = {
   // here for a while, and every consumer reading it got `undefined`.
   /** Unique identifier for the saved address. */
   address_id: number | null;
-  /** Name or label for this address. */
-  address_name: string;
+  /**
+   * Name or label for this address. Always null in practice — the checkout
+   * JSON hardcodes it empty and the wire turns an empty string into null. It
+   * stays declared so the shape matches `Shipment`.
+   */
+  address_name: string | null;
   /** Recipient's first name. */
   first_name: string;
   /** Recipient's last name. */
