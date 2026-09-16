@@ -59,6 +59,7 @@ function createApiJson(shipments: Shipment[]): APIJson {
     ],
     use_separate_billing_address: false,
     billing_address: {
+      use_customer_shipping_address: false,
       address_id: null,
       address_name: "",
       first_name: "",

@@ -1,3 +1,5 @@
+// Every string field below is nullable because the checkout JSON sends an
+// empty address field as null, not as an empty string. Narrow before use.
 export type Shipment = {
   /** Unique identifier for the saved address, if available. */
   address_id: number | null;
@@ -8,25 +10,25 @@ export type Shipment = {
    */
   address_name: string | null;
   /** Recipient's first name. */
-  first_name: string;
+  first_name: string | null;
   /** Recipient's last name. */
-  last_name: string;
+  last_name: string | null;
   /** Company name for shipping. */
-  company: string;
+  company: string | null;
   /** Contact phone number. */
-  phone: string;
+  phone: string | null;
   /** Address line 1. */
-  address1: string;
+  address1: string | null;
   /** Address line 2. */
-  address2: string;
+  address2: string | null;
   /** City. */
-  city: string;
+  city: string | null;
   /** State, region or province. A 2-letter code (if available) or full name. */
-  region: string;
+  region: string | null;
   /** Postal code or ZIP code. */
-  postal_code: string;
+  postal_code: string | null;
   /** 2-letter country code. */
-  country: string;
+  country: string | null;
   /** Selected shipping service ID for when live shipping rates are used. */
   shipping_service_id: number | null;
   /** Whether this shipment contains any shippable items. Non-shippable items, like digital downloads, can still technically form a shipment. */

@@ -222,7 +222,7 @@ async function resolveIncomingApiState(
             amount: getPayPalEligibilityAmount(nextJson),
             currencyCode: nextJson.format.currency_code,
             locale: nextJson.format.locale_code,
-            buyerCountry: nextJson.billing_address.country,
+            buyerCountry: nextJson.billing_address.country ?? undefined,
           });
         } catch {
           console.warn(
@@ -282,7 +282,7 @@ async function resolveIncomingApiState(
           clientKey: adyenEmbeddedConfig.client_key,
           amount: getAdyenCheckoutAmount(nextJson),
           locale: nextJson.format.locale_code,
-          countryCode: nextJson.billing_address.country,
+          countryCode: nextJson.billing_address.country ?? undefined,
         })
           .then((instance) => {
             adyenEmbedded = instance;
