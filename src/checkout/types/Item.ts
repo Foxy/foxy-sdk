@@ -1,9 +1,11 @@
+// The checkout JSON turns an empty string into null on the wire, so every
+// string field that can be blank is nullable here. Narrow before use.
 export type ItemOption = {
   id: number;
   /** Option name. */
-  name: string;
+  name: string | null;
   /** Option value. */
-  value: string;
+  value: string | null;
   /** Price modifier for this option. */
   price_mod: number;
   /** Weight modifier for this option in the item's weight unit. */
@@ -14,7 +16,7 @@ export type Item = {
   /** Unique identifier for the item. */
   id: number;
   /** Display name of the item. */
-  name: string;
+  name: string | null;
   /** Product code. */
   code: string | null;
   /** Parent product code. If set, this item is a child item. */
@@ -52,11 +54,14 @@ export type Item = {
   /** Total price for all units of this item including tax. */
   price_with_tax: number;
   /** Category code for this item. */
-  item_category_code: string;
+  item_category_code: string | null;
   /** How the item will be delivered. */
-  item_delivery_type: 'shipped' | 'downloaded' | 'flat_rate' | 'pickup' | 'notshipped';
-  /** Delivery type code. */
-  delivery_type: string;
+  item_delivery_type: 'shipped' | 'downloaded' | 'flat_rate' | 'pickup' | 'notshipped' | null;
+  /**
+   * Delivery type code. Always null — the checkout JSON hardcodes it empty and
+   * the wire turns an empty string into null.
+   */
+  delivery_type: string | null;
   /** Identifier for downloadable product. */
   downloadable_id: number | null;
   /** URL to download the product (only available after purchase). */
