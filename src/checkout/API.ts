@@ -1140,29 +1140,47 @@ export class API extends EventTarget {
       string | number | boolean | null | undefined
     > = {};
 
-    const map: Array<[keyof typeof params, string]> = [
-      ["first_name", `shipto_${index}_first_name`],
-      ["last_name", `shipto_${index}_last_name`],
-      ["company", `shipto_${index}_company`],
-      ["phone", `shipto_${index}_phone`],
-      ["address1", `shipto_${index}_address1`],
-      ["address2", `shipto_${index}_address2`],
-      ["city", `shipto_${index}_city`],
-      ["region", `shipto_${index}_region`],
-      ["postal_code", `shipto_${index}_postal_code`],
-      ["country", `shipto_${index}_country`],
-    ];
+    // The backend reads address fields under `shipto_<index>_` only when the
+    // transaction is a multiship one; otherwise it reads `shipping_`. It
+    // decides that with `hasMultiship()`, which is not the shipment count: a
+    // cart whose items all carry the same non-default `shipto` is multiship
+    // with a single shipment. The same call gates how shipments are
+    // serialized, so the payload shows which branch ran — a non-multiship
+    // transaction is always one shipment with no address name.
+    const isMultiship =
+      this.json.shipments.length > 1 ||
+      Boolean(this.json.shipments[0]?.address_name);
+    const prefix = isMultiship ? `shipto_${index}_` : "shipping_";
 
-    for (const [source, target] of map) {
-      const value = params[source];
+    const fields = [
+      "first_name",
+      "last_name",
+      "company",
+      "phone",
+      "address1",
+      "address2",
+      "city",
+      "region",
+      "postal_code",
+      "country",
+    ] as const;
+
+    for (const field of fields) {
+      const value = params[field];
       if (value !== undefined) {
-        payload[target] = value;
+        payload[`${prefix}${field}`] = value;
       }
     }
 
+    // The service id does not follow `prefix` exactly. Under `shipping_` the
+    // backend collapses the prefix to an empty string before reading, so the
+    // non-multiship name is a bare `shipping_service_id`. Under `shipto_<n>_`
+    // it keeps the prefix and reads `shipto_<n>_shipping_service_id`.
     if (params.shipping_service_id !== undefined) {
       payload[
-        index === 0 ? "shipping_service_id" : `shipto_${index}_service_id`
+        isMultiship
+          ? `shipto_${index}_shipping_service_id`
+          : "shipping_service_id"
       ] = params.shipping_service_id;
     }
 
