@@ -1,5 +1,6 @@
-// Every string field below is nullable because the checkout JSON sends an
-// empty address field as null, not as an empty string. Narrow before use.
+// Every address string on this object is nullable: the checkout JSON turns an
+// empty address field into null rather than sending an empty string. Narrow
+// before use.
 export type BillingAddress = {
   // `use_separate_billing_address` is deliberately NOT here. It reads like a
   // member of this object, but the wire sends it at the top level of the

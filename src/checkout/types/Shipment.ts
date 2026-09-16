@@ -1,5 +1,6 @@
-// Every string field below is nullable because the checkout JSON sends an
-// empty address field as null, not as an empty string. Narrow before use.
+// Every address string on this object is nullable: the checkout JSON turns an
+// empty address field into null rather than sending an empty string. The same
+// goes for the service option name below. Narrow before use.
 export type Shipment = {
   /** Unique identifier for the saved address, if available. */
   address_id: number | null;
@@ -48,5 +49,9 @@ export type Shipment = {
    */
   postal_code_lookup?: boolean;
   /** Available shipping service options for this shipment with their costs. */
-  shipping_service_options?: { id: number; name: string; cost: number }[];
+  shipping_service_options?: {
+    id: number;
+    name: string | null;
+    cost: number;
+  }[];
 };
