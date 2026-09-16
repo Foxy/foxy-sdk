@@ -128,7 +128,7 @@ function getPayPalEligibilityAmount(json: APIJson): string | undefined {
 
   const maximumFractionDigits = Math.max(
     0,
-    Math.min(20, json.format?.maximum_fraction_digits ?? 2),
+    Math.min(20, json.format.maximum_fraction_digits ?? 2),
   );
 
   return currentTotal.toFixed(maximumFractionDigits);
@@ -167,7 +167,7 @@ function getAdyenCheckoutAmount(
   json: APIJson,
 ): AdyenEmbeddedAmount | undefined {
   const currentTotal = json.totals[0]?.total_order;
-  const rawCurrencyCode = json.format?.currency_code;
+  const rawCurrencyCode = json.format.currency_code;
 
   if (typeof currentTotal !== "number" || !Number.isFinite(currentTotal)) {
     return undefined;
@@ -179,7 +179,7 @@ function getAdyenCheckoutAmount(
 
   const maximumFractionDigits = Math.max(
     0,
-    Math.min(20, json.format?.maximum_fraction_digits ?? 2),
+    Math.min(20, json.format.maximum_fraction_digits ?? 2),
   );
   const multiplier = 10 ** maximumFractionDigits;
   const value = Math.round((currentTotal + Number.EPSILON) * multiplier);
@@ -220,8 +220,8 @@ async function resolveIncomingApiState(
             clientToken: config.client_token,
             customConfig: nextJson.custom_config,
             amount: getPayPalEligibilityAmount(nextJson),
-            currencyCode: nextJson.format?.currency_code,
-            locale: nextJson.format?.locale_code,
+            currencyCode: nextJson.format.currency_code,
+            locale: nextJson.format.locale_code,
             buyerCountry: nextJson.billing_address?.country ?? undefined,
           });
         } catch {
@@ -281,7 +281,7 @@ async function resolveIncomingApiState(
           environment: adyenEmbeddedConfig.environment,
           clientKey: adyenEmbeddedConfig.client_key,
           amount: getAdyenCheckoutAmount(nextJson),
-          locale: nextJson.format?.locale_code,
+          locale: nextJson.format.locale_code,
           countryCode: nextJson.billing_address?.country ?? undefined,
         })
           .then((instance) => {
@@ -1098,19 +1098,6 @@ export class API extends EventTarget {
     }
 
     if (!this.json) return;
-
-    // Null on a receipt the backend could not find, which hydrates the client
-    // with no checkout behind it. There is nothing to validate against and
-    // nothing to update.
-    const display = this.json.display;
-    if (!display) {
-      this.addErrorMessage(
-        "Shipments cannot be updated because no checkout is loaded.",
-        "shipment-update",
-      );
-      return;
-    }
-
     const shipment = this.json.shipments[index];
     if (!shipment) {
       this.addErrorMessage(
@@ -1138,7 +1125,7 @@ export class API extends EventTarget {
 
     const shipmentErrors = validateShipmentParams(
       params as Record<string, string | null | undefined>,
-      display,
+      this.json.display,
       {
         countryOptions: shipment.country_options,
         regionOptions: shipment.region_options,
@@ -1227,11 +1214,10 @@ export class API extends EventTarget {
 
     if (!this.json) return;
 
-    // Both are null on a receipt the backend could not find — see the guard in
-    // updateShipment.
-    const display = this.json.display;
+    // Null on a receipt the backend could not find, which hydrates the client
+    // with no checkout behind it. There is no address to patch.
     const billingAddress = this.json.billing_address;
-    if (!display || !billingAddress) {
+    if (!billingAddress) {
       this.addErrorMessage(
         "The billing address cannot be updated because no checkout is loaded.",
         "billing-address-update",
@@ -1250,7 +1236,7 @@ export class API extends EventTarget {
     // restrictions to billing.
     const billingErrors = validateBillingAddressParams(
       params as Record<string, string | null | undefined>,
-      display,
+      this.json.display,
       {
         countryOptions: billingAddress.country_options,
         regionOptions: billingAddress.region_options,

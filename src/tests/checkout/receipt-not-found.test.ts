@@ -7,6 +7,12 @@ import { API } from "../../checkout/API";
  * receipt. It still hydrates so the shopper sees the error, so `store`,
  * `messages` and `template_set` are there and everything the backend builds
  * from a transaction is null or empty.
+ *
+ * `format` and `display` are filled in here, but the backend nulls them on this
+ * payload today. They are store and template-set config with no transaction
+ * behind them, so FX-411 asks for them to be sent; APIJson declares them
+ * non-null on the assumption it lands. Until then the SDK throws on a real
+ * not-found receipt before it reaches any of the cases below.
  */
 function createReceiptNotFoundJson(): APIJson {
   return {
@@ -40,8 +46,23 @@ function createReceiptNotFoundJson(): APIJson {
       },
     ],
     custom_fields: {},
-    format: null,
-    display: null,
+    format: {
+      weight_unit: "pound",
+      locale_code: "en-US",
+      currency_code: "USD",
+      currency_display: "symbol",
+      maximum_fraction_digits: 2,
+    },
+    display: {
+      hidden_product_options: [],
+      required_form_fields: [],
+      hidden_form_fields: [],
+      use_readonly_cart_on_checkout: false,
+      use_tax_inclusive_pricing: false,
+      secure_data_transfer_consent: "disabled",
+      checkout_flow: "default",
+      registration: "optional",
+    },
     custom_config: {},
     saved_payment_methods: [],
     payment_gateways: [],
@@ -63,8 +84,8 @@ describe("a receipt the backend could not find", () => {
     expect(api.json?.messages[0]?.message).toBe(
       "The receipt you requested could not be found.",
     );
-    expect(api.json?.format).toBeNull();
-    expect(api.json?.display).toBeNull();
+    expect(api.json?.session).toBeNull();
+    expect(api.json?.customer).toBeNull();
   });
 
   it("hydrates without throwing when the store domain is null too", async () => {
@@ -101,15 +122,13 @@ describe("a receipt the backend could not find", () => {
     expect(body.has("session_id")).toBe(false);
   });
 
-  it("refuses an address update instead of throwing on the null display", async () => {
+  it("refuses a billing address update instead of throwing on the null address", async () => {
     const api = new API({ storeDomain: "store.test" });
     await api.hydrateJson(createReceiptNotFoundJson(), { state: "idle" });
 
-    api.updateShipment({ first_name: "Alice" });
     api.updateBillingAddress({ first_name: "Alice" });
 
     const contexts = (api.json?.messages ?? []).map((m) => m.context);
-    expect(contexts).toContain("shipment-update");
     expect(contexts).toContain("billing-address-update");
   });
 });

@@ -22,8 +22,14 @@ export type APIJson = {
   /** Public transaction details including ID, date and payments – available after purchase. */
   transaction: Transaction | null;
   /**
-   * The session information including the unique identifier. Null on a receipt
-   * the backend could not find — see the note above `format`.
+   * The session information including the unique identifier.
+   *
+   * Null on a receipt the backend could not find. That page hydrates the client
+   * anyway so the shopper sees the error, and the payload nulls everything
+   * built from a transaction: this field, `customer`, `billing_address` and
+   * `transaction`. It also nulls `format` and `display`, which are store and
+   * template-set config and should not be null — FX-411 tracks that, and both
+   * are declared non-null here on the assumption it lands.
    */
   session: Session | null;
   /** Whether debug mode is enabled for this template set. */
@@ -46,18 +52,10 @@ export type APIJson = {
   messages: Message[];
   /** Custom fields with keys prefixed by 'h:'. */
   custom_fields: CustomFields;
-  /**
-   * Formatting and localization settings. Null on a receipt that was not found.
-   *
-   * The receipt page hydrates the client even when it cannot load the receipt,
-   * so that the shopper sees the error. That payload carries `store`,
-   * `messages`, `template_set` and empty arrays, and nulls everything the
-   * backend builds from a transaction: this field, `session`, `customer`,
-   * `billing_address` and `display`. A checkout payload never nulls them.
-   */
-  format: Format | null;
-  /** Display and UI configuration options. Null on a receipt that was not found. */
-  display: Display | null;
+  /** Formatting and localization settings. */
+  format: Format;
+  /** Display and UI configuration options. */
+  display: Display;
   /** Custom configuration options for this checkout. */
   custom_config: CustomConfig;
   /** Saved payment methods available for this order. */
