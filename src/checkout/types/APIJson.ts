@@ -21,16 +21,7 @@ export type APIJson = {
   template_set: TemplateSet;
   /** Public transaction details including ID, date and payments – available after purchase. */
   transaction: Transaction | null;
-  /**
-   * The session information including the unique identifier.
-   *
-   * Null on a receipt the backend could not find. That page hydrates the client
-   * anyway so the shopper sees the error, and the payload nulls everything
-   * built from a transaction: this field, `customer`, `billing_address` and
-   * `transaction`. It also nulls `format` and `display`, which are store and
-   * template-set config and should not be null — FX-411 tracks that, and both
-   * are declared non-null here on the assumption it lands.
-   */
+  /** The session information including the unique identifier. Null on a receipt the backend could not find. */
   session: Session | null;
   /** Whether debug mode is enabled for this template set. */
   debug: boolean;
