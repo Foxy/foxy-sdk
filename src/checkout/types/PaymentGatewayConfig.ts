@@ -33,6 +33,12 @@ export type GooglePayConfig = {
   merchant_id: string;
   /** Custom tokenization parameters for payment gateway: https://developers.google.com/pay/api/web/reference/request-objects#gateway. */
   gateway_parameters?: Record<string, string>;
+  /**
+   * Google Pay environment matching the gateway's own configuration, spelled
+   * the way Google's API spells it. A property of the gateway, not of the
+   * bundle: the client must not derive it from its own build mode.
+   */
+  environment: "TEST" | "PRODUCTION";
 };
 
 type StandardCardPaymentGatewayConfig = {
