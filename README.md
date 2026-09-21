@@ -38,7 +38,7 @@ The sidecart is a module-level singleton, imported the same way as the checkout
 client:
 
 ```js
-import { sideCart } from "https://cdn-js.foxy.io/sdk@2/checkout/side-cart";
+import { sideCart } from "https://cdn-js.foxy.io/sdk@2/checkout/side-cart.js";
 
 sideCart.show();
 sideCart.hide();
