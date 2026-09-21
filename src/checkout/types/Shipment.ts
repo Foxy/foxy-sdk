@@ -1,3 +1,5 @@
+import type { AddressValidation } from "./AddressValidation";
+
 // Every address string on this object is nullable: the checkout JSON turns an
 // empty address field into null rather than sending an empty string. The same
 // goes for the service option name below. Narrow before use.
@@ -48,6 +50,13 @@ export type Shipment = {
    * reads as disabled.
    */
   postal_code_lookup?: boolean;
+  /**
+   * The store's validation verdict on this address. Absent when there is
+   * nothing to say — validation is off, the country is not covered, the
+   * address is incomplete, or the provider did not answer in time. Absent is
+   * also what a backend predating the feature sends, which reads as "off".
+   */
+  address_validation?: AddressValidation;
   /** Available shipping service options for this shipment with their costs. */
   shipping_service_options?: {
     id: number;

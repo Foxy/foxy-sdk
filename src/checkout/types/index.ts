@@ -1,4 +1,5 @@
 export type { AddressSuggestion } from "./AddressSuggestion";
+export type { AddressValidation, ValidatedAddress } from "./AddressValidation";
 export type { TemplateSet } from "./TemplateSet";
 export type { Transaction } from "./Transaction";
 export type { Session } from "./Session";

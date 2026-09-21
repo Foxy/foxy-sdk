@@ -1,5 +1,7 @@
 export type {
   AddressSuggestion,
+  AddressValidation,
+  ValidatedAddress,
   TemplateSet,
   Transaction,
   Session,
