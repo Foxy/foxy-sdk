@@ -12,6 +12,16 @@ class SideCart extends EventTarget {
   #inerted: HTMLElement[] = [];
   #cached: ReturnType<typeof readCachedState> | undefined = undefined;
 
+  constructor() {
+    super();
+    // The client fetches the cart JSON on a merchant page regardless of the
+    // sidecart, so its item count is live the moment it resolves -- keep
+    // "itemcountchange" firing for it same as for the iframe's own reports.
+    client.addEventListener("update", () => {
+      this.dispatchEvent(new Event("itemcountchange"));
+    });
+  }
+
   /**
    * The store the iframe is loaded from, resolved on first use rather than at
    * import: a merchant may import this module before `checkout/loader.js` has
@@ -43,9 +53,14 @@ class SideCart extends EventTarget {
     return this.#open;
   }
 
-  /** `null` means "not known yet", which is not the same as an empty cart. */
+  /**
+   * `null` means "not known yet", which is not the same as an empty cart.
+   * The client's own json wins over the cache: it fetches `/cart` on a
+   * merchant page anyway, so reading it costs nothing extra and is never
+   * staler than the cache.
+   */
   get itemCount(): number | null {
-    return this.#state()?.itemCount ?? null;
+    return client.json?.items.length ?? this.#state()?.itemCount ?? null;
   }
 
   mount(): void {

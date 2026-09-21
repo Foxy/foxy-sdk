@@ -1,6 +1,7 @@
 /** @vitest-environment jsdom */
 // src/tests/checkout/side-cart/side-cart.test.ts
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { APIJson } from "../../../checkout/types";
 
 const STORE_ORIGIN = "https://demo.foxycart.test";
 
@@ -23,13 +24,10 @@ describe("checkout/side-cart", () => {
     localStorage.clear();
   });
 
-  it("makes no iframe and no request until something asks for one", async () => {
-    const fetchSpy = vi.spyOn(globalThis, "fetch");
+  it("mounts no iframe until something asks for one", async () => {
     await loadSideCart();
 
     expect(frame()).toBeNull();
-    expect(fetchSpy).not.toHaveBeenCalled();
-    fetchSpy.mockRestore();
   });
 
   it("reports an unknown item count on a cold start", async () => {
@@ -92,5 +90,31 @@ describe("checkout/side-cart", () => {
 
     expect(frame()).not.toBeNull();
     expect(sideCart.open).toBe(false);
+  });
+
+  it("prefers the client's own item count over the cache", async () => {
+    localStorage.setItem(
+      `foxy.side-cart.${STORE_ORIGIN}`,
+      JSON.stringify({ sessionId: "s1", itemCount: 4 }),
+    );
+
+    const { client, sideCart } = await loadSideCart();
+    await client.hydrateJson({
+      items: [{}, {}],
+      messages: [],
+      store: { domain: null },
+    } as unknown as APIJson);
+
+    expect(sideCart.itemCount).toBe(2);
+  });
+
+  it("re-emits itemcountchange when the client's json updates", async () => {
+    const { client, sideCart } = await loadSideCart();
+    const onItemCountChange = vi.fn();
+    sideCart.addEventListener("itemcountchange", onItemCountChange);
+
+    client.dispatchEvent(new Event("update"));
+
+    expect(onItemCountChange).toHaveBeenCalledTimes(1);
   });
 });
