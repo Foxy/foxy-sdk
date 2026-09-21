@@ -41,4 +41,20 @@ describe("checkout/API sidecart transport", () => {
 
     expect(invoke).not.toHaveBeenCalled();
   });
+
+  it("reports a rejected invoke through onError even with no checkout json", async () => {
+    const failure = new Error("frame is gone");
+    const invoke = vi.fn().mockRejectedValue(failure);
+    const onError = vi.fn();
+    const api = new API({ storeDomain: "demo.foxycart.test", onError });
+
+    api.setSideCartTransport({ invoke });
+    expect(api.json).toBeNull();
+    api.clearCart();
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(onError).toHaveBeenCalledWith(failure);
+  });
 });

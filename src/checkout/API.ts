@@ -750,10 +750,12 @@ export class API extends EventTarget {
   private delegated(method: SideCartInvokeMethod, params: unknown[]): boolean {
     if (!this.#sideCartTransport) return false;
     void this.#sideCartTransport.invoke(method, params).catch((error: unknown) => {
-      this.addErrorMessage(
-        error instanceof Error ? error.message : String(error),
-        "side-cart",
-      );
+      const normalized = error instanceof Error ? error : new Error(String(error));
+      // `addErrorMessage` no-ops without checkout json, which is exactly the
+      // merchant-page case this transport exists for, so the failure also goes
+      // to the host's own error hook.
+      this.addErrorMessage(normalized.message, "side-cart");
+      this.#onError?.(normalized);
     });
 
     return true;
