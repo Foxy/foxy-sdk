@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 // src/tests/checkout/side-cart/side-cart.test.ts
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { APIJson } from "../../../checkout/types";
 
 const STORE_ORIGIN = "https://demo.foxycart.test";
@@ -18,10 +18,56 @@ function frame(): HTMLIFrameElement | null {
   return document.querySelector("iframe[data-foxy-side-cart]");
 }
 
+/**
+ * Answers the sidecart's own announcement handshake the way the frame would,
+ * and hands back the frame-side port so a test can post `ready`/`state`
+ * messages through it. `sideCart.mount()` must have run first.
+ *
+ * Spying on the iframe's `contentWindow.postMessage` -- the same trick
+ * `channel.test.ts` uses to inspect the transferred port -- sidesteps jsdom
+ * not actually delivering a message across two window objects: the spy still
+ * calls through, so it hands back the very same, still-usable `MessagePort`
+ * the channel transferred, without needing that delivery to happen.
+ */
+function connectFrame(): MessagePort {
+  const win = frame()!.contentWindow!;
+  const postMessageSpy = vi.spyOn(win, "postMessage");
+
+  dispatchEvent(
+    new MessageEvent("message", {
+      data: { type: "awaiting-connect" },
+      origin: STORE_ORIGIN,
+      source: win,
+    }),
+  );
+
+  const [, , transfer] = postMessageSpy.mock.calls[0] as unknown as [
+    unknown,
+    string,
+    Transferable[],
+  ];
+  postMessageSpy.mockRestore();
+
+  return transfer[0] as MessagePort;
+}
+
 describe("checkout/side-cart", () => {
+  // `loadSideCart()`'s `client.setStoreDomain(...)` call always kicks off a
+  // real, unmocked fetch as a side effect of the client's own pre-existing
+  // auto-hydrate behavior (API.ts's constructor `setTimeout` and
+  // `setStoreDomain` itself) -- nothing in this file relies on it resolving.
+  // Left unmocked, it's a real DNS lookup racing test/file teardown, and it
+  // has been observed rejecting late enough to land in an unrelated test
+  // file's realm and crash there. Rejecting it immediately keeps that stray
+  // promise inside the test that started it.
   beforeEach(() => {
     document.body.innerHTML = "";
     localStorage.clear();
+    vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("network disabled in tests"));
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it("mounts no iframe until something asks for one", async () => {
@@ -130,5 +176,39 @@ describe("checkout/side-cart", () => {
     } as unknown as APIJson);
 
     expect(onItemCountChange).toHaveBeenCalledTimes(1);
+  });
+
+  it("reports the count the iframe last announced over an older client json", async () => {
+    const { client, sideCart } = await loadSideCart();
+    await client.hydrateJson({
+      items: [{}, {}, {}],
+      messages: [],
+      store: { domain: null },
+    } as unknown as APIJson);
+
+    sideCart.mount();
+    const framePort = connectFrame();
+    framePort.postMessage(
+      JSON.stringify({ type: "state", sessionId: "s2", itemCount: 1, total: 500 }),
+    );
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    expect(sideCart.itemCount).toBe(1);
+  });
+
+  it("a reported count of zero wins over a non-zero client json", async () => {
+    const { client, sideCart } = await loadSideCart();
+    await client.hydrateJson({
+      items: [{}, {}],
+      messages: [],
+      store: { domain: null },
+    } as unknown as APIJson);
+
+    sideCart.mount();
+    const framePort = connectFrame();
+    framePort.postMessage(JSON.stringify({ type: "ready", sessionId: "s3", itemCount: 0 }));
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    expect(sideCart.itemCount).toBe(0);
   });
 });

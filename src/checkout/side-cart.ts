@@ -11,6 +11,10 @@ class SideCart extends EventTarget {
   #open = false;
   #inerted: HTMLElement[] = [];
   #cached: ReturnType<typeof readCachedState> | undefined = undefined;
+  /** What the iframe has reported this session. Separate from `#cached`,
+   * which is the persisted cross-page value: `null` means the iframe has not
+   * reported yet, not that the cart is empty. */
+  #reportedItemCount: number | null = null;
   #lastAnnouncedCount: number | null = this.itemCount;
 
   constructor() {
@@ -58,12 +62,16 @@ class SideCart extends EventTarget {
 
   /**
    * `null` means "not known yet", which is not the same as an empty cart.
-   * The client's own json wins over the cache: it fetches `/cart` on a
-   * merchant page anyway, so reading it costs nothing extra and is never
-   * staler than the cache.
+   * Most-recent-wins: what the iframe reported this session, then the
+   * client's own json, then the persisted cache. A delegated mutation never
+   * refreshes `client.json` -- it forwards to the transport and returns --
+   * so once the iframe has reported, its number is the only one still being
+   * kept live and must outrank the client's page-load snapshot.
    */
   get itemCount(): number | null {
-    return client.json?.items.length ?? this.#state()?.itemCount ?? null;
+    return (
+      this.#reportedItemCount ?? client.json?.items.length ?? this.#state()?.itemCount ?? null
+    );
   }
 
   mount(): void {
@@ -139,6 +147,7 @@ class SideCart extends EventTarget {
     }
 
     if (message.type === "ready" || message.type === "state") {
+      this.#reportedItemCount = message.itemCount;
       this.#cached = { sessionId: message.sessionId, itemCount: message.itemCount };
       writeCachedState(this.#origin(), this.#cached);
       this.#announceIfCountChanged();
