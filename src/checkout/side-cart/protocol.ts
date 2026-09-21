@@ -1,3 +1,5 @@
+import { isNonNegativeInteger } from "../v8n/isNonNegativeInteger";
+
 /**
  * Methods the host may invoke inside the sidecart iframe.
  *
@@ -66,18 +68,27 @@ function isSessionId(value: unknown): value is string | null {
   return value === null || typeof value === "string";
 }
 
+/**
+ * A cart cannot hold -1 or 2.5 items. A bare `typeof === "number"` let such a
+ * count through to be persisted in the merchant-origin cache and rendered in
+ * the trigger's badge, where nothing else would catch it.
+ */
+function isItemCount(value: unknown): value is number {
+  return typeof value === "number" && isNonNegativeInteger(value);
+}
+
 export function parseFrameToHost(raw: unknown): FrameToHostMessage | null {
   const data = parseJson(raw);
   if (!data) return null;
 
   switch (data.type) {
     case "ready":
-      return isSessionId(data.sessionId) && typeof data.itemCount === "number"
+      return isSessionId(data.sessionId) && isItemCount(data.itemCount)
         ? { type: "ready", sessionId: data.sessionId, itemCount: data.itemCount }
         : null;
     case "state":
       return isSessionId(data.sessionId) &&
-        typeof data.itemCount === "number" &&
+        isItemCount(data.itemCount) &&
         typeof data.total === "number"
         ? {
             type: "state",
