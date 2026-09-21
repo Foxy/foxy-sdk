@@ -89,7 +89,7 @@ describe("checkout/side-cart/channel", () => {
     postMessage.mockRestore();
   });
 
-  it("ignores a null-source announcement at the right origin without consulting expectedSource", () => {
+  it("transfers nothing for a null-source announcement at the right origin", () => {
     const expectedSource = vi.fn(() => null);
     const channel = new SideCartHostChannel({
       expectedSource,
@@ -97,13 +97,66 @@ describe("checkout/side-cart/channel", () => {
       onMessage: vi.fn(),
     });
     openChannels.push(channel);
+    const postMessage = vi.spyOn(window, "postMessage");
 
-    dispatchEvent(
-      new MessageEvent("message", { data: { type: "awaiting-connect" }, origin: ORIGIN }),
+    expect(() =>
+      dispatchEvent(
+        new MessageEvent("message", { data: { type: "awaiting-connect" }, origin: ORIGIN }),
+      ),
+    ).not.toThrow();
+
+    // The security outcome, not just the shape of the guard: no port left the
+    // host. Without the null check, `null !== expectedSource()` is false and
+    // both remaining guards pass, so the transfer is attempted on a null
+    // source.
+    expect(postMessage).not.toHaveBeenCalled();
+    // And the guard returns before the comparison, so the source is never
+    // even resolved.
+    expect(expectedSource).not.toHaveBeenCalled();
+    postMessage.mockRestore();
+  });
+
+  it("rejects a pending invoke when the frame reconnects", async () => {
+    const { channel } = createChannel();
+    openChannels.push(channel);
+    channel.connect(new MessageChannel().port2);
+
+    // Nothing will ever answer on this port: the frame navigated, and
+    // `contentWindow` identity survives that, so it announces itself again
+    // and passes both of the host's guards.
+    const outcome = channel.invoke("clearCart", []).then(
+      () => "resolved",
+      (error: Error) => error.message,
     );
 
-    // The guard returns before the comparison, so the source is never resolved.
-    expect(expectedSource).not.toHaveBeenCalled();
+    channel.connect(new MessageChannel().port2);
+
+    // Raced rather than awaited: an unfixed `connect()` leaves the promise
+    // pending forever, and "pending" is a red assertion where a five-second
+    // timeout is only weak evidence.
+    const settled = await Promise.race([
+      outcome,
+      new Promise<string>((resolve) => setTimeout(() => resolve("pending"), 20)),
+    ]);
+
+    expect(settled).toBe("Sidecart reconnected.");
+  });
+
+  it("stops answering announcements once destroyed", () => {
+    const { channel } = createChannel();
+    channel.destroy();
+    const postMessage = vi.spyOn(window, "postMessage");
+
+    dispatchEvent(
+      new MessageEvent("message", {
+        data: { type: "awaiting-connect" },
+        origin: ORIGIN,
+        source: window,
+      }),
+    );
+
+    expect(postMessage).not.toHaveBeenCalled();
+    postMessage.mockRestore();
   });
 
   it("queues an invoke made before connect and resolves it on a result", async () => {

@@ -16,6 +16,12 @@ export type SideCartHostChannelParams = {
   expectedSource: () => MessageEventSource | null;
   expectedOrigin: string;
   onMessage: (message: FrameToHostMessage) => void;
+  /**
+   * Fired once per connected port. A same-frame navigation reconnects without
+   * going through the host's `mount()`, so per-connection host state has to be
+   * reset from here rather than from the mount.
+   */
+  onConnect?: () => void;
 };
 
 export class SideCartHostChannel {
@@ -48,7 +54,15 @@ export class SideCartHostChannel {
   }
 
   connect(port: MessagePort): void {
-    this.#port?.close();
+    if (this.#port) {
+      // A live port is being displaced -- the frame navigated and announced
+      // itself again. Nothing on the old port will ever answer, so its pending
+      // invokes have to be rejected here exactly as `destroy()` rejects them.
+      // Left alone they never settle, and the caller's `.catch` never runs.
+      this.#port.close();
+      this.#rejectPending("Sidecart reconnected.");
+    }
+
     this.#port = port;
 
     port.onmessage = (event) => {
@@ -71,6 +85,12 @@ export class SideCartHostChannel {
     const queued = this.#queue;
     this.#queue = [];
     queued.forEach((message) => this.post(message));
+    this.#params.onConnect?.();
+  }
+
+  #rejectPending(reason: string): void {
+    this.#pending.forEach((pending) => pending.reject(new Error(reason)));
+    this.#pending.clear();
   }
 
   invoke(method: SideCartInvokeMethod, params: unknown[]): Promise<void> {
@@ -91,8 +111,7 @@ export class SideCartHostChannel {
     removeEventListener("message", this.#onWindowMessage);
     this.#port?.close();
     this.#port = null;
-    this.#pending.forEach((pending) => pending.reject(new Error("Sidecart closed.")));
-    this.#pending.clear();
+    this.#rejectPending("Sidecart closed.");
     this.#queue = [];
   }
 }
