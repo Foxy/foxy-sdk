@@ -5,11 +5,20 @@ import type { APIJson } from "../../../checkout/types";
 
 const STORE_ORIGIN = "https://demo.foxycart.test";
 
+/**
+ * The singleton `loadSideCart()` last handed out. `vi.resetModules()` makes a
+ * fresh one per test, so `afterEach` cannot reach it any other way -- and a
+ * mounted sidecart that is never unmounted leaves its channel's `message`
+ * listener on the jsdom window that every test in this file shares.
+ */
+let mounted: { unmount(): void } | null = null;
+
 async function loadSideCart() {
   vi.resetModules();
   const { client } = await import("../../../checkout/client");
   client.setStoreDomain("demo.foxycart.test");
   const module = await import("../../../checkout/side-cart");
+  mounted = module.sideCart;
 
   return { client, sideCart: module.sideCart };
 }
@@ -28,6 +37,7 @@ async function loadSideCartWithoutStoreDomain() {
   vi.resetModules();
   const { client } = await import("../../../checkout/client");
   const module = await import("../../../checkout/side-cart");
+  mounted = module.sideCart;
 
   return { client, sideCart: module.sideCart };
 }
@@ -69,6 +79,11 @@ function connectFrame(): MessagePort {
   return transfer[0] as MessagePort;
 }
 
+/** One MessagePort round trip. */
+function settle(): Promise<unknown> {
+  return new Promise((resolve) => setTimeout(resolve, 10));
+}
+
 describe("checkout/side-cart", () => {
   // `loadSideCart()`'s `client.setStoreDomain(...)` call always kicks off a
   // real, unmocked fetch as a side effect of the client's own pre-existing
@@ -85,6 +100,8 @@ describe("checkout/side-cart", () => {
   });
 
   afterEach(async () => {
+    mounted?.unmount();
+    mounted = null;
     // The mocked-rejected fetch above still leaves a promise chain running
     // inside `client` (`runMutation`'s catch, `addErrorMessage`, `setState`'s
     // `dispatchEvent`) -- and there are two independent starts of it per
@@ -134,7 +151,7 @@ describe("checkout/side-cart", () => {
     expect(element?.style.display).toBe("none");
   });
 
-  it("shows and hides, firing events and inerting the page behind it", async () => {
+  it("shows and hides, firing events", async () => {
     const other = document.createElement("div");
     document.body.appendChild(other);
 
@@ -147,13 +164,14 @@ describe("checkout/side-cart", () => {
     sideCart.show();
     expect(sideCart.open).toBe(true);
     expect(frame()?.style.display).toBe("block");
-    expect(other.inert).toBe(true);
     expect(onOpen).toHaveBeenCalledTimes(1);
 
     sideCart.hide();
     expect(sideCart.open).toBe(false);
     expect(frame()?.style.display).toBe("none");
-    expect(other.inert).toBe(false);
+    // `inert` is covered by its own tests below: it is held until the frame
+    // reports `ready`, so `show()` alone never sets it.
+    expect(other.inert).toBeFalsy();
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
@@ -250,11 +268,174 @@ describe("checkout/side-cart", () => {
     expect(sideCart.itemCount).toBeNull();
   });
 
-  it("still throws from mount() when the store origin cannot be resolved", async () => {
+  it("still refuses to mount when the store origin cannot be resolved", async () => {
     const { sideCart } = await loadSideCartWithoutStoreDomain();
 
-    expect(() => sideCart.mount()).toThrow(
-      "VITE_FOXYCART_DOMAIN is required when using a Foxy subdomain storeDomain.",
+    expect(() => sideCart.mount()).toThrow(/does not know which store/);
+    expect(frame()).toBeNull();
+  });
+
+  it("keeps the page behind interactive until the frame reports ready", async () => {
+    const other = document.createElement("div");
+    document.body.appendChild(other);
+
+    const { sideCart } = await loadSideCart();
+    sideCart.show();
+
+    // A frame that never connects -- store outage, a frame-src CSP, a
+    // tracking blocker -- renders no close button of its own. Inerting the
+    // page behind it before it is alive is what leaves the shopper with
+    // nothing but a reload.
+    expect(other.inert).toBeFalsy();
+
+    const framePort = connectFrame();
+    framePort.postMessage(JSON.stringify({ type: "ready", sessionId: "s1", itemCount: 0 }));
+    await settle();
+
+    expect(other.inert).toBe(true);
+  });
+
+  it("closes on Escape from the host page", async () => {
+    const other = document.createElement("div");
+    document.body.appendChild(other);
+
+    const { sideCart } = await loadSideCart();
+    const onClose = vi.fn();
+    sideCart.addEventListener("close", onClose);
+    sideCart.show();
+
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+
+    expect(sideCart.open).toBe(false);
+    expect(frame()?.style.display).toBe("none");
+    expect(other.inert).toBeFalsy();
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("stops listening for Escape once closed", async () => {
+    const { sideCart } = await loadSideCart();
+    sideCart.show();
+    sideCart.hide();
+    const onClose = vi.fn();
+    sideCart.addEventListener("close", onClose);
+
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it("re-reads the cache when the store domain changes after the first read", async () => {
+    const { client, sideCart } = await loadSideCart();
+    // The first read resolves against `demo.foxycart.test` and finds nothing.
+    expect(sideCart.itemCount).toBeNull();
+
+    localStorage.setItem(
+      "foxy.side-cart.https://other.foxycart.test",
+      JSON.stringify({ sessionId: "s9", itemCount: 7 }),
     );
+    // `hydrateJson` does this too, so it is not an exotic sequence.
+    client.setStoreDomain("other.foxycart.test");
+
+    expect(sideCart.itemCount).toBe(7);
+    sideCart.mount();
+    expect(frame()?.src).toBe("https://other.foxycart.test/cart?session_id=s9");
+  });
+
+  it("does not announce the first report after a connect, but does announce the next", async () => {
+    localStorage.setItem(
+      `foxy.side-cart.${STORE_ORIGIN}`,
+      JSON.stringify({ sessionId: "s1", itemCount: 4 }),
+    );
+
+    const { sideCart } = await loadSideCart();
+    const onItemCountChange = vi.fn();
+    sideCart.addEventListener("itemcountchange", onItemCountChange);
+    sideCart.mount();
+    const framePort = connectFrame();
+
+    framePort.postMessage(JSON.stringify({ type: "ready", sessionId: "s1", itemCount: 2 }));
+    await settle();
+
+    // The cache said 4 and the truth is 2. The shopper did not cause that.
+    expect(sideCart.itemCount).toBe(2);
+    expect(onItemCountChange).not.toHaveBeenCalled();
+
+    framePort.postMessage(
+      JSON.stringify({ type: "state", sessionId: "s1", itemCount: 3, total: 900 }),
+    );
+    await settle();
+
+    expect(sideCart.itemCount).toBe(3);
+    expect(onItemCountChange).toHaveBeenCalledTimes(1);
+  });
+
+  it("forgets the frame's count on unmount", async () => {
+    const { client, sideCart } = await loadSideCart();
+    await client.hydrateJson({
+      items: [{}, {}, {}],
+      messages: [],
+      store: { domain: null },
+    } as unknown as APIJson);
+
+    sideCart.mount();
+    const framePort = connectFrame();
+    framePort.postMessage(JSON.stringify({ type: "ready", sessionId: "s4", itemCount: 1 }));
+    await settle();
+    expect(sideCart.itemCount).toBe(1);
+
+    sideCart.unmount();
+
+    expect(sideCart.itemCount).toBe(3);
+  });
+
+  it("routes the frame's error message into the client's messages", async () => {
+    const { client, sideCart } = await loadSideCart();
+    await client.hydrateJson({
+      items: [],
+      messages: [],
+      store: { domain: null },
+    } as unknown as APIJson);
+
+    sideCart.mount();
+    const framePort = connectFrame();
+    framePort.postMessage(
+      JSON.stringify({ type: "error", message: "the cart could not be loaded" }),
+    );
+    await settle();
+
+    expect(client.json?.messages).toContainEqual({
+      context: "side-cart",
+      message: "the cart could not be loaded",
+      level: "error",
+    });
+  });
+
+  it("rejects rather than throwing when invoke cannot resolve a store origin", async () => {
+    const { sideCart } = await loadSideCartWithoutStoreDomain();
+    let settled: Promise<void> | undefined;
+
+    // `API.ts` does `void transport.invoke(...).catch(...)`, which cannot
+    // catch a synchronous throw -- it would land in merchant code instead.
+    expect(() => {
+      settled = sideCart.invoke("clearCart", []);
+    }).not.toThrow();
+
+    await expect(settled).rejects.toThrow(/does not know which store/);
+  });
+
+  it("is still mountable after an append that threw", async () => {
+    const { sideCart } = await loadSideCart();
+    const appendChild = vi
+      .spyOn(document.body, "appendChild")
+      .mockImplementationOnce(() => {
+        throw new Error("append blocked");
+      });
+
+    expect(() => sideCart.mount()).toThrow("append blocked");
+    appendChild.mockRestore();
+
+    sideCart.mount();
+
+    expect(frame()).not.toBeNull();
   });
 });

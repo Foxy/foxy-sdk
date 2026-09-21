@@ -5,17 +5,38 @@ import { readCachedState, writeCachedState } from "./side-cart/session-cache";
 import { resolveBaseUrlFromStoreDomain } from "./API";
 import { SideCartHostChannel } from "./side-cart/channel";
 
+const NO_STORE_ORIGIN =
+  "The sidecart does not know which store to load. Import it as " +
+  '"checkout/side-cart.js?store=example.foxycart.com", or set the domain on the ' +
+  'client first (that is what "checkout/loader.js?store=..." does).';
+
 class SideCart extends EventTarget {
   #frame: HTMLIFrameElement | null = null;
   #channel: SideCartHostChannel | null = null;
   #open = false;
   #inerted: HTMLElement[] = [];
-  #cached: ReturnType<typeof readCachedState> | undefined = undefined;
-  /** What the iframe has reported this session. Separate from `#cached`,
-   * which is the persisted cross-page value: `null` means the iframe has not
-   * reported yet, not that the cart is empty. */
+  /** What the iframe has reported this session. Separate from the persisted
+   * cache: `null` means the iframe has not reported yet, not that the cart is
+   * empty. */
   #reportedItemCount: number | null = null;
   #lastAnnouncedCount: number | null = this.itemCount;
+  /** Whether the frame has said `ready` on the CURRENT connection. Reset by
+   * the channel's `onConnect`, because a same-frame navigation reconnects
+   * without going through `mount()`. */
+  #frameReady = false;
+  /** Whether the next `ready`/`state` is the first one on this connection.
+   * That report is the cache-to-authoritative correction, which the design
+   * forbids announcing: the shopper did not cause it. */
+  #firstReportPending = true;
+
+  /**
+   * The frame runs its own Escape handling and answers with `close`, but it
+   * only sees Escape while focus is inside it. This covers what it cannot: a
+   * frame that never connected, and focus left on the host page.
+   */
+  #onKeyDown = (event: KeyboardEvent): void => {
+    if (event.key === "Escape") this.hide();
+  };
 
   constructor() {
     super();
@@ -32,21 +53,27 @@ class SideCart extends EventTarget {
   /**
    * The store the iframe is loaded from, resolved on first use rather than at
    * import: a merchant may import this module before `checkout/loader.js` has
-   * set the store domain. `client` is the only place the domain is resolved --
-   * on a merchant page nobody has called hydrateJson, so there is no store
-   * JSON to read it from -- with the script's own `?store=` as the fallback,
-   * the same one `src/checkout/loader.ts` reads.
+   * set the store domain.
+   *
+   * There are exactly two sources, both explicit: `client.storeUrl` and this
+   * module's own `?store=`. There is deliberately no `location.hostname`
+   * fallback -- `checkout/loader.ts` can afford one because a store-hosted
+   * page's hostname IS the store, but this module runs on the merchant's
+   * page, where by definition it is not. Falling back there would frame the
+   * merchant's own site and then hand a cart-mutation port to it.
    *
    * The trailing slash goes. `resolveBaseUrlFromStoreDomain` returns a base
-   * URL (`API.ts:107` — `https://store.example/`), and this needs an origin:
-   * it is compared against `event.origin`, which never has one, and it is
-   * concatenated with `/cart`.
+   * URL (`https://store.example/`), and this needs an origin: it is compared
+   * against `event.origin`, which never has one, and it is concatenated with
+   * `/cart`.
    */
   #origin(): string {
     const fromScript = new URL(import.meta.url).searchParams.get("store");
     const baseUrl =
       client.storeUrl ??
-      resolveBaseUrlFromStoreDomain(fromScript ?? location.hostname);
+      (fromScript === null ? null : resolveBaseUrlFromStoreDomain(fromScript));
+
+    if (baseUrl === null) throw new Error(NO_STORE_ORIGIN);
 
     return baseUrl.replace(/\/$/, "");
   }
@@ -57,7 +84,7 @@ class SideCart extends EventTarget {
    * module (and seeding `#lastAnnouncedCount` below) must never throw just
    * because nobody has set a store domain yet. `mount()` is the one place a
    * URL is actually required, and it calls `#origin()` directly, so a real
-   * misconfiguration still throws there.
+   * misconfiguration still refuses there.
    */
   #tryOrigin(): string | null {
     try {
@@ -67,17 +94,15 @@ class SideCart extends EventTarget {
     }
   }
 
+  /**
+   * Deliberately not memoized. The origin can change under this object -- a
+   * `setStoreDomain` after the first read, which `hydrateJson` also triggers
+   * -- and a memo filled against whichever origin resolved first would pin
+   * the shopper's session to it forever. A `localStorage` read is cheap.
+   */
   #state(): ReturnType<typeof readCachedState> {
-    if (this.#cached === undefined) {
-      // Leave `#cached` as `undefined` (not cached as `null`) while the
-      // origin is unresolvable, so a later call -- once a domain is set --
-      // still gets a chance to read the real cache instead of being stuck
-      // with the first attempt's failure forever.
-      const origin = this.#tryOrigin();
-      if (origin === null) return null;
-      this.#cached = readCachedState(origin);
-    }
-    return this.#cached;
+    const origin = this.#tryOrigin();
+    return origin === null ? null : readCachedState(origin);
   }
 
   get open(): boolean {
@@ -101,24 +126,34 @@ class SideCart extends EventTarget {
   mount(): void {
     if (this.#frame) return;
 
-    const frame = document.createElement("iframe");
+    // Resolved first: it is the one step that can refuse, and it has to refuse
+    // before anything is created or appended.
+    const origin = this.#origin();
     const sessionId = this.#state()?.sessionId;
     const query = sessionId ? `?session_id=${encodeURIComponent(sessionId)}` : "";
+    const frame = document.createElement("iframe");
 
     frame.dataset.foxySideCart = "";
     frame.title = "Cart";
-    frame.src = `${this.#origin()}/cart${query}`;
+    frame.src = `${origin}/cart${query}`;
     frame.style.cssText =
       "position:fixed;inset:0;width:100%;height:100%;border:0;z-index:2147483647;display:none";
 
+    document.body.appendChild(frame);
+    // Both assignments happen only once the frame is really in the document.
+    // Assigning `#frame` before a throwing `appendChild` wedged this object
+    // forever, since `mount()` early-returns on `#frame`; constructing the
+    // channel before it would leave its window listener behind.
+    this.#frame = frame;
     this.#channel = new SideCartHostChannel({
       expectedSource: () => this.#frame?.contentWindow ?? null,
-      expectedOrigin: this.#origin(),
+      expectedOrigin: origin,
       onMessage: (message) => this.#handle(message),
+      onConnect: () => {
+        this.#frameReady = false;
+        this.#firstReportPending = true;
+      },
     });
-
-    this.#frame = frame;
-    document.body.appendChild(frame);
   }
 
   unmount(): void {
@@ -127,6 +162,13 @@ class SideCart extends EventTarget {
     this.#channel = null;
     this.#frame?.remove();
     this.#frame = null;
+    this.#frameReady = false;
+    this.#firstReportPending = true;
+    // The next connect's first report is by definition a fresh correction, so
+    // both the reported count and the announced baseline go back to what they
+    // were at construction rather than staying at a dead frame's last word.
+    this.#reportedItemCount = null;
+    this.#lastAnnouncedCount = this.itemCount;
   }
 
   reload(): void {
@@ -142,13 +184,19 @@ class SideCart extends EventTarget {
     this.#open = true;
     if (this.#frame) this.#frame.style.display = "block";
     this.#channel?.post({ type: "show" });
-    this.#setPageInert(true);
+    // `inert` waits for the frame's own `ready`. A frame that never connects
+    // -- store outage, a frame-src CSP on the merchant's page, a tracking
+    // blocker -- renders no close button of its own, and an inert page behind
+    // it would leave the shopper nothing but a reload.
+    if (this.#frameReady) this.#setPageInert(true);
+    document.addEventListener("keydown", this.#onKeyDown);
     this.dispatchEvent(new Event("open"));
   }
 
   hide(): void {
     if (!this.#open) return;
     this.#open = false;
+    document.removeEventListener("keydown", this.#onKeyDown);
     if (this.#frame) this.#frame.style.display = "none";
     this.#channel?.post({ type: "hide" });
     this.#setPageInert(false);
@@ -156,10 +204,15 @@ class SideCart extends EventTarget {
   }
 
   /** Called by `client` through the transport hook. */
-  invoke(method: SideCartInvokeMethod, params: unknown[]): Promise<void> {
+  async invoke(method: SideCartInvokeMethod, params: unknown[]): Promise<void> {
+    // `async` is load-bearing. `mount()` throws synchronously when no store
+    // origin is set, and `API.ts`'s `void transport.invoke(...).catch(...)`
+    // cannot catch a synchronous throw: it would escape into merchant code
+    // instead of the addErrorMessage + onError channel that is the only
+    // failure path a merchant page has.
     this.mount();
     const channel = this.#channel;
-    if (!channel) return Promise.reject(new Error("The sidecart is not mounted."));
+    if (!channel) throw new Error("The sidecart is not mounted.");
 
     return channel.invoke(method, params);
   }
@@ -170,11 +223,40 @@ class SideCart extends EventTarget {
       return;
     }
 
+    if (message.type === "error") {
+      // The frame's only unsolicited error channel, routed where a rejected
+      // delegated mutation goes: the checkout json's messages when there is
+      // one, and the client's own error hook either way.
+      client.reportSideCartError(new Error(message.message));
+      return;
+    }
+
     if (message.type === "ready" || message.type === "state") {
+      if (message.type === "ready") this.#frameReady = true;
+      // The frame is alive and drawing its own close affordance, so the page
+      // behind it can finally go inert.
+      if (this.#frameReady && this.#open) this.#setPageInert(true);
+
       this.#reportedItemCount = message.itemCount;
-      this.#cached = { sessionId: message.sessionId, itemCount: message.itemCount };
       const origin = this.#tryOrigin();
-      if (origin !== null) writeCachedState(origin, this.#cached);
+
+      if (origin !== null) {
+        writeCachedState(origin, {
+          sessionId: message.sessionId,
+          itemCount: message.itemCount,
+        });
+      }
+
+      if (this.#firstReportPending) {
+        // The first report on a connection corrects the cache; it is not a
+        // change the shopper made. The count and the cache still update --
+        // only the announcement is suppressed, and the baseline moves with it
+        // so the next real change is measured against the right number.
+        this.#firstReportPending = false;
+        this.#lastAnnouncedCount = this.itemCount;
+        return;
+      }
+
       this.#announceIfCountChanged();
     }
   }
