@@ -14,6 +14,24 @@ async function loadSideCart() {
   return { client, sideCart: module.sideCart };
 }
 
+/**
+ * A merchant script can import this module before anything has told `client`
+ * what store it is on -- `checkout/loader.js` hasn't run yet, or never will
+ * on a bare-hostname/test-harness page. Deliberately skips
+ * `client.setStoreDomain(...)`, unlike `loadSideCart()` above, so the origin
+ * can only fall back to `location.hostname` -- vitest's default jsdom
+ * location is `http://localhost:3000/`, a bare hostname with no dot and,
+ * with no `VITE_FOXYCART_DOMAIN` configured for this test run,
+ * unresolvable via `resolveBaseUrlFromStoreDomain`.
+ */
+async function loadSideCartWithoutStoreDomain() {
+  vi.resetModules();
+  const { client } = await import("../../../checkout/client");
+  const module = await import("../../../checkout/side-cart");
+
+  return { client, sideCart: module.sideCart };
+}
+
 function frame(): HTMLIFrameElement | null {
   return document.querySelector("iframe[data-foxy-side-cart]");
 }
@@ -66,7 +84,17 @@ describe("checkout/side-cart", () => {
     vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("network disabled in tests"));
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    // The mocked-rejected fetch above still leaves a promise chain running
+    // inside `client` (`runMutation`'s catch, `addErrorMessage`, `setState`'s
+    // `dispatchEvent`) -- and there are two independent starts of it per
+    // test: `setStoreDomain`'s own immediate call, and the constructor's own
+    // deferred `setTimeout`. A couple of ticks lets both finish inside the
+    // test that started them, instead of settling after this file's jsdom
+    // environment is torn down and crashing whatever file's realm is current
+    // by then.
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 0));
     vi.restoreAllMocks();
   });
 
@@ -210,5 +238,23 @@ describe("checkout/side-cart", () => {
     await new Promise((resolve) => setTimeout(resolve, 10));
 
     expect(sideCart.itemCount).toBe(0);
+  });
+
+  it("does not throw on import when the store origin cannot yet be resolved", async () => {
+    // Reaching this line at all is the assertion: the round-2
+    // `#lastAnnouncedCount` field initializer reads `itemCount`, which used
+    // to propagate `resolveBaseUrlFromStoreDomain`'s throw straight out of
+    // `new SideCart()` -- i.e. out of importing this module.
+    const { sideCart } = await loadSideCartWithoutStoreDomain();
+
+    expect(sideCart.itemCount).toBeNull();
+  });
+
+  it("still throws from mount() when the store origin cannot be resolved", async () => {
+    const { sideCart } = await loadSideCartWithoutStoreDomain();
+
+    expect(() => sideCart.mount()).toThrow(
+      "VITE_FOXYCART_DOMAIN is required when using a Foxy subdomain storeDomain.",
+    );
   });
 });

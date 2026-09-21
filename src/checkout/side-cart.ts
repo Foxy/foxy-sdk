@@ -51,8 +51,32 @@ class SideCart extends EventTarget {
     return baseUrl.replace(/\/$/, "");
   }
 
+  /**
+   * `#origin()`, but tolerant of it being unresolvable: reading or writing
+   * the cache is opportunistic, never worth crashing over -- importing this
+   * module (and seeding `#lastAnnouncedCount` below) must never throw just
+   * because nobody has set a store domain yet. `mount()` is the one place a
+   * URL is actually required, and it calls `#origin()` directly, so a real
+   * misconfiguration still throws there.
+   */
+  #tryOrigin(): string | null {
+    try {
+      return this.#origin();
+    } catch {
+      return null;
+    }
+  }
+
   #state(): ReturnType<typeof readCachedState> {
-    if (this.#cached === undefined) this.#cached = readCachedState(this.#origin());
+    if (this.#cached === undefined) {
+      // Leave `#cached` as `undefined` (not cached as `null`) while the
+      // origin is unresolvable, so a later call -- once a domain is set --
+      // still gets a chance to read the real cache instead of being stuck
+      // with the first attempt's failure forever.
+      const origin = this.#tryOrigin();
+      if (origin === null) return null;
+      this.#cached = readCachedState(origin);
+    }
     return this.#cached;
   }
 
@@ -149,7 +173,8 @@ class SideCart extends EventTarget {
     if (message.type === "ready" || message.type === "state") {
       this.#reportedItemCount = message.itemCount;
       this.#cached = { sessionId: message.sessionId, itemCount: message.itemCount };
-      writeCachedState(this.#origin(), this.#cached);
+      const origin = this.#tryOrigin();
+      if (origin !== null) writeCachedState(origin, this.#cached);
       this.#announceIfCountChanged();
     }
   }
