@@ -35,14 +35,25 @@ import { API } from "@foxy.io/sdk/checkout";
 ```
 
 The sidecart is a module-level singleton, imported the same way as the checkout
-client:
+client. `?store=` is your store's domain and is required: the sidecart frames
+the store over your own site, so it will not guess the store from the page it
+is running on.
 
 ```js
-import { sideCart } from "https://cdn-js.foxy.io/sdk@2/checkout/side-cart.js";
+import { sideCart } from "https://cdn-js.foxy.io/sdk@2/checkout/side-cart.js?store=example.foxycart.com";
 
 sideCart.show();
 sideCart.hide();
 sideCart.addEventListener("itemcountchange", () => console.log(sideCart.itemCount));
+```
+
+`checkout/loader.js` reads the same `?store=` parameter from its own URL and
+sets the domain on the shared client, so a page that already loads it can drop
+the one on the sidecart import:
+
+```js
+import "https://cdn-js.foxy.io/sdk@2/checkout/loader.js?store=example.foxycart.com";
+import { sideCart } from "https://cdn-js.foxy.io/sdk@2/checkout/side-cart.js";
 ```
 
 Importing it also makes `client`'s cart mutations travel into the sidecart
