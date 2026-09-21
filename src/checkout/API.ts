@@ -742,20 +742,37 @@ export class API extends EventTarget {
   }
 
   /**
+   * Routes a sidecart failure into both channels a merchant page has:
+   * `addErrorMessage` no-ops without checkout json, which is exactly the
+   * merchant-page case the sidecart exists for, so the failure also goes to
+   * the host's own error hook. Public because the sidecart host reports the
+   * frame's own unsolicited `error` messages through here too, and it can
+   * reach neither `addErrorMessage` (protected) nor `#onError` (private).
+   */
+  reportSideCartError(error: Error): void {
+    this.addErrorMessage(error.message, "side-cart");
+    this.#onError?.(error);
+  }
+
+  /**
    * Returns true when the call has been handed to the sidecart and the caller
    * must stop. Deliberately one explicit line per delegatable method rather
    * than a wrapper: the six call sites are greppable, and a method added later
    * does not become delegatable by accident.
+   *
+   * A delegated call does NOT dispatch this client's cancelable events
+   * (`item-update`, `cart-clear` and the rest) and does not run the local
+   * validation below them. Both belong to the document that owns the cart --
+   * the sidecart iframe -- which has the fresh json they need to be correct.
+   * A delegated mutation never refreshes the host's json, so firing them here
+   * would be firing them against a page-load snapshot.
    */
   private delegated(method: SideCartInvokeMethod, params: unknown[]): boolean {
     if (!this.#sideCartTransport) return false;
     void this.#sideCartTransport.invoke(method, params).catch((error: unknown) => {
-      const normalized = error instanceof Error ? error : new Error(String(error));
-      // `addErrorMessage` no-ops without checkout json, which is exactly the
-      // merchant-page case this transport exists for, so the failure also goes
-      // to the host's own error hook.
-      this.addErrorMessage(normalized.message, "side-cart");
-      this.#onError?.(normalized);
+      this.reportSideCartError(
+        error instanceof Error ? error : new Error(String(error)),
+      );
     });
 
     return true;

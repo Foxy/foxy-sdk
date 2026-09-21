@@ -2,6 +2,7 @@
 // src/tests/checkout/side-cart/transport.test.ts
 import { describe, expect, it, vi } from "vitest";
 import { API } from "../../../checkout/API";
+import type { APIJson } from "../../../checkout/types";
 
 describe("checkout/API sidecart transport", () => {
   it("delegates a mutation instead of calling the store", () => {
@@ -40,6 +41,29 @@ describe("checkout/API sidecart transport", () => {
     api.clearCart();
 
     expect(invoke).not.toHaveBeenCalled();
+  });
+
+  it("reports a sidecart error through onError and into the checkout json", async () => {
+    // The sidecart host calls this for the frame's own unsolicited `error`
+    // message, which it can route no other way: `addErrorMessage` is
+    // protected and the error hook is private.
+    const onError = vi.fn();
+    const api = new API({ storeDomain: "demo.foxycart.test", onError });
+    const failure = new Error("the cart could not be loaded");
+
+    await api.hydrateJson({
+      items: [],
+      messages: [],
+      store: { domain: null },
+    } as unknown as APIJson);
+    api.reportSideCartError(failure);
+
+    expect(onError).toHaveBeenCalledWith(failure);
+    expect(api.json?.messages).toContainEqual({
+      context: "side-cart",
+      message: "the cart could not be loaded",
+      level: "error",
+    });
   });
 
   it("reports a rejected invoke through onError even with no checkout json", async () => {
