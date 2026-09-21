@@ -34,6 +34,20 @@ or:
 import { API } from "@foxy.io/sdk/checkout";
 ```
 
+The sidecart is a module-level singleton, imported the same way as the checkout
+client:
+
+```js
+import { sideCart } from "https://cdn-js.foxy.io/sdk@2/checkout/side-cart";
+
+sideCart.show();
+sideCart.hide();
+sideCart.addEventListener("itemcountchange", () => console.log(sideCart.itemCount));
+```
+
+Importing it also makes `client`'s cart mutations travel into the sidecart
+iframe, which is the document that owns the session.
+
 ## Development
 
 ```bash

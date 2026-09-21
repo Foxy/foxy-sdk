@@ -26,6 +26,14 @@
       "types": "./dist/npm/checkout/client.d.ts",
       "import": "./dist/npm/checkout/client.js"
     },
+    "./checkout/side-cart": {
+      "types": "./dist/npm/checkout/side-cart.d.ts",
+      "import": "./dist/npm/checkout/side-cart.js"
+    },
+    "./checkout/side-cart/protocol": {
+      "types": "./dist/npm/checkout/side-cart/protocol.d.ts",
+      "import": "./dist/npm/checkout/side-cart/protocol.js"
+    },
     "./core": {
       "types": "./dist/npm/core.d.ts",
       "import": "./dist/npm/core.js"
