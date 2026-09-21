@@ -388,6 +388,30 @@ describe("checkout/side-cart", () => {
     expect(sideCart.itemCount).toBe(3);
   });
 
+  it("re-seeds the announced baseline on unmount", async () => {
+    const { client, sideCart } = await loadSideCart();
+    await client.hydrateJson({
+      items: [{}, {}, {}],
+      messages: [],
+      store: { domain: null },
+    } as unknown as APIJson);
+
+    sideCart.mount();
+    const framePort = connectFrame();
+    // Suppressed as the first report, which leaves the baseline at 1.
+    framePort.postMessage(JSON.stringify({ type: "ready", sessionId: "s5", itemCount: 1 }));
+    await settle();
+    sideCart.unmount();
+
+    const onItemCountChange = vi.fn();
+    sideCart.addEventListener("itemcountchange", onItemCountChange);
+    // The count is back to the client's 3 and has not moved since. A baseline
+    // left at the dead frame's 1 would announce a change nobody made.
+    client.dispatchEvent(new Event("update"));
+
+    expect(onItemCountChange).not.toHaveBeenCalled();
+  });
+
   it("routes the frame's error message into the client's messages", async () => {
     const { client, sideCart } = await loadSideCart();
     await client.hydrateJson({
