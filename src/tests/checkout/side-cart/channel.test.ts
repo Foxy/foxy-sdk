@@ -74,6 +74,7 @@ describe("checkout/side-cart/channel", () => {
     openChannels.push(channel);
     const postMessage = vi.spyOn(window, "postMessage");
     const impostor = new MessageChannel().port1;
+    const impostorPostMessage = vi.spyOn(impostor, "postMessage");
 
     dispatchEvent(
       new MessageEvent("message", {
@@ -83,27 +84,26 @@ describe("checkout/side-cart/channel", () => {
       }),
     );
 
+    expect(impostorPostMessage).not.toHaveBeenCalled();
     expect(postMessage).not.toHaveBeenCalled();
     postMessage.mockRestore();
   });
 
-  it("ignores a null-source announcement at the right origin without throwing", () => {
-    const { channel } = createChannel();
+  it("ignores a null-source announcement at the right origin without consulting expectedSource", () => {
+    const expectedSource = vi.fn(() => null);
+    const channel = new SideCartHostChannel({
+      expectedSource,
+      expectedOrigin: ORIGIN,
+      onMessage: vi.fn(),
+    });
     openChannels.push(channel);
-    const postMessage = vi.spyOn(window, "postMessage");
 
-    expect(() => {
-      dispatchEvent(
-        new MessageEvent("message", {
-          data: { type: "awaiting-connect" },
-          origin: ORIGIN,
-          source: null,
-        }),
-      );
-    }).not.toThrow();
+    dispatchEvent(
+      new MessageEvent("message", { data: { type: "awaiting-connect" }, origin: ORIGIN }),
+    );
 
-    expect(postMessage).not.toHaveBeenCalled();
-    postMessage.mockRestore();
+    // The guard returns before the comparison, so the source is never resolved.
+    expect(expectedSource).not.toHaveBeenCalled();
   });
 
   it("queues an invoke made before connect and resolves it on a result", async () => {
