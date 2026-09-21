@@ -11,14 +11,17 @@ class SideCart extends EventTarget {
   #open = false;
   #inerted: HTMLElement[] = [];
   #cached: ReturnType<typeof readCachedState> | undefined = undefined;
+  #lastAnnouncedCount: number | null = this.itemCount;
 
   constructor() {
     super();
     // The client fetches the cart JSON on a merchant page regardless of the
-    // sidecart, so its item count is live the moment it resolves -- keep
-    // "itemcountchange" firing for it same as for the iframe's own reports.
+    // sidecart, so its item count is live the moment it resolves. But `client`
+    // fires "update" for any json change -- a coupon, an address edit, a
+    // payment SDK resolving -- not only a count change, so this has to be
+    // gated the same way `#handle` gates the iframe's reports.
     client.addEventListener("update", () => {
-      this.dispatchEvent(new Event("itemcountchange"));
+      this.#announceIfCountChanged();
     });
   }
 
@@ -136,11 +139,24 @@ class SideCart extends EventTarget {
     }
 
     if (message.type === "ready" || message.type === "state") {
-      const changed = this.#state()?.itemCount !== message.itemCount;
       this.#cached = { sessionId: message.sessionId, itemCount: message.itemCount };
       writeCachedState(this.#origin(), this.#cached);
-      if (changed) this.dispatchEvent(new Event("itemcountchange"));
+      this.#announceIfCountChanged();
     }
+  }
+
+  /**
+   * The one place "itemcountchange" gets dispatched, so the iframe's reports
+   * and the client's own json can't drift into firing on different rules.
+   * `client` fires "update" on any json change, not only a count change, and
+   * an aria-live region downstream must not announce a correction that did
+   * not happen.
+   */
+  #announceIfCountChanged(): void {
+    const count = this.itemCount;
+    if (count === this.#lastAnnouncedCount) return;
+    this.#lastAnnouncedCount = count;
+    this.dispatchEvent(new Event("itemcountchange"));
   }
 
   /**

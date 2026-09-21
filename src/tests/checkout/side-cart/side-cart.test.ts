@@ -108,12 +108,26 @@ describe("checkout/side-cart", () => {
     expect(sideCart.itemCount).toBe(2);
   });
 
-  it("re-emits itemcountchange when the client's json updates", async () => {
+  it("does not emit itemcountchange when the client's update leaves the count unchanged", async () => {
     const { client, sideCart } = await loadSideCart();
     const onItemCountChange = vi.fn();
     sideCart.addEventListener("itemcountchange", onItemCountChange);
 
     client.dispatchEvent(new Event("update"));
+
+    expect(onItemCountChange).not.toHaveBeenCalled();
+  });
+
+  it("emits itemcountchange exactly once when the client's update changes the count", async () => {
+    const { client, sideCart } = await loadSideCart();
+    const onItemCountChange = vi.fn();
+    sideCart.addEventListener("itemcountchange", onItemCountChange);
+
+    await client.hydrateJson({
+      items: [{}, {}],
+      messages: [],
+      store: { domain: null },
+    } as unknown as APIJson);
 
     expect(onItemCountChange).toHaveBeenCalledTimes(1);
   });
