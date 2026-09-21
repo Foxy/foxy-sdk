@@ -38,10 +38,17 @@ describe("checkout/side-cart/channel", () => {
     );
 
     expect(postMessage).toHaveBeenCalledTimes(1);
-    const [message, targetOrigin, transfer] = postMessage.mock.calls[0];
+    // `window.postMessage`'s DOM typing is the two-argument overload, so the
+    // three-element read needs the same cast the repo already uses on mocked
+    // calls (see `src/tests/core/API/Node.test.ts:44`).
+    const [message, targetOrigin, transfer] = postMessage.mock.calls[0] as unknown as [
+      unknown,
+      string,
+      Transferable[],
+    ];
     expect(message).toEqual({ type: "connect" });
     expect(targetOrigin).toBe(ORIGIN);
-    expect((transfer as Transferable[])[0]).toBeInstanceOf(MessagePort);
+    expect(transfer[0]).toBeInstanceOf(MessagePort);
     postMessage.mockRestore();
   });
 
