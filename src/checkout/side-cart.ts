@@ -75,7 +75,19 @@ class SideCart extends EventTarget {
 
     if (baseUrl === null) throw new Error(NO_STORE_ORIGIN);
 
-    return baseUrl.replace(/\/$/, "");
+    const origin = baseUrl.replace(/\/$/, "");
+
+    // The sidecart frames the store OVER the merchant's site, so resolving to
+    // this page's own origin means no store was supplied at all. It reaches
+    // here through `client.storeUrl`, where it looks explicit:
+    // `checkout/loader.ts` sets the domain from its own `location.hostname`
+    // fallback when it is loaded without `?store=`. Framing that would load
+    // the merchant's own 404 at full viewport and then transfer a
+    // cart-mutation port to a merchant-controlled document. A store on a
+    // subdomain of the same site is a different origin and still works.
+    if (origin === location.origin) throw new Error(NO_STORE_ORIGIN);
+
+    return origin;
   }
 
   /**

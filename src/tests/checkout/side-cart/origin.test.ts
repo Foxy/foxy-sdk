@@ -51,6 +51,17 @@ describe("checkout/side-cart store origin", () => {
     expect(frame()).toBeNull();
   });
 
+  it("refuses a store origin that is this page's own origin", async () => {
+    // `checkout/loader.ts` falls back to `location.hostname` when it is loaded
+    // without `?store=`. That fallback is right on a store-hosted page and
+    // wrong here, and it reaches the sidecart through `client.storeUrl`, where
+    // it looks like an explicit store.
+    const { sideCart } = await loadSideCart("shop.example.com");
+
+    expect(() => sideCart.mount()).toThrow(/does not know which store/);
+    expect(frame()).toBeNull();
+  });
+
   it("mounts the store once the client has an explicit domain", async () => {
     const { sideCart } = await loadSideCart("demo.foxycart.test");
 
