@@ -69,6 +69,43 @@ describe("checkout/side-cart/channel", () => {
     postMessage.mockRestore();
   });
 
+  it("ignores an announcement whose source is not the expected one, even at the right origin", () => {
+    const { channel } = createChannel();
+    openChannels.push(channel);
+    const postMessage = vi.spyOn(window, "postMessage");
+    const impostor = new MessageChannel().port1;
+
+    dispatchEvent(
+      new MessageEvent("message", {
+        data: { type: "awaiting-connect" },
+        origin: ORIGIN,
+        source: impostor as unknown as MessageEventSource,
+      }),
+    );
+
+    expect(postMessage).not.toHaveBeenCalled();
+    postMessage.mockRestore();
+  });
+
+  it("ignores a null-source announcement at the right origin without throwing", () => {
+    const { channel } = createChannel();
+    openChannels.push(channel);
+    const postMessage = vi.spyOn(window, "postMessage");
+
+    expect(() => {
+      dispatchEvent(
+        new MessageEvent("message", {
+          data: { type: "awaiting-connect" },
+          origin: ORIGIN,
+          source: null,
+        }),
+      );
+    }).not.toThrow();
+
+    expect(postMessage).not.toHaveBeenCalled();
+    postMessage.mockRestore();
+  });
+
   it("queues an invoke made before connect and resolves it on a result", async () => {
     const { channel } = createChannel();
     openChannels.push(channel);
@@ -102,6 +139,15 @@ describe("checkout/side-cart/channel", () => {
     channel.connect(pair.port2);
 
     await expect(channel.invoke("clearCart", [])).rejects.toThrow("nope");
+  });
+
+  it("rejects a pending invoke when destroy is called", async () => {
+    const { channel } = createChannel();
+
+    const settled = channel.invoke("clearCart", []);
+    channel.destroy();
+
+    await expect(settled).rejects.toThrow("Sidecart closed.");
   });
 
   it("hands frame-initiated messages to onMessage", async () => {

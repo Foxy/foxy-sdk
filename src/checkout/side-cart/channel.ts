@@ -31,6 +31,7 @@ export class SideCartHostChannel {
     // frames answer for the cart; origin alone would let a same-origin
     // document do it. The frame cannot make this check in reverse -- it does
     // not know the merchant's origin -- which is why it announces with '*'.
+    if (event.source === null) return;
     if (event.source !== this.#params.expectedSource()) return;
     if (event.origin !== this.#params.expectedOrigin) return;
 
