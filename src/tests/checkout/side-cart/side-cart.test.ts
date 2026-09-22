@@ -167,18 +167,24 @@ describe("checkout/side-cart", () => {
 
     sideCart.show();
     expect(sideCart.open).toBe(true);
-    expect(frame()?.style.display).toBe("block");
     expect(onOpen).toHaveBeenCalledTimes(1);
+
+    // Reveal timing (waiting for `ready`, the fallback, the pending-close and
+    // pending-reveal races) has its own dedicated tests below; get the frame
+    // ready so this one exercises the general open/close event lifecycle.
+    const framePort = connectFrame();
+    framePort.postMessage(JSON.stringify({ type: "ready", sessionId: "s1", itemCount: 0 }));
+    await settle();
+    expect(frame()?.style.display).toBe("block");
+    expect(other.inert).toBe(true);
 
     sideCart.hide();
     expect(sideCart.open).toBe(false);
     // Immediate effects only. The frame owns the close animation, so the
-    // iframe stays visible until it reports `closed` -- covered by its own
-    // tests below, alongside the fallback and the pending-close races.
+    // iframe stays visible and the page stays inert until it reports
+    // `closed` -- covered by its own tests below.
     expect(frame()?.style.display).toBe("block");
-    // `inert` is covered by its own tests below: it is held until the frame
-    // reports `ready`, so `show()` alone never sets it.
-    expect(other.inert).toBeFalsy();
+    expect(other.inert).toBe(true);
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
@@ -307,7 +313,7 @@ describe("checkout/side-cart", () => {
     expect(frame()).toBeNull();
   });
 
-  it("keeps the page behind interactive until the frame reports ready", async () => {
+  it("keeps the page behind interactive, and the iframe hidden, until the frame reports ready", async () => {
     const other = document.createElement("div");
     document.body.appendChild(other);
 
@@ -317,14 +323,17 @@ describe("checkout/side-cart", () => {
     // A frame that never connects -- store outage, a frame-src CSP, a
     // tracking blocker -- renders no close button of its own. Inerting the
     // page behind it before it is alive is what leaves the shopper with
-    // nothing but a reload.
+    // nothing but a reload. Revealing it before it is alive is worse: a
+    // full-viewport, invisible click trap over the whole page.
     expect(other.inert).toBeFalsy();
+    expect(frame()?.style.display).toBe("none");
 
     const framePort = connectFrame();
     framePort.postMessage(JSON.stringify({ type: "ready", sessionId: "s1", itemCount: 0 }));
     await settle();
 
     expect(other.inert).toBe(true);
+    expect(frame()?.style.display).toBe("block");
   });
 
   it("closes on Escape from the host page", async () => {
@@ -339,9 +348,10 @@ describe("checkout/side-cart", () => {
     document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
 
     expect(sideCart.open).toBe(false);
-    // Immediate effects only -- see the `hide()` test above for why this
-    // isn't "none" yet.
-    expect(frame()?.style.display).toBe("block");
+    // The frame never reported `ready`, so it was never revealed in the
+    // first place -- Escape's `hide()` cancels the pending reveal rather
+    // than starting a close animation on something the shopper never saw.
+    expect(frame()?.style.display).toBe("none");
     expect(other.inert).toBeFalsy();
     expect(onClose).toHaveBeenCalledTimes(1);
   });
@@ -449,6 +459,90 @@ describe("checkout/side-cart", () => {
     expect(frame()?.style.display).toBe("block");
     expect(other.inert).toBe(true);
   });
+
+  it("reveals synchronously when show() is called on a frame that is already ready", async () => {
+    const other = document.createElement("div");
+    document.body.appendChild(other);
+
+    const { sideCart } = await loadSideCart();
+    // The frame connects and reports ready in the background -- e.g. warmed
+    // by a delegated mutation -- before anyone asks to see the drawer.
+    sideCart.mount();
+    const framePort = connectFrame();
+    framePort.postMessage(JSON.stringify({ type: "ready", sessionId: "s1", itemCount: 0 }));
+    await settle();
+    expect(frame()?.style.display).toBe("none");
+    expect(other.inert).toBeFalsy();
+
+    sideCart.show();
+
+    // No wait: the connection was already ready, so this reveals in the
+    // same call instead of scheduling anything.
+    expect(frame()?.style.display).toBe("block");
+    expect(other.inert).toBe(true);
+  });
+
+  it("cancels a pending reveal on hide(), so a later ready reveals nothing", async () => {
+    const other = document.createElement("div");
+    document.body.appendChild(other);
+
+    const { sideCart } = await loadSideCart();
+    sideCart.show();
+    expect(frame()?.style.display).toBe("none");
+
+    sideCart.hide();
+    expect(sideCart.open).toBe(false);
+
+    // The frame finally connects and reports ready, but nobody is waiting on
+    // it any more -- hide() already cancelled the pending reveal.
+    const framePort = connectFrame();
+    framePort.postMessage(JSON.stringify({ type: "ready", sessionId: "s1", itemCount: 0 }));
+    await settle();
+
+    expect(frame()?.style.display).toBe("none");
+    expect(other.inert).toBeFalsy();
+  });
+
+  it(
+    "abandons an unanswered show() and reports the failure",
+    async () => {
+      const other = document.createElement("div");
+      document.body.appendChild(other);
+
+      const { client, sideCart } = await loadSideCart();
+      // `reportSideCartError` -> `addErrorMessage` no-ops without checkout
+      // json (the merchant-page case this exists for), so give it one --
+      // otherwise this test could not tell a reported error from a silent
+      // no-op.
+      await client.hydrateJson({
+        items: [],
+        messages: [],
+        store: { domain: null },
+      } as unknown as APIJson);
+      const onClose = vi.fn();
+      sideCart.addEventListener("close", onClose);
+
+      sideCart.show();
+      expect(frame()?.style.display).toBe("none");
+      expect(other.inert).toBeFalsy();
+
+      // No `ready` ever arrives -- a crash inside the cart page, a
+      // frame-src CSP, a tracking blocker, a stale cached bundle. This wait
+      // must stay above READY_FALLBACK_MS in side-cart.ts (currently 8000ms).
+      await new Promise((resolve) => setTimeout(resolve, 8100));
+
+      // Never revealed, never inerted -- there was nothing to see the whole
+      // time, so there is nothing to tear down either.
+      expect(sideCart.open).toBe(false);
+      expect(frame()?.style.display).toBe("none");
+      expect(other.inert).toBeFalsy();
+      expect(onClose).toHaveBeenCalledTimes(1);
+      expect(client.json?.messages).toContainEqual(
+        expect.objectContaining({ context: "side-cart" }),
+      );
+    },
+    10000,
+  );
 
   it("re-reads the cache when the store domain changes after the first read", async () => {
     const { client, sideCart } = await loadSideCart();

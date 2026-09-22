@@ -21,6 +21,20 @@ const NO_STORE_ORIGIN =
  */
 const CLOSE_FALLBACK_MS = 1000;
 
+/**
+ * Safety net, not the expected path. `show()` waits for the frame to report
+ * `ready` before revealing it -- revealing an unrendered frame would show a
+ * full-viewport, top-z-index, transparent element that swallows every click
+ * with nothing on screen to explain why ("I can't click any buttons... like
+ * there's an overlay"). A crash inside the cart page, a frame-src CSP, a
+ * tracking blocker, or a stale cached bundle can all mean `ready` never
+ * comes. 8000ms comfortably exceeds a slow store page load on a slow
+ * connection -- abandoning a drawer that was about to work is its own bug --
+ * and is clearly longer than `CLOSE_FALLBACK_MS`: loading and hydrating a
+ * page is a heavier operation than playing a close animation.
+ */
+const READY_FALLBACK_MS = 8000;
+
 class SideCart extends EventTarget {
   #frame: HTMLIFrameElement | null = null;
   #channel: SideCartHostChannel | null = null;
@@ -47,6 +61,12 @@ class SideCart extends EventTarget {
    * tearing down a frame that was never told to close.
    */
   #pendingCloseTimer: ReturnType<typeof setTimeout> | null = null;
+  /**
+   * Set by `show()` while waiting for the frame to report `ready` (or for
+   * `READY_FALLBACK_MS` to elapse) before revealing it. `null` means no
+   * reveal is pending -- either it already happened, or nothing is open.
+   */
+  #pendingRevealTimer: ReturnType<typeof setTimeout> | null = null;
 
   /**
    * The frame runs its own Escape handling and answers with `close`, but it
@@ -211,6 +231,9 @@ class SideCart extends EventTarget {
     // timer, so that timer cannot fire later against a frame this method is
     // about to remove (or a different one a later `mount()` creates).
     this.#finishHide();
+    // Same reasoning for the other direction: a reveal `show()` was waiting
+    // on has nothing left to reveal once the frame is gone.
+    this.#clearPendingReveal();
     this.#channel?.destroy();
     this.#channel = null;
     this.#frame?.remove();
@@ -240,20 +263,29 @@ class SideCart extends EventTarget {
     this.#clearPendingClose();
     if (this.#open) return;
     this.#open = true;
-    if (this.#frame) this.#frame.style.display = "block";
     this.#channel?.post({ type: "show" });
-    // `inert` waits for the frame's own `ready`. A frame that never connects
-    // -- store outage, a frame-src CSP on the merchant's page, a tracking
-    // blocker -- renders no close button of its own, and an inert page behind
-    // it would leave the shopper nothing but a reload.
-    if (this.#frameReady) this.#setPageInert(true);
     document.addEventListener("keydown", this.#onKeyDown);
     this.dispatchEvent(new Event("open"));
+
+    if (this.#frameReady) {
+      // Already alive on a live connection -- a reopen, the common case --
+      // so reveal immediately: no flicker, no wait.
+      this.#revealFrame();
+      return;
+    }
+
+    // Otherwise wait for `ready`. Revealing now would show a frame that has
+    // not rendered anything: full viewport, top z-index, and transparent --
+    // an invisible, page-wide click trap if `ready` never comes.
+    this.#pendingRevealTimer = setTimeout(() => this.#abandonShow(), READY_FALLBACK_MS);
   }
 
   hide(): void {
     if (!this.#open) return;
     this.#open = false;
+    // A reveal `show()` was waiting on is moot now, and a `ready` that
+    // arrives later must not retroactively reveal anything.
+    this.#clearPendingReveal();
     document.removeEventListener("keydown", this.#onKeyDown);
     this.#channel?.post({ type: "hide" });
     this.dispatchEvent(new Event("close"));
@@ -282,6 +314,49 @@ class SideCart extends EventTarget {
     if (this.#pendingCloseTimer === null) return;
     clearTimeout(this.#pendingCloseTimer);
     this.#pendingCloseTimer = null;
+  }
+
+  /** Makes the iframe visible and inerts the page behind it -- the two
+   * things that must wait for the frame to actually have rendered
+   * something. Safe to call redundantly (e.g. a `ready` on an already
+   * revealed frame): every step is a no-op if already done. */
+  #revealFrame(): void {
+    this.#clearPendingReveal();
+    if (this.#frame) this.#frame.style.display = "block";
+    this.#setPageInert(true);
+  }
+
+  #clearPendingReveal(): void {
+    if (this.#pendingRevealTimer === null) return;
+    clearTimeout(this.#pendingRevealTimer);
+    this.#pendingRevealTimer = null;
+  }
+
+  /**
+   * `READY_FALLBACK_MS` elapsed with no `ready`. The iframe was never
+   * revealed, so there is nothing to hide, but `open`, the keydown listener
+   * and the `show` message were already set as if the shopper had a drawer,
+   * and those unwind the same way `hide()` unwinds them. Reported through
+   * the same channel `delegated()`'s errors use, with a message naming the
+   * likely causes -- a merchant debugging an unresponsive drawer needs a
+   * hint that their CSP or a blocker may be framing-hostile.
+   */
+  #abandonShow(): void {
+    this.#pendingRevealTimer = null;
+    // Already unwound by hide()/unmount() before this fired.
+    if (!this.#open) return;
+
+    this.#open = false;
+    document.removeEventListener("keydown", this.#onKeyDown);
+    this.#channel?.post({ type: "hide" });
+    this.dispatchEvent(new Event("close"));
+    client.reportSideCartError(
+      new Error(
+        "The cart drawer did not respond in time. This usually means the store " +
+          "page failed to load -- check for a Content-Security-Policy frame-src " +
+          "that blocks it, a tracking or ad blocker, or a store outage.",
+      ),
+    );
   }
 
   /** Called by `client` through the transport hook. */
@@ -321,10 +396,15 @@ class SideCart extends EventTarget {
     }
 
     if (message.type === "ready" || message.type === "state") {
-      if (message.type === "ready") this.#frameReady = true;
-      // The frame is alive and drawing its own close affordance, so the page
-      // behind it can finally go inert.
-      if (this.#frameReady && this.#open) this.#setPageInert(true);
+      if (message.type === "ready") {
+        this.#frameReady = true;
+        // The frame is alive and has actually rendered, so a `show()` that
+        // was waiting on this can finally reveal it (and inert the page
+        // behind it) together, in one step -- not this frame's job if the
+        // sidecart was never asked to open (a mutation-triggered `mount()`
+        // pre-connecting in the background).
+        if (this.#open) this.#revealFrame();
+      }
 
       this.#reportedItemCount = message.itemCount;
       const origin = this.#tryOrigin();
