@@ -19,6 +19,7 @@ import type {
   StripeConnectGateway,
 } from "./types/PaymentGatewayConfig";
 import type { Listener } from "./types/Listener";
+import type { SideCartInvokeMethod } from "./side-cart/protocol";
 import { initializeAdyenEmbeddedSdk } from "./utils/adyen";
 import {
   isNonNegativeInteger,
@@ -50,6 +51,15 @@ export type {
   PayPalSdkInstance,
   SquareSdkInstance,
 } from "./types";
+
+/**
+ * Where a cart mutation goes when this API instance is not the one holding the
+ * session. On a merchant page the sidecart iframe owns the cart, so the host's
+ * client forwards instead of fetching.
+ */
+export type SideCartTransport = {
+  invoke(method: SideCartInvokeMethod, params: unknown[]): Promise<void>;
+};
 
 /**
  * Shortest input worth sending to the lookup endpoint.
@@ -94,7 +104,7 @@ type ResolveIncomingApiStateOptions = {
   onPayPalResolved?: (state: PartialResolvedIncomingApiState) => void;
 };
 
-function resolveBaseUrlFromStoreDomain(storeDomain: string): string {
+export function resolveBaseUrlFromStoreDomain(storeDomain: string): string {
   const normalizedStoreDomain = storeDomain
     .trim()
     .replace(/^https?:\/\//, "")
@@ -414,6 +424,7 @@ export class API extends EventTarget {
   #baseUrl: string | null;
   #jsonResolutionVersion = 0;
   readonly #onError?: (error: Error) => void;
+  #sideCartTransport: SideCartTransport | null = null;
 
   static canMakeApplePayPayments(): boolean {
     return getApplePayAvailability() === "available";
@@ -716,9 +727,61 @@ export class API extends EventTarget {
     });
   }
 
+  setSideCartTransport(transport: SideCartTransport | null): void {
+    this.#sideCartTransport = transport;
+  }
+
+  /**
+   * The store this client talks to, or null before a domain is set. The
+   * sidecart needs it to build the iframe URL and to check the origin of the
+   * frame's announcement, and `#baseUrl` is the only place it has been
+   * resolved -- on a merchant page there is no checkout json to read it from.
+   */
+  get storeUrl(): string | null {
+    return this.#baseUrl ?? null;
+  }
+
+  /**
+   * Routes a sidecart failure into both channels a merchant page has:
+   * `addErrorMessage` no-ops without checkout json, which is exactly the
+   * merchant-page case the sidecart exists for, so the failure also goes to
+   * the host's own error hook. Public because the sidecart host reports the
+   * frame's own unsolicited `error` messages through here too, and it can
+   * reach neither `addErrorMessage` (protected) nor `#onError` (private).
+   */
+  reportSideCartError(error: Error): void {
+    this.addErrorMessage(error.message, "side-cart");
+    this.#onError?.(error);
+  }
+
+  /**
+   * Returns true when the call has been handed to the sidecart and the caller
+   * must stop. Deliberately one explicit line per delegatable method rather
+   * than a wrapper: the six call sites are greppable, and a method added later
+   * does not become delegatable by accident.
+   *
+   * A delegated call does NOT dispatch this client's cancelable events
+   * (`item-update`, `cart-clear` and the rest) and does not run the local
+   * validation below them. Both belong to the document that owns the cart --
+   * the sidecart iframe -- which has the fresh json they need to be correct.
+   * A delegated mutation never refreshes the host's json, so firing them here
+   * would be firing them against a page-load snapshot.
+   */
+  private delegated(method: SideCartInvokeMethod, params: unknown[]): boolean {
+    if (!this.#sideCartTransport) return false;
+    void this.#sideCartTransport.invoke(method, params).catch((error: unknown) => {
+      this.reportSideCartError(
+        error instanceof Error ? error : new Error(String(error)),
+      );
+    });
+
+    return true;
+  }
+
   updateItemQuantity = (
     ...params: { id: number; quantity: number }[]
   ): void => {
+    if (this.delegated("updateItemQuantity", params)) return;
     this.assertStoreDomain();
 
     if (!this.json) return;
@@ -768,6 +831,7 @@ export class API extends EventTarget {
   };
 
   removeItem = (...params: { id: number }[]): void => {
+    if (this.delegated("removeItem", params)) return;
     this.assertStoreDomain();
 
     if (!this.json) return;
@@ -809,6 +873,7 @@ export class API extends EventTarget {
   };
 
   clearCart = (reset?: boolean): void => {
+    if (this.delegated("clearCart", reset === undefined ? [] : [reset])) return;
     this.assertStoreDomain();
 
     if (!this.dispatchCancelable("cart-clear")) {
@@ -824,6 +889,7 @@ export class API extends EventTarget {
   };
 
   applyCouponOrGiftCardCode = (params: { code: string }): void => {
+    if (this.delegated("applyCouponOrGiftCardCode", [params])) return;
     this.assertStoreDomain();
 
     const code = params.code.trim();
@@ -850,6 +916,7 @@ export class API extends EventTarget {
   };
 
   removeCouponCode = (params: { couponId: number }): void => {
+    if (this.delegated("removeCouponCode", [params])) return;
     this.assertStoreDomain();
 
     if (!this.json) return;
@@ -886,6 +953,7 @@ export class API extends EventTarget {
   };
 
   removeGiftCardCode = (params: { giftCardId: number }): void => {
+    if (this.delegated("removeGiftCardCode", [params])) return;
     this.assertStoreDomain();
 
     if (!this.json) return;
