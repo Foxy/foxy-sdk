@@ -70,6 +70,34 @@ import { sideCart } from "https://cdn-js.foxy.io/sdk@2/checkout/side-cart.js";
 Importing it also makes `client`'s cart mutations travel into the sidecart
 iframe, which is the document that owns the session.
 
+### Add-to-cart links and forms
+
+Import this on the merchant's pages so add-to-cart links and forms reach the
+visitor's own cart. It needs no markup changes.
+
+```js
+import "https://cdn-js.foxy.io/sdk@2/checkout/add-to-cart.js?store=example.foxycart.com";
+```
+
+For every link or form that points at the store's `/cart`:
+
+* With `checkout/side-cart` imported, the item goes into the sidecart and the
+  sidecart opens. `cart=checkout` and `redirect` links still navigate.
+* Without it, the browser goes to the cart with the visitor's `session_id`.
+* The session id is added when the visitor clicks. It is never written into
+  the page, so a copied link never carries it.
+* `empty=reset` starts a new session.
+
+For a custom cart, cancel the `foxy:add-to-cart` event and use the detail:
+
+```js
+document.addEventListener("foxy:add-to-cart", (event) => {
+  event.preventDefault();
+  const { url, params, sessionId } = event.detail;
+  // your own cart code
+});
+```
+
 ## Development
 
 ```bash

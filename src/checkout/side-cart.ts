@@ -2,7 +2,7 @@
 import type { FrameToHostMessage, SideCartInvokeMethod } from "./side-cart/protocol";
 import { client } from "./client";
 import { readCachedState, writeCachedState } from "./side-cart/session-cache";
-import { resolveBaseUrlFromStoreDomain } from "./API";
+import { resolveHostStoreOrigin } from "./side-cart/origin";
 import { SideCartHostChannel } from "./side-cart/channel";
 
 const NO_STORE_ORIGIN =
@@ -97,42 +97,15 @@ class SideCart extends EventTarget {
   }
 
   /**
-   * The store the iframe is loaded from, resolved on first use rather than at
-   * import: a merchant may import this module before `checkout/loader.js` has
-   * set the store domain.
-   *
-   * There are exactly two sources, both explicit: `client.storeUrl` and this
-   * module's own `?store=`. There is deliberately no `location.hostname`
-   * fallback -- `checkout/loader.ts` can afford one because a store-hosted
-   * page's hostname IS the store, but this module runs on the merchant's
-   * page, where by definition it is not. Falling back there would frame the
-   * merchant's own site and then hand a cart-mutation port to it.
-   *
-   * The trailing slash goes. `resolveBaseUrlFromStoreDomain` returns a base
-   * URL (`https://store.example/`), and this needs an origin: it is compared
-   * against `event.origin`, which never has one, and it is concatenated with
-   * `/cart`.
+   * Resolved on first use rather than at import: a merchant may import this
+   * module before `checkout/loader.js` has set the store domain. See
+   * `resolveHostStoreOrigin` for the rules. Framing the page's own origin
+   * would load the merchant's own 404 at full viewport and then transfer a
+   * cart-mutation port to a merchant-controlled document.
    */
   #origin(): string {
-    const fromScript = new URL(import.meta.url).searchParams.get("store");
-    const baseUrl =
-      client.storeUrl ??
-      (fromScript === null ? null : resolveBaseUrlFromStoreDomain(fromScript));
-
-    if (baseUrl === null) throw new Error(NO_STORE_ORIGIN);
-
-    const origin = baseUrl.replace(/\/$/, "");
-
-    // The sidecart frames the store OVER the merchant's site, so resolving to
-    // this page's own origin means no store was supplied at all. It reaches
-    // here through `client.storeUrl`, where it looks explicit:
-    // `checkout/loader.ts` sets the domain from its own `location.hostname`
-    // fallback when it is loaded without `?store=`. Framing that would load
-    // the merchant's own 404 at full viewport and then transfer a
-    // cart-mutation port to a merchant-controlled document. A store on a
-    // subdomain of the same site is a different origin and still works.
-    if (origin === location.origin) throw new Error(NO_STORE_ORIGIN);
-
+    const origin = resolveHostStoreOrigin(import.meta.url);
+    if (origin === null) throw new Error(NO_STORE_ORIGIN);
     return origin;
   }
 
