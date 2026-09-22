@@ -269,17 +269,17 @@ class SideCart extends EventTarget {
         });
       }
 
-      if (this.#firstReportPending) {
-        // The first report on a connection corrects the cache; it is not a
-        // change the shopper made. The count and the cache still update --
-        // only the announcement is suppressed, and the baseline moves with it
-        // so the next real change is measured against the right number.
-        this.#firstReportPending = false;
-        this.#lastAnnouncedCount = this.itemCount;
-        return;
-      }
-
-      this.#announceIfCountChanged();
+      // The first report on a connection corrects the cache to the truth; it
+      // is not a change the shopper made. That distinction used to suppress
+      // the event outright, but the event is also the trigger's only signal
+      // that the count changed at all -- suppressing it left the badge and
+      // its aria-label stuck on the stale cached number until some *other*
+      // change happened to fire it. The correction must be silent, not
+      // invisible: it still dispatches, carrying `corrected: true` so a
+      // consumer can render always and announce selectively.
+      const corrected = this.#firstReportPending;
+      this.#firstReportPending = false;
+      this.#announceIfCountChanged(corrected);
     }
   }
 
@@ -288,13 +288,16 @@ class SideCart extends EventTarget {
    * and the client's own json can't drift into firing on different rules.
    * `client` fires "update" on any json change, not only a count change, and
    * an aria-live region downstream must not announce a correction that did
-   * not happen.
+   * not happen -- which is what `corrected` is for: `true` only for the
+   * first report after a connect (a cache-to-authoritative correction the
+   * shopper did not cause), `false` for every other source of a change
+   * (a later frame report, or the client's own json).
    */
-  #announceIfCountChanged(): void {
+  #announceIfCountChanged(corrected = false): void {
     const count = this.itemCount;
     if (count === this.#lastAnnouncedCount) return;
     this.#lastAnnouncedCount = count;
-    this.dispatchEvent(new Event("itemcountchange"));
+    this.dispatchEvent(new CustomEvent("itemcountchange", { detail: { corrected } }));
   }
 
   /**

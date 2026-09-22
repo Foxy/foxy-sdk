@@ -366,7 +366,7 @@ describe("checkout/side-cart", () => {
     expect(frame()?.src).toBe("https://other.foxycart.test/cart?session_id=s9");
   });
 
-  it("does not announce the first report after a connect, but does announce the next", async () => {
+  it("dispatches itemcountchange with corrected: true for a first report that changes the count", async () => {
     localStorage.setItem(
       `foxy.side-cart.${STORE_ORIGIN}`,
       JSON.stringify({ sessionId: "s1", itemCount: 4 }),
@@ -381,17 +381,80 @@ describe("checkout/side-cart", () => {
     framePort.postMessage(JSON.stringify({ type: "ready", sessionId: "s1", itemCount: 2 }));
     await settle();
 
-    // The cache said 4 and the truth is 2. The shopper did not cause that.
+    // The cache said 4 and the truth is 2. The shopper did not cause that,
+    // but the badge still has to stop reading the stale 4 -- only the
+    // announcement (`corrected: true`) says a screen reader should stay quiet.
     expect(sideCart.itemCount).toBe(2);
-    expect(onItemCountChange).not.toHaveBeenCalled();
+    expect(onItemCountChange).toHaveBeenCalledTimes(1);
+    expect(onItemCountChange.mock.calls[0][0].detail).toEqual({ corrected: true });
+  });
 
+  it("dispatches itemcountchange with corrected: false for a later report on the same connection", async () => {
+    const { sideCart } = await loadSideCart();
+    const onItemCountChange = vi.fn();
+    sideCart.addEventListener("itemcountchange", onItemCountChange);
+    sideCart.mount();
+    const framePort = connectFrame();
+
+    framePort.postMessage(JSON.stringify({ type: "ready", sessionId: "s1", itemCount: 2 }));
+    await settle();
     framePort.postMessage(
       JSON.stringify({ type: "state", sessionId: "s1", itemCount: 3, total: 900 }),
     );
     await settle();
 
     expect(sideCart.itemCount).toBe(3);
+    expect(onItemCountChange).toHaveBeenCalledTimes(2);
+    expect(onItemCountChange.mock.calls[1][0].detail).toEqual({ corrected: false });
+  });
+
+  it("dispatches nothing when a report does not change the count", async () => {
+    localStorage.setItem(
+      `foxy.side-cart.${STORE_ORIGIN}`,
+      JSON.stringify({ sessionId: "s1", itemCount: 2 }),
+    );
+
+    const { sideCart } = await loadSideCart();
+    const onItemCountChange = vi.fn();
+    sideCart.addEventListener("itemcountchange", onItemCountChange);
+    sideCart.mount();
+    const framePort = connectFrame();
+
+    // The cache already said 2, and the frame's first report confirms 2 --
+    // no change at all, corrected or otherwise, so nothing should fire.
+    framePort.postMessage(JSON.stringify({ type: "ready", sessionId: "s1", itemCount: 2 }));
+    await settle();
+
+    expect(sideCart.itemCount).toBe(2);
+    expect(onItemCountChange).not.toHaveBeenCalled();
+  });
+
+  it("makes the next first report corrected again after a fresh connect", async () => {
+    const { sideCart } = await loadSideCart();
+    const onItemCountChange = vi.fn();
+    sideCart.addEventListener("itemcountchange", onItemCountChange);
+    sideCart.mount();
+    const firstPort = connectFrame();
+
+    firstPort.postMessage(JSON.stringify({ type: "ready", sessionId: "s1", itemCount: 2 }));
+    await settle();
+    firstPort.postMessage(
+      JSON.stringify({ type: "state", sessionId: "s1", itemCount: 3, total: 900 }),
+    );
+    await settle();
+
+    // A same-frame navigation reconnects without going through mount() --
+    // `connectFrame()` re-announces on the already-mounted frame, which is
+    // what the channel's own `onConnect` (and the reset it triggers) exists
+    // for.
+    onItemCountChange.mockClear();
+    const secondPort = connectFrame();
+    secondPort.postMessage(JSON.stringify({ type: "ready", sessionId: "s1", itemCount: 5 }));
+    await settle();
+
+    expect(sideCart.itemCount).toBe(5);
     expect(onItemCountChange).toHaveBeenCalledTimes(1);
+    expect(onItemCountChange.mock.calls[0][0].detail).toEqual({ corrected: true });
   });
 
   it("forgets the frame's count on unmount", async () => {
@@ -423,7 +486,9 @@ describe("checkout/side-cart", () => {
 
     sideCart.mount();
     const framePort = connectFrame();
-    // Suppressed as the first report, which leaves the baseline at 1.
+    // This is the first report on the connection, so it does dispatch (with
+    // `corrected: true`) -- but no listener is attached yet to observe it.
+    // It still leaves the baseline at 1, which is what this test pins.
     framePort.postMessage(JSON.stringify({ type: "ready", sessionId: "s5", itemCount: 1 }));
     await settle();
     sideCart.unmount();

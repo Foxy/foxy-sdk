@@ -44,7 +44,18 @@ import { sideCart } from "https://cdn-js.foxy.io/sdk@2/checkout/side-cart.js?sto
 
 sideCart.show();
 sideCart.hide();
-sideCart.addEventListener("itemcountchange", () => console.log(sideCart.itemCount));
+sideCart.addEventListener("itemcountchange", (event) => {
+  // Render the new count every time -- `sideCart.itemCount` may be `null`
+  // ("not known yet"), so a consumer should treat that as no badge rather
+  // than a badge reading "null".
+  renderBadge(sideCart.itemCount);
+
+  // But only announce it to assistive tech when `corrected` is false. The
+  // first report after the drawer connects corrects a stale cached count to
+  // the truth -- the shopper did not cause that change, so `corrected` is
+  // `true` and an aria-live region should stay quiet for it.
+  if (!event.detail.corrected) announceToScreenReader(sideCart.itemCount);
+});
 ```
 
 `checkout/loader.js` reads the same `?store=` parameter from its own URL and
