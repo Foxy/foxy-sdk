@@ -10,6 +10,7 @@ import { isNonNegativeInteger } from "../v8n/isNonNegativeInteger";
  * version bump.
  */
 export const SIDE_CART_INVOKE_METHODS = [
+  "addItem",
   "updateItemQuantity",
   "removeItem",
   "clearCart",
