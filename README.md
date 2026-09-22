@@ -82,10 +82,16 @@ import "https://cdn-js.foxy.io/sdk@2/checkout/add-to-cart.js?store=example.foxyc
 For every link or form that points at the store's `/cart`:
 
 * With `checkout/side-cart` imported, the item goes into the sidecart and the
-  sidecart opens. `cart=checkout` and `redirect` links still navigate.
+  sidecart opens. Links that go on to checkout (`redirect=/checkout`, or
+  `cart=checkout`) still navigate.
 * Without it, the browser goes to the cart with the visitor's `session_id`.
+  This keeps the visitor's session on a first click only once the store
+  allows the merchant's origin (CORS). Until the store allows it, a first
+  click with no cached session starts a new cart instead.
 * The session id is added when the visitor clicks. It is never written into
   the page, so a copied link never carries it.
+* A click that opens a new tab (a modifier key, the middle button, or a
+  `target` other than `_self`) never uses the sidecart.
 * `empty=reset` starts a new session.
 
 For a custom cart, cancel the `foxy:add-to-cart` event and use the detail:
