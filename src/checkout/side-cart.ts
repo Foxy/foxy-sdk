@@ -67,6 +67,13 @@ class SideCart extends EventTarget {
    * reveal is pending -- either it already happened, or nothing is open.
    */
   #pendingRevealTimer: ReturnType<typeof setTimeout> | null = null;
+  /**
+   * Invokes waiting for the current connection's `ready`. The host's channel
+   * flushes as soon as the port connects, but the frame can connect before
+   * its checkout json exists, and a mutation run then has no session to
+   * send. `ready` is sent only once the frame has json.
+   */
+  #readyWaiters = new Set<{ resolve(): void; reject(error: Error): void }>();
 
   /**
    * The frame runs its own Escape handling and answers with `close`, but it
@@ -234,6 +241,9 @@ class SideCart extends EventTarget {
     // Same reasoning for the other direction: a reveal `show()` was waiting
     // on has nothing left to reveal once the frame is gone.
     this.#clearPendingReveal();
+    for (const waiter of [...this.#readyWaiters]) {
+      waiter.reject(new Error("The sidecart was unmounted before a cart change was sent."));
+    }
     this.#channel?.destroy();
     this.#channel = null;
     this.#frame?.remove();
@@ -359,6 +369,35 @@ class SideCart extends EventTarget {
     );
   }
 
+  #whenReady(): Promise<void> {
+    if (this.#frameReady) return Promise.resolve();
+
+    return new Promise((resolve, reject) => {
+      const waiter = {
+        resolve: () => {
+          clearTimeout(timer);
+          this.#readyWaiters.delete(waiter);
+          resolve();
+        },
+        reject: (error: Error) => {
+          clearTimeout(timer);
+          this.#readyWaiters.delete(waiter);
+          reject(error);
+        },
+      };
+      const timer = setTimeout(
+        () =>
+          waiter.reject(
+            new Error(
+              "The cart drawer did not respond in time, so a cart change was not sent.",
+            ),
+          ),
+        READY_FALLBACK_MS,
+      );
+      this.#readyWaiters.add(waiter);
+    });
+  }
+
   /** Called by `client` through the transport hook. */
   async invoke(method: SideCartInvokeMethod, params: unknown[]): Promise<void> {
     // `async` is load-bearing. `mount()` throws synchronously when no store
@@ -367,6 +406,7 @@ class SideCart extends EventTarget {
     // instead of the addErrorMessage + onError channel that is the only
     // failure path a merchant page has.
     this.mount();
+    await this.#whenReady();
     const channel = this.#channel;
     if (!channel) throw new Error("The sidecart is not mounted.");
 
@@ -398,6 +438,7 @@ class SideCart extends EventTarget {
     if (message.type === "ready" || message.type === "state") {
       if (message.type === "ready") {
         this.#frameReady = true;
+        for (const waiter of [...this.#readyWaiters]) waiter.resolve();
         // The frame is alive and has actually rendered, so a `show()` that
         // was waiting on this can finally reveal it (and inert the page
         // behind it) together, in one step -- not this frame's job if the

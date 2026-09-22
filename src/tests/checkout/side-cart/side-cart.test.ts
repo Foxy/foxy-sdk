@@ -747,4 +747,48 @@ describe("checkout/side-cart", () => {
 
     expect(frame()).not.toBeNull();
   });
+
+  it("holds an invoke until the frame reports ready", async () => {
+    const { sideCart } = await loadSideCart();
+    const invoked = sideCart.invoke("clearCart", []);
+    const framePort = connectFrame();
+    const received: unknown[] = [];
+    framePort.onmessage = (event) => received.push(JSON.parse(event.data as string));
+    framePort.start();
+    await settle();
+
+    expect(received).toEqual([]);
+
+    framePort.postMessage(JSON.stringify({ type: "ready", sessionId: "s1", itemCount: 0 }));
+    await settle();
+
+    expect(received).toEqual([{ type: "invoke", id: expect.any(Number), method: "clearCart", params: [] }]);
+    const [{ id }] = received as { id: number }[];
+    framePort.postMessage(JSON.stringify({ type: "result", id, error: null }));
+    await expect(invoked).resolves.toBeUndefined();
+  });
+
+  it("rejects a held invoke if ready never comes", async () => {
+    vi.useFakeTimers();
+    try {
+      const { sideCart } = await loadSideCart();
+      const invoked = sideCart.invoke("clearCart", []);
+      const assertion = expect(invoked).rejects.toThrow(/did not respond in time/);
+
+      await vi.advanceTimersByTimeAsync(8000);
+
+      await assertion;
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("rejects a held invoke on unmount", async () => {
+    const { sideCart } = await loadSideCart();
+    const invoked = sideCart.invoke("clearCart", []);
+
+    sideCart.unmount();
+
+    await expect(invoked).rejects.toThrow(/unmounted/);
+  });
 });
