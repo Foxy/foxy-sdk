@@ -301,6 +301,25 @@ describe("checkout/add-to-cart: new-tab links", () => {
     expect(wasDefaultPrevented(event)).toBe(false);
     expect(element.getAttribute("href")).toBe(CART);
   });
+
+  it.each([["right click", 2], ["back button", 3], ["forward button", 4]])(
+    "ignores an auxclick that is not the middle button (%s)",
+    async (_name, button) => {
+      await load();
+      writeCachedState(ORIGIN, { sessionId: "s-1", itemCount: 0 });
+      const element = link(CART);
+      let hrefDuringDefault: string | null = null;
+      document.addEventListener("auxclick", () => (hrefDuringDefault = element.getAttribute("href")), {
+        once: true,
+      });
+
+      const event = click(element, { button }, "auxclick");
+
+      expect(wasDefaultPrevented(event)).toBe(false);
+      expect(hrefDuringDefault).toBe(CART);
+      expect(element.getAttribute("href")).toBe(CART);
+    },
+  );
 });
 
 describe("checkout/add-to-cart: sidecart mode", () => {
@@ -321,6 +340,20 @@ describe("checkout/add-to-cart: sidecart mode", () => {
     click(link(`${CART}&empty=reset`));
 
     expect(addItem).toHaveBeenCalledWith([["name", "Shirt"], ["price", "10"], ["empty", "reset"]]);
+  });
+
+  it("routes a sidecart error to reportSideCartError instead of letting it escape the click", async () => {
+    const { client, transport, addItem } = await load({ sideCart: true });
+    const reportSideCartError = vi.spyOn(client, "reportSideCartError");
+    transport.show.mockImplementation(() => {
+      throw new Error("boom");
+    });
+
+    const event = click(link(CART));
+
+    expect(wasDefaultPrevented(event)).toBe(true);
+    expect(addItem).toHaveBeenCalled();
+    expect(reportSideCartError).toHaveBeenCalledWith(expect.any(Error));
   });
 
   it.each([`${CART}&cart=checkout`, `${CART}&redirect=https://shop.test/thanks`])(
@@ -514,6 +547,34 @@ describe("checkout/add-to-cart: forms", () => {
     expect(event.defaultPrevented).toBe(true);
     expect(addItem).toHaveBeenCalledWith([["name", "Shirt"], ["quantity", "2"]]);
     expect(transport.show).toHaveBeenCalled();
+  });
+
+  it("never adds session_id once the submit dispatch has ended and the listener cancelled it", async () => {
+    await load();
+    writeCachedState(ORIGIN, { sessionId: "s-1", itemCount: 0 });
+    const element = form(`${ORIGIN}/cart`, { name: "Shirt" });
+    const onWindowSubmit = (event: Event) => event.preventDefault();
+    window.addEventListener("submit", onWindowSubmit);
+
+    submit(element);
+
+    window.removeEventListener("submit", onWindowSubmit);
+    expect(entries(element)).toEqual([["name", "Shirt"]]);
+  });
+
+  it("re-checks the action before appending session_id, in case a later listener redirected the form", async () => {
+    await load();
+    writeCachedState(ORIGIN, { sessionId: "s-1", itemCount: 0 });
+    const element = form(`${ORIGIN}/cart`, { name: "Shirt" });
+    const onWindowSubmit = () => {
+      element.action = "https://other.test/collect";
+    };
+    window.addEventListener("submit", onWindowSubmit);
+
+    submit(element);
+
+    window.removeEventListener("submit", onWindowSubmit);
+    expect(entries(element)).toEqual([["name", "Shirt"]]);
   });
 
   it("keeps the action's query for a POST form", async () => {

@@ -101,6 +101,10 @@ function swapHref(link: HTMLAnchorElement, href: string): void {
 }
 
 function onClick(event: MouseEvent): void {
+  // `auxclick` also fires for the right button (2) and for back/forward (3,
+  // 4), not just the middle button (1). A right-click must not swap the
+  // `href` even for one tick: the context menu's "Copy link" can read it.
+  if (event.type === "auxclick" && event.button !== 1) return;
   if (event.defaultPrevented) return;
 
   const origin = storeOrigin();
@@ -125,8 +129,12 @@ function onClick(event: MouseEvent): void {
 
   if (!newTab && sideCart && !leavesTheCart(url.searchParams)) {
     event.preventDefault();
-    client.addItem(params);
-    sideCart.show();
+    try {
+      client.addItem(params);
+      sideCart.show();
+    } catch (error) {
+      client.reportSideCartError(error instanceof Error ? error : new Error(String(error)));
+    }
     return;
   }
 
@@ -234,8 +242,12 @@ function onSubmit(event: SubmitEvent): void {
 
   if (!newTab && sideCart && !leavesTheCart(search)) {
     event.preventDefault();
-    client.addItem(params);
-    sideCart.show();
+    try {
+      client.addItem(params);
+      sideCart.show();
+    } catch (error) {
+      client.reportSideCartError(error instanceof Error ? error : new Error(String(error)));
+    }
     return;
   }
 
@@ -290,10 +302,18 @@ function onFormData(event: Event): void {
   pendingSubmit = null;
 
   const origin = storeOrigin();
-  const sessionId = origin === null ? null : getSession(origin);
+  if (origin === null) return;
+
+  const sessionId = getSession(origin);
   const { formData } = event as FormDataEvent;
 
   if (!sessionId || formData.has(SESSION_PARAM)) return;
+
+  // A later listener (bubble phase, e.g. one on `window`) may have changed
+  // `form.action` or the submitter's `formaction` after this module decided
+  // to let the submission through. Re-check it still points at this store's
+  // cart before handing over the id, so it cannot end up at another origin.
+  if (!toCartUrl(actionOf(form, pending.submitter), origin)) return;
 
   formData.append(SESSION_PARAM, sessionId);
   // Only a reset form gets here with `empty=reset`: the reset path got this

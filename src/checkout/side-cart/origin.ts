@@ -12,8 +12,10 @@ import { client } from "../client";
  * afford one because a store-hosted page's hostname IS the store, but these
  * modules run on the merchant's page, where by definition it is not.
  *
- * The trailing slash goes: callers compare this with `event.origin` /
- * `URL.origin`, which never have one, and concatenate it with `/cart`.
+ * Resolved through `URL(...).origin` rather than a trailing-slash strip:
+ * callers compare this with `event.origin` / `URL.origin`, which are always
+ * lowercase and drop a default port, so a merchant-supplied domain in another
+ * case or with an explicit `:443` still matches the page's own origin.
  *
  * Resolving to this page's own origin means no store was supplied at all. It
  * gets here through `client.storeUrl`, where it looks explicit:
@@ -32,6 +34,6 @@ export function resolveHostStoreOrigin(scriptUrl: string): string | null {
 
   if (baseUrl === null) return null;
 
-  const origin = baseUrl.replace(/\/$/, "");
+  const origin = new URL(baseUrl).origin;
   return origin === location.origin ? null : origin;
 }

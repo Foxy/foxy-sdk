@@ -69,4 +69,11 @@ describe("checkout/side-cart store origin", () => {
 
     expect(frame()?.src).toBe("https://demo.foxycart.test/cart");
   });
+
+  it("refuses an uppercase or :443 form of the page's own host, not just the exact match", async () => {
+    const { sideCart } = await loadSideCart("SHOP.EXAMPLE.COM:443");
+
+    expect(() => sideCart.mount()).toThrow(/does not know which store/);
+    expect(frame()).toBeNull();
+  });
 });

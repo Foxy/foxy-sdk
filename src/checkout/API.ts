@@ -909,6 +909,11 @@ export class API extends EventTarget {
    *
    * `session_id` and `output` are set by `postJson` and win over any pair with
    * the same name: the document that runs this owns the session.
+   *
+   * Unlike its siblings, this dispatches no cancelable `item-add` event: the
+   * caller already decided. `checkout/add-to-cart`'s own cancelable event is
+   * `foxy:add-to-cart`, dispatched before this runs, and on a store page
+   * there is no cart item yet for `item-add`'s detail to describe.
    */
   addItem = (params: [string, string][]): void => {
     if (this.delegated("addItem", [params])) return;
