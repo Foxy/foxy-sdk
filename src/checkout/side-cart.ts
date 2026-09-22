@@ -158,8 +158,14 @@ class SideCart extends EventTarget {
     frame.dataset.foxySideCart = "";
     frame.title = "Cart";
     frame.src = `${origin}/cart${query}`;
+    // `background:transparent` is belt and braces: an iframe is normally
+    // transparent when the embedded document is, but user agents have
+    // historically filled the canvas, and the real bug this guards against
+    // (the cart page painting an opaque body background, composited through
+    // the frame) is fixed on the document side, in foxy-checkout.
     frame.style.cssText =
-      "position:fixed;inset:0;width:100%;height:100%;border:0;z-index:2147483647;display:none";
+      "position:fixed;inset:0;width:100%;height:100%;border:0;z-index:2147483647;" +
+      "display:none;background:transparent";
 
     document.body.appendChild(frame);
     // Both assignments happen only once the frame is really in the document.

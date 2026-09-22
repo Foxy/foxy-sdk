@@ -149,6 +149,10 @@ describe("checkout/side-cart", () => {
     expect(element).not.toBeNull();
     expect(element?.src).toBe(`${STORE_ORIGIN}/cart?session_id=s1`);
     expect(element?.style.display).toBe("none");
+    // Belt and braces against a UA filling the iframe's own canvas -- the
+    // opaque-backdrop bug itself is the cart page's body background, fixed
+    // in foxy-checkout, not here.
+    expect(element?.style.background).toBe("transparent");
   });
 
   it("shows and hides, firing events", async () => {
