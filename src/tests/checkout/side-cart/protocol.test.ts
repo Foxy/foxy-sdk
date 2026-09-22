@@ -26,6 +26,9 @@ describe("checkout/side-cart/protocol", () => {
       error: null,
     });
     expect(parseFrameToHost('{"type":"close"}')).toEqual({ type: "close" });
+    // Distinct from `close` above: that one is the shopper asking to close,
+    // this one is the frame reporting its exit animation has finished.
+    expect(parseFrameToHost('{"type":"closed"}')).toEqual({ type: "closed" });
   });
 
   it("parses an invoke and rejects a method that is not delegatable", () => {

@@ -172,7 +172,10 @@ describe("checkout/side-cart", () => {
 
     sideCart.hide();
     expect(sideCart.open).toBe(false);
-    expect(frame()?.style.display).toBe("none");
+    // Immediate effects only. The frame owns the close animation, so the
+    // iframe stays visible until it reports `closed` -- covered by its own
+    // tests below, alongside the fallback and the pending-close races.
+    expect(frame()?.style.display).toBe("block");
     // `inert` is covered by its own tests below: it is held until the frame
     // reports `ready`, so `show()` alone never sets it.
     expect(other.inert).toBeFalsy();
@@ -336,7 +339,9 @@ describe("checkout/side-cart", () => {
     document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
 
     expect(sideCart.open).toBe(false);
-    expect(frame()?.style.display).toBe("none");
+    // Immediate effects only -- see the `hide()` test above for why this
+    // isn't "none" yet.
+    expect(frame()?.style.display).toBe("block");
     expect(other.inert).toBeFalsy();
     expect(onClose).toHaveBeenCalledTimes(1);
   });
@@ -351,6 +356,98 @@ describe("checkout/side-cart", () => {
     document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
 
     expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it("keeps the iframe visible and the page inert until the frame reports closed", async () => {
+    const other = document.createElement("div");
+    document.body.appendChild(other);
+
+    const { sideCart } = await loadSideCart();
+    sideCart.show();
+    const framePort = connectFrame();
+    framePort.postMessage(JSON.stringify({ type: "ready", sessionId: "s1", itemCount: 0 }));
+    await settle();
+    expect(other.inert).toBe(true);
+
+    sideCart.hide();
+
+    // The frame owns the close animation: still visible, page still inert.
+    expect(sideCart.open).toBe(false);
+    expect(frame()?.style.display).toBe("block");
+    expect(other.inert).toBe(true);
+
+    framePort.postMessage(JSON.stringify({ type: "closed" }));
+    await settle();
+
+    expect(frame()?.style.display).toBe("none");
+    expect(other.inert).toBeFalsy();
+  });
+
+  it("falls back to the same teardown if the frame never reports closed", async () => {
+    const other = document.createElement("div");
+    document.body.appendChild(other);
+
+    const { sideCart } = await loadSideCart();
+    sideCart.show();
+    const framePort = connectFrame();
+    framePort.postMessage(JSON.stringify({ type: "ready", sessionId: "s1", itemCount: 0 }));
+    await settle();
+
+    sideCart.hide();
+    expect(frame()?.style.display).toBe("block");
+
+    // No `closed` ever arrives. This wait must stay above CLOSE_FALLBACK_MS
+    // in side-cart.ts (currently 1000ms).
+    await new Promise((resolve) => setTimeout(resolve, 1100));
+
+    expect(frame()?.style.display).toBe("none");
+    expect(other.inert).toBeFalsy();
+  });
+
+  it("show() during a pending close cancels the teardown and leaves the drawer visible", async () => {
+    const other = document.createElement("div");
+    document.body.appendChild(other);
+
+    const { sideCart } = await loadSideCart();
+    sideCart.show();
+    const framePort = connectFrame();
+    framePort.postMessage(JSON.stringify({ type: "ready", sessionId: "s1", itemCount: 0 }));
+    await settle();
+
+    sideCart.hide();
+    expect(sideCart.open).toBe(false);
+
+    sideCart.show();
+    expect(sideCart.open).toBe(true);
+    expect(frame()?.style.display).toBe("block");
+    expect(other.inert).toBe(true);
+
+    // The cancelled close's own `closed` must not hide the drawer or release
+    // inert out from under the shopper now looking at it again.
+    framePort.postMessage(JSON.stringify({ type: "closed" }));
+    await settle();
+
+    expect(frame()?.style.display).toBe("block");
+    expect(other.inert).toBe(true);
+  });
+
+  it("ignores a stray closed message when no close is pending", async () => {
+    const other = document.createElement("div");
+    document.body.appendChild(other);
+
+    const { sideCart } = await loadSideCart();
+    sideCart.show();
+    const framePort = connectFrame();
+    framePort.postMessage(JSON.stringify({ type: "ready", sessionId: "s1", itemCount: 0 }));
+    await settle();
+
+    // Nothing asked this frame to close.
+    framePort.postMessage(JSON.stringify({ type: "closed" }));
+    await settle();
+
+    expect(sideCart.open).toBe(true);
+    expect(frame()?.style.display).toBe("block");
+    expect(other.inert).toBe(true);
   });
 
   it("re-reads the cache when the store domain changes after the first read", async () => {

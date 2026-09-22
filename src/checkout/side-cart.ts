@@ -10,6 +10,17 @@ const NO_STORE_ORIGIN =
   '"checkout/side-cart.js?store=example.foxycart.com", or set the domain on the ' +
   'client first (that is what "checkout/loader.js?store=..." does).';
 
+/**
+ * Safety net, not the expected path. The frame reports `closed` once its own
+ * exit animation finishes, and that is what normally clears the pending
+ * teardown. A frame that is unresponsive, gone, or never connected would
+ * otherwise leave the drawer visible and the page behind it inert forever.
+ * 1000ms comfortably exceeds a normal close transition (well under 500ms
+ * even with margin for a slower device) without leaving a dead overlay on
+ * screen for long if something is actually wrong.
+ */
+const CLOSE_FALLBACK_MS = 1000;
+
 class SideCart extends EventTarget {
   #frame: HTMLIFrameElement | null = null;
   #channel: SideCartHostChannel | null = null;
@@ -28,6 +39,14 @@ class SideCart extends EventTarget {
    * That report is the cache-to-authoritative correction, which the design
    * forbids announcing: the shopper did not cause it. */
   #firstReportPending = true;
+  /**
+   * Set by `hide()` while waiting for the frame to report `closed` (or for
+   * `CLOSE_FALLBACK_MS` to elapse). `null` means no close is pending. This is
+   * the one flag that says whether a `closed` message is expected right now,
+   * so a stray one -- arriving with nothing pending -- is ignored rather than
+   * tearing down a frame that was never told to close.
+   */
+  #pendingCloseTimer: ReturnType<typeof setTimeout> | null = null;
 
   /**
    * The frame runs its own Escape handling and answers with `close`, but it
@@ -186,6 +205,12 @@ class SideCart extends EventTarget {
 
   unmount(): void {
     this.hide();
+    // Do not wait for `closed` here -- the frame is being torn down
+    // regardless, so there is nothing left to animate. This both performs
+    // the teardown `hide()` may have just deferred and clears its fallback
+    // timer, so that timer cannot fire later against a frame this method is
+    // about to remove (or a different one a later `mount()` creates).
+    this.#finishHide();
     this.#channel?.destroy();
     this.#channel = null;
     this.#frame?.remove();
@@ -208,6 +233,11 @@ class SideCart extends EventTarget {
 
   show(): void {
     this.mount();
+    // A close that was mid-animation (frame visible, page still inert, a
+    // fallback timer ticking) is cancelled rather than let run to completion
+    // behind the shopper's back -- they asked to see the drawer again, so it
+    // must stay visible and the page behind it must stay inert.
+    this.#clearPendingClose();
     if (this.#open) return;
     this.#open = true;
     if (this.#frame) this.#frame.style.display = "block";
@@ -225,10 +255,33 @@ class SideCart extends EventTarget {
     if (!this.#open) return;
     this.#open = false;
     document.removeEventListener("keydown", this.#onKeyDown);
-    if (this.#frame) this.#frame.style.display = "none";
     this.#channel?.post({ type: "hide" });
-    this.#setPageInert(false);
     this.dispatchEvent(new Event("close"));
+
+    // The frame owns the close animation -- it is the only thing that knows
+    // when its exit transition has actually finished -- so the iframe stays
+    // visible and the page behind it stays inert (still covered by a visible
+    // overlay, so it must not become clickable early) until the frame
+    // reports `closed`. `CLOSE_FALLBACK_MS` covers a frame that never does.
+    this.#clearPendingClose();
+    this.#pendingCloseTimer = setTimeout(() => this.#finishHide(), CLOSE_FALLBACK_MS);
+  }
+
+  /** The teardown `hide()` defers: actually hiding the iframe and releasing
+   * `inert`. Runs once the frame reports `closed`, once the fallback timer
+   * elapses, or immediately from `unmount()`, which has no animation left to
+   * wait for. Safe to call when nothing is pending -- every step is a no-op
+   * in that case. */
+  #finishHide(): void {
+    this.#clearPendingClose();
+    if (this.#frame) this.#frame.style.display = "none";
+    this.#setPageInert(false);
+  }
+
+  #clearPendingClose(): void {
+    if (this.#pendingCloseTimer === null) return;
+    clearTimeout(this.#pendingCloseTimer);
+    this.#pendingCloseTimer = null;
   }
 
   /** Called by `client` through the transport hook. */
@@ -248,6 +301,14 @@ class SideCart extends EventTarget {
   #handle(message: FrameToHostMessage): void {
     if (message.type === "close") {
       this.hide();
+      return;
+    }
+
+    if (message.type === "closed") {
+      // Ignore a stray report: nothing asked this frame to close, so there is
+      // no deferred teardown waiting on it.
+      if (this.#pendingCloseTimer === null) return;
+      this.#finishHide();
       return;
     }
 

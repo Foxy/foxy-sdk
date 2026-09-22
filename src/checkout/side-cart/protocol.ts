@@ -32,7 +32,16 @@ export type FrameToHostMessage =
   // changed: the methods it drives report their own failures into the checkout
   // json. The cart's new shape reaches the host as the next `state`.
   | { type: "result"; id: number; error: string | null }
+  // A REQUEST: the shopper (or the frame's own Escape handling) asked to
+  // close. The host reacts immediately -- see `closed` below for the
+  // frame's own report that its exit animation has actually finished. Do
+  // not confuse the two: this one starts the close, `closed` ends it.
   | { type: "close" }
+  // A COMPLETION REPORT: the frame's exit transition has finished playing,
+  // so it is now safe for the host to actually hide the iframe and release
+  // `inert` on the page behind it. The frame owns the animation and is the
+  // only thing that knows when it is done.
+  | { type: "closed" }
   | { type: "error"; message: string };
 
 /** Posted by the frame with `'*'`: it cannot know its parent's origin. */
@@ -104,6 +113,8 @@ export function parseFrameToHost(raw: unknown): FrameToHostMessage | null {
         : null;
     case "close":
       return { type: "close" };
+    case "closed":
+      return { type: "closed" };
     case "error":
       return typeof data.message === "string"
         ? { type: "error", message: data.message }
