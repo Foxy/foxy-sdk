@@ -192,12 +192,37 @@ describe("checkout/side-cart", () => {
 
     const { client, sideCart } = await loadSideCart();
     await client.hydrateJson({
-      items: [{}, {}],
+      items: [{ quantity: 1 }, { quantity: 1 }],
       messages: [],
       store: { domain: null },
     } as unknown as APIJson);
 
     expect(sideCart.itemCount).toBe(2);
+  });
+
+  it("sums unit quantity from the client's json, not the number of line items", async () => {
+    // A single line item at quantity 3 -- items.length would say 1, but the
+    // drawer's own header reads "3 items", and the badge has to agree with
+    // it before the frame has ever reported.
+    const { client, sideCart } = await loadSideCart();
+    await client.hydrateJson({
+      items: [{ quantity: 3 }],
+      messages: [],
+      store: { domain: null },
+    } as unknown as APIJson);
+
+    expect(sideCart.itemCount).toBe(3);
+  });
+
+  it("clamps a negative quantity to zero instead of letting it subtract", async () => {
+    const { client, sideCart } = await loadSideCart();
+    await client.hydrateJson({
+      items: [{ quantity: 3 }, { quantity: -5 }],
+      messages: [],
+      store: { domain: null },
+    } as unknown as APIJson);
+
+    expect(sideCart.itemCount).toBe(3);
   });
 
   it("does not emit itemcountchange when the client's update leaves the count unchanged", async () => {
@@ -216,7 +241,7 @@ describe("checkout/side-cart", () => {
     sideCart.addEventListener("itemcountchange", onItemCountChange);
 
     await client.hydrateJson({
-      items: [{}, {}],
+      items: [{ quantity: 1 }, { quantity: 1 }],
       messages: [],
       store: { domain: null },
     } as unknown as APIJson);
@@ -227,7 +252,7 @@ describe("checkout/side-cart", () => {
   it("reports the count the iframe last announced over an older client json", async () => {
     const { client, sideCart } = await loadSideCart();
     await client.hydrateJson({
-      items: [{}, {}, {}],
+      items: [{ quantity: 1 }, { quantity: 1 }, { quantity: 1 }],
       messages: [],
       store: { domain: null },
     } as unknown as APIJson);
@@ -245,7 +270,7 @@ describe("checkout/side-cart", () => {
   it("a reported count of zero wins over a non-zero client json", async () => {
     const { client, sideCart } = await loadSideCart();
     await client.hydrateJson({
-      items: [{}, {}],
+      items: [{ quantity: 1 }, { quantity: 1 }],
       messages: [],
       store: { domain: null },
     } as unknown as APIJson);
@@ -372,7 +397,7 @@ describe("checkout/side-cart", () => {
   it("forgets the frame's count on unmount", async () => {
     const { client, sideCart } = await loadSideCart();
     await client.hydrateJson({
-      items: [{}, {}, {}],
+      items: [{ quantity: 1 }, { quantity: 1 }, { quantity: 1 }],
       messages: [],
       store: { domain: null },
     } as unknown as APIJson);
@@ -391,7 +416,7 @@ describe("checkout/side-cart", () => {
   it("re-seeds the announced baseline on unmount", async () => {
     const { client, sideCart } = await loadSideCart();
     await client.hydrateJson({
-      items: [{}, {}, {}],
+      items: [{ quantity: 1 }, { quantity: 1 }, { quantity: 1 }],
       messages: [],
       store: { domain: null },
     } as unknown as APIJson);

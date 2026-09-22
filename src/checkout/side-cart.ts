@@ -128,10 +128,20 @@ class SideCart extends EventTarget {
    * refreshes `client.json` -- it forwards to the transport and returns --
    * so once the iframe has reported, its number is the only one still being
    * kept live and must outrank the client's page-load snapshot.
+   *
+   * This is a count of units, not line items -- the cart page inside the
+   * iframe (and its `ready`/`state` reports) shows a total quantity, e.g. a
+   * cart holding 3 of one product reads "Your cart - 3 items", not 1. The
+   * middle tier has to use the same rule or the badge would read 1 until the
+   * frame connects and then silently jump to 3. `Math.max(0, ...)` clamps a
+   * negative quantity to 0 rather than letting it subtract from the total.
    */
   get itemCount(): number | null {
     return (
-      this.#reportedItemCount ?? client.json?.items.length ?? this.#state()?.itemCount ?? null
+      this.#reportedItemCount ??
+      client.json?.items.reduce((sum, item) => sum + Math.max(0, item.quantity), 0) ??
+      this.#state()?.itemCount ??
+      null
     );
   }
 
