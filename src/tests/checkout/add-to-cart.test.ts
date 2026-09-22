@@ -73,6 +73,32 @@ function entries(target: HTMLFormElement): [string, string][] {
   return [...data].map(([name, value]) => [name, String(value)]);
 }
 
+const WAS_DEFAULT_PREVENTED = Symbol("wasDefaultPrevented");
+
+/**
+ * What the module (and any earlier listener) decided, captured by
+ * `suppressNavigation` before it force-cancels the event. Reading
+ * `event.defaultPrevented` after dispatch would always answer `true`, since
+ * `suppressNavigation` itself cancels every click -- see there.
+ */
+function wasDefaultPrevented(event: Event): boolean {
+  return (event as unknown as Record<symbol, boolean>)[WAS_DEFAULT_PREVENTED] ?? event.defaultPrevented;
+}
+
+/**
+ * jsdom does not implement following a link (`Not implemented: navigation to
+ * another Document`), and logs that instead of silently no-op'ing whenever a
+ * real `<a href>` click reaches its default action unprevented. Registered on
+ * `window` -- the last stop in the bubble phase, after the module's own
+ * `document` listener -- so it runs once the module has already decided
+ * whether to cancel the click, records that decision, and then always cancels
+ * the click itself so jsdom never attempts the navigation it can't perform.
+ */
+function suppressNavigation(event: Event): void {
+  (event as unknown as Record<symbol, boolean>)[WAS_DEFAULT_PREVENTED] = event.defaultPrevented;
+  event.preventDefault();
+}
+
 let assign: ReturnType<typeof vi.fn>;
 
 beforeEach(() => {
@@ -86,11 +112,15 @@ beforeEach(() => {
     assign,
   } as unknown as Location);
   vi.spyOn(globalThis, "fetch").mockRejectedValue(new TypeError("no CORS in tests"));
+  window.addEventListener("click", suppressNavigation);
+  window.addEventListener("auxclick", suppressNavigation);
 });
 
 afterEach(() => {
   uninstall?.();
   uninstall = null;
+  window.removeEventListener("click", suppressNavigation);
+  window.removeEventListener("auxclick", suppressNavigation);
   vi.restoreAllMocks();
   vi.useRealTimers();
 });
@@ -107,7 +137,7 @@ describe("checkout/add-to-cart: matching", () => {
       `${ORIGIN}/cart/extra`,
     ]) {
       const event = click(link(href));
-      expect(event.defaultPrevented).toBe(false);
+      expect(wasDefaultPrevented(event)).toBe(false);
     }
     expect(assign).not.toHaveBeenCalled();
   });
@@ -143,7 +173,7 @@ describe("checkout/add-to-cart: full-page links", () => {
 
     const event = click(element);
 
-    expect(event.defaultPrevented).toBe(true);
+    expect(wasDefaultPrevented(event)).toBe(true);
     expect(assign).toHaveBeenCalledWith(`${CART}&session_id=s-1`);
     expect(element.getAttribute("href")).toBe(CART);
   });
@@ -167,7 +197,7 @@ describe("checkout/add-to-cart: full-page links", () => {
 
     const event = click(link(`${CART}&session_id=merchant`));
 
-    expect(event.defaultPrevented).toBe(false);
+    expect(wasDefaultPrevented(event)).toBe(false);
     expect(assign).not.toHaveBeenCalled();
   });
 
@@ -180,7 +210,7 @@ describe("checkout/add-to-cart: full-page links", () => {
 
     const event = click(link(CART));
 
-    expect(event.defaultPrevented).toBe(true);
+    expect(wasDefaultPrevented(event)).toBe(true);
     await vi.waitFor(() => expect(assign).toHaveBeenCalledWith(`${CART}&session_id=s-new`));
   });
 
@@ -201,7 +231,7 @@ describe("checkout/add-to-cart: full-page links", () => {
 
     const event = click(link(`${CART}&empty=reset`));
 
-    expect(event.defaultPrevented).toBe(true);
+    expect(wasDefaultPrevented(event)).toBe(true);
     await vi.waitFor(() => expect(assign).toHaveBeenCalledWith(`${CART}&session_id=s-new`));
     expect(readCachedState(ORIGIN)).toEqual({ sessionId: "s-new", itemCount: 0 });
   });
@@ -244,7 +274,7 @@ describe("checkout/add-to-cart: new-tab links", () => {
 
     const event = click(element, init, type);
 
-    expect(event.defaultPrevented).toBe(false);
+    expect(wasDefaultPrevented(event)).toBe(false);
     expect(hrefDuringDefault).toBe(`${CART}&session_id=s-1`);
     await vi.advanceTimersByTimeAsync(0);
     expect(element.getAttribute("href")).toBe(CART);
@@ -256,9 +286,20 @@ describe("checkout/add-to-cart: new-tab links", () => {
 
     const event = click(element, { ctrlKey: true });
 
-    expect(event.defaultPrevented).toBe(false);
+    expect(wasDefaultPrevented(event)).toBe(false);
     expect(element.getAttribute("href")).toBe(CART);
     expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("never swaps the href of a ping link (the browser would leak the session to the ping URL)", async () => {
+    await load();
+    writeCachedState(ORIGIN, { sessionId: "s-1", itemCount: 0 });
+    const element = link(CART, { ping: "https://tracker.test/ping" });
+
+    const event = click(element, { ctrlKey: true });
+
+    expect(wasDefaultPrevented(event)).toBe(false);
+    expect(element.getAttribute("href")).toBe(CART);
   });
 });
 
@@ -268,7 +309,7 @@ describe("checkout/add-to-cart: sidecart mode", () => {
 
     const event = click(link(CART));
 
-    expect(event.defaultPrevented).toBe(true);
+    expect(wasDefaultPrevented(event)).toBe(true);
     expect(addItem).toHaveBeenCalledWith([["name", "Shirt"], ["price", "10"]]);
     expect(transport.show).toHaveBeenCalled();
     expect(fetch).not.toHaveBeenCalled();
@@ -310,7 +351,7 @@ describe("checkout/add-to-cart: custom mode", () => {
     const event = click(link(CART));
 
     document.removeEventListener("foxy:add-to-cart", listener);
-    expect(event.defaultPrevented).toBe(true);
+    expect(wasDefaultPrevented(event)).toBe(true);
     expect(addItem).not.toHaveBeenCalled();
     expect(assign).not.toHaveBeenCalled();
     const detail = (listener.mock.calls[0][0] as CustomEvent).detail;
@@ -340,6 +381,51 @@ describe("checkout/add-to-cart: forms", () => {
     const element = form(`${ORIGIN}/cart`, { name: "Shirt" });
 
     expect(entries(element)).toEqual([["name", "Shirt"]]);
+  });
+
+  it("never adds session_id to a window listener's own FormData once it cancels the submit", async () => {
+    await load();
+    writeCachedState(ORIGIN, { sessionId: "s-1", itemCount: 0 });
+    const element = form(`${ORIGIN}/cart`, { name: "Shirt" });
+    let sent: [string, string][] | null = null;
+    // Stands in for a merchant's own script -- jQuery's $(document).on(...),
+    // or any submit listener added after this module loads. It runs after
+    // ours (bubble phase, further from the target) and does exactly what a
+    // common `fetch`-based add-to-cart pattern does: cancel the browser's
+    // own submission and build its own FormData from the same form.
+    const onWindowSubmit = (event: Event) => {
+      event.preventDefault();
+      sent = entries(element);
+    };
+    window.addEventListener("submit", onWindowSubmit);
+
+    submit(element);
+
+    window.removeEventListener("submit", onWindowSubmit);
+    expect(sent).toEqual([["name", "Shirt"]]);
+  });
+
+  it("never adds session_id to a window listener's own FormData mid-dispatch, only once the submit has ended", async () => {
+    await load();
+    writeCachedState(ORIGIN, { sessionId: "s-1", itemCount: 0 });
+    const element = form(`${ORIGIN}/cart`, { name: "Shirt" });
+    let duringDispatch: [string, string][] | null = null;
+    // Same shape as above, but this one never cancels: it still must not get
+    // the id, because it runs *during* the submit dispatch, not after it --
+    // `onFormData` cannot yet tell this from a browser's own eventual
+    // `formdata` for the same submission.
+    const onWindowSubmit = () => {
+      duringDispatch = entries(element);
+    };
+    window.addEventListener("submit", onWindowSubmit);
+
+    submit(element);
+
+    window.removeEventListener("submit", onWindowSubmit);
+    expect(duringDispatch).toEqual([["name", "Shirt"]]);
+    // The dispatch has now ended and nothing cancelled it -- this is what the
+    // browser's own `formdata`, fired after dispatch, would see.
+    expect(entries(element)).toEqual([["name", "Shirt"], ["session_id", "s-1"]]);
   });
 
   it("treats a nested session_id input as already present", async () => {
@@ -394,13 +480,25 @@ describe("checkout/add-to-cart: forms", () => {
     button.name = "quantity";
     button.value = "2";
     element.append(button);
-    const requestSubmit = vi.spyOn(element, "requestSubmit").mockImplementation(() => undefined);
+    let sent: [string, string][] = [];
+    // Same as the empty=reset case above: simulate submit-then-formdata
+    // inline, with the same submitter the real resubmit passes through.
+    const requestSubmit = vi
+      .spyOn(element, "requestSubmit")
+      .mockImplementation((submitter?: HTMLElement | null) => {
+        submit(element, submitter ?? null);
+        sent = entries(element);
+      });
 
     const event = submit(element, button);
 
     expect(event.defaultPrevented).toBe(true);
     await vi.waitFor(() => expect(requestSubmit).toHaveBeenCalledWith(button));
     expect(getCached()).toBe("s-new");
+    // `new FormData(form)` never includes a submit button's own value --
+    // only `pairsOf` (what reaches `addItem`) adds it explicitly -- so the
+    // resubmission's entries are the form's own fields plus the session id.
+    expect(sent).toEqual([["name", "Shirt"], ["session_id", "s-new"]]);
   });
 
   it("adds through the sidecart with the submitter's value", async () => {

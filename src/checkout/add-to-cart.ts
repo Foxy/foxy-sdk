@@ -13,12 +13,13 @@ export type AddToCartDetail = {
 const SESSION_PARAM = "session_id";
 
 /**
- * The form whose `submit` this module let through with a cached session. The
- * `formdata` event that follows adds `session_id` to that submission only --
- * `formdata` also fires for a merchant's own `new FormData(form)`, which must
- * never get it. Cleared on the next task, whether or not the submission ran.
+ * The `SubmitEvent` this module let through with a cached session -- the
+ * event, not the form: `onFormData` needs its `eventPhase` and
+ * `defaultPrevented` to tell the form's own submission from a merchant's own
+ * `new FormData(form)`, which must never get `session_id` (see `onFormData`).
+ * Cleared on the next task, whether or not the submission ran.
  */
-let pendingSubmit: HTMLFormElement | null = null;
+let pendingSubmit: SubmitEvent | null = null;
 
 /** Set while this module re-submits a form, so `onSubmit` lets it through. */
 let resubmitting: HTMLFormElement | null = null;
@@ -85,6 +86,10 @@ function opensNewTab(event: MouseEvent, target: string): boolean {
  * after `preventDefault` (a popup blocker stops `window.open` after an
  * await), so the browser's own default action has to read the session from
  * the `href`. The page stays where it is, so the restore always runs.
+ *
+ * Never called for a `ping` link: the browser's default action sends the
+ * `href` it follows to the link's ping URLs, which may not be this store, so
+ * writing the session into `href` here would leak it cross-origin.
  */
 function swapHref(link: HTMLAnchorElement, href: string): void {
   const original = link.getAttribute("href");
@@ -147,7 +152,7 @@ function onClick(event: MouseEvent): void {
   if (url.searchParams.has(SESSION_PARAM)) return;
 
   if (newTab) {
-    if (sessionId) swapHref(link, withSession(url, sessionId));
+    if (sessionId && !link.hasAttribute("ping")) swapHref(link, withSession(url, sessionId));
     return;
   }
 
@@ -202,7 +207,7 @@ function onSubmit(event: SubmitEvent): void {
   const form = event.target;
   if (!(form instanceof HTMLFormElement)) return;
   if (resubmitting === form) {
-    pendingSubmit = form;
+    pendingSubmit = event;
     setTimeout(() => (pendingSubmit = null), 0);
     return;
   }
@@ -247,7 +252,7 @@ function onSubmit(event: SubmitEvent): void {
   if (search.has(SESSION_PARAM)) return;
 
   if (sessionId || newTab) {
-    pendingSubmit = form;
+    pendingSubmit = event;
     setTimeout(() => (pendingSubmit = null), 0);
     return;
   }
@@ -267,7 +272,21 @@ function resubmit(form: HTMLFormElement, submitter: HTMLElement | null): void {
 
 function onFormData(event: Event): void {
   const form = event.target;
-  if (!(form instanceof HTMLFormElement) || form !== pendingSubmit) return;
+  const pending = pendingSubmit;
+  if (!(form instanceof HTMLFormElement) || pending === null || pending.target !== form) return;
+
+  // Only the form's OWN submission gets the id. The browser fires `formdata`
+  // once the `submit` dispatch has fully ended and nothing cancelled it
+  // (`eventPhase === NONE && !defaultPrevented`). A merchant's own
+  // `new FormData(form)` -- inside a `submit` listener that runs after ours,
+  // e.g. one on `window`, or a library's `document` listener added after
+  // this module loads -- fires `formdata` *during* that dispatch
+  // (`eventPhase !== NONE`); a `new FormData(form)` after a cancelled submit
+  // still sees `defaultPrevented`. Neither is this module's own submission,
+  // so neither consumes `pendingSubmit` here -- the real submission, if it
+  // still comes, gets it.
+  if (pending.eventPhase !== Event.NONE || pending.defaultPrevented) return;
+
   pendingSubmit = null;
 
   const origin = storeOrigin();
