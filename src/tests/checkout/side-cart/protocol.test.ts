@@ -63,4 +63,20 @@ describe("checkout/side-cart/protocol", () => {
     expect(parseFrameToHost('{"type":"nope"}')).toBeNull();
     expect(parseHostToFrame('{"type":"invoke","id":"1","method":"clearCart","params":[]}')).toBeNull();
   });
+
+  it("accepts an addItem invoke", () => {
+    const raw = JSON.stringify({
+      type: "invoke",
+      id: 1,
+      method: "addItem",
+      params: [[["name", "Shirt"]]],
+    });
+
+    expect(parseHostToFrame(raw)).toEqual({
+      type: "invoke",
+      id: 1,
+      method: "addItem",
+      params: [[["name", "Shirt"]]],
+    });
+  });
 });

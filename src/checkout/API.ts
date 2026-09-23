@@ -59,7 +59,26 @@ export type {
  */
 export type SideCartTransport = {
   invoke(method: SideCartInvokeMethod, params: unknown[]): Promise<void>;
+  /** Opens the drawer. `checkout/add-to-cart` calls it after `addItem`. */
+  show(): void;
 };
+
+/**
+ * `addItem`'s params cross the sidecart's message port, which is an untrusted
+ * input even when both ends are ours (see `SIDE_CART_INVOKE_METHODS`).
+ */
+function isStringPairs(value: unknown): value is [string, string][] {
+  return (
+    Array.isArray(value) &&
+    value.every(
+      (pair) =>
+        Array.isArray(pair) &&
+        pair.length === 2 &&
+        typeof pair[0] === "string" &&
+        typeof pair[1] === "string",
+    )
+  );
+}
 
 /**
  * Shortest input worth sending to the lookup endpoint.
@@ -732,6 +751,14 @@ export class API extends EventTarget {
   }
 
   /**
+   * The sidecart this client delegates to, or null. `checkout/add-to-cart`
+   * reads it to choose sidecart mode and to open the drawer after adding.
+   */
+  get sideCartTransport(): SideCartTransport | null {
+    return this.#sideCartTransport;
+  }
+
+  /**
    * The store this client talks to, or null before a domain is set. The
    * sidecart needs it to build the iframe URL and to check the origin of the
    * frame's announcement, and `#baseUrl` is the only place it has been
@@ -868,6 +895,40 @@ export class API extends EventTarget {
 
     void this.runMutation(async () => {
       const nextJson = await this.postJson("/cart", payload);
+      await this.replaceJson(nextJson);
+    });
+  };
+
+  /**
+   * Adds items the way an add-to-cart link or form does. `params` is the
+   * link's query or the form's fields, in order. Repeated names and
+   * HMAC-signed names (`name||hash`) go to the server untouched: the server
+   * validates them, so this does not. `empty=reset` may be one of the pairs --
+   * the server resets the session and then adds, in one request, which two
+   * separate mutations could not guarantee (`runMutation` does not queue).
+   *
+   * `session_id` and `output` are set by `postJson` and win over any pair with
+   * the same name: the document that runs this owns the session.
+   *
+   * Unlike its siblings, this dispatches no cancelable `item-add` event: the
+   * caller already decided. `checkout/add-to-cart`'s own cancelable event is
+   * `foxy:add-to-cart`, dispatched before this runs, and on a store page
+   * there is no cart item yet for `item-add`'s detail to describe.
+   */
+  addItem = (params: [string, string][]): void => {
+    if (this.delegated("addItem", [params])) return;
+    this.assertStoreDomain();
+
+    if (!isStringPairs(params)) {
+      this.addErrorMessage(
+        "addItem requires a list of [name, value] string pairs.",
+        "item-add",
+      );
+      return;
+    }
+
+    void this.runMutation(async () => {
+      const nextJson = await this.postJson("/cart", params);
       await this.replaceJson(nextJson);
     });
   };
@@ -1633,18 +1694,20 @@ export class API extends EventTarget {
 
   private async postJson(
     path: string,
-    body: Record<string, unknown>,
+    body: Record<string, unknown> | [string, string][],
   ): Promise<APIJson> {
+    const form = Array.isArray(body) ? new URLSearchParams(body) : toFormData(body);
+    const sessionId = this.json?.session?.id;
+
+    form.set("output", "json");
+    if (sessionId) form.set("session_id", sessionId);
+
     const response = await fetch(this.resolveUrl(path), {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
       },
-      body: toFormData({
-        ...body,
-        output: "json",
-        session_id: this.json?.session?.id,
-      }),
+      body: form,
     });
 
     if (!response.ok) {

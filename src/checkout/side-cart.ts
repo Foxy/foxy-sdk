@@ -2,7 +2,7 @@
 import type { FrameToHostMessage, SideCartInvokeMethod } from "./side-cart/protocol";
 import { client } from "./client";
 import { readCachedState, writeCachedState } from "./side-cart/session-cache";
-import { resolveBaseUrlFromStoreDomain } from "./API";
+import { resolveHostStoreOrigin } from "./side-cart/origin";
 import { SideCartHostChannel } from "./side-cart/channel";
 
 const NO_STORE_ORIGIN =
@@ -67,6 +67,13 @@ class SideCart extends EventTarget {
    * reveal is pending -- either it already happened, or nothing is open.
    */
   #pendingRevealTimer: ReturnType<typeof setTimeout> | null = null;
+  /**
+   * Invokes waiting for the current connection's `ready`. The host's channel
+   * flushes as soon as the port connects, but the frame can connect before
+   * its checkout json exists, and a mutation run then has no session to
+   * send. `ready` is sent only once the frame has json.
+   */
+  #readyWaiters = new Set<{ resolve(): void; reject(error: Error): void }>();
 
   /**
    * The frame runs its own Escape handling and answers with `close`, but it
@@ -90,42 +97,15 @@ class SideCart extends EventTarget {
   }
 
   /**
-   * The store the iframe is loaded from, resolved on first use rather than at
-   * import: a merchant may import this module before `checkout/loader.js` has
-   * set the store domain.
-   *
-   * There are exactly two sources, both explicit: `client.storeUrl` and this
-   * module's own `?store=`. There is deliberately no `location.hostname`
-   * fallback -- `checkout/loader.ts` can afford one because a store-hosted
-   * page's hostname IS the store, but this module runs on the merchant's
-   * page, where by definition it is not. Falling back there would frame the
-   * merchant's own site and then hand a cart-mutation port to it.
-   *
-   * The trailing slash goes. `resolveBaseUrlFromStoreDomain` returns a base
-   * URL (`https://store.example/`), and this needs an origin: it is compared
-   * against `event.origin`, which never has one, and it is concatenated with
-   * `/cart`.
+   * Resolved on first use rather than at import: a merchant may import this
+   * module before `checkout/loader.js` has set the store domain. See
+   * `resolveHostStoreOrigin` for the rules. Framing the page's own origin
+   * would load the merchant's own 404 at full viewport and then transfer a
+   * cart-mutation port to a merchant-controlled document.
    */
   #origin(): string {
-    const fromScript = new URL(import.meta.url).searchParams.get("store");
-    const baseUrl =
-      client.storeUrl ??
-      (fromScript === null ? null : resolveBaseUrlFromStoreDomain(fromScript));
-
-    if (baseUrl === null) throw new Error(NO_STORE_ORIGIN);
-
-    const origin = baseUrl.replace(/\/$/, "");
-
-    // The sidecart frames the store OVER the merchant's site, so resolving to
-    // this page's own origin means no store was supplied at all. It reaches
-    // here through `client.storeUrl`, where it looks explicit:
-    // `checkout/loader.ts` sets the domain from its own `location.hostname`
-    // fallback when it is loaded without `?store=`. Framing that would load
-    // the merchant's own 404 at full viewport and then transfer a
-    // cart-mutation port to a merchant-controlled document. A store on a
-    // subdomain of the same site is a different origin and still works.
-    if (origin === location.origin) throw new Error(NO_STORE_ORIGIN);
-
+    const origin = resolveHostStoreOrigin(import.meta.url);
+    if (origin === null) throw new Error(NO_STORE_ORIGIN);
     return origin;
   }
 
@@ -234,6 +214,9 @@ class SideCart extends EventTarget {
     // Same reasoning for the other direction: a reveal `show()` was waiting
     // on has nothing left to reveal once the frame is gone.
     this.#clearPendingReveal();
+    for (const waiter of [...this.#readyWaiters]) {
+      waiter.reject(new Error("The sidecart was unmounted before a cart change was sent."));
+    }
     this.#channel?.destroy();
     this.#channel = null;
     this.#frame?.remove();
@@ -359,6 +342,35 @@ class SideCart extends EventTarget {
     );
   }
 
+  #whenReady(): Promise<void> {
+    if (this.#frameReady) return Promise.resolve();
+
+    return new Promise((resolve, reject) => {
+      const waiter = {
+        resolve: () => {
+          clearTimeout(timer);
+          this.#readyWaiters.delete(waiter);
+          resolve();
+        },
+        reject: (error: Error) => {
+          clearTimeout(timer);
+          this.#readyWaiters.delete(waiter);
+          reject(error);
+        },
+      };
+      const timer = setTimeout(
+        () =>
+          waiter.reject(
+            new Error(
+              "The cart drawer did not respond in time, so a cart change was not sent.",
+            ),
+          ),
+        READY_FALLBACK_MS,
+      );
+      this.#readyWaiters.add(waiter);
+    });
+  }
+
   /** Called by `client` through the transport hook. */
   async invoke(method: SideCartInvokeMethod, params: unknown[]): Promise<void> {
     // `async` is load-bearing. `mount()` throws synchronously when no store
@@ -367,6 +379,7 @@ class SideCart extends EventTarget {
     // instead of the addErrorMessage + onError channel that is the only
     // failure path a merchant page has.
     this.mount();
+    await this.#whenReady();
     const channel = this.#channel;
     if (!channel) throw new Error("The sidecart is not mounted.");
 
@@ -398,6 +411,7 @@ class SideCart extends EventTarget {
     if (message.type === "ready" || message.type === "state") {
       if (message.type === "ready") {
         this.#frameReady = true;
+        for (const waiter of [...this.#readyWaiters]) waiter.resolve();
         // The frame is alive and has actually rendered, so a `show()` that
         // was waiting on this can finally reveal it (and inert the page
         // behind it) together, in one step -- not this frame's job if the

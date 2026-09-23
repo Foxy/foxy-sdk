@@ -30,6 +30,10 @@
       "types": "./dist/npm/checkout/side-cart.d.ts",
       "import": "./dist/npm/checkout/side-cart.js"
     },
+    "./checkout/add-to-cart": {
+      "types": "./dist/npm/checkout/add-to-cart.d.ts",
+      "import": "./dist/npm/checkout/add-to-cart.js"
+    },
     "./checkout/side-cart/protocol": {
       "types": "./dist/npm/checkout/side-cart/protocol.d.ts",
       "import": "./dist/npm/checkout/side-cart/protocol.js"
