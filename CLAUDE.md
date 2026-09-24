@@ -19,6 +19,7 @@
 ## Testing
 
 - `npm test` runs `vitest run`. Tests live in `src/tests/**/*.test.ts`, separate from the source, and are `environment: 'node'` with `globals: true` (no import of `describe`/`it`/`expect` needed).
+- `src/tests/setup.ts` replaces `fetch` with a stub that rejects, and waits one tick after each test. `new API({ storeDomain })` loads the cart on a `setTimeout(0)`, so without both a test can send a real request that settles after jsdom is gone, and `npm test` fails on an unhandled rejection even when every test passes. Mock `fetch` per test as before; the stub is only the fallback.
 - `npm run test:coverage` enforces 80% on branches, functions, lines and statements. Adding source without tests can fail the threshold even when every test passes.
 - `npm run verify` is the gate: `typecheck` (`tsc --noEmit -p tsconfig.verify.json`) then `npm test`. `.githooks/pre-push` runs it, and `.github/workflows/verify.yml` runs it on every PR.
 - Run `npm ci` after switching between this branch and `main`. They need different installs: TypeScript 5.9 + Vitest here, TypeScript 4 + Jest on `main`. With `main`'s install, `typecheck` fails on `tsconfig.json` options the older compiler rejects (`TS6046` on `target`, `moduleResolution` and `lib`) and on `satisfies` syntax. `.githooks/pre-push` then blocks the push. The errors point at the toolchain, not the code.
