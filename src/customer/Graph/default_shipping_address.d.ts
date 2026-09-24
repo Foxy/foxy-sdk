@@ -5,7 +5,7 @@
 // under v1 will not find it here.
 import { CustomerAddress } from './customer_address';
 
-export interface DefaultShippingAddress extends CustomerAddress {
+export interface DefaultShippingAddress extends Omit<CustomerAddress, 'curie'> {
   curie: 'fx:default_shipping_address';
   links: CustomerAddress['links'] & { self: DefaultShippingAddress };
 }
