@@ -129,17 +129,6 @@ describe('Customer', () => {
       expect(result).toBe(false);
     });
 
-    it('returns true if given date is later than min', () => {
-      const value = new Date(new Date().getFullYear() + 1, 0, 1);
-      const result = isNextTransactionDate({
-        settings: mockSettings([{ jsonata_query: '*', min: '1m' }]),
-        subscription: mockSubscription('1m'),
-        value: value.toISOString().substring(0, 10),
-      });
-
-      expect(result).toBe(true);
-    });
-
     it('returns false if given date is earlier than min', () => {
       const value = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1);
       const result = isNextTransactionDate({
@@ -162,15 +151,57 @@ describe('Customer', () => {
       expect(result).toBe(true);
     });
 
-    it('returns false if given date is later than max', () => {
-      const value = new Date(new Date().getFullYear() + 1, 0, 1);
-      const result = isNextTransactionDate({
-        settings: mockSettings([{ jsonata_query: '*', max: '1m' }]),
-        subscription: mockSubscription('1m'),
-        value: value.toISOString().substring(0, 10),
+    describe('with month-denominated min and max', () => {
+      // min and max are frequencies, so 1m is 31 days and .5m is 15.5 days.
+      // Now + 1m is 2026-02-15 12:00, now + .5m is 2026-01-31 00:00.
+      beforeEach(() => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date(2026, 0, 15, 12));
       });
 
-      expect(result).toBe(false);
+      afterEach(() => {
+        vi.useRealTimers();
+      });
+
+      it('returns false if given date is within 1m min', () => {
+        const result = isNextTransactionDate({
+          settings: mockSettings([{ jsonata_query: '*', min: '1m' }]),
+          subscription: mockSubscription('1m'),
+          value: '2026-02-05',
+        });
+
+        expect(result).toBe(false);
+      });
+
+      it('returns true if given date is later than 1m min', () => {
+        const result = isNextTransactionDate({
+          settings: mockSettings([{ jsonata_query: '*', min: '1m' }]),
+          subscription: mockSubscription('1m'),
+          value: '2026-02-25',
+        });
+
+        expect(result).toBe(true);
+      });
+
+      it('returns true if given date is within 1m max', () => {
+        const result = isNextTransactionDate({
+          settings: mockSettings([{ jsonata_query: '*', max: '1m' }]),
+          subscription: mockSubscription('1m'),
+          value: '2026-02-05',
+        });
+
+        expect(result).toBe(true);
+      });
+
+      it('returns false if given date is later than 1m max', () => {
+        const result = isNextTransactionDate({
+          settings: mockSettings([{ jsonata_query: '*', max: '1m' }]),
+          subscription: mockSubscription('1m'),
+          value: '2026-02-25',
+        });
+
+        expect(result).toBe(false);
+      });
     });
   });
 });
