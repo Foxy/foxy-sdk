@@ -22,6 +22,8 @@ The following SDK modules are not part of this WIP release yet and will be re-ad
 npm i @foxy.io/sdk
 ```
 
+The type declarations need a bundler. They use extensionless relative imports, which TypeScript's `"moduleResolution": "node16"` and `"nodenext"` reject. Use `"moduleResolution": "bundler"`. A plain Node ESM project without a bundler cannot consume this package's types.
+
 ## Usage
 
 ```ts
