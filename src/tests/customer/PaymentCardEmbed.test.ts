@@ -100,19 +100,21 @@ describe('Customer', () => {
     it('unmounts the embed on .unmount()', async () => {
       const embed = new TestPaymentCardEmbed({ url: 'https://embed.foxy.test/v1.html?demo=default' });
       const mountingPromise = embed.mount((new TestElement() as unknown) as Element);
+      const loadListener = testIframe.addEventListener.mock.calls.find(([event]) => event === 'load')![1];
+      const messageListener = testMessageChannel.port1.addEventListener.mock.calls.find(([e]) => e === 'message')![1];
 
       vi.clearAllMocks();
       embed.unmount();
 
-      // It must close the message channel and remove event listeners
+      // It must close the message channel and remove the same listeners it added
       expect(testMessageChannel.port2.close).toHaveBeenCalledTimes(1);
       expect(testMessageChannel.port1.close).toHaveBeenCalledTimes(1);
       expect(testMessageChannel.port1.removeEventListener).toHaveBeenCalledTimes(1);
-      expect(testMessageChannel.port1.removeEventListener).toHaveBeenCalledWith('message', expect.any(Function));
+      expect(testMessageChannel.port1.removeEventListener).toHaveBeenCalledWith('message', messageListener);
 
       // It must remove the iframe and its event listeners
       expect(testIframe.removeEventListener).toHaveBeenCalledTimes(1);
-      expect(testIframe.removeEventListener).toHaveBeenCalledWith('load', expect.any(Function));
+      expect(testIframe.removeEventListener).toHaveBeenCalledWith('load', loadListener);
       expect(testIframe.remove).toHaveBeenCalledTimes(1);
 
       // If there's a mounting promise, it must reject it
@@ -188,6 +190,27 @@ describe('Customer', () => {
     it('does not fail if .configure() is called before .mount()', () => {
       const embed = new TestPaymentCardEmbed({ url: 'https://embed.foxy.test/v1.html?demo=default' });
       expect(() => embed.configure({ disabled: true })).not.toThrow();
+    });
+
+    it('sends the config set by .configure() before .mount() once the embed is ready', async () => {
+      const embed = new TestPaymentCardEmbed({ lang: 'es', url: 'https://embed.foxy.test/v1.html?demo=default' });
+      embed.configure({ disabled: true });
+
+      const mountingPromise = embed.mount((new TestElement() as unknown) as Element);
+      const loadListener = testIframe.addEventListener.mock.calls.find(([event]) => event === 'load')![1];
+      const messageListener = testMessageChannel.port1.addEventListener.mock.calls.find(([e]) => e === 'message')![1];
+      await new Promise(resolve => setTimeout(resolve, 0));
+      loadListener({ currentTarget: testIframe });
+      messageListener({ data: JSON.stringify({ type: 'ready' }) });
+      await mountingPromise;
+
+      // Pins current behaviour: .configure() replaces the stored config rather than
+      // merging it, so the constructor's `lang` is not sent. Update this, don't delete it,
+      // if .configure() starts merging.
+      expect(testMessageChannel.port1.postMessage).toHaveBeenCalledTimes(1);
+      expect(testMessageChannel.port1.postMessage).toHaveBeenCalledWith(
+        JSON.stringify({ type: 'config', disabled: true })
+      );
     });
 
     it('requests tokenization on .tokenize() (positive path)', async () => {

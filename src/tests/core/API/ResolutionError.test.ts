@@ -22,6 +22,7 @@ describe('Core', () => {
       it('errors when constructed with incorrect arguments', () => {
         const incorrectArgument = (null as unknown) as Response;
         expect(() => new ResolutionError(incorrectArgument)).toThrow(TypeError);
+        expect(() => new ResolutionError(({} as unknown) as Response)).toThrow(TypeError);
       });
     });
   });

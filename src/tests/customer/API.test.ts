@@ -112,6 +112,32 @@ describe('Customer', () => {
       expect(request.headers.get('Authorization')).toBe(`Bearer ${sampleSession.session_token}`);
     });
 
+    it('re-stamps date_created on a successful authenticated request', async () => {
+      fetchMock.mockResolvedValue(new Response(null));
+
+      const api = new CustomerAPI(commonInit);
+      const before = Date.now();
+
+      api.storage.setItem(CustomerAPI.SESSION, JSON.stringify(sampleStoredRecentSession));
+      await api.fetch(api.base.toString());
+
+      const stored = JSON.parse(api.storage.getItem(CustomerAPI.SESSION) as string);
+      expect(new Date(stored.date_created).getTime()).toBeGreaterThanOrEqual(before);
+      expect(stored.session_token).toBe(sampleSession.session_token);
+    });
+
+    it('keeps date_created as-is when an authenticated request fails', async () => {
+      fetchMock.mockResolvedValue(new Response(null, { status: 500 }));
+
+      const api = new CustomerAPI(commonInit);
+
+      api.storage.setItem(CustomerAPI.SESSION, JSON.stringify(sampleStoredRecentSession));
+      await api.fetch(api.base.toString());
+
+      const stored = JSON.parse(api.storage.getItem(CustomerAPI.SESSION) as string);
+      expect(stored.date_created).toBe(sampleStoredRecentSession.date_created);
+    });
+
     it('makes an unauthenticated request when there is no session token', async () => {
       fetchMock.mockResolvedValue(new Response(null));
 
