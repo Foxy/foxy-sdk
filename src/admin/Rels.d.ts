@@ -20,6 +20,7 @@ export * from './Graph/checkout_template';
 export * from './Graph/checkout_templates';
 export * from './Graph/checkout_types';
 export * from './Graph/client';
+export * from './Graph/connect_gateway';
 export * from './Graph/countries';
 export * from './Graph/coupon';
 export * from './Graph/coupon_code';
