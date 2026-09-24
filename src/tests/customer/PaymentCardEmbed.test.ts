@@ -204,12 +204,39 @@ describe('Customer', () => {
       messageListener({ data: JSON.stringify({ type: 'ready' }) });
       await mountingPromise;
 
-      // Pins current behaviour: .configure() replaces the stored config rather than
-      // merging it, so the constructor's `lang` is not sent. Update this, don't delete it,
-      // if .configure() starts merging.
+      // .configure() merges into the constructor config, so `lang` is still sent.
       expect(testMessageChannel.port1.postMessage).toHaveBeenCalledTimes(1);
       expect(testMessageChannel.port1.postMessage).toHaveBeenCalledWith(
-        JSON.stringify({ type: 'config', disabled: true })
+        JSON.stringify({ type: 'config', lang: 'es', disabled: true })
+      );
+    });
+
+    it('keeps earlier .configure() calls when the embed is mounted again', async () => {
+      const embed = new TestPaymentCardEmbed({ lang: 'es', url: 'https://embed.foxy.test/v1.html?demo=default' });
+      const mount = async () => {
+        const mountingPromise = embed.mount((new TestElement() as unknown) as Element);
+        const loadListener = testIframe.addEventListener.mock.calls.find(([event]) => event === 'load')![1];
+        const messageListener = testMessageChannel.port1.addEventListener.mock.calls.find(([e]) => e === 'message')![1];
+        await new Promise(resolve => setTimeout(resolve, 0));
+        loadListener({ currentTarget: testIframe });
+        messageListener({ data: JSON.stringify({ type: 'ready' }) });
+        await mountingPromise;
+      };
+
+      await mount();
+      embed.configure({ disabled: true });
+      embed.configure({ translations: { default: { 'cc-number': { label: 'Test' } } } });
+      vi.clearAllMocks();
+      await mount();
+
+      expect(testMessageChannel.port1.postMessage).toHaveBeenCalledTimes(1);
+      expect(testMessageChannel.port1.postMessage).toHaveBeenCalledWith(
+        JSON.stringify({
+          type: 'config',
+          lang: 'es',
+          disabled: true,
+          translations: { default: { 'cc-number': { label: 'Test' } } },
+        })
       );
     });
 
