@@ -92,8 +92,8 @@ export class PaymentCardEmbed {
    * @param config - The new configuration.
    */
   configure(config: PaymentCardEmbedConfig): void {
-    this.__config = config;
-    const message = { type: 'config', ...config };
+    this.__config = { ...this.__config, ...config };
+    const message = { type: 'config', ...this.__config };
     this.__channel?.port1.postMessage(JSON.stringify(message));
   }
 
