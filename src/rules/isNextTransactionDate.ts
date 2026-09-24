@@ -1,7 +1,7 @@
 import type { NextDateRules, RuleSubject } from './types';
 
 import { getNextTransactionDateConstraints } from './getNextTransactionDateConstraints.js';
-import parse from 'parse-duration';
+import { getTimeFromFrequency } from './getTimeFromFrequency.js';
 
 type Options = {
   value: string;
@@ -50,15 +50,8 @@ export function isNextTransactionDate(opts: Options): boolean {
     if (match) return false;
   }
 
-  if (constraints.min) {
-    const duration = parse(constraints.min);
-    if (duration !== null && Date.now() + duration >= valueAsTime) return false;
-  }
-
-  if (constraints.max) {
-    const duration = parse(constraints.max);
-    if (duration !== null && Date.now() + duration <= valueAsTime) return false;
-  }
+  if (constraints.min && Date.now() + getTimeFromFrequency(constraints.min) >= valueAsTime) return false;
+  if (constraints.max && Date.now() + getTimeFromFrequency(constraints.max) <= valueAsTime) return false;
 
   return true;
 }
