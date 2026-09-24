@@ -60,6 +60,40 @@ describe('Core', () => {
         methods.forEach(method => expect(json).toHaveProperty(`_embedded.foo._links.bar.${method}`));
         methods.forEach(method => expect(json).toHaveProperty(`_embedded.bar.0._links.baz.${method}`));
       });
+
+      it('points each _links node at its own href', async () => {
+        const data = {
+          _embedded: { foo: { _links: { bar: { href: 'https://example.com/embedded/bar' } } } },
+          _links: { baz: { href: 'https://example.com/baz' }, foo: { href: 'https://example.com/foo' } },
+        };
+
+        const fetch = vi.fn<typeof globalThis.fetch>().mockImplementation(() =>
+          Promise.resolve(new globalThis.Response('{}'))
+        );
+
+        const response = new Response({
+          body: JSON.stringify(data),
+          cache: new MemoryStorage(),
+          console: createLogger({ level: -1, tag: 'test' }),
+          fetch,
+        });
+
+        const json = (await response.json()) as unknown as {
+          _embedded: { foo: { _links: Record<string, { get: () => Promise<unknown> }> } };
+          _links: Record<string, { get: () => Promise<unknown> }>;
+        };
+
+        await json._links.foo.get();
+        await json._links.baz.get();
+        await json._embedded.foo._links.bar.get();
+
+        const urls = fetch.mock.calls.map(([request]) => (request as Request).url);
+        expect(urls).toEqual([
+          'https://example.com/foo',
+          'https://example.com/baz',
+          'https://example.com/embedded/bar',
+        ]);
+      });
     });
   });
 });

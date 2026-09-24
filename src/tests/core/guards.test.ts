@@ -62,6 +62,13 @@ describe('Core', () => {
       expect(() => assertCoreAPIInit(init)).toThrow(TypeError);
     });
 
+    it('assertCoreAPIInit rejects an invalid cache, storage or fetch on their own', () => {
+      const base = new URL('https://example.com/');
+      expect(() => assertCoreAPIInit({ base, cache: Number })).toThrow('init.cache must be');
+      expect(() => assertCoreAPIInit({ base, storage: null })).toThrow('init.storage must be');
+      expect(() => assertCoreAPIInit({ base, fetch: 123 })).toThrow('init.fetch must be');
+    });
+
     it('assertCoreAPIInit rejects a string base', () => {
       expect(() => assertCoreAPIInit({ base: 'https://example.com/' })).toThrow(TypeError);
     });

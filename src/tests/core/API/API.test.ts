@@ -52,11 +52,15 @@ describe('Core', () => {
 
     it('falls back to globalThis.fetch when none is provided', async () => {
       const params = ['https://example.com/path/to/resource/', { method: 'POST' }] as const;
+      // Constructed before the spy, so the default must look fetch up per call
+      // rather than capture it, and call it with globalThis as `this`.
+      const api = new API({ base: new URL('https://example.com/') });
       const globalFetch = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null));
 
       try {
-        await new API({ base: new URL('https://example.com/') }).fetch(...params);
+        await api.fetch(...params);
         expect(globalFetch).toHaveBeenCalledWith(...params);
+        expect(globalFetch.mock.contexts[0]).toBe(globalThis);
       } finally {
         globalFetch.mockRestore();
       }
