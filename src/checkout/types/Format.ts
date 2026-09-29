@@ -1,6 +1,9 @@
 export type Format = {
-  /** Default weight unit for display. */
-  weight_unit: "pound" | "kilogram";
+  /**
+   * Default weight unit for display. Null when there are no items in the
+   * transaction.
+   */
+  weight_unit: "pound" | "kilogram" | null;
   /** Locale code for formatting (e.g., 'en-US'). */
   locale_code: string;
   /** 3-letter currency code (e.g., 'USD'). */
