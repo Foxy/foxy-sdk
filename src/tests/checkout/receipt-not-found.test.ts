@@ -8,11 +8,9 @@ import { API } from "../../checkout/API";
  * `messages` and `template_set` are there and everything the backend builds
  * from a transaction is null or empty.
  *
- * `format` and `display` are filled in here, but the backend nulls them on this
- * payload today. They are store and template-set config with no transaction
- * behind them, so FX-411 asks for them to be sent; APIJson declares them
- * non-null on the assumption it lands. Until then the SDK throws on a real
- * not-found receipt before it reaches any of the cases below.
+ * `format` and `display` are store and template-set config, so the backend
+ * sends them on this payload (FX-411). `format.weight_unit` is null because
+ * there are no items in the transaction.
  */
 function createReceiptNotFoundJson(): APIJson {
   return {
@@ -47,7 +45,7 @@ function createReceiptNotFoundJson(): APIJson {
     ],
     custom_fields: {},
     format: {
-      weight_unit: "pound",
+      weight_unit: null,
       locale_code: "en-US",
       currency_code: "USD",
       currency_display: "symbol",
@@ -86,6 +84,7 @@ describe("a receipt the backend could not find", () => {
     );
     expect(api.json?.session).toBeNull();
     expect(api.json?.customer).toBeNull();
+    expect(api.json?.format.weight_unit).toBeNull();
   });
 
   it("hydrates without throwing when the store domain is null too", async () => {
