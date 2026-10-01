@@ -1,17 +1,10 @@
-import type {
-  StandardCardGateway,
-  StripeConnectGateway,
-} from "./PaymentGatewayConfig";
+import type { StandardCardGateway } from "./PaymentGatewayConfig";
 
 export type SavedPaymentMethod = {
   /** Payment option type. */
   type: "card";
   /** Gateway used for saved card submission. */
-  gateway:
-    | StandardCardGateway
-    | StripeConnectGateway
-    | "stripe_v2"
-    | "adyen_embedded";
+  gateway: StandardCardGateway | "stripe_v2" | "adyen_embedded";
   /** Payment method identifier. */
   id: string;
   /** Card brand (e.g., "visa", "mastercard"). */

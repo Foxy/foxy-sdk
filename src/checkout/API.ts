@@ -16,7 +16,6 @@ import type {
   StandardACHGateway,
   StandardCardGateway,
   StandardRedirectGateway,
-  StripeConnectGateway,
 } from "./types/PaymentGatewayConfig";
 import type { Listener } from "./types/Listener";
 import type { SideCartInvokeMethod } from "./side-cart/protocol";
@@ -401,10 +400,6 @@ type CheckOutPaymentOption =
     ))
   | {
       gateway: StandardRedirectGateway;
-    }
-  | {
-      gateway: "stripe_connect" | "stripe_connect_charge";
-      card_token_id: string;
     }
   // stripe_v2 carries no token: the submit leg creates an unconfirmed
   // PaymentIntent server-side and answers with a `confirm_intent` next action.

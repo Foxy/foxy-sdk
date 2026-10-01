@@ -20,7 +20,6 @@ export type StandardCardGateway =
   | "sagepay";
 
 export type StandardRedirectGateway = 'mollie_omnipay' | 'sezzle';
-export type StripeConnectGateway = "stripe_connect" | "stripe_connect_charge";
 export type StandardACHGateway = "authorize_ach" | "ach_com";
 
 export type ApplePayConfig = {
@@ -62,13 +61,6 @@ type StandardAchPaymentGatewayConfig = {
   )[];
   /** Accepted account types. */
   account_types: ("checking" | "savings")[];
-};
-
-type StripeCardElementGatewayConfig = {
-  /** Gateway identifier. */
-  type: StripeConnectGateway;
-  /** Publishable key for rendering a Stripe Card Element option. */
-  publishable_key: string;
 };
 
 type StripePaymentElementGatewayConfig = {
@@ -162,7 +154,6 @@ export type PaymentGatewayConfig =
   | StandardCardPaymentGatewayConfig
   | StandardAchPaymentGatewayConfig
   | RedirectGatewayConfig
-  | StripeCardElementGatewayConfig
   | StripePaymentElementGatewayConfig
   | PayPalPlatformGatewayConfig
   | KlarnaGatewayConfig
