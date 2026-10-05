@@ -368,3 +368,74 @@ describe("client.session.ensure", () => {
     await expect(api.session.ensure()).resolves.toBe("s-new");
   });
 });
+
+describe("client.session.configure after the first load", () => {
+  async function bootedWith(id: string): Promise<API> {
+    localStorage.setItem(KEY, id);
+    vi.mocked(fetch).mockImplementation(async () => respond(cart(id)));
+    const api = await boot();
+    vi.mocked(fetch).mockClear();
+    return api;
+  }
+
+  /** `configure()` queues the switch; wait for the queue. */
+  async function settled(api: API): Promise<void> {
+    await api.session.ensure();
+  }
+
+  it("moves the session into the new store and empties the old one", async () => {
+    const api = await bootedWith("s-1");
+    const store = spyStore();
+
+    api.session.configure({ storage: store });
+    await settled(api);
+
+    expect(store.value).toBe("s-1");
+    expect(localStorage.getItem(KEY)).toBeNull();
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("adopts the new store's session and reloads", async () => {
+    const api = await bootedWith("s-1");
+    const transport = fakeTransport();
+    api.setSideCartTransport(transport);
+    vi.mocked(fetch).mockImplementation(async () => respond(cart("s-2")));
+
+    api.session.configure({ storage: spyStore("s-2") });
+    await settled(api);
+
+    expect(api.session.id).toBe("s-2");
+    expect(sessionIdOf(0)).toBe("s-2");
+    expect(transport.sessionChanged).toHaveBeenCalledWith("s-2");
+    expect(localStorage.getItem(KEY)).toBeNull();
+  });
+
+  it("keeps the ID when the same built-in store is configured again", async () => {
+    const api = await bootedWith("s-1");
+
+    api.session.configure({ storage: "local" });
+    await settled(api);
+
+    expect(localStorage.getItem(KEY)).toBe("s-1");
+  });
+
+  it("does nothing when the same custom store is configured again", async () => {
+    const store = spyStore("s-1");
+    vi.mocked(fetch).mockImplementation(async () => respond(cart("s-1")));
+    const api = await boot((a) => a.session.configure({ storage: store }));
+
+    api.session.configure({ storage: store });
+    await settled(api);
+
+    expect(store.remove).not.toHaveBeenCalled();
+    expect(store.value).toBe("s-1");
+  });
+
+  it("never touches the default store when configured before the domain is set", async () => {
+    vi.mocked(fetch).mockImplementation(async () => respond(cart("s-new")));
+
+    await boot((a) => a.session.configure({ storage: "memory" }));
+
+    expect(localStorage.length).toBe(0);
+  });
+});

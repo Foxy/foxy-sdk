@@ -74,8 +74,38 @@ export class Session {
   configure(options: SessionOptions): void {
     const { storage = "local", key, cookie } = options;
     if (typeof storage === "string") checkStoreOptions(storage, key, cookie);
+
+    const previous = this.#store;
     this.#options = options;
     this.#store = null;
+
+    // Called after the store was first used -- late, from `checkout/loader`.
+    if (previous) {
+      this.#enqueue(() => this.#switchFrom(previous)).catch((error: unknown) =>
+        this.#host.onError(toError(error)),
+      );
+    }
+  }
+
+  /**
+   * The old store is emptied either way, so a switch from `"local"` to
+   * `"memory"` leaves nothing in `localStorage`. It is emptied BEFORE the
+   * write: the new store may be the same storage under the same key.
+   */
+  async #switchFrom(previous: SessionStore): Promise<void> {
+    if (this.#currentStore() === previous) return;
+
+    const adopted = await this.#read();
+    await this.#remove(previous);
+
+    if (adopted !== null && adopted !== this.#id) {
+      this.#id = adopted;
+      this.#host.changed(adopted);
+      await this.#host.load(adopted);
+      return;
+    }
+
+    if (this.#id !== null) await this.#write(this.#id);
   }
 
   /** @internal The client's first load. `API` calls it once. */
