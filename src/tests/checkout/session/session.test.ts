@@ -477,6 +477,54 @@ describe("responses from an old session", () => {
     expect(onError).not.toHaveBeenCalled();
   });
 
+  it("does not report a failed cart change that lands after end()", async () => {
+    localStorage.setItem(KEY, "s-1");
+    vi.mocked(fetch).mockImplementation(async () => respond(cart("s-1")));
+    const onError = vi.fn();
+    const api = await boot(undefined, onError);
+    vi.mocked(fetch).mockImplementation(
+      () => new Promise((resolve) => setTimeout(() => resolve(new Response("", { status: 500 })), 5)),
+    );
+
+    api.addItem([["name", "Shirt"], ["price", "10"]]);
+    await api.session.end();
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    expect(onError).not.toHaveBeenCalled();
+  });
+
+  it("start() resolves with the session the sidecart reported during its load", async () => {
+    const onError = vi.fn();
+    const api = await boot((a) => a.session.configure({ autoStart: false }), onError);
+    vi.mocked(fetch).mockImplementation(() => later(cart("s-new")));
+
+    const starting = api.session.start();
+    await new Promise((resolve) => setTimeout(resolve, 0)); // the load is in flight
+    expect(fetch).toHaveBeenCalledTimes(1);
+    api.reportSideCartSession("s-frame");
+
+    await expect(starting).resolves.toBeUndefined();
+    expect(api.session.id).toBe("s-frame");
+    expect(onError).not.toHaveBeenCalled();
+  });
+
+  it("does not report a late configure() adopt load that the sidecart made stale", async () => {
+    localStorage.setItem(KEY, "s-1");
+    vi.mocked(fetch).mockImplementation(async () => respond(cart("s-1")));
+    const onError = vi.fn();
+    const api = await boot(undefined, onError);
+    vi.mocked(fetch).mockClear().mockImplementation(() => later(cart("s-2")));
+
+    api.session.configure({ storage: spyStore("s-2") });
+    await new Promise((resolve) => setTimeout(resolve, 0)); // the adopt load is in flight
+    expect(fetch).toHaveBeenCalledTimes(1);
+    api.reportSideCartSession("s-frame");
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    expect(onError).not.toHaveBeenCalled();
+    expect(api.session.id).toBe("s-frame");
+  });
+
   it("drops a cart change that lands after start(id)", async () => {
     localStorage.setItem(KEY, "s-1");
     vi.mocked(fetch).mockImplementation(async () => respond(cart("s-1")));

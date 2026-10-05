@@ -462,7 +462,13 @@ export class API extends EventTarget {
       }
     },
     load: async (sessionId) => {
-      await this.replaceJson(await this.getJson("/cart", sessionId));
+      try {
+        await this.replaceJson(await this.getJson("/cart", sessionId));
+      } catch (error) {
+        // The session moved on during the load (a sidecart report): nothing to report.
+        if (error instanceof StaleSessionResponse) return;
+        throw error;
+      }
     },
     reset: async () => {
       await this.postJson("/cart", { empty: "reset" });
@@ -1795,50 +1801,48 @@ export class API extends EventTarget {
     form.set("output", "json");
     if (sessionId) form.set("session_id", sessionId);
 
-    const sentWith = this.session.snapshot();
-    const response = await fetch(this.resolveUrl(path), {
+    return this.#requestJson(path, this.resolveUrl(path), {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
       },
       body: form,
     });
-
-    if (!response.ok) {
-      throw this.createRequestError(
-        response.status,
-        `Request failed for ${path}.`,
-      );
-    }
-
-    const json = (await response.json()) as APIJson;
-    if (this.session.isStale(sentWith)) {
-      throw new StaleSessionResponse("The session changed while this request ran.");
-    }
-    this.session.observe(json.session?.id ?? null);
-    return json;
   }
 
-  private async getJson(
-    path: string,
-    sessionId: string | null = this.session.id,
-  ): Promise<APIJson> {
-    const sentWith = this.session.snapshot();
-    const response = await fetch(
+  private async getJson(path: string, sessionId: string | null): Promise<APIJson> {
+    return this.#requestJson(
+      path,
       this.resolveUrl(path, {
         output: "json",
         session_id: sessionId,
       }),
     );
+  }
 
-    if (!response.ok) {
-      throw this.createRequestError(
-        response.status,
-        `Request failed for ${path}.`,
-      );
+  /**
+   * A response that lands after the session changed belongs to another
+   * session: it throws `StaleSessionResponse`, which is dropped, never
+   * reported. So does a failure: a 500 for an ended session is not news.
+   */
+  async #requestJson(path: string, url: string, init?: RequestInit): Promise<APIJson> {
+    const sentWith = this.session.snapshot();
+    let json: APIJson;
+
+    try {
+      // A GET is sent as `fetch(url)`, with no second argument, as before.
+      const response = await (init ? fetch(url, init) : fetch(url));
+      if (!response.ok) {
+        throw this.createRequestError(response.status, `Request failed for ${path}.`);
+      }
+      json = (await response.json()) as APIJson;
+    } catch (error) {
+      if (this.session.isStale(sentWith)) {
+        throw new StaleSessionResponse("The session changed while this request ran.");
+      }
+      throw error;
     }
 
-    const json = (await response.json()) as APIJson;
     if (this.session.isStale(sentWith)) {
       throw new StaleSessionResponse("The session changed while this request ran.");
     }
