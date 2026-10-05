@@ -451,17 +451,12 @@ export class API extends EventTarget {
   #booted = false;
   /** The json came from the page (`initialJson` or `hydrateJson`), so the first load must not run. */
   #hydrated = false;
+  /** How many actions are running. The state is `busy` while any is. */
+  #busyCount = 0;
   /** The cart session: where its ID is stored, and how to start or end it. */
   readonly session: Session = new Session({
     storeOrigin: () => (this.#baseUrl ? new URL(this.#baseUrl).origin : null),
-    run: async <T>(action: () => Promise<T>): Promise<T> => {
-      this.setState("busy");
-      try {
-        return await action();
-      } finally {
-        this.setState("idle");
-      }
-    },
+    run: (action) => this.#busy(action),
     load: async (sessionId) => {
       try {
         await this.replaceJson(await this.getJson("/cart", sessionId));
@@ -1767,15 +1762,26 @@ export class API extends EventTarget {
     this.#onError?.(normalized);
   }
 
-  private async runMutation(action: () => Promise<void>): Promise<void> {
-    this.setState("busy");
+  /**
+   * Runs `action` with the state `busy`, and rethrows. Nested actions (a
+   * cart change that first gets a session) keep it `busy` until the outer
+   * one ends.
+   */
+  async #busy<T>(action: () => Promise<T>): Promise<T> {
+    if (this.#busyCount++ === 0) this.setState("busy");
 
     try {
-      await action();
+      return await action();
+    } finally {
+      if (--this.#busyCount === 0) this.setState("idle");
+    }
+  }
+
+  private async runMutation(action: () => Promise<void>): Promise<void> {
+    try {
+      await this.#busy(action);
     } catch (error) {
       this.#reportError(error);
-    } finally {
-      this.setState("idle");
     }
   }
 
@@ -1807,13 +1813,18 @@ export class API extends EventTarget {
     const form = Array.isArray(body) ? new URLSearchParams(body) : toFormData(body);
     // A hydrated client (a hosted page) sends its json's session, as before
     // `client.session`: its ID never goes through the session ID check.
-    // Once this client loads its own session, a change must not be sent
-    // without one: it would land in a new, orphan session.
+    // Otherwise a change must not be sent without a session: it would land in
+    // a new, orphan session. So it waits for a first load that has not run
+    // yet (the same task as `setStoreDomain()`), then gets a session.
     // `host.reset` is the only caller inside the session queue, and only with
     // an ID, so this never waits on itself.
-    const sessionId = this.#hydrated
-      ? (this.#json?.session?.id ?? null)
-      : (this.session.id ?? (this.#booted ? await this.session.ensure() : null));
+    let sessionId: string | null;
+    if (this.#hydrated) {
+      sessionId = this.#json?.session?.id ?? null;
+    } else {
+      if (this.session.id === null) await this.sessionSettled();
+      sessionId = this.session.id ?? (this.#booted ? await this.session.ensure() : null);
+    }
 
     form.set("output", "json");
     if (sessionId) form.set("session_id", sessionId);

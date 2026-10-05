@@ -816,3 +816,75 @@ describe("store and frame failures", () => {
     );
   });
 });
+
+describe("cart changes sent before the first load", () => {
+  function later(json: APIJson, ms = 5): Promise<Response> {
+    return new Promise((resolve) => setTimeout(() => resolve(respond(json)), ms));
+  }
+
+  /** GETs answer after 5 ms with the session they asked for; POSTs answer at once, an orphan without one. */
+  function serve(fallback: string): void {
+    vi.mocked(fetch).mockImplementation(async (input, init) => {
+      if (init?.method === "POST") {
+        const id = new URLSearchParams(String(init.body)).get("session_id");
+        return respond(cart(id ?? "s-orphan"));
+      }
+      return later(cart(new URL(String(input)).searchParams.get("session_id") ?? fallback));
+    });
+  }
+
+  async function settled(): Promise<void> {
+    await vi.waitFor(() => expect(fetch).toHaveBeenCalledTimes(2));
+    await new Promise((resolve) => setTimeout(resolve, 20));
+  }
+
+  it("waits for the first load when the change comes in the same task", async () => {
+    localStorage.setItem(KEY, "s-1");
+    serve("s-new");
+    const api = new API({});
+
+    api.setStoreDomain("store.test");
+    api.addItem([["name", "Shirt"], ["price", "10"]]);
+    await settled();
+
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(fetch).mock.calls[0][1]?.method).toBeUndefined();
+    expect(sessionIdOf(1)).toBe("s-1");
+    expect(api.session.id).toBe("s-1");
+    expect(api.json?.session?.id).toBe("s-1");
+  });
+
+  it("waits for the new store's first load after a store change", async () => {
+    localStorage.setItem(KEY, "s-1");
+    vi.mocked(fetch).mockImplementation(async () => respond(cart("s-1")));
+    const api = await boot();
+    localStorage.setItem("foxy.session.other.test", "s-2");
+    vi.mocked(fetch).mockClear();
+    serve("s-new");
+
+    api.setStoreDomain("other.test");
+    api.addItem([["name", "Shirt"], ["price", "10"]]);
+    await settled();
+
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(String(vi.mocked(fetch).mock.calls[1][0])).toMatch(/^https:\/\/other\.test\/cart/);
+    expect(sessionIdOf(1)).toBe("s-2");
+    expect(api.session.id).toBe("s-2");
+  });
+
+  it("stays busy until the change is sent, also when it first creates a session", async () => {
+    const api = await boot((a) => a.session.configure({ autoStart: false }));
+    vi.mocked(fetch).mockImplementation(async (_input, init) =>
+      init?.method === "POST" ? later(cart("s-new")) : respond(cart("s-new")),
+    );
+    const states: string[] = [];
+    api.addEventListener("update", () => states.push(api.state));
+
+    api.addItem([["name", "Shirt"], ["price", "10"]]);
+    await settled();
+
+    expect(sessionIdOf(1)).toBe("s-new");
+    expect(states.at(-1)).toBe("idle");
+    expect(states.slice(0, -1)).not.toContain("idle");
+  });
+});
