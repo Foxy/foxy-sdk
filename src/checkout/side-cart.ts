@@ -1,7 +1,7 @@
 // src/checkout/side-cart.ts
 import type { FrameToHostMessage, SideCartInvokeMethod } from "./side-cart/protocol";
 import { client } from "./client";
-import { readCachedState, writeCachedState } from "./side-cart/session-cache";
+import { hashSessionId, readCachedState, writeCachedState } from "./side-cart/session-cache";
 import { adoptScriptStore, resolveHostStoreOrigin } from "./side-cart/origin";
 import { SideCartHostChannel } from "./side-cart/channel";
 
@@ -173,7 +173,7 @@ class SideCart extends EventTarget {
     const state = this.#state();
     if (!state) return null;
     const current = client.session.id;
-    return current === null || state.sessionId === current ? state.itemCount : null;
+    return current === null || state.sessionTag === hashSessionId(current) ? state.itemCount : null;
   }
 
   mount(): void {
@@ -393,7 +393,7 @@ class SideCart extends EventTarget {
     // No session means no cart: drop the ended session's cached count, frame
     // or not, so the badge does not keep showing it.
     const origin = this.#tryOrigin();
-    if (origin !== null) writeCachedState(origin, { sessionId: null, itemCount: 0 });
+    if (origin !== null) writeCachedState(origin, { sessionTag: null, itemCount: 0 });
 
     // `unmount()` resets the announced baseline silently. Put it back so the
     // badge is told the count changed.
@@ -458,7 +458,7 @@ class SideCart extends EventTarget {
 
       if (origin !== null) {
         writeCachedState(origin, {
-          sessionId: message.sessionId,
+          sessionTag: message.sessionId === null ? null : hashSessionId(message.sessionId),
           itemCount: message.itemCount,
         });
       }

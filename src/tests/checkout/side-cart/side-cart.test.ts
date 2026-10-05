@@ -2,6 +2,7 @@
 // src/tests/checkout/side-cart/side-cart.test.ts
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { APIJson } from "../../../checkout/types";
+import { hashSessionId } from "../../../checkout/side-cart/session-cache";
 
 const STORE_ORIGIN = "https://demo.foxycart.test";
 
@@ -138,7 +139,7 @@ describe("checkout/side-cart", () => {
   it("reports the cached item count when there is one", async () => {
     localStorage.setItem(
       `foxy.side-cart.${STORE_ORIGIN}`,
-      JSON.stringify({ sessionId: "s1", itemCount: 4 }),
+      JSON.stringify({ sessionTag: hashSessionId("s1"), itemCount: 4 }),
     );
 
     const { sideCart } = await loadSideCart();
@@ -205,7 +206,7 @@ describe("checkout/side-cart", () => {
   it("prefers the client's own item count over the cache", async () => {
     localStorage.setItem(
       `foxy.side-cart.${STORE_ORIGIN}`,
-      JSON.stringify({ sessionId: "s1", itemCount: 4 }),
+      JSON.stringify({ sessionTag: hashSessionId("s1"), itemCount: 4 }),
     );
 
     const { client, sideCart } = await loadSideCart();
@@ -585,7 +586,7 @@ describe("checkout/side-cart", () => {
     // Cached before the sidecart loads, so 4 is the count it last announced.
     localStorage.setItem(
       `foxy.side-cart.${STORE_ORIGIN}`,
-      JSON.stringify({ sessionId: "s1", itemCount: 4 }),
+      JSON.stringify({ sessionTag: hashSessionId("s1"), itemCount: 4 }),
     );
     const { client, sideCart } = await loadSideCart();
     await seedSession("s1");
@@ -605,7 +606,7 @@ describe("checkout/side-cart", () => {
     // Cached before the sidecart loads, so 4 is the count it last announced.
     localStorage.setItem(
       `foxy.side-cart.${STORE_ORIGIN}`,
-      JSON.stringify({ sessionId: "s1", itemCount: 4 }),
+      JSON.stringify({ sessionTag: hashSessionId("s1"), itemCount: 4 }),
     );
     const { client, sideCart } = await loadSideCart();
     await seedSession("s1");
@@ -629,10 +630,29 @@ describe("checkout/side-cart", () => {
     expect(frame()).toBeNull();
   });
 
+  it("never writes the session ID to localStorage when the store is not localStorage", async () => {
+    const id = "secret-session-0123456789";
+    const { client, sideCart } = await loadSideCart();
+    client.session.configure({ storage: "memory" });
+    sideCart.mount();
+    const framePort = connectFrame();
+
+    framePort.postMessage(JSON.stringify({ type: "ready", sessionId: id, itemCount: 3 }));
+    await settle();
+
+    expect(client.session.id).toBe(id);
+    expect(sideCart.itemCount).toBe(3);
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i)!;
+      expect(key).not.toContain(id);
+      expect(localStorage.getItem(key)).not.toContain(id);
+    }
+  });
+
   it("ignores a cached count from another session", async () => {
     localStorage.setItem(
       `foxy.side-cart.${STORE_ORIGIN}`,
-      JSON.stringify({ sessionId: "s-other", itemCount: 4 }),
+      JSON.stringify({ sessionTag: hashSessionId("s-other"), itemCount: 4 }),
     );
     const { sideCart } = await loadSideCart();
     await seedSession("s1");
@@ -647,7 +667,7 @@ describe("checkout/side-cart", () => {
 
     localStorage.setItem(
       "foxy.side-cart.https://other.foxycart.test",
-      JSON.stringify({ sessionId: "s9", itemCount: 7 }),
+      JSON.stringify({ sessionTag: hashSessionId("s9"), itemCount: 7 }),
     );
     localStorage.setItem("foxy.session.other.foxycart.test", "s9");
     // `hydrateJson` does this too, so it is not an exotic sequence.
@@ -662,7 +682,7 @@ describe("checkout/side-cart", () => {
   it("dispatches itemcountchange with corrected: true for a first report that changes the count", async () => {
     localStorage.setItem(
       `foxy.side-cart.${STORE_ORIGIN}`,
-      JSON.stringify({ sessionId: "s1", itemCount: 4 }),
+      JSON.stringify({ sessionTag: hashSessionId("s1"), itemCount: 4 }),
     );
 
     const { sideCart } = await loadSideCart();
@@ -704,7 +724,7 @@ describe("checkout/side-cart", () => {
   it("dispatches nothing when a report does not change the count", async () => {
     localStorage.setItem(
       `foxy.side-cart.${STORE_ORIGIN}`,
-      JSON.stringify({ sessionId: "s1", itemCount: 2 }),
+      JSON.stringify({ sessionTag: hashSessionId("s1"), itemCount: 2 }),
     );
 
     const { sideCart } = await loadSideCart();
