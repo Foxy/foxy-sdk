@@ -1,99 +1,9 @@
-import type { APIJson } from "../../checkout/types";
+import { createApiJson } from "./fixtures/apiJson";
 
 import { API } from "../../checkout/API";
 
 function flushTasks(): Promise<void> {
   return Promise.resolve().then(() => undefined);
-}
-
-function createApiJson(): APIJson {
-  return {
-    transaction: null,
-    next_action: null,
-    template_set: { code: "default", id: 1 },
-    session: { id: "session-id" },
-    debug: false,
-    customer: {
-      first_name: null,
-      last_name: null,
-      email: null,
-      type: null,
-      id: null,
-      token: null,
-    },
-    shipments: [],
-    items: [],
-    totals: [
-      {
-        date: null,
-        taxes: [],
-        coupons: [],
-        gift_cards: [],
-        total_line_item_discount: 0,
-        total_shipping: 0,
-        total_shipping_with_tax: 0,
-        total_shipping_value: 0,
-        total_tax: 0,
-        total_item_price: 0,
-        total_item_price_with_tax: 0,
-        total_weight: 0,
-        total_weight_shippable: 0,
-        total_order: 0,
-      },
-    ],
-    use_separate_billing_address: true,
-    billing_address: {
-      use_customer_shipping_address: false,
-      address_id: null,
-      address_name: "",
-      first_name: "",
-      last_name: "",
-      company: "",
-      phone: "",
-      address1: "",
-      address2: "",
-      city: "",
-      region: "",
-      postal_code: "",
-      country: "US",
-    },
-    store: {
-      id: 1,
-      name: "Test Store",
-      domain: "example.com",
-      logo_url: "",
-      website_url: "https://example.com",
-      checkout_url: "https://example.com/checkout",
-      cancel_and_continue_url: "https://example.com",
-      has_location_dependent_taxes: false,
-      has_eligible_gift_cards: false,
-      has_eligible_coupons: false,
-      supported_payment_cards: [],
-    },
-    messages: [],
-    custom_fields: {},
-    format: {
-      weight_unit: "pound",
-      locale_code: "en-US",
-      currency_code: "USD",
-      currency_display: "symbol",
-      maximum_fraction_digits: 2,
-    },
-    display: {
-      hidden_product_options: [],
-      required_form_fields: [],
-      hidden_form_fields: [],
-      use_readonly_cart_on_checkout: false,
-      use_tax_inclusive_pricing: false,
-      secure_data_transfer_consent: "disabled",
-      checkout_flow: "default",
-      registration: "optional",
-    },
-    custom_config: {},
-    saved_payment_methods: [],
-    payment_gateways: [],
-    language_strings: {},
-  };
 }
 
 describe("store domain activation", () => {
@@ -147,12 +57,39 @@ describe("store domain activation", () => {
 
     api.setStoreDomain("store.test");
     await vi.waitFor(() => {
-      expect(api.state).toBe("idle");
+      expect(api.json).toEqual(json);
     });
 
     expect(fetchSpy).toHaveBeenCalledWith(
       "https://store.test/cart?output=json",
     );
-    expect(api.json).toEqual(json);
+  });
+
+  it("sends no request in the task that sets the domain", () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch");
+    const api = new API({});
+
+    api.setStoreDomain("store.test");
+
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("sends exactly one GET /cart when the domain is set right after construction", async () => {
+    // A response that takes longer than one task, like a real network. With
+    // an instant mock, json is already set when the constructor's timer
+    // fires, and the double request does not show.
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockImplementation(
+      () =>
+        new Promise((resolve) =>
+          setTimeout(() => resolve(new Response(JSON.stringify(createApiJson()), { status: 200 })), 5),
+        ),
+    );
+    const api = new API({});
+
+    api.setStoreDomain("store.test");
+    await vi.waitFor(() => expect(api.json).not.toBeNull());
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
   });
 });

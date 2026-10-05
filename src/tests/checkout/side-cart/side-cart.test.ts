@@ -17,6 +17,10 @@ async function loadSideCart() {
   vi.resetModules();
   const { client } = await import("../../../checkout/client");
   client.setStoreDomain("demo.foxycart.test");
+  // The client's own first GET /cart runs one task later. Let it run (and
+  // fail: fetch rejects in these tests) before the test starts.
+  await vi.waitFor(() => expect(fetch).toHaveBeenCalled());
+  await new Promise((resolve) => setTimeout(resolve, 0));
   const module = await import("../../../checkout/side-cart");
   mounted = module.sideCart;
 
@@ -104,9 +108,8 @@ describe("checkout/side-cart", () => {
     mounted = null;
     // The mocked-rejected fetch above still leaves a promise chain running
     // inside `client` (`runMutation`'s catch, `addErrorMessage`, `setState`'s
-    // `dispatchEvent`) -- and there are two independent starts of it per
-    // test: `setStoreDomain`'s own immediate call, and the constructor's own
-    // deferred `setTimeout`. A couple of ticks lets both finish inside the
+    // `dispatchEvent`) -- and there is one deferred start per test (the
+    // client's first load). A couple of ticks lets it finish inside the
     // test that started them, instead of settling after this file's jsdom
     // environment is torn down and crashing whatever file's realm is current
     // by then.
@@ -769,9 +772,10 @@ describe("checkout/side-cart", () => {
   });
 
   it("rejects a held invoke if ready never comes", async () => {
+    // Before the fake timers: loadSideCart() waits on a real timer.
+    const { sideCart } = await loadSideCart();
     vi.useFakeTimers();
     try {
-      const { sideCart } = await loadSideCart();
       const invoked = sideCart.invoke("clearCart", []);
       const assertion = expect(invoked).rejects.toThrow(/did not respond in time/);
 

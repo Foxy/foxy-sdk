@@ -17,9 +17,10 @@ async function load(options: { sideCart?: boolean } = {}) {
   vi.resetModules();
   const { client } = await import("../../checkout/client");
   client.setStoreDomain("demo.foxycart.test");
-  // setStoreDomain makes the client GET /cart itself (API.ts:599-606), and
-  // that fetch runs synchronously. Forget it, so a test's fetch assertions
-  // only see this module's requests.
+  // The client's own first GET /cart runs one task later. Let it run (and
+  // fail: fetch rejects in these tests) before counting requests.
+  await vi.waitFor(() => expect(fetch).toHaveBeenCalled());
+  await new Promise((resolve) => setTimeout(resolve, 0));
   vi.mocked(fetch).mockClear();
   const transport = { invoke: vi.fn().mockResolvedValue(undefined), show: vi.fn() };
   if (options.sideCart) client.setSideCartTransport(transport);
@@ -264,8 +265,9 @@ describe("checkout/add-to-cart: new-tab links", () => {
     ["middle click", "auxclick", { button: 1 }, {}],
     ["target=_blank", "click", {}, { target: "_blank" }],
   ])("%s: swaps the href for one tick, never preventDefault", async (_name, type, init, attributes) => {
-    vi.useFakeTimers();
     await load({ sideCart: true });
+    // After load(): its wait for the client's first load needs real timers.
+    vi.useFakeTimers();
     writeCachedState(ORIGIN, { sessionId: "s-1", itemCount: 0 });
     const element = link(CART, attributes);
     let hrefDuringDefault: string | null = null;

@@ -439,6 +439,9 @@ export class API extends EventTarget {
   #jsonResolutionVersion = 0;
   readonly #onError?: (error: Error) => void;
   #sideCartTransport: SideCartTransport | null = null;
+  #bootScheduled = false;
+  /** The first load has started. It runs once per instance. */
+  #booted = false;
 
   static canMakeApplePayPayments(): boolean {
     return getApplePayAvailability() === "available";
@@ -509,14 +512,10 @@ export class API extends EventTarget {
       // the automatic JSON loading to the next tick, we give priority to any inline
       // JSON loading that may be happening in the same tick, which allows us to avoid an
       // unnecessary additional request for the JSON data on our hosted pages.
-      setTimeout(() => {
-        if (this.#json !== null || !this.#baseUrl) return;
-
-        void this.runMutation(async () => {
-          const nextJson = await this.getJson("/cart");
-          await this.replaceJson(nextJson);
-        });
-      }, 0);
+      //
+      // It also gives `client.session.configure()`, called in the same task
+      // as the import, the chance to choose the store before the first request.
+      this.#scheduleBoot();
     }
   }
 
@@ -612,14 +611,32 @@ export class API extends EventTarget {
   setStoreDomain(storeDomain: string): void {
     this.#baseUrl = resolveBaseUrlFromStoreDomain(storeDomain);
 
-    if (this.#json !== null || this.#state === "busy") {
+    if (this.#json !== null || this.#booted || this.#state === "busy") {
       return;
     }
 
-    void this.runMutation(async () => {
-      const nextJson = await this.getJson("/cart");
-      await this.replaceJson(nextJson);
-    });
+    this.#scheduleBoot();
+  }
+
+  /**
+   * Schedules the first `GET /cart` for the next task. The constructor and
+   * `setStoreDomain` both call this, and only one timer ever waits: two used
+   * to mean two requests, and two new server sessions, per page load.
+   */
+  #scheduleBoot(): void {
+    if (this.#bootScheduled) return;
+    this.#bootScheduled = true;
+
+    setTimeout(() => {
+      this.#bootScheduled = false;
+      if (this.#booted || this.#json !== null || !this.#baseUrl) return;
+      this.#booted = true;
+
+      void this.runMutation(async () => {
+        const nextJson = await this.getJson("/cart");
+        await this.replaceJson(nextJson);
+      });
+    }, 0);
   }
 
   protected setState(state: "idle" | "busy", emitUpdate = true): void {
@@ -1651,16 +1668,19 @@ export class API extends EventTarget {
     form.submit();
   }
 
+  #reportError(error: unknown): void {
+    const normalized = error instanceof Error ? error : new Error(String(error));
+    this.addErrorMessage(normalized.message, "network");
+    this.#onError?.(normalized);
+  }
+
   private async runMutation(action: () => Promise<void>): Promise<void> {
     this.setState("busy");
 
     try {
       await action();
     } catch (error) {
-      const normalized =
-        error instanceof Error ? error : new Error(String(error));
-      this.addErrorMessage(normalized.message, "network");
-      this.#onError?.(normalized);
+      this.#reportError(error);
     } finally {
       this.setState("idle");
     }
