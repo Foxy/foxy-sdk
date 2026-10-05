@@ -697,7 +697,7 @@ export class API extends EventTarget {
   }
 
   /**
-   * @internal For the sidecart: resolves once the session is known. That is
+   * @internal For the sidecart and `postJson`: resolves once the session is known. That is
    * after a first load still waiting for its timer, and after every queued
    * session change. Never rejects.
    */
@@ -1823,6 +1823,10 @@ export class API extends EventTarget {
       sessionId = this.#json?.session?.id ?? null;
     } else {
       if (this.session.id === null) await this.sessionSettled();
+      // Again while a store change scheduled a new first load during the wait.
+      while (this.session.id === null && !this.#booted && this.#bootTimer) {
+        await this.sessionSettled();
+      }
       sessionId = this.session.id ?? (this.#booted ? await this.session.ensure() : null);
     }
 
