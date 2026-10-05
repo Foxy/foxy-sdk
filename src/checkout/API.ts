@@ -1792,11 +1792,15 @@ export class API extends EventTarget {
     body: Record<string, unknown> | [string, string][],
   ): Promise<APIJson> {
     const form = Array.isArray(body) ? new URLSearchParams(body) : toFormData(body);
+    // A hydrated client (a hosted page) sends its json's session, as before
+    // `client.session`: its ID never goes through the session ID check.
     // Once this client loads its own session, a change must not be sent
     // without one: it would land in a new, orphan session.
     // `host.reset` is the only caller inside the session queue, and only with
     // an ID, so this never waits on itself.
-    const sessionId = this.session.id ?? (this.#booted ? await this.session.ensure() : null);
+    const sessionId = this.#hydrated
+      ? (this.#json?.session?.id ?? null)
+      : (this.session.id ?? (this.#booted ? await this.session.ensure() : null));
 
     form.set("output", "json");
     if (sessionId) form.set("session_id", sessionId);

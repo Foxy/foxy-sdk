@@ -180,6 +180,19 @@ describe("client.session on a hydrated client", () => {
     expect(localStorage.length).toBe(0);
   });
 
+  it("sends the json's session ID even when it fails the session ID check", async () => {
+    // The ID check is provisional. A hosted page must not stop sending the
+    // server's own ID because of it.
+    const api = new API({ initialJson: cart("abc,def123"), storeDomain: "store.test", onError: vi.fn() });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    vi.mocked(fetch).mockImplementation(async () => respond(cart("abc,def123")));
+
+    api.addItem([["name", "Shirt"]]);
+    await vi.waitFor(() => expect(fetch).toHaveBeenCalled());
+
+    expect(sessionIdOf(0)).toBe("abc,def123");
+  });
+
   it("never runs the first load while hydrateJson is still resolving", async () => {
     const api = new API({});
     api.setStoreDomain("store.test");
