@@ -88,6 +88,12 @@ function settle(): Promise<unknown> {
   return new Promise((resolve) => setTimeout(resolve, 10));
 }
 
+/** Seeds `client.session` the way a merchant would. The cart load fails in these tests; the ID stays. */
+async function seedSession(id: string): Promise<void> {
+  const { client } = await import("../../../checkout/client");
+  await client.session.start(id).catch(() => undefined);
+}
+
 describe("checkout/side-cart", () => {
   // `loadSideCart()`'s `client.setStoreDomain(...)` call always kicks off a
   // real, unmocked fetch as a side effect of the client's own pre-existing
@@ -139,13 +145,9 @@ describe("checkout/side-cart", () => {
     expect(sideCart.itemCount).toBe(4);
   });
 
-  it("mounts a hidden iframe carrying the cached session id", async () => {
-    localStorage.setItem(
-      `foxy.side-cart.${STORE_ORIGIN}`,
-      JSON.stringify({ sessionId: "s1", itemCount: 4 }),
-    );
-
+  it("mounts a hidden iframe carrying the client's session id", async () => {
     const { sideCart } = await loadSideCart();
+    await seedSession("s1");
     sideCart.mount();
 
     const element = frame();
@@ -547,6 +549,67 @@ describe("checkout/side-cart", () => {
     10000,
   );
 
+  it("stores the session the frame reports", async () => {
+    const { client, sideCart } = await loadSideCart();
+    sideCart.mount();
+    const framePort = connectFrame();
+    framePort.postMessage(JSON.stringify({ type: "ready", sessionId: "s7", itemCount: 0 }));
+    await settle();
+
+    expect(client.session.id).toBe("s7");
+    expect(localStorage.getItem("foxy.session.demo.foxycart.test")).toBe("s7");
+  });
+
+  it("keeps the stored session when the frame reports none", async () => {
+    const { client, sideCart } = await loadSideCart();
+    await seedSession("s1");
+    sideCart.mount();
+    const framePort = connectFrame();
+    framePort.postMessage(JSON.stringify({ type: "ready", sessionId: null, itemCount: 0 }));
+    await settle();
+
+    expect(client.session.id).toBe("s1");
+    expect(localStorage.getItem("foxy.session.demo.foxycart.test")).toBe("s1");
+  });
+
+  it("reloads a mounted frame with the session start() adopts", async () => {
+    const { sideCart } = await loadSideCart();
+    sideCart.mount();
+
+    await seedSession("s2");
+
+    expect(frame()?.src).toBe(`${STORE_ORIGIN}/cart?session_id=s2`);
+  });
+
+  it("unmounts a mounted frame when the session ends", async () => {
+    const { client, sideCart } = await loadSideCart();
+    sideCart.mount();
+
+    await client.session.end();
+
+    expect(frame()).toBeNull();
+  });
+
+  it("unmounts a mounted frame when the session moves to another store", async () => {
+    const { client, sideCart } = await loadSideCart();
+    sideCart.mount();
+
+    client.setStoreDomain("other.foxycart.test");
+
+    expect(frame()).toBeNull();
+  });
+
+  it("ignores a cached count from another session", async () => {
+    localStorage.setItem(
+      `foxy.side-cart.${STORE_ORIGIN}`,
+      JSON.stringify({ sessionId: "s-other", itemCount: 4 }),
+    );
+    const { sideCart } = await loadSideCart();
+    await seedSession("s1");
+
+    expect(sideCart.itemCount).toBeNull();
+  });
+
   it("re-reads the cache when the store domain changes after the first read", async () => {
     const { client, sideCart } = await loadSideCart();
     // The first read resolves against `demo.foxycart.test` and finds nothing.
@@ -556,8 +619,10 @@ describe("checkout/side-cart", () => {
       "foxy.side-cart.https://other.foxycart.test",
       JSON.stringify({ sessionId: "s9", itemCount: 7 }),
     );
+    localStorage.setItem("foxy.session.other.foxycart.test", "s9");
     // `hydrateJson` does this too, so it is not an exotic sequence.
     client.setStoreDomain("other.foxycart.test");
+    await vi.waitFor(() => expect(client.session.id).toBe("s9"));
 
     expect(sideCart.itemCount).toBe(7);
     sideCart.mount();

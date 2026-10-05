@@ -657,6 +657,7 @@ export class API extends EventTarget {
     ) {
       this.#booted = false;
       this.#clearJson();
+      this.#sideCartTransport?.sessionChanged(null);
       this.#scheduleBoot();
       return;
     }
@@ -849,6 +850,15 @@ export class API extends EventTarget {
   reportSideCartError(error: Error): void {
     this.addErrorMessage(error.message, "side-cart");
     this.#onError?.(error);
+  }
+
+  /**
+   * The session the sidecart frame reports. Public for the same reason as
+   * `reportSideCartError`: the sidecart host cannot reach `client.session`'s
+   * internals any other way.
+   */
+  reportSideCartSession(sessionId: string | null): void {
+    this.session.observe(sessionId);
   }
 
   /**

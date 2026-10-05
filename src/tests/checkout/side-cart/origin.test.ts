@@ -77,3 +77,33 @@ describe("checkout/side-cart store origin", () => {
     expect(frame()).toBeNull();
   });
 });
+
+describe("adoptScriptStore", () => {
+  it("sets the client's domain from ?store= when none is set", async () => {
+    vi.resetModules();
+    const { client } = await import("../../../checkout/client");
+    const { adoptScriptStore } = await import("../../../checkout/side-cart/origin");
+
+    adoptScriptStore("https://cdn.test/side-cart.js?store=demo.foxycart.test");
+
+    expect(client.storeUrl).toBe("https://demo.foxycart.test/");
+  });
+
+  it("keeps a domain that is already set", async () => {
+    vi.resetModules();
+    const { client } = await import("../../../checkout/client");
+    const { adoptScriptStore } = await import("../../../checkout/side-cart/origin");
+    client.setStoreDomain("first.foxycart.test");
+
+    adoptScriptStore("https://cdn.test/side-cart.js?store=second.foxycart.test");
+
+    expect(client.storeUrl).toBe("https://first.foxycart.test/");
+  });
+
+  it("does not throw on a bad domain", async () => {
+    vi.resetModules();
+    const { adoptScriptStore } = await import("../../../checkout/side-cart/origin");
+
+    expect(() => adoptScriptStore("https://cdn.test/side-cart.js?store=%20")).not.toThrow();
+  });
+});

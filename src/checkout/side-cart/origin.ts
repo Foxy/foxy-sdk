@@ -37,3 +37,23 @@ export function resolveHostStoreOrigin(scriptUrl: string): string | null {
   const origin = new URL(baseUrl).origin;
   return origin === location.origin ? null : origin;
 }
+
+/**
+ * Points `client` at the store in a module's own `?store=` when nothing set
+ * one, so `client.session` loads the shopper's session for that store. The
+ * first load still waits one task, so a `client.session.configure()` in the
+ * same task as the import still comes first.
+ *
+ * Never throws: an import must not fail on a bad domain. `sideCart.mount()`
+ * still refuses with its own error.
+ */
+export function adoptScriptStore(scriptUrl: string): void {
+  const store = new URL(scriptUrl).searchParams.get("store");
+  if (store === null || client.storeUrl !== null) return;
+
+  try {
+    client.setStoreDomain(store);
+  } catch {
+    // See above.
+  }
+}

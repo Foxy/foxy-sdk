@@ -2,7 +2,7 @@
 import type { FrameToHostMessage, SideCartInvokeMethod } from "./side-cart/protocol";
 import { client } from "./client";
 import { readCachedState, writeCachedState } from "./side-cart/session-cache";
-import { resolveHostStoreOrigin } from "./side-cart/origin";
+import { adoptScriptStore, resolveHostStoreOrigin } from "./side-cart/origin";
 import { SideCartHostChannel } from "./side-cart/channel";
 
 const NO_STORE_ORIGIN =
@@ -159,9 +159,21 @@ class SideCart extends EventTarget {
     return (
       this.#reportedItemCount ??
       client.json?.items.reduce((sum, item) => sum + Math.max(0, item.quantity), 0) ??
-      this.#state()?.itemCount ??
+      this.#cachedItemCount() ??
       null
     );
+  }
+
+  /**
+   * The persisted count, unless it belongs to another session than the
+   * client's. While the client has no session yet (the first load has not
+   * finished), any cached count is better than none for the badge.
+   */
+  #cachedItemCount(): number | null {
+    const state = this.#state();
+    if (!state) return null;
+    const current = client.session.id;
+    return current === null || state.sessionId === current ? state.itemCount : null;
   }
 
   mount(): void {
@@ -170,7 +182,7 @@ class SideCart extends EventTarget {
     // Resolved first: it is the one step that can refuse, and it has to refuse
     // before anything is created or appended.
     const origin = this.#origin();
-    const sessionId = this.#state()?.sessionId;
+    const sessionId = client.session.id;
     const query = sessionId ? `?session_id=${encodeURIComponent(sessionId)}` : "";
     const frame = document.createElement("iframe");
 
@@ -371,8 +383,11 @@ class SideCart extends EventTarget {
     });
   }
 
-  sessionChanged(_sessionId: string | null): void {
-    // Task 7.
+  /** `client.session` changed under a mounted frame: show the new cart, or none. */
+  sessionChanged(sessionId: string | null): void {
+    if (!this.#frame) return;
+    if (sessionId === null) this.unmount();
+    else this.reload();
   }
 
   /** Called by `client` through the transport hook. */
@@ -424,6 +439,7 @@ class SideCart extends EventTarget {
         if (this.#open) this.#revealFrame();
       }
 
+      client.reportSideCartSession(message.sessionId);
       this.#reportedItemCount = message.itemCount;
       const origin = this.#tryOrigin();
 
@@ -496,4 +512,5 @@ export const sideCart = new SideCart();
 // Importing this module is what makes `client` a sidecart client. The store's
 // own cart and checkout pages never import it, so their client keeps talking
 // to the store directly.
+adoptScriptStore(import.meta.url);
 client.setSideCartTransport(sideCart);
