@@ -4,6 +4,14 @@
 
 import * as Checkout from '../../checkout';
 
+import type {
+  CartSession,
+  SessionCookieOptions,
+  SessionOptions,
+  SessionStorageName,
+  SessionStore,
+} from '../../checkout';
+
 import { API as HttpCheckoutAPI } from '../../checkout/API';
 
 describe('Checkout', () => {
@@ -33,5 +41,15 @@ describe('Checkout', () => {
       'toCountryOptions',
       'toRegionOptions',
     ]);
+  });
+
+  it('exports the session types', () => {
+    // The real assertion is the typecheck (`npm run verify`): it fails if a type is not exported.
+    const store: SessionStore = { get: () => null, set: () => undefined, remove: () => undefined };
+    const cookie: SessionCookieOptions = { sameSite: 'Lax' };
+    const name: SessionStorageName = 'cookie';
+    const options: SessionOptions = { storage: store, cookie, autoStart: false };
+    const session: Pick<CartSession, 'id' | 'start' | 'end' | 'configure'> | null = null;
+    expect([store, cookie, name, options, session]).toHaveLength(5);
   });
 });

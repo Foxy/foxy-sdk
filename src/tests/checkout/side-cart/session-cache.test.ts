@@ -2,6 +2,7 @@
 // src/tests/checkout/side-cart/session-cache.test.ts
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  hashSessionId,
   readCachedState,
   writeCachedState,
 } from "../../../checkout/side-cart/session-cache";
@@ -12,12 +13,12 @@ describe("checkout/side-cart/session-cache", () => {
   beforeEach(() => localStorage.clear());
 
   it("round trips a state for one store origin", () => {
-    writeCachedState(ORIGIN, { sessionId: "s1", itemCount: 3 });
-    expect(readCachedState(ORIGIN)).toEqual({ sessionId: "s1", itemCount: 3 });
+    writeCachedState(ORIGIN, { sessionTag: hashSessionId("s1"), itemCount: 3 });
+    expect(readCachedState(ORIGIN)).toEqual({ sessionTag: hashSessionId("s1"), itemCount: 3 });
   });
 
   it("keeps store origins apart", () => {
-    writeCachedState(ORIGIN, { sessionId: "s1", itemCount: 3 });
+    writeCachedState(ORIGIN, { sessionTag: hashSessionId("s1"), itemCount: 3 });
     expect(readCachedState("https://other.foxycart.test")).toBeNull();
   });
 
@@ -27,6 +28,20 @@ describe("checkout/side-cart/session-cache", () => {
     expect(readCachedState(ORIGIN)).toBeNull();
     localStorage.setItem(`foxy.side-cart.${ORIGIN}`, '{"sessionId":"s1"}');
     expect(readCachedState(ORIGIN)).toBeNull();
+  });
+
+  it("reads an entry from before session tags as invalid", () => {
+    // It held the raw session ID. The next write replaces it.
+    localStorage.setItem(`foxy.side-cart.${ORIGIN}`, '{"sessionId":"s1","itemCount":3}');
+    expect(readCachedState(ORIGIN)).toBeNull();
+  });
+
+  it("tags a session ID with a short hash, not the ID", () => {
+    expect(hashSessionId("s1")).toMatch(/^[0-9a-f]{8}$/);
+    expect(hashSessionId("s1")).toBe(hashSessionId("s1"));
+    expect(hashSessionId("s1")).not.toBe(hashSessionId("s2"));
+    // 32-bit FNV-1a of "a".
+    expect(hashSessionId("a")).toBe("e40c292c");
   });
 
   it("survives storage being unavailable", () => {
@@ -42,7 +57,7 @@ describe("checkout/side-cart/session-cache", () => {
 
     try {
       expect(readCachedState(ORIGIN)).toBeNull();
-      expect(() => writeCachedState(ORIGIN, { sessionId: "s1", itemCount: 1 })).not.toThrow();
+      expect(() => writeCachedState(ORIGIN, { sessionTag: null, itemCount: 1 })).not.toThrow();
     } finally {
       getItem.mockRestore();
       setItem.mockRestore();

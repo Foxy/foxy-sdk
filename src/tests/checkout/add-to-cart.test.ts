@@ -1,7 +1,6 @@
 /** @vitest-environment jsdom */
 // src/tests/checkout/add-to-cart.test.ts
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { readCachedState, writeCachedState } from "../../checkout/side-cart/session-cache";
 
 const ORIGIN = "https://demo.foxycart.test";
 const CART = `${ORIGIN}/cart?name=Shirt&price=10`;
@@ -17,16 +16,23 @@ async function load(options: { sideCart?: boolean } = {}) {
   vi.resetModules();
   const { client } = await import("../../checkout/client");
   client.setStoreDomain("demo.foxycart.test");
-  // setStoreDomain makes the client GET /cart itself (API.ts:599-606), and
-  // that fetch runs synchronously. Forget it, so a test's fetch assertions
-  // only see this module's requests.
+  // The client's own first GET /cart runs one task later. Let it run (and
+  // fail: fetch rejects in these tests) before counting requests.
+  await vi.waitFor(() => expect(fetch).toHaveBeenCalled());
+  await new Promise((resolve) => setTimeout(resolve, 0));
   vi.mocked(fetch).mockClear();
-  const transport = { invoke: vi.fn().mockResolvedValue(undefined), show: vi.fn() };
+  const transport = { invoke: vi.fn().mockResolvedValue(undefined), show: vi.fn(), sessionChanged: vi.fn() };
   if (options.sideCart) client.setSideCartTransport(transport);
   const addItem = vi.spyOn(client, "addItem");
   const module = await import("../../checkout/add-to-cart");
   uninstall = module.uninstallAddToCart;
   return { client, transport, addItem };
+}
+
+/** Seeds `client.session`. The cart load fails in these tests; the ID stays. */
+async function seedSession(client: { session: { start(id: string): Promise<void> } }, id: string): Promise<void> {
+  await client.session.start(id).catch(() => undefined);
+  vi.mocked(fetch).mockClear();
 }
 
 function link(href: string, attributes: Record<string, string> = {}): HTMLAnchorElement {
@@ -127,8 +133,8 @@ afterEach(() => {
 
 describe("checkout/add-to-cart: matching", () => {
   it("ignores other origins, lookalike hosts and other paths", async () => {
-    await load();
-    writeCachedState(ORIGIN, { sessionId: "s-1", itemCount: 0 });
+    const { client } = await load();
+    await seedSession(client, "s-1");
 
     for (const href of [
       "https://other.test/cart?name=Shirt",
@@ -143,8 +149,8 @@ describe("checkout/add-to-cart: matching", () => {
   });
 
   it("ignores a click another script already handled", async () => {
-    await load();
-    writeCachedState(ORIGIN, { sessionId: "s-1", itemCount: 0 });
+    const { client } = await load();
+    await seedSession(client, "s-1");
     const element = link(CART);
     element.addEventListener("click", (event) => event.preventDefault());
 
@@ -154,8 +160,8 @@ describe("checkout/add-to-cart: matching", () => {
   });
 
   it("matches a click on an element inside the link", async () => {
-    await load();
-    writeCachedState(ORIGIN, { sessionId: "s-1", itemCount: 0 });
+    const { client } = await load();
+    await seedSession(client, "s-1");
     const inner = document.createElement("span");
     link(CART).append(inner);
 
@@ -167,8 +173,8 @@ describe("checkout/add-to-cart: matching", () => {
 
 describe("checkout/add-to-cart: full-page links", () => {
   it("navigates with the cached session and leaves the href alone", async () => {
-    await load();
-    writeCachedState(ORIGIN, { sessionId: "s-1", itemCount: 0 });
+    const { client } = await load();
+    await seedSession(client, "s-1");
     const element = link(CART);
 
     const event = click(element);
@@ -179,12 +185,12 @@ describe("checkout/add-to-cart: full-page links", () => {
   });
 
   it("sends the new session after it changed between two clicks", async () => {
-    await load();
+    const { client } = await load();
     const element = link(CART);
 
-    writeCachedState(ORIGIN, { sessionId: "s-1", itemCount: 0 });
+    await seedSession(client, "s-1");
     click(element);
-    writeCachedState(ORIGIN, { sessionId: "s-2", itemCount: 0 });
+    await seedSession(client, "s-2");
     click(element);
 
     expect(assign).toHaveBeenNthCalledWith(2, `${CART}&session_id=s-2`);
@@ -192,8 +198,8 @@ describe("checkout/add-to-cart: full-page links", () => {
   });
 
   it("keeps a session_id the merchant wrote", async () => {
-    await load();
-    writeCachedState(ORIGIN, { sessionId: "s-1", itemCount: 0 });
+    const { client } = await load();
+    await seedSession(client, "s-1");
 
     const event = click(link(`${CART}&session_id=merchant`));
 
@@ -222,9 +228,23 @@ describe("checkout/add-to-cart: full-page links", () => {
     await vi.waitFor(() => expect(assign).toHaveBeenCalledWith(CART));
   });
 
-  it("on empty=reset, gets a new session and sends it without empty", async () => {
+  it("navigates without a session when none arrives within 3 seconds", async () => {
     await load();
-    writeCachedState(ORIGIN, { sessionId: "s-old", itemCount: 4 });
+    vi.useFakeTimers();
+    // No seeded session, and the request for a new one never settles.
+    vi.mocked(fetch).mockImplementation(() => new Promise(() => undefined));
+
+    const target = link(`${ORIGIN}/cart?name=Shirt&price=10`);
+    document.body.append(target);
+    click(target);
+    await vi.advanceTimersByTimeAsync(3000);
+
+    expect(assign).toHaveBeenCalledWith(`${ORIGIN}/cart?name=Shirt&price=10`);
+  });
+
+  it("on empty=reset, gets a new session and sends it without empty", async () => {
+    const { client } = await load();
+    await seedSession(client, "s-old");
     vi.mocked(fetch).mockImplementation(async () =>
       new Response(JSON.stringify({ session: { id: "s-new" } }), { status: 200 }),
     );
@@ -233,22 +253,22 @@ describe("checkout/add-to-cart: full-page links", () => {
 
     expect(wasDefaultPrevented(event)).toBe(true);
     await vi.waitFor(() => expect(assign).toHaveBeenCalledWith(`${CART}&session_id=s-new`));
-    expect(readCachedState(ORIGIN)).toEqual({ sessionId: "s-new", itemCount: 0 });
+    expect(client.session.id).toBe("s-new");
   });
 
   it("on empty=reset with no session to be had, sends the link as it is", async () => {
-    await load();
-    writeCachedState(ORIGIN, { sessionId: "s-old", itemCount: 4 });
+    const { client } = await load();
+    await seedSession(client, "s-old");
 
     click(link(`${CART}&empty=reset`));
 
     await vi.waitFor(() => expect(assign).toHaveBeenCalledWith(`${CART}&empty=reset`));
-    expect(readCachedState(ORIGIN)).toEqual({ sessionId: null, itemCount: 0 });
+    expect(client.session.id).toBeNull();
   });
 
   it("keeps the session on empty=true", async () => {
-    await load();
-    writeCachedState(ORIGIN, { sessionId: "s-1", itemCount: 0 });
+    const { client } = await load();
+    await seedSession(client, "s-1");
 
     click(link(`${CART}&empty=true`));
 
@@ -264,9 +284,10 @@ describe("checkout/add-to-cart: new-tab links", () => {
     ["middle click", "auxclick", { button: 1 }, {}],
     ["target=_blank", "click", {}, { target: "_blank" }],
   ])("%s: swaps the href for one tick, never preventDefault", async (_name, type, init, attributes) => {
+    const { client } = await load({ sideCart: true });
+    // After load(): its wait for the client's first load needs real timers.
+    await seedSession(client, "s-1");
     vi.useFakeTimers();
-    await load({ sideCart: true });
-    writeCachedState(ORIGIN, { sessionId: "s-1", itemCount: 0 });
     const element = link(CART, attributes);
     let hrefDuringDefault: string | null = null;
     // A later listener sees what the browser's default action will read.
@@ -292,8 +313,8 @@ describe("checkout/add-to-cart: new-tab links", () => {
   });
 
   it("never swaps the href of a ping link (the browser would leak the session to the ping URL)", async () => {
-    await load();
-    writeCachedState(ORIGIN, { sessionId: "s-1", itemCount: 0 });
+    const { client } = await load();
+    await seedSession(client, "s-1");
     const element = link(CART, { ping: "https://tracker.test/ping" });
 
     const event = click(element, { ctrlKey: true });
@@ -305,8 +326,8 @@ describe("checkout/add-to-cart: new-tab links", () => {
   it.each([["right click", 2], ["back button", 3], ["forward button", 4]])(
     "ignores an auxclick that is not the middle button (%s)",
     async (_name, button) => {
-      await load();
-      writeCachedState(ORIGIN, { sessionId: "s-1", itemCount: 0 });
+      const { client } = await load();
+      await seedSession(client, "s-1");
       const element = link(CART);
       let hrefDuringDefault: string | null = null;
       document.addEventListener("auxclick", () => (hrefDuringDefault = element.getAttribute("href")), {
@@ -359,8 +380,8 @@ describe("checkout/add-to-cart: sidecart mode", () => {
   it.each([`${CART}&cart=checkout`, `${CART}&redirect=https://shop.test/thanks`])(
     "goes full-page for %s",
     async (href) => {
-      const { addItem } = await load({ sideCart: true });
-      writeCachedState(ORIGIN, { sessionId: "s-1", itemCount: 0 });
+      const { client, addItem } = await load({ sideCart: true });
+      await seedSession(client, "s-1");
 
       click(link(href));
 
@@ -376,8 +397,8 @@ describe("checkout/add-to-cart: sidecart mode", () => {
 
 describe("checkout/add-to-cart: custom mode", () => {
   it("stops everything when the merchant cancels foxy:add-to-cart", async () => {
-    const { addItem } = await load({ sideCart: true });
-    writeCachedState(ORIGIN, { sessionId: "s-1", itemCount: 0 });
+    const { client, addItem } = await load({ sideCart: true });
+    await seedSession(client, "s-1");
     const listener = vi.fn((event: Event) => event.preventDefault());
     document.addEventListener("foxy:add-to-cart", listener);
 
@@ -396,8 +417,8 @@ describe("checkout/add-to-cart: custom mode", () => {
 
 describe("checkout/add-to-cart: forms", () => {
   it("adds session_id to the submission, not to the DOM", async () => {
-    await load();
-    writeCachedState(ORIGIN, { sessionId: "s-1", itemCount: 0 });
+    const { client } = await load();
+    await seedSession(client, "s-1");
     const element = form(`${ORIGIN}/cart`, { name: "Shirt" });
 
     const event = submit(element);
@@ -409,16 +430,16 @@ describe("checkout/add-to-cart: forms", () => {
   });
 
   it("never touches the merchant's own new FormData(form)", async () => {
-    await load();
-    writeCachedState(ORIGIN, { sessionId: "s-1", itemCount: 0 });
+    const { client } = await load();
+    await seedSession(client, "s-1");
     const element = form(`${ORIGIN}/cart`, { name: "Shirt" });
 
     expect(entries(element)).toEqual([["name", "Shirt"]]);
   });
 
   it("never adds session_id to a window listener's own FormData once it cancels the submit", async () => {
-    await load();
-    writeCachedState(ORIGIN, { sessionId: "s-1", itemCount: 0 });
+    const { client } = await load();
+    await seedSession(client, "s-1");
     const element = form(`${ORIGIN}/cart`, { name: "Shirt" });
     let sent: [string, string][] | null = null;
     // Stands in for a merchant's own script -- jQuery's $(document).on(...),
@@ -439,8 +460,8 @@ describe("checkout/add-to-cart: forms", () => {
   });
 
   it("never adds session_id to a window listener's own FormData mid-dispatch, only once the submit has ended", async () => {
-    await load();
-    writeCachedState(ORIGIN, { sessionId: "s-1", itemCount: 0 });
+    const { client } = await load();
+    await seedSession(client, "s-1");
     const element = form(`${ORIGIN}/cart`, { name: "Shirt" });
     let duringDispatch: [string, string][] | null = null;
     // Same shape as above, but this one never cancels: it still must not get
@@ -462,8 +483,8 @@ describe("checkout/add-to-cart: forms", () => {
   });
 
   it("treats a nested session_id input as already present", async () => {
-    await load();
-    writeCachedState(ORIGIN, { sessionId: "s-1", itemCount: 0 });
+    const { client } = await load();
+    await seedSession(client, "s-1");
     const element = form(`${ORIGIN}/cart`, { name: "Shirt" });
     const fieldset = document.createElement("fieldset");
     const input = document.createElement("input");
@@ -478,8 +499,8 @@ describe("checkout/add-to-cart: forms", () => {
   });
 
   it("on empty=reset, gets a new session, then sends it without empty", async () => {
-    await load();
-    writeCachedState(ORIGIN, { sessionId: "s-old", itemCount: 1 });
+    const { client } = await load();
+    await seedSession(client, "s-old");
     vi.mocked(fetch).mockImplementation(async () =>
       new Response(JSON.stringify({ session: { id: "s-new" } }), { status: 200 }),
     );
@@ -503,8 +524,30 @@ describe("checkout/add-to-cart: forms", () => {
     expect(sent).toEqual([["name", "Shirt"], ["session_id", "s-new"]]);
   });
 
+  it("on empty=reset, sends the form without a session when none arrives within 3 seconds", async () => {
+    const { client } = await load();
+    await seedSession(client, "s-old");
+    vi.useFakeTimers();
+    // A start that never settles blocks the queue, so end() cannot run and
+    // the session still holds the old ID when the 3 seconds are up.
+    vi.mocked(fetch).mockImplementation(() => new Promise(() => undefined));
+    void client.session.start("s-old");
+    const element = form(`${ORIGIN}/cart`, { empty: "reset", name: "Shirt" });
+    let sent: [string, string][] = [];
+    const requestSubmit = vi.spyOn(element, "requestSubmit").mockImplementation(() => {
+      submit(element);
+      sent = entries(element);
+    });
+
+    submit(element);
+    await vi.advanceTimersByTimeAsync(3000);
+
+    expect(requestSubmit).toHaveBeenCalled();
+    expect(sent).toEqual([["empty", "reset"], ["name", "Shirt"]]);
+  });
+
   it("gets a session first, then submits again with the same submitter", async () => {
-    await load();
+    const { client } = await load();
     vi.mocked(fetch).mockImplementation(async () =>
       new Response(JSON.stringify({ session: { id: "s-new" } }), { status: 200 }),
     );
@@ -527,7 +570,7 @@ describe("checkout/add-to-cart: forms", () => {
 
     expect(event.defaultPrevented).toBe(true);
     await vi.waitFor(() => expect(requestSubmit).toHaveBeenCalledWith(button));
-    expect(getCached()).toBe("s-new");
+    expect(client.session.id).toBe("s-new");
     // `new FormData(form)` never includes a submit button's own value --
     // only `pairsOf` (what reaches `addItem`) adds it explicitly -- so the
     // resubmission's entries are the form's own fields plus the session id.
@@ -550,8 +593,8 @@ describe("checkout/add-to-cart: forms", () => {
   });
 
   it("never adds session_id once the submit dispatch has ended and the listener cancelled it", async () => {
-    await load();
-    writeCachedState(ORIGIN, { sessionId: "s-1", itemCount: 0 });
+    const { client } = await load();
+    await seedSession(client, "s-1");
     const element = form(`${ORIGIN}/cart`, { name: "Shirt" });
     const onWindowSubmit = (event: Event) => event.preventDefault();
     window.addEventListener("submit", onWindowSubmit);
@@ -563,8 +606,8 @@ describe("checkout/add-to-cart: forms", () => {
   });
 
   it("re-checks the action before appending session_id, in case a later listener redirected the form", async () => {
-    await load();
-    writeCachedState(ORIGIN, { sessionId: "s-1", itemCount: 0 });
+    const { client } = await load();
+    await seedSession(client, "s-1");
     const element = form(`${ORIGIN}/cart`, { name: "Shirt" });
     const onWindowSubmit = () => {
       element.action = "https://other.test/collect";
@@ -586,6 +629,3 @@ describe("checkout/add-to-cart: forms", () => {
   });
 });
 
-function getCached(): string | null {
-  return readCachedState(ORIGIN)?.sessionId ?? null;
-}

@@ -102,7 +102,7 @@ describe("checkout/API addItem", () => {
     const invoke = vi.fn().mockResolvedValue(undefined);
     const api = new API({ storeDomain: "demo.foxycart.test" });
 
-    api.setSideCartTransport({ invoke, show: vi.fn() });
+    api.setSideCartTransport({ invoke, show: vi.fn(), sessionChanged: vi.fn() });
     api.addItem([["name", "Shirt"]]);
 
     expect(invoke).toHaveBeenCalledWith("addItem", [[["name", "Shirt"]]]);
@@ -111,7 +111,7 @@ describe("checkout/API addItem", () => {
 
   it("exposes the transport it delegates to", () => {
     const api = new API({ storeDomain: "demo.foxycart.test" });
-    const transport = { invoke: vi.fn(), show: vi.fn() };
+    const transport = { invoke: vi.fn(), show: vi.fn(), sessionChanged: vi.fn() };
 
     expect(api.sideCartTransport).toBeNull();
     api.setSideCartTransport(transport);

@@ -40,6 +40,10 @@ import { cloneApiJson, toMutable } from "./utils/json";
 import type { MutableAPIJson } from "./utils/json";
 import { toFormData, toQueryString } from "./utils/url";
 import { loadPayPalSdk } from "./utils/payPal";
+import { Session } from "./session/Session";
+
+/** A response that arrived after its session changed. Dropped, never reported. */
+class StaleSessionResponse extends Error {}
 
 export type { MutableAPIJson } from "./utils/json";
 export { cloneApiJson, toMutable };
@@ -60,6 +64,8 @@ export type SideCartTransport = {
   invoke(method: SideCartInvokeMethod, params: unknown[]): Promise<void>;
   /** Opens the drawer. `checkout/add-to-cart` calls it after `addItem`. */
   show(): void;
+  /** `client.session` changed: reload with the new ID, or unmount for null. */
+  sessionChanged?(sessionId: string | null): void;
 };
 
 /**
@@ -439,6 +445,39 @@ export class API extends EventTarget {
   #jsonResolutionVersion = 0;
   readonly #onError?: (error: Error) => void;
   #sideCartTransport: SideCartTransport | null = null;
+  /** The timer `#scheduleBoot` set. Resolves once it ran: the first load, if any, is then queued. */
+  #bootTimer: Promise<void> | null = null;
+  /** The first load has started. It runs once per instance. */
+  #booted = false;
+  /** The json came from the page (`initialJson` or `hydrateJson`), so the first load must not run. */
+  #hydrated = false;
+  /** The cart session: where its ID is stored, and how to start or end it. */
+  readonly session: Session = new Session({
+    storeOrigin: () => (this.#baseUrl ? new URL(this.#baseUrl).origin : null),
+    run: async <T>(action: () => Promise<T>): Promise<T> => {
+      this.setState("busy");
+      try {
+        return await action();
+      } finally {
+        this.setState("idle");
+      }
+    },
+    load: async (sessionId) => {
+      try {
+        await this.replaceJson(await this.getJson("/cart", sessionId));
+      } catch (error) {
+        // The session moved on during the load (a sidecart report): nothing to report.
+        if (error instanceof StaleSessionResponse) return;
+        throw error;
+      }
+    },
+    reset: async () => {
+      await this.postJson("/cart", { empty: "reset" });
+    },
+    clear: () => this.#clearJson(),
+    onError: (error) => this.#onError?.(error),
+    changed: (sessionId) => this.#sideCartTransport?.sessionChanged?.(sessionId),
+  });
 
   static canMakeApplePayPayments(): boolean {
     return getApplePayAvailability() === "available";
@@ -492,6 +531,8 @@ export class API extends EventTarget {
       this.#paypal = null;
       this.#square = null;
       this.#state = initialState ?? "idle";
+      this.#hydrated = true;
+      this.session.observe(initialJson.session?.id ?? null);
       void this.replaceJson(initialJson);
     } else {
       this.#json = null;
@@ -509,14 +550,10 @@ export class API extends EventTarget {
       // the automatic JSON loading to the next tick, we give priority to any inline
       // JSON loading that may be happening in the same tick, which allows us to avoid an
       // unnecessary additional request for the JSON data on our hosted pages.
-      setTimeout(() => {
-        if (this.#json !== null || !this.#baseUrl) return;
-
-        void this.runMutation(async () => {
-          const nextJson = await this.getJson("/cart");
-          await this.replaceJson(nextJson);
-        });
-      }, 0);
+      //
+      // It also gives `client.session.configure()`, called in the same task
+      // as the import, the chance to choose the store before the first request.
+      this.#scheduleBoot();
     }
   }
 
@@ -582,6 +619,18 @@ export class API extends EventTarget {
     nextJson: APIJson,
     options?: HydrateJsonOptions,
   ): Promise<void> {
+    this.#hydrated = true;
+
+    // A receipt the backend could not find still hydrates the client so the
+    // shopper sees the error, and every string on `store` can come back null.
+    // Calling through with a null domain threw out of hydrateJson entirely.
+    // It runs before `observe`: on another store, a managed session is
+    // forgotten first, so the json's ID is not written under the old key.
+    if (nextJson.store.domain) {
+      this.setStoreDomain(nextJson.store.domain);
+    }
+
+    this.session.observe(nextJson.session?.id ?? null);
     const resolutionVersion = ++this.#jsonResolutionVersion;
     const nextState = options?.state ?? "idle";
     const emitUpdate = options?.emitUpdate ?? true;
@@ -600,26 +649,66 @@ export class API extends EventTarget {
     if (resolutionVersion === this.#jsonResolutionVersion) {
       this.#applyResolvedState(resolvedState, { emitUpdate });
     }
-
-    // A receipt the backend could not find still hydrates the client so the
-    // shopper sees the error, and every string on `store` can come back null.
-    // Calling through with a null domain threw out of hydrateJson entirely.
-    if (nextJson.store.domain) {
-      this.setStoreDomain(nextJson.store.domain);
-    }
   }
 
   setStoreDomain(storeDomain: string): void {
-    this.#baseUrl = resolveBaseUrlFromStoreDomain(storeDomain);
+    const previous = this.#baseUrl;
+    const next = resolveBaseUrlFromStoreDomain(storeDomain);
 
-    if (this.#json !== null || this.#state === "busy") {
+    // Another store: the session and the cart belong to the old one. A load
+    // still in flight is stale now, so this does not wait for it.
+    if (
+      previous !== null &&
+      new URL(previous).origin !== new URL(next).origin &&
+      this.session.storeChanged()
+    ) {
+      this.#booted = false;
+      this.#clearJson();
+      // Before `#baseUrl` moves: the sidecart clears the cached count of the
+      // store it is leaving, not the one it is about to read.
+      this.#sideCartTransport?.sessionChanged?.(null);
+      this.#baseUrl = next;
+      this.#scheduleBoot();
       return;
     }
 
-    void this.runMutation(async () => {
-      const nextJson = await this.getJson("/cart");
-      await this.replaceJson(nextJson);
-    });
+    this.#baseUrl = next;
+
+    if (this.#json !== null || this.#booted || this.#state === "busy") {
+      return;
+    }
+
+    this.#scheduleBoot();
+  }
+
+  /**
+   * Schedules the first `GET /cart` for the next task. The constructor and
+   * `setStoreDomain` both call this, and only one timer ever waits: two used
+   * to mean two requests, and two new server sessions, per page load.
+   */
+  #scheduleBoot(): void {
+    if (this.#bootTimer) return;
+
+    this.#bootTimer = new Promise((resolve) =>
+      setTimeout(() => {
+        this.#bootTimer = null;
+        if (!(this.#booted || this.#hydrated || this.#json !== null || !this.#baseUrl)) {
+          this.#booted = true;
+          void this.session.boot().catch((error: unknown) => this.#reportError(error));
+        }
+        resolve();
+      }, 0),
+    );
+  }
+
+  /**
+   * @internal For the sidecart: resolves once the session is known. That is
+   * after a first load still waiting for its timer, and after every queued
+   * session change. Never rejects.
+   */
+  async sessionSettled(): Promise<void> {
+    await this.#bootTimer;
+    await this.session.settled();
   }
 
   protected setState(state: "idle" | "busy", emitUpdate = true): void {
@@ -715,6 +804,17 @@ export class API extends EventTarget {
     }
   }
 
+  #clearJson(): void {
+    // An SDK resolution still in flight belongs to the session that ended.
+    ++this.#jsonResolutionVersion;
+    this.#json = null;
+    this.#adyenEmbedded = null;
+    this.#klarna = null;
+    this.#paypal = null;
+    this.#square = null;
+    this.dispatchEvent(new Event("update"));
+  }
+
   protected dispatchCancelable<K extends EventWithoutDetailName>(
     type: K,
   ): boolean;
@@ -774,6 +874,15 @@ export class API extends EventTarget {
   reportSideCartError(error: Error): void {
     this.addErrorMessage(error.message, "side-cart");
     this.#onError?.(error);
+  }
+
+  /**
+   * The session the sidecart frame reports. Public for the same reason as
+   * `reportSideCartError`: the sidecart host cannot reach `client.session`'s
+   * internals any other way.
+   */
+  reportSideCartSession(sessionId: string | null): void {
+    this.session.observe(sessionId);
   }
 
   /**
@@ -1651,16 +1760,20 @@ export class API extends EventTarget {
     form.submit();
   }
 
+  #reportError(error: unknown): void {
+    if (error instanceof StaleSessionResponse) return;
+    const normalized = error instanceof Error ? error : new Error(String(error));
+    this.addErrorMessage(normalized.message, "network");
+    this.#onError?.(normalized);
+  }
+
   private async runMutation(action: () => Promise<void>): Promise<void> {
     this.setState("busy");
 
     try {
       await action();
     } catch (error) {
-      const normalized =
-        error instanceof Error ? error : new Error(String(error));
-      this.addErrorMessage(normalized.message, "network");
-      this.#onError?.(normalized);
+      this.#reportError(error);
     } finally {
       this.setState("idle");
     }
@@ -1692,45 +1805,66 @@ export class API extends EventTarget {
     body: Record<string, unknown> | [string, string][],
   ): Promise<APIJson> {
     const form = Array.isArray(body) ? new URLSearchParams(body) : toFormData(body);
-    const sessionId = this.json?.session?.id;
+    // A hydrated client (a hosted page) sends its json's session, as before
+    // `client.session`: its ID never goes through the session ID check.
+    // Once this client loads its own session, a change must not be sent
+    // without one: it would land in a new, orphan session.
+    // `host.reset` is the only caller inside the session queue, and only with
+    // an ID, so this never waits on itself.
+    const sessionId = this.#hydrated
+      ? (this.#json?.session?.id ?? null)
+      : (this.session.id ?? (this.#booted ? await this.session.ensure() : null));
 
     form.set("output", "json");
     if (sessionId) form.set("session_id", sessionId);
 
-    const response = await fetch(this.resolveUrl(path), {
+    return this.#requestJson(path, this.resolveUrl(path), {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
       },
       body: form,
     });
-
-    if (!response.ok) {
-      throw this.createRequestError(
-        response.status,
-        `Request failed for ${path}.`,
-      );
-    }
-
-    return (await response.json()) as APIJson;
   }
 
-  private async getJson(path: string): Promise<APIJson> {
-    const response = await fetch(
+  private async getJson(path: string, sessionId: string | null): Promise<APIJson> {
+    return this.#requestJson(
+      path,
       this.resolveUrl(path, {
         output: "json",
-        session_id: this.json?.session?.id,
+        session_id: sessionId,
       }),
     );
+  }
 
-    if (!response.ok) {
-      throw this.createRequestError(
-        response.status,
-        `Request failed for ${path}.`,
-      );
+  /**
+   * A response that lands after the session changed belongs to another
+   * session: it throws `StaleSessionResponse`, which is dropped, never
+   * reported. So does a failure: a 500 for an ended session is not news.
+   */
+  async #requestJson(path: string, url: string, init?: RequestInit): Promise<APIJson> {
+    const sentWith = this.session.snapshot();
+    let json: APIJson;
+
+    try {
+      // A GET is sent as `fetch(url)`, with no second argument, as before.
+      const response = await (init ? fetch(url, init) : fetch(url));
+      if (!response.ok) {
+        throw this.createRequestError(response.status, `Request failed for ${path}.`);
+      }
+      json = (await response.json()) as APIJson;
+    } catch (error) {
+      if (this.session.isStale(sentWith)) {
+        throw new StaleSessionResponse("The session changed while this request ran.");
+      }
+      throw error;
     }
 
-    return (await response.json()) as APIJson;
+    if (this.session.isStale(sentWith)) {
+      throw new StaleSessionResponse("The session changed while this request ran.");
+    }
+    this.session.observe(json.session?.id ?? null);
+    return json;
   }
 
   private createRequestError(status: number, message: string): Error {

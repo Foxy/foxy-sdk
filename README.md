@@ -89,7 +89,7 @@ For every link or form that points at the store's `/cart`:
 * Without it, the browser goes to the cart with the visitor's `session_id`.
   This keeps the visitor's session on a first click only once the store
   allows the merchant's origin (CORS). Until the store allows it, a first
-  click with no cached session starts a new cart instead.
+  click with no session yet starts a new cart instead.
 * The session id is added when the visitor clicks. It is never written into
   the page, so a copied link never carries it.
 * A click that opens a new tab (a modifier key, the middle button, or a
@@ -105,6 +105,84 @@ document.addEventListener("foxy:add-to-cart", (event) => {
   // your own cart code
 });
 ```
+
+### Cart session
+
+`client.session` holds the visitor's cart session ID. By default it is kept
+in `localStorage` and a new session starts when there is none.
+
+```js
+import { client } from "https://cdn-js.foxy.io/sdk@2/checkout/loader.js?store=example.foxycart.com";
+
+client.session.configure({
+  storage: "cookie", // "local" (default), "session", "cookie", "memory", or your own store
+  key: "fc_sid",     // default: "foxy.session.<store host>"
+  cookie: { domain: ".example.com", maxAge: 2592000 }, // cookie only
+});
+```
+
+Without `maxAge`, the cookie ends when the browser session ends.
+
+Call `configure()` right after the import, in the same script. The first
+cart request waits until the current script finishes.
+
+If a setting must apply before the first cart request, import
+`checkout/client` instead. This applies to `"memory"`, `autoStart: false`,
+and a store that reads from your backend. Configure first, then set the
+domain.
+
+Your own store has three methods. Each may return a promise:
+
+```js
+import { client } from "https://cdn-js.foxy.io/sdk@2/checkout/client.js";
+
+const myStore = {
+  get: () => fetch("/my-api/cart-session").then((r) => r.text()),
+  set: (id) => fetch("/my-api/cart-session", { method: "PUT", body: id }),
+  remove: () => fetch("/my-api/cart-session", { method: "DELETE" }),
+};
+
+client.session.configure({ storage: myStore });
+client.setStoreDomain("example.foxycart.com");
+```
+
+If `get()` never settles, the cart never loads. Add your own timeout.
+
+If `configure()` runs after the first request, the session moves to the new
+store and the old store is emptied. One extra session may then exist on the
+server.
+
+With the default key, each store gets its own key. A `key` you set, or your
+own store, holds one session, so use it with one store per page.
+
+Importing `checkout/side-cart.js?store=...` or `checkout/add-to-cart.js?store=...`
+without the loader also sets the store, if no store is set yet. It then
+loads the session when the current script finishes, the same as the loader.
+With the default `autoStart`, that creates a session for every visitor. Set
+`autoStart: false` to wait for the first cart action.
+
+Until the store allows your site's origin on `/cart` (CORS), the first cart
+request fails. Pages that load the session themselves then report one error
+per page load.
+
+Start and end sessions:
+
+```js
+await client.session.start();          // a new, empty session
+await client.session.start("abc123");  // a session ID you already have
+await client.session.end();            // forget it here; the cart stays on the server
+await client.session.end({ reset: true }); // also empty it on the server
+```
+
+The session ID gives access to the cart. Keep it as private as a login
+cookie:
+
+* JavaScript cannot set `HttpOnly`, so any script on the page can read the
+  cookie. If you set `domain`, scripts on every matching subdomain can read
+  it too.
+* The cookie is `SameSite=Lax` by default, and `Secure` on https: pages.
+* Do not take a session ID from a URL parameter. A link could then put a
+  visitor into someone else's cart.
 
 ## Development
 
