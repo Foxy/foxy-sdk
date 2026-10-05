@@ -520,6 +520,39 @@ describe("responses from an old session", () => {
     expect(api.session.id).toBe("s-hosted");
     expect(api.json).not.toBeNull();
   });
+
+  it("keeps hydrated json from another store on a booted client, and stores nothing", async () => {
+    localStorage.setItem(KEY, "s-1");
+    vi.mocked(fetch).mockImplementation(async () => respond(cart("s-1")));
+    const api = await boot();
+    const hosted = cart("s-hosted");
+
+    await api.hydrateJson({ ...hosted, store: { ...hosted.store, domain: "other.test" } });
+
+    expect(api.json).not.toBeNull();
+    expect(api.session.id).toBe("s-hosted");
+    expect(localStorage.getItem(KEY)).toBe("s-1");
+    expect(localStorage.getItem("foxy.session.other.test")).toBeNull();
+  });
+
+  it("sends a cart change made during the first load with the loaded session", async () => {
+    vi.mocked(fetch)
+      .mockImplementationOnce(() => later(cart("s-boot")))
+      .mockImplementation(async () => respond(cart("s-boot")));
+    const api = new API({});
+    api.setStoreDomain("store.test");
+    await new Promise((resolve) => setTimeout(resolve, 0)); // the first load is in flight
+    expect(fetch).toHaveBeenCalledTimes(1);
+
+    api.addItem([["name", "Shirt"], ["price", "10"]]);
+    await vi.waitFor(() => expect(fetch).toHaveBeenCalledTimes(2));
+    await vi.waitFor(() => expect(api.state).toBe("idle"));
+
+    expect(vi.mocked(fetch).mock.calls[1][1]?.method).toBe("POST");
+    expect(sessionIdOf(1)).toBe("s-boot");
+    expect(api.session.id).toBe("s-boot");
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
 });
 
 describe("client.session.start and end in one task", () => {

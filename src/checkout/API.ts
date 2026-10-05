@@ -613,6 +613,16 @@ export class API extends EventTarget {
     options?: HydrateJsonOptions,
   ): Promise<void> {
     this.#hydrated = true;
+
+    // A receipt the backend could not find still hydrates the client so the
+    // shopper sees the error, and every string on `store` can come back null.
+    // Calling through with a null domain threw out of hydrateJson entirely.
+    // It runs before `observe`: on another store, a managed session is
+    // forgotten first, so the json's ID is not written under the old key.
+    if (nextJson.store.domain) {
+      this.setStoreDomain(nextJson.store.domain);
+    }
+
     this.session.observe(nextJson.session?.id ?? null);
     const resolutionVersion = ++this.#jsonResolutionVersion;
     const nextState = options?.state ?? "idle";
@@ -631,13 +641,6 @@ export class API extends EventTarget {
 
     if (resolutionVersion === this.#jsonResolutionVersion) {
       this.#applyResolvedState(resolvedState, { emitUpdate });
-    }
-
-    // A receipt the backend could not find still hydrates the client so the
-    // shopper sees the error, and every string on `store` can come back null.
-    // Calling through with a null domain threw out of hydrateJson entirely.
-    if (nextJson.store.domain) {
-      this.setStoreDomain(nextJson.store.domain);
     }
   }
 
@@ -1768,7 +1771,11 @@ export class API extends EventTarget {
     body: Record<string, unknown> | [string, string][],
   ): Promise<APIJson> {
     const form = Array.isArray(body) ? new URLSearchParams(body) : toFormData(body);
-    const sessionId = this.session.id;
+    // Once this client loads its own session, a change must not be sent
+    // without one: it would land in a new, orphan session.
+    // `host.reset` is the only caller inside the session queue, and only with
+    // an ID, so this never waits on itself.
+    const sessionId = this.session.id ?? (this.#booted ? await this.session.ensure() : null);
 
     form.set("output", "json");
     if (sessionId) form.set("session_id", sessionId);
