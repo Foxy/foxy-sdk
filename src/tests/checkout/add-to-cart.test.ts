@@ -524,6 +524,28 @@ describe("checkout/add-to-cart: forms", () => {
     expect(sent).toEqual([["name", "Shirt"], ["session_id", "s-new"]]);
   });
 
+  it("on empty=reset, sends the form without a session when none arrives within 3 seconds", async () => {
+    const { client } = await load();
+    await seedSession(client, "s-old");
+    vi.useFakeTimers();
+    // A start that never settles blocks the queue, so end() cannot run and
+    // the session still holds the old ID when the 3 seconds are up.
+    vi.mocked(fetch).mockImplementation(() => new Promise(() => undefined));
+    void client.session.start("s-old");
+    const element = form(`${ORIGIN}/cart`, { empty: "reset", name: "Shirt" });
+    let sent: [string, string][] = [];
+    const requestSubmit = vi.spyOn(element, "requestSubmit").mockImplementation(() => {
+      submit(element);
+      sent = entries(element);
+    });
+
+    submit(element);
+    await vi.advanceTimersByTimeAsync(3000);
+
+    expect(requestSubmit).toHaveBeenCalled();
+    expect(sent).toEqual([["empty", "reset"], ["name", "Shirt"]]);
+  });
+
   it("gets a session first, then submits again with the same submitter", async () => {
     const { client } = await load();
     vi.mocked(fetch).mockImplementation(async () =>

@@ -46,6 +46,9 @@ let pendingSubmit: SubmitEvent | null = null;
 /** Set while this module re-submits a form, so `onSubmit` lets it through. */
 let resubmitting: HTMLFormElement | null = null;
 
+/** Set while a reset form is resubmitted without a session, so `onFormData` must not add the old one. */
+let skipSession: HTMLFormElement | null = null;
+
 function storeOrigin(): string | null {
   try {
     return resolveHostStoreOrigin(import.meta.url);
@@ -279,7 +282,10 @@ function onSubmit(event: SubmitEvent): void {
     // Same as a link: get the new session first. `onFormData` then adds it
     // and removes `empty`, so the server does not reset again.
     event.preventDefault();
-    void ensureSession().then(() => resubmit(form, submitter));
+    void ensureSession().then((id) => {
+      if (id === null) skipSession = form;
+      resubmit(form, submitter);
+    });
     return;
   }
 
@@ -301,6 +307,8 @@ function resubmit(form: HTMLFormElement, submitter: HTMLElement | null): void {
     form.requestSubmit(submitter ?? undefined);
   } finally {
     resubmitting = null;
+    // `formdata` fires inside `requestSubmit()`, so it has seen this by now.
+    skipSession = null;
   }
 }
 
@@ -325,6 +333,8 @@ function onFormData(event: Event): void {
 
   const origin = storeOrigin();
   if (origin === null) return;
+
+  if (skipSession === form) return;
 
   const sessionId = client.session.id;
   const { formData } = event as FormDataEvent;
