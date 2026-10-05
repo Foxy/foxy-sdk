@@ -60,7 +60,11 @@ export class Session {
    * session and nothing is written on the store's origin.
    */
   #managed = false;
-  /** Set during `end({ reset: true })`: the reset response carries a new ID nobody asked for. */
+  /**
+   * Set while `end()` runs and while `start(id)` stores its ID. `observe` then
+   * ignores every ID: the reset response carries one nobody asked for, and
+   * the old frame can still report the ID being replaced.
+   */
   #ending = false;
   #queue: Promise<unknown> = Promise.resolve();
   #pendingStart: Promise<void> | null = null;
@@ -192,7 +196,12 @@ export class Session {
         this.#epoch++;
         this.#managed = true;
         this.#id = id;
-        await this.#write(id);
+        this.#ending = true;
+        try {
+          await this.#write(id);
+        } finally {
+          this.#ending = false;
+        }
         this.#host.changed(id);
         await this.#host.load(id);
       });
@@ -228,20 +237,20 @@ export class Session {
     return this.#enqueue(async () => {
       this.#epoch++;
       this.#managed = true;
+      this.#ending = true;
 
-      if (options.reset && this.#id !== null) {
-        this.#ending = true;
-        try {
-          await this.#host.reset();
-        } finally {
-          this.#ending = false;
-        }
+      try {
+        if (options.reset && this.#id !== null) await this.#host.reset();
+
+        this.#id = null;
+        // A write that started before this must not land after the remove.
+        await this.#pendingWrite;
+        await this.#remove();
+        this.#host.clear();
+        this.#host.changed(null);
+      } finally {
+        this.#ending = false;
       }
-
-      this.#id = null;
-      await this.#remove();
-      this.#host.clear();
-      this.#host.changed(null);
     });
   }
 

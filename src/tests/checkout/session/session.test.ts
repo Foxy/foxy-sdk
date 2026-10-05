@@ -592,3 +592,89 @@ describe("client.session.start and end in one task", () => {
     expect(recorded).toBe("s-new");
   });
 });
+
+describe("frame reports while an async store works", () => {
+  /** A store whose `set()` and `remove()` take time, like one backed by the merchant's server. */
+  function slowStore(initial: string | null, ms: { set: number; remove: number }) {
+    const store = {
+      value: initial,
+      get: vi.fn(async () => store.value),
+      set: vi.fn(
+        (id: string) =>
+          new Promise<void>((resolve) =>
+            setTimeout(() => {
+              store.value = id;
+              resolve();
+            }, ms.set),
+          ),
+      ),
+      remove: vi.fn(
+        () =>
+          new Promise<void>((resolve) =>
+            setTimeout(() => {
+              store.value = null;
+              resolve();
+            }, ms.remove),
+          ),
+      ),
+    };
+    return store;
+  }
+
+  const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+  it("end() forgets the session when the old frame reports it during remove()", async () => {
+    const store = slowStore("s-1", { set: 20, remove: 20 });
+    vi.mocked(fetch).mockImplementation(async () => respond(cart("s-1")));
+    const api = await boot((a) => a.session.configure({ storage: store }));
+
+    const ending = api.session.end();
+    await tick();
+    api.reportSideCartSession("s-1"); // the old frame's `state` while remove() runs
+    await ending;
+    await new Promise((resolve) => setTimeout(resolve, 30));
+
+    expect(api.session.id).toBeNull();
+    expect(store.value).toBeNull();
+  });
+
+  it("end() waits for a store write that started before it", async () => {
+    const store = slowStore(null, { set: 30, remove: 10 });
+    const api = await boot((a) => a.session.configure({ storage: store, autoStart: false }));
+    api.reportSideCartSession("s-2");
+
+    await api.session.end();
+    await new Promise((resolve) => setTimeout(resolve, 40));
+
+    expect(api.session.id).toBeNull();
+    expect(store.value).toBeNull();
+  });
+
+  it("start(id) never writes back the ID it replaces", async () => {
+    const store = slowStore("s-1", { set: 20, remove: 20 });
+    vi.mocked(fetch).mockImplementation(async () => respond(cart("s-1")));
+    const api = await boot((a) => a.session.configure({ storage: store }));
+    vi.mocked(fetch).mockImplementation(async () => respond(cart("s-2")));
+
+    const starting = api.session.start("s-2");
+    await tick();
+    api.reportSideCartSession("s-1"); // the old frame's `state` while set() runs
+    await starting;
+
+    expect(store.set).not.toHaveBeenCalledWith("s-1");
+    expect(api.session.id).toBe("s-2");
+    expect(store.value).toBe("s-2");
+  });
+
+  it("takes frame reports again after a failed reset", async () => {
+    localStorage.setItem(KEY, "s-1");
+    vi.mocked(fetch).mockImplementation(async () => respond(cart("s-1")));
+    const api = await boot();
+    vi.mocked(fetch).mockRejectedValue(new TypeError("offline"));
+    await expect(api.session.end({ reset: true })).rejects.toThrow("offline");
+
+    api.reportSideCartSession("s-2");
+
+    expect(api.session.id).toBe("s-2");
+  });
+});
