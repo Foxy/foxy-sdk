@@ -192,6 +192,30 @@ describe("checkout/side-cart", () => {
     expect(removed.getAttribute("src")).toBeNull();
   });
 
+  it("reloads, not loads, a frame whose store changed before the session settled", async () => {
+    localStorage.setItem("foxy.session.b.foxycart.test", "b-id");
+    vi.resetModules();
+    const { client } = await import("../../../checkout/client");
+    const { sideCart } = await import("../../../checkout/side-cart");
+    mounted = sideCart;
+
+    // One script: mount on store A, then switch to store B, before the first load runs.
+    client.setStoreDomain("a.foxycart.test");
+    sideCart.mount();
+    const first = frame()!;
+    client.setStoreDomain("b.foxycart.test");
+
+    await vi.waitFor(() =>
+      expect(frame()?.src).toBe("https://b.foxycart.test/cart?session_id=b-id"),
+    );
+    await settle();
+
+    // B's session ID never reaches A's origin, and A's storage never gets it.
+    expect(first.getAttribute("src") ?? "").not.toMatch(/^https:\/\/a\.foxycart\.test/);
+    expect(document.querySelectorAll("iframe[data-foxy-side-cart]")).toHaveLength(1);
+    expect(localStorage.getItem("foxy.session.a.foxycart.test")).not.toBe("b-id");
+  });
+
   it("shows and hides, firing events", async () => {
     const other = document.createElement("div");
     document.body.appendChild(other);

@@ -216,6 +216,12 @@ class SideCart extends EventTarget {
     // replace the stored one: the first load may not have read the store yet.
     void client.sessionSettled().then(() => {
       if (this.#frame !== frame) return;
+      // The store changed while the session settled: this frame points at the
+      // old store, and the session now belongs to the new one.
+      if (this.#tryOrigin() !== origin) {
+        this.reload();
+        return;
+      }
       const sessionId = client.session.id;
       const query = sessionId ? `?session_id=${encodeURIComponent(sessionId)}` : "";
       frame.src = `${origin}/cart${query}`;
