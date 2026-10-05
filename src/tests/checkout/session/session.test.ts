@@ -739,3 +739,66 @@ describe("frame reports while an async store works", () => {
     expect(api.session.id).toBe("s-2");
   });
 });
+
+describe("store and frame failures", () => {
+  it("reports a set() that throws, and still updates the ID", async () => {
+    vi.mocked(fetch).mockImplementation(async () => respond(cart("s-new")));
+    const onError = vi.fn();
+    const store: SessionStore = {
+      get: () => null,
+      set: () => {
+        throw new Error("quota");
+      },
+      remove: vi.fn(),
+    };
+
+    const api = await boot((a) => a.session.configure({ storage: store }), onError);
+
+    expect(onError).toHaveBeenCalledWith(expect.objectContaining({ message: "quota" }));
+    expect(api.session.id).toBe("s-new");
+    expect(api.json?.session?.id).toBe("s-new");
+  });
+
+  it("reports a remove() that throws during end(), and still ends the session", async () => {
+    vi.mocked(fetch).mockImplementation(async () => respond(cart("s-1")));
+    const onError = vi.fn();
+    const store: SessionStore = {
+      get: () => "s-1",
+      set: vi.fn(),
+      remove: () => Promise.reject(new Error("backend down")),
+    };
+    const api = await boot((a) => a.session.configure({ storage: store }), onError);
+
+    await expect(api.session.end()).resolves.toBeUndefined();
+
+    expect(onError).toHaveBeenCalledWith(expect.objectContaining({ message: "backend down" }));
+    expect(api.session.id).toBeNull();
+    expect(api.json).toBeNull();
+  });
+
+  it("ignores and reports an invalid ID from the sidecart frame", async () => {
+    localStorage.setItem(KEY, "s-1");
+    vi.mocked(fetch).mockImplementation(async () => respond(cart("s-1")));
+    const onError = vi.fn();
+    const api = await boot(undefined, onError);
+
+    api.reportSideCartSession("a;b"); // what a frame `ready` or `state` does
+
+    expect(onError).toHaveBeenCalledWith(
+      expect.objectContaining({ message: "Ignored an invalid session ID." }),
+    );
+    expect(api.session.id).toBe("s-1");
+    expect(localStorage.getItem(KEY)).toBe("s-1");
+  });
+
+  it("reports a failed first load", async () => {
+    vi.mocked(fetch).mockImplementation(async () => new Response("", { status: 500 }));
+    const onError = vi.fn();
+
+    await boot(undefined, onError);
+
+    expect(onError).toHaveBeenCalledWith(
+      expect.objectContaining({ message: "Request failed for /cart. HTTP status 500." }),
+    );
+  });
+});
