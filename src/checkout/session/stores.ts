@@ -17,10 +17,6 @@ export type SessionCookieOptions = {
 
 export type SessionStorageName = "local" | "session" | "cookie" | "memory";
 
-// ponytail: provisional format until the backend confirms the real one (see
-// the session design spec, open question 2). This is the only place to change.
-const SESSION_ID = /^[A-Za-z0-9_-]{1,128}$/;
-
 /** RFC 6265 `token`: what a cookie name may contain. */
 const COOKIE_NAME = /^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/;
 
@@ -28,8 +24,14 @@ const STORAGE_NAMES: readonly string[] = ["local", "session", "cookie", "memory"
 
 const SAME_SITE: readonly string[] = ["Strict", "Lax", "None"];
 
+/**
+ * Any non-empty string. The server owns the format, and every place the ID
+ * goes -- the cookie value, the iframe URL, request bodies -- encodes it, so
+ * stricter checks would only reject real IDs. A wrong ID gets the server's
+ * answer for an unknown session.
+ */
 export function isSessionId(value: unknown): value is string {
-  return typeof value === "string" && SESSION_ID.test(value);
+  return typeof value === "string" && value !== "";
 }
 
 /** `foxy.session.<host>`. A host's `:` (a port) cannot be in a cookie name. */
