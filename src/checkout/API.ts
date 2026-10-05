@@ -40,6 +40,7 @@ import { cloneApiJson, toMutable } from "./utils/json";
 import type { MutableAPIJson } from "./utils/json";
 import { toFormData, toQueryString } from "./utils/url";
 import { loadPayPalSdk } from "./utils/payPal";
+import { Session } from "./session/Session";
 
 export type { MutableAPIJson } from "./utils/json";
 export { cloneApiJson, toMutable };
@@ -60,6 +61,8 @@ export type SideCartTransport = {
   invoke(method: SideCartInvokeMethod, params: unknown[]): Promise<void>;
   /** Opens the drawer. `checkout/add-to-cart` calls it after `addItem`. */
   show(): void;
+  /** `client.session` changed: reload with the new ID, or unmount for null. */
+  sessionChanged(sessionId: string | null): void;
 };
 
 /**
@@ -442,6 +445,27 @@ export class API extends EventTarget {
   #bootScheduled = false;
   /** The first load has started. It runs once per instance. */
   #booted = false;
+  /** The cart session: where its ID is stored, and how to start or end it. */
+  readonly session: Session = new Session({
+    storeOrigin: () => (this.#baseUrl ? new URL(this.#baseUrl).origin : null),
+    run: async <T>(action: () => Promise<T>): Promise<T> => {
+      this.setState("busy");
+      try {
+        return await action();
+      } finally {
+        this.setState("idle");
+      }
+    },
+    load: async (sessionId) => {
+      await this.replaceJson(await this.getJson("/cart", sessionId));
+    },
+    reset: async () => {
+      await this.postJson("/cart", { empty: "reset" });
+    },
+    clear: () => this.#clearJson(),
+    onError: (error) => this.#onError?.(error),
+    changed: (sessionId) => this.#sideCartTransport?.sessionChanged(sessionId),
+  });
 
   static canMakeApplePayPayments(): boolean {
     return getApplePayAvailability() === "available";
@@ -495,6 +519,7 @@ export class API extends EventTarget {
       this.#paypal = null;
       this.#square = null;
       this.#state = initialState ?? "idle";
+      this.session.observe(initialJson.session?.id ?? null);
       void this.replaceJson(initialJson);
     } else {
       this.#json = null;
@@ -581,6 +606,7 @@ export class API extends EventTarget {
     nextJson: APIJson,
     options?: HydrateJsonOptions,
   ): Promise<void> {
+    this.session.observe(nextJson.session?.id ?? null);
     const resolutionVersion = ++this.#jsonResolutionVersion;
     const nextState = options?.state ?? "idle";
     const emitUpdate = options?.emitUpdate ?? true;
@@ -632,10 +658,7 @@ export class API extends EventTarget {
       if (this.#booted || this.#json !== null || !this.#baseUrl) return;
       this.#booted = true;
 
-      void this.runMutation(async () => {
-        const nextJson = await this.getJson("/cart");
-        await this.replaceJson(nextJson);
-      });
+      void this.session.boot().catch((error: unknown) => this.#reportError(error));
     }, 0);
   }
 
@@ -730,6 +753,17 @@ export class API extends EventTarget {
     ) {
       this.dispatchEvent(new Event("update"));
     }
+  }
+
+  #clearJson(): void {
+    // An SDK resolution still in flight belongs to the session that ended.
+    ++this.#jsonResolutionVersion;
+    this.#json = null;
+    this.#adyenEmbedded = null;
+    this.#klarna = null;
+    this.#paypal = null;
+    this.#square = null;
+    this.dispatchEvent(new Event("update"));
   }
 
   protected dispatchCancelable<K extends EventWithoutDetailName>(
@@ -1712,7 +1746,7 @@ export class API extends EventTarget {
     body: Record<string, unknown> | [string, string][],
   ): Promise<APIJson> {
     const form = Array.isArray(body) ? new URLSearchParams(body) : toFormData(body);
-    const sessionId = this.json?.session?.id;
+    const sessionId = this.session.id;
 
     form.set("output", "json");
     if (sessionId) form.set("session_id", sessionId);
@@ -1732,14 +1766,19 @@ export class API extends EventTarget {
       );
     }
 
-    return (await response.json()) as APIJson;
+    const json = (await response.json()) as APIJson;
+    this.session.observe(json.session?.id ?? null);
+    return json;
   }
 
-  private async getJson(path: string): Promise<APIJson> {
+  private async getJson(
+    path: string,
+    sessionId: string | null = this.session.id,
+  ): Promise<APIJson> {
     const response = await fetch(
       this.resolveUrl(path, {
         output: "json",
-        session_id: this.json?.session?.id,
+        session_id: sessionId,
       }),
     );
 
@@ -1750,7 +1789,9 @@ export class API extends EventTarget {
       );
     }
 
-    return (await response.json()) as APIJson;
+    const json = (await response.json()) as APIJson;
+    this.session.observe(json.session?.id ?? null);
+    return json;
   }
 
   private createRequestError(status: number, message: string): Error {

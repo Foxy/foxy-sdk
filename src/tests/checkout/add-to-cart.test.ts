@@ -22,7 +22,7 @@ async function load(options: { sideCart?: boolean } = {}) {
   await vi.waitFor(() => expect(fetch).toHaveBeenCalled());
   await new Promise((resolve) => setTimeout(resolve, 0));
   vi.mocked(fetch).mockClear();
-  const transport = { invoke: vi.fn().mockResolvedValue(undefined), show: vi.fn() };
+  const transport = { invoke: vi.fn().mockResolvedValue(undefined), show: vi.fn(), sessionChanged: vi.fn() };
   if (options.sideCart) client.setSideCartTransport(transport);
   const addItem = vi.spyOn(client, "addItem");
   const module = await import("../../checkout/add-to-cart");

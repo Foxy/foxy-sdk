@@ -371,6 +371,10 @@ class SideCart extends EventTarget {
     });
   }
 
+  sessionChanged(_sessionId: string | null): void {
+    // Task 7.
+  }
+
   /** Called by `client` through the transport hook. */
   async invoke(method: SideCartInvokeMethod, params: unknown[]): Promise<void> {
     // `async` is load-bearing. `mount()` throws synchronously when no store
