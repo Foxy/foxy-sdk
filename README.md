@@ -161,9 +161,12 @@ loads the session when the current script finishes, the same as the loader.
 With the default `autoStart`, that creates a session for every visitor. Set
 `autoStart: false` to wait for the first cart action.
 
-Until the store allows your site's origin on `/cart` (CORS), the first cart
-request fails. Pages that load the session themselves then report one error
-per page load.
+The store must allow your site's origin on `/cart` (CORS). Stores will allow
+two origins: the store's own domain, and the exact origin of the website URL
+in the store settings. `example.com` and `www.example.com` are different
+origins, and so is a staging site. While the store does not allow your
+origin, the first cart request fails, and pages that load the session
+themselves report one error per page load.
 
 Start and end sessions:
 
