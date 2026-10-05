@@ -182,13 +182,10 @@ class SideCart extends EventTarget {
     // Resolved first: it is the one step that can refuse, and it has to refuse
     // before anything is created or appended.
     const origin = this.#origin();
-    const sessionId = client.session.id;
-    const query = sessionId ? `?session_id=${encodeURIComponent(sessionId)}` : "";
     const frame = document.createElement("iframe");
 
     frame.dataset.foxySideCart = "";
     frame.title = "Cart";
-    frame.src = `${origin}/cart${query}`;
     // `background:transparent` is belt and braces: an iframe is normally
     // transparent when the embedded document is, but user agents have
     // historically filled the canvas, and the real bug this guards against
@@ -212,6 +209,16 @@ class SideCart extends EventTarget {
         this.#frameReady = false;
         this.#firstReportPending = true;
       },
+    });
+
+    // The frame loads only once the session is known. With no ID, the cart
+    // page in the frame would create a new session, and its report would
+    // replace the stored one: the first load may not have read the store yet.
+    void client.sessionSettled().then(() => {
+      if (this.#frame !== frame) return;
+      const sessionId = client.session.id;
+      const query = sessionId ? `?session_id=${encodeURIComponent(sessionId)}` : "";
+      frame.src = `${origin}/cart${query}`;
     });
   }
 

@@ -66,6 +66,8 @@ describe("checkout/side-cart store origin", () => {
     const { sideCart } = await loadSideCart("demo.foxycart.test");
 
     sideCart.mount();
+    // The frame loads once the session is known.
+    await new Promise((resolve) => setTimeout(resolve, 10));
 
     expect(frame()?.src).toBe("https://demo.foxycart.test/cart");
   });

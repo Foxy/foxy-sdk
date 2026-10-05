@@ -150,6 +150,7 @@ describe("checkout/side-cart", () => {
     const { sideCart } = await loadSideCart();
     await seedSession("s1");
     sideCart.mount();
+    await settle(); // the frame loads once the session is known
 
     const element = frame();
     expect(element).not.toBeNull();
@@ -159,6 +160,36 @@ describe("checkout/side-cart", () => {
     // opaque-backdrop bug itself is the cart page's body background, fixed
     // in foxy-checkout, not here.
     expect(element?.style.background).toBe("transparent");
+  });
+
+  it("waits for the stored session before it loads a frame mounted on page load", async () => {
+    localStorage.setItem("foxy.session.demo.foxycart.test", "old-id");
+    vi.resetModules();
+    const { client } = await import("../../../checkout/client");
+    const { sideCart } = await import("../../../checkout/side-cart");
+    mounted = sideCart;
+
+    // One script: set the store and open the cart, before the first load reads the store.
+    client.setStoreDomain("demo.foxycart.test");
+    sideCart.mount();
+
+    await vi.waitFor(() => expect(frame()?.src).toBe(`${STORE_ORIGIN}/cart?session_id=old-id`));
+    expect(localStorage.getItem("foxy.session.demo.foxycart.test")).toBe("old-id");
+  });
+
+  it("never loads a frame that was unmounted before the session settled", async () => {
+    vi.resetModules();
+    const { client } = await import("../../../checkout/client");
+    const { sideCart } = await import("../../../checkout/side-cart");
+    mounted = sideCart;
+    client.setStoreDomain("demo.foxycart.test");
+
+    sideCart.mount();
+    const removed = frame()!;
+    sideCart.unmount();
+    await settle();
+
+    expect(removed.getAttribute("src")).toBeNull();
   });
 
   it("shows and hides, firing events", async () => {
@@ -578,6 +609,7 @@ describe("checkout/side-cart", () => {
     sideCart.mount();
 
     await seedSession("s2");
+    await settle(); // the frame loads once the session is known
 
     expect(frame()?.src).toBe(`${STORE_ORIGIN}/cart?session_id=s2`);
   });
@@ -676,6 +708,7 @@ describe("checkout/side-cart", () => {
 
     expect(sideCart.itemCount).toBe(7);
     sideCart.mount();
+    await settle(); // the frame loads once the session is known
     expect(frame()?.src).toBe("https://other.foxycart.test/cart?session_id=s9");
   });
 

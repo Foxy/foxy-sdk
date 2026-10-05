@@ -270,6 +270,11 @@ export class Session {
     });
   }
 
+  /** @internal Resolves once every queued change has finished. Never rejects. */
+  settled(): Promise<void> {
+    return this.#queue.then(() => undefined);
+  }
+
   #enqueue<T>(action: () => Promise<T>): Promise<T> {
     const run = this.#queue.then(() => this.#host.run(action));
     this.#queue = run.catch(() => undefined);

@@ -445,7 +445,8 @@ export class API extends EventTarget {
   #jsonResolutionVersion = 0;
   readonly #onError?: (error: Error) => void;
   #sideCartTransport: SideCartTransport | null = null;
-  #bootScheduled = false;
+  /** The timer `#scheduleBoot` set. Resolves once it ran: the first load, if any, is then queued. */
+  #bootTimer: Promise<void> | null = null;
   /** The first load has started. It runs once per instance. */
   #booted = false;
   /** The json came from the page (`initialJson` or `hydrateJson`), so the first load must not run. */
@@ -686,16 +687,28 @@ export class API extends EventTarget {
    * to mean two requests, and two new server sessions, per page load.
    */
   #scheduleBoot(): void {
-    if (this.#bootScheduled) return;
-    this.#bootScheduled = true;
+    if (this.#bootTimer) return;
 
-    setTimeout(() => {
-      this.#bootScheduled = false;
-      if (this.#booted || this.#hydrated || this.#json !== null || !this.#baseUrl) return;
-      this.#booted = true;
+    this.#bootTimer = new Promise((resolve) =>
+      setTimeout(() => {
+        this.#bootTimer = null;
+        if (!(this.#booted || this.#hydrated || this.#json !== null || !this.#baseUrl)) {
+          this.#booted = true;
+          void this.session.boot().catch((error: unknown) => this.#reportError(error));
+        }
+        resolve();
+      }, 0),
+    );
+  }
 
-      void this.session.boot().catch((error: unknown) => this.#reportError(error));
-    }, 0);
+  /**
+   * @internal For the sidecart: resolves once the session is known. That is
+   * after a first load still waiting for its timer, and after every queued
+   * session change. Never rejects.
+   */
+  async sessionSettled(): Promise<void> {
+    await this.#bootTimer;
+    await this.session.settled();
   }
 
   protected setState(state: "idle" | "busy", emitUpdate = true): void {
