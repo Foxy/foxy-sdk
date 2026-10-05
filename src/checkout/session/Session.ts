@@ -35,6 +35,9 @@ export type SessionHost = {
   changed(sessionId: string | null): void;
 };
 
+/** What a request saw when it was sent. See `Session#isStale`. */
+export type SessionSnapshot = { readonly id: string | null; readonly epoch: number };
+
 function toError(error: unknown): Error {
   return error instanceof Error ? error : new Error(String(error));
 }
@@ -61,6 +64,10 @@ export class Session {
   #ending = false;
   #queue: Promise<unknown> = Promise.resolve();
   #pendingStart: Promise<void> | null = null;
+  /** The last store write from `observe`. `start()` and `ensure()` wait for it. Never rejects. */
+  #pendingWrite: Promise<void> = Promise.resolve();
+  /** Bumped by every change a response in flight cannot know about. */
+  #epoch = 0;
 
   constructor(host: SessionHost) {
     this.#host = host;
@@ -68,6 +75,35 @@ export class Session {
 
   get id(): string | null {
     return this.#id;
+  }
+
+  /** @internal What a request saw when it was sent. */
+  snapshot(): SessionSnapshot {
+    return { id: this.#id, epoch: this.#epoch };
+  }
+
+  /**
+   * @internal True when the session changed after `snapshot` was taken. The
+   * response then belongs to another session and must not touch this one:
+   * not its ID (the sidecart may have reported a newer one during the first
+   * load) and not `client.json` (`end()` cleared it on purpose).
+   */
+  isStale(snapshot: SessionSnapshot): boolean {
+    return snapshot.id !== this.#id || snapshot.epoch !== this.#epoch;
+  }
+
+  /**
+   * @internal The store domain changed. A managed session belonged to the
+   * old store: forget it here (the old store keeps it) so the client can load
+   * again. Returns false for a hydrated client, which keeps its json's session.
+   */
+  storeChanged(): boolean {
+    if (!this.#managed) return false;
+    this.#epoch++;
+    this.#id = null;
+    this.#store = null;
+    this.#managed = false;
+    return true;
   }
 
   /** Throws a `TypeError` for bad options. Call it before the store domain is set. */
@@ -99,6 +135,7 @@ export class Session {
     await this.#remove(previous);
 
     if (adopted !== null && adopted !== this.#id) {
+      this.#epoch++;
       this.#id = adopted;
       this.#host.changed(adopted);
       await this.#host.load(adopted);
@@ -133,7 +170,7 @@ export class Session {
     }
 
     this.#id = id;
-    if (this.#managed) void this.#write(id);
+    if (this.#managed) this.#pendingWrite = this.#write(id);
   }
 
   /**
@@ -149,7 +186,10 @@ export class Session {
         return Promise.reject(new TypeError("start() needs a valid session ID."));
       }
 
+      // A start() queued before this one must not be joined after it.
+      this.#pendingStart = null;
       return this.#enqueue(async () => {
+        this.#epoch++;
         this.#managed = true;
         this.#id = id;
         await this.#write(id);
@@ -159,16 +199,22 @@ export class Session {
     }
 
     // Two quick calls (a double click) must not make two sessions.
-    this.#pendingStart ??= this.#enqueue(async () => {
+    if (this.#pendingStart) return this.#pendingStart;
+
+    const pending: Promise<void> = this.#enqueue(async () => {
+      this.#epoch++;
       this.#managed = true;
       // The response's ID reaches `observe`, which stores it.
       await this.#host.load(null);
+      await this.#pendingWrite;
       this.#host.changed(this.#id);
     }).finally(() => {
-      this.#pendingStart = null;
+      // An older start() that finishes late must not clear a newer one.
+      if (this.#pendingStart === pending) this.#pendingStart = null;
     });
 
-    return this.#pendingStart;
+    this.#pendingStart = pending;
+    return pending;
   }
 
   /**
@@ -177,7 +223,10 @@ export class Session {
    * fails, nothing changes, so the merchant can retry.
    */
   end(options: { reset?: boolean } = {}): Promise<void> {
+    // A start() queued before this one must not be joined after it.
+    this.#pendingStart = null;
     return this.#enqueue(async () => {
+      this.#epoch++;
       this.#managed = true;
 
       if (options.reset && this.#id !== null) {
@@ -205,6 +254,7 @@ export class Session {
       if (this.#id === null) {
         this.#managed = true;
         await this.#host.load(null);
+        await this.#pendingWrite;
       }
 
       return this.#id;

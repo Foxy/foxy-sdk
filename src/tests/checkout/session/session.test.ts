@@ -439,3 +439,123 @@ describe("client.session.configure after the first load", () => {
     expect(localStorage.length).toBe(0);
   });
 });
+
+describe("responses from an old session", () => {
+  function later(json: APIJson, ms = 5): Promise<Response> {
+    return new Promise((resolve) => setTimeout(() => resolve(respond(json)), ms));
+  }
+
+  it("keeps the session the sidecart reported during the first load", async () => {
+    vi.mocked(fetch).mockImplementation(() => later(cart("s-boot")));
+    const onError = vi.fn();
+    const api = new API({ onError });
+    api.setStoreDomain("store.test");
+    await new Promise((resolve) => setTimeout(resolve, 0)); // the first load is in flight
+
+    api.session.observe("s-frame"); // what the sidecart's report does
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    expect(api.session.id).toBe("s-frame");
+    expect(localStorage.getItem(KEY)).toBe("s-frame");
+    expect(onError).not.toHaveBeenCalled();
+  });
+
+  it("drops a cart change that lands after end()", async () => {
+    localStorage.setItem(KEY, "s-1");
+    vi.mocked(fetch).mockImplementation(async () => respond(cart("s-1")));
+    const onError = vi.fn();
+    const api = await boot(undefined, onError);
+    vi.mocked(fetch).mockImplementation(() => later(cart("s-1")));
+
+    api.addItem([["name", "Shirt"], ["price", "10"]]);
+    await api.session.end();
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    expect(api.session.id).toBeNull();
+    expect(api.json).toBeNull();
+    expect(localStorage.getItem(KEY)).toBeNull();
+    expect(onError).not.toHaveBeenCalled();
+  });
+
+  it("drops a cart change that lands after start(id)", async () => {
+    localStorage.setItem(KEY, "s-1");
+    vi.mocked(fetch).mockImplementation(async () => respond(cart("s-1")));
+    const api = await boot();
+    vi.mocked(fetch)
+      .mockImplementationOnce(() => later(cart("s-1"), 10))
+      .mockImplementationOnce(async () => respond(cart("s-2")));
+
+    api.addItem([["name", "Shirt"], ["price", "10"]]);
+    await api.session.start("s-2");
+    await new Promise((resolve) => setTimeout(resolve, 15));
+
+    expect(api.session.id).toBe("s-2");
+    expect(api.json?.session?.id).toBe("s-2");
+    expect(localStorage.getItem(KEY)).toBe("s-2");
+  });
+
+  it("starts over on the new store when the domain changes after the first load", async () => {
+    localStorage.setItem(KEY, "s-1");
+    vi.mocked(fetch).mockImplementation(async () => respond(cart("s-1")));
+    const api = await boot();
+    vi.mocked(fetch).mockClear().mockImplementation(async () => respond(cart("s-other")));
+
+    api.setStoreDomain("other.test");
+
+    expect(api.session.id).toBeNull();
+    expect(api.json).toBeNull();
+    await vi.waitFor(() => expect(api.session.id).toBe("s-other"));
+    expect(String(vi.mocked(fetch).mock.calls[0][0])).toMatch(/^https:\/\/other\.test\/cart\?/);
+    expect(sessionIdOf(0)).toBeNull();
+    expect(localStorage.getItem("foxy.session.other.test")).toBe("s-other");
+    expect(localStorage.getItem(KEY)).toBe("s-1");
+  });
+
+  it("keeps a hydrated client's session when the domain changes", async () => {
+    const api = new API({ initialJson: cart("s-hosted") });
+    await api.hydrateJson(cart("s-hosted"));
+
+    api.setStoreDomain("other.test");
+
+    expect(api.session.id).toBe("s-hosted");
+    expect(api.json).not.toBeNull();
+  });
+});
+
+describe("client.session.start and end in one task", () => {
+  it("does not join a start() queued before an end()", async () => {
+    const api = await boot((a) => a.session.configure({ autoStart: false }));
+    vi.mocked(fetch)
+      .mockImplementationOnce(async () => respond(cart("s-a")))
+      .mockImplementationOnce(async () => respond(cart("s-b")));
+
+    const first = api.session.start();
+    void api.session.end();
+    const second = api.session.start();
+    await Promise.all([first, second]);
+
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(api.session.id).toBe("s-b");
+  });
+
+  it("start() resolves after an async store has saved the new ID", async () => {
+    let recorded: string | null = null;
+    const store: SessionStore = {
+      get: () => null,
+      set: (id: string) =>
+        new Promise<void>((resolve) =>
+          setTimeout(() => {
+            recorded = id;
+            resolve();
+          }, 20),
+        ),
+      remove: () => undefined,
+    };
+    const api = await boot((a) => a.session.configure({ storage: store, autoStart: false }));
+    vi.mocked(fetch).mockImplementation(async () => respond(cart("s-new")));
+
+    await api.session.start();
+
+    expect(recorded).toBe("s-new");
+  });
+});

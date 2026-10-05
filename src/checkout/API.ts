@@ -42,6 +42,9 @@ import { toFormData, toQueryString } from "./utils/url";
 import { loadPayPalSdk } from "./utils/payPal";
 import { Session } from "./session/Session";
 
+/** A response that arrived after its session changed. Dropped, never reported. */
+class StaleSessionResponse extends Error {}
+
 export type { MutableAPIJson } from "./utils/json";
 export { cloneApiJson, toMutable };
 export type {
@@ -639,7 +642,21 @@ export class API extends EventTarget {
   }
 
   setStoreDomain(storeDomain: string): void {
+    const previous = this.#baseUrl;
     this.#baseUrl = resolveBaseUrlFromStoreDomain(storeDomain);
+
+    // Another store: the session and the cart belong to the old one. A load
+    // still in flight is stale now, so this does not wait for it.
+    if (
+      previous !== null &&
+      new URL(previous).origin !== new URL(this.#baseUrl).origin &&
+      this.session.storeChanged()
+    ) {
+      this.#booted = false;
+      this.#clearJson();
+      this.#scheduleBoot();
+      return;
+    }
 
     if (this.#json !== null || this.#booted || this.#state === "busy") {
       return;
@@ -1707,6 +1724,7 @@ export class API extends EventTarget {
   }
 
   #reportError(error: unknown): void {
+    if (error instanceof StaleSessionResponse) return;
     const normalized = error instanceof Error ? error : new Error(String(error));
     this.addErrorMessage(normalized.message, "network");
     this.#onError?.(normalized);
@@ -1755,6 +1773,7 @@ export class API extends EventTarget {
     form.set("output", "json");
     if (sessionId) form.set("session_id", sessionId);
 
+    const sentWith = this.session.snapshot();
     const response = await fetch(this.resolveUrl(path), {
       method: "POST",
       headers: {
@@ -1771,6 +1790,9 @@ export class API extends EventTarget {
     }
 
     const json = (await response.json()) as APIJson;
+    if (this.session.isStale(sentWith)) {
+      throw new StaleSessionResponse("The session changed while this request ran.");
+    }
     this.session.observe(json.session?.id ?? null);
     return json;
   }
@@ -1779,6 +1801,7 @@ export class API extends EventTarget {
     path: string,
     sessionId: string | null = this.session.id,
   ): Promise<APIJson> {
+    const sentWith = this.session.snapshot();
     const response = await fetch(
       this.resolveUrl(path, {
         output: "json",
@@ -1794,6 +1817,9 @@ export class API extends EventTarget {
     }
 
     const json = (await response.json()) as APIJson;
+    if (this.session.isStale(sentWith)) {
+      throw new StaleSessionResponse("The session changed while this request ran.");
+    }
     this.session.observe(json.session?.id ?? null);
     return json;
   }
