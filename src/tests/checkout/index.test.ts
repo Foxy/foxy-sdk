@@ -44,6 +44,7 @@ describe('Checkout', () => {
   });
 
   it('exports the session types', () => {
+    // The real assertion is the typecheck (`npm run verify`): it fails if a type is not exported.
     const store: SessionStore = { get: () => null, set: () => undefined, remove: () => undefined };
     const cookie: SessionCookieOptions = { sameSite: 'Lax' };
     const name: SessionStorageName = 'cookie';

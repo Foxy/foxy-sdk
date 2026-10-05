@@ -164,7 +164,8 @@ function onClick(event: MouseEvent): void {
   }
 
   if (url.searchParams.get("empty") === "reset") {
-    void client.session.end();
+    // end() without reset fails only if the transport throws: nothing to report.
+    void client.session.end().catch(() => undefined);
     // A new tab cannot wait for a new session (see `swapHref`): it resets on
     // the server, as today.
     if (newTab) return;
@@ -277,7 +278,8 @@ function onSubmit(event: SubmitEvent): void {
   }
 
   if (search.get("empty") === "reset") {
-    void client.session.end();
+    // end() without reset fails only if the transport throws: nothing to report.
+    void client.session.end().catch(() => undefined);
     if (newTab) return;
     // Same as a link: get the new session first. `onFormData` then adds it
     // and removes `empty`, so the server does not reset again.

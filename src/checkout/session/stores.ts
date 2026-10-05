@@ -26,6 +26,8 @@ const COOKIE_NAME = /^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/;
 
 const STORAGE_NAMES: readonly string[] = ["local", "session", "cookie", "memory"];
 
+const SAME_SITE: readonly string[] = ["Strict", "Lax", "None"];
+
 export function isSessionId(value: unknown): value is string {
   return typeof value === "string" && SESSION_ID.test(value);
 }
@@ -61,6 +63,16 @@ export function checkStoreOptions(
     if (value !== undefined && /[;\s]/.test(value)) {
       throw new TypeError(`"${value}" cannot be a cookie attribute.`);
     }
+  }
+
+  if (cookie.path === "") throw new TypeError("A cookie path cannot be empty.");
+
+  if (cookie.sameSite !== undefined && !SAME_SITE.includes(cookie.sameSite)) {
+    throw new TypeError('sameSite must be "Strict", "Lax" or "None".');
+  }
+
+  if (cookie.maxAge !== undefined && !Number.isInteger(cookie.maxAge)) {
+    throw new TypeError("maxAge must be a whole number of seconds.");
   }
 
   if (cookie.sameSite === "None" && location.protocol !== "https:") {

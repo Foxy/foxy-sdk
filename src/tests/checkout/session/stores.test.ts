@@ -69,6 +69,23 @@ describe("checkStoreOptions", () => {
     expect(() => checkStoreOptions("cookie", "fc_sid", { sameSite: "None" })).toThrow(TypeError);
   });
 
+  it("rejects a sameSite that is not Strict, Lax or None", () => {
+    expect(() => checkStoreOptions("cookie", "fc_sid", { sameSite: "Lax; Domain=x" as never })).toThrow(
+      TypeError,
+    );
+  });
+
+  it("rejects a maxAge that is not a finite integer", () => {
+    for (const maxAge of [Number.NaN, Number.POSITIVE_INFINITY, 1.5]) {
+      expect(() => checkStoreOptions("cookie", "fc_sid", { maxAge })).toThrow(TypeError);
+    }
+    expect(() => checkStoreOptions("cookie", "fc_sid", { maxAge: 2592000 })).not.toThrow();
+  });
+
+  it("rejects an empty cookie path", () => {
+    expect(() => checkStoreOptions("cookie", "fc_sid", { path: "" })).toThrow(TypeError);
+  });
+
   it("accepts any key for non-cookie storage", () => {
     expect(() => checkStoreOptions("local", "any key: at all")).not.toThrow();
   });

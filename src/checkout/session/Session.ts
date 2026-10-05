@@ -193,6 +193,8 @@ export class Session {
       // A start() queued before this one must not be joined after it.
       this.#pendingStart = null;
       return this.#enqueue(async () => {
+        // Throws when no store can be found (no store domain yet), before anything changes.
+        this.#currentStore();
         this.#epoch++;
         this.#managed = true;
         this.#id = id;
@@ -291,7 +293,8 @@ export class Session {
     const origin = this.#host.storeOrigin();
     const resolvedKey = key ?? (origin === null ? null : defaultSessionKey(origin));
     if (resolvedKey === null) {
-      throw new Error("Set the store domain before using the session.");
+      // The same words as every other request made before the domain is set.
+      throw new Error("This API instance is inactive until storeDomain is set.");
     }
 
     return (this.#store = createStore(storage, resolvedKey, cookie));

@@ -302,6 +302,8 @@ describe("client.session.start", () => {
   it("rejects before a store domain is set, and stores nothing", async () => {
     const onError = vi.fn();
     const api = new API({ onError });
+    const transport = fakeTransport();
+    api.setSideCartTransport(transport);
 
     await expect(api.session.start("s-1")).rejects.toThrow(
       "This API instance is inactive until storeDomain is set.",
@@ -309,6 +311,8 @@ describe("client.session.start", () => {
 
     expect(localStorage.length).toBe(0);
     expect(fetch).not.toHaveBeenCalled();
+    expect(api.session.id).toBeNull();
+    expect(transport.sessionChanged).not.toHaveBeenCalled();
   });
 });
 
@@ -328,6 +332,16 @@ describe("client.session.end", () => {
     expect(api.json).toBeNull();
     expect(localStorage.getItem(KEY)).toBeNull();
     expect(transport.sessionChanged).toHaveBeenCalledWith(null);
+  });
+
+  it("works with a sidecart transport that does not implement sessionChanged", async () => {
+    localStorage.setItem(KEY, "s-1");
+    vi.mocked(fetch).mockImplementation(async () => respond(cart("s-1")));
+    const api = await boot();
+    api.setSideCartTransport({ invoke: vi.fn().mockResolvedValue(undefined), show: vi.fn() });
+
+    await expect(api.session.end()).resolves.toBeUndefined();
+    expect(api.session.id).toBeNull();
   });
 
   it("with reset, resets on the server and never stores the reset response's ID", async () => {

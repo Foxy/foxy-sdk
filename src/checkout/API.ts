@@ -65,7 +65,7 @@ export type SideCartTransport = {
   /** Opens the drawer. `checkout/add-to-cart` calls it after `addItem`. */
   show(): void;
   /** `client.session` changed: reload with the new ID, or unmount for null. */
-  sessionChanged(sessionId: string | null): void;
+  sessionChanged?(sessionId: string | null): void;
 };
 
 /**
@@ -476,7 +476,7 @@ export class API extends EventTarget {
     },
     clear: () => this.#clearJson(),
     onError: (error) => this.#onError?.(error),
-    changed: (sessionId) => this.#sideCartTransport?.sessionChanged(sessionId),
+    changed: (sessionId) => this.#sideCartTransport?.sessionChanged?.(sessionId),
   });
 
   static canMakeApplePayPayments(): boolean {
@@ -666,7 +666,7 @@ export class API extends EventTarget {
       this.#clearJson();
       // Before `#baseUrl` moves: the sidecart clears the cached count of the
       // store it is leaving, not the one it is about to read.
-      this.#sideCartTransport?.sessionChanged(null);
+      this.#sideCartTransport?.sessionChanged?.(null);
       this.#baseUrl = next;
       this.#scheduleBoot();
       return;
