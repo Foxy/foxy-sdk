@@ -1,7 +1,6 @@
 // src/checkout/add-to-cart.ts
 import { client } from "./client";
-import { clearSession, ensureSession, getSession } from "./add-to-cart/session";
-import { resolveHostStoreOrigin } from "./side-cart/origin";
+import { adoptScriptStore, resolveHostStoreOrigin } from "./side-cart/origin";
 
 /** `detail` of the cancelable, bubbling `foxy:add-to-cart` event. */
 export type AddToCartDetail = {
@@ -11,6 +10,29 @@ export type AddToCartDetail = {
 };
 
 const SESSION_PARAM = "session_id";
+
+/**
+ * How long a click waits for a session before it goes ahead without one.
+ * The visitor then gets a fresh session -- today's behaviour -- instead of a
+ * click that seems to do nothing.
+ */
+const ENSURE_SESSION_TIMEOUT_MS = 3000;
+
+/**
+ * The client's session, or a new one. Resolves `null` on any failure or
+ * after `ENSURE_SESSION_TIMEOUT_MS`, and never rejects: add-to-cart must
+ * never be blocked by this. A request still running at the timeout is not
+ * cancelled; if it lands, later clicks use its session.
+ *
+ * Needs CORS on `/cart` for the merchant's origin. Until the configurable
+ * allowed origins work lands, the request fails and this resolves `null`.
+ */
+function ensureSession(): Promise<string | null> {
+  const timeout = new Promise<null>((resolve) =>
+    setTimeout(() => resolve(null), ENSURE_SESSION_TIMEOUT_MS),
+  );
+  return Promise.race([client.session.ensure().catch(() => null), timeout]);
+}
 
 /**
  * The `SubmitEvent` this module let through with a cached session -- the
@@ -117,7 +139,7 @@ function onClick(event: MouseEvent): void {
   if (!url) return;
 
   const params = [...url.searchParams];
-  const sessionId = getSession(origin);
+  const sessionId = client.session.id;
 
   if (!announce(link, { url, params, sessionId })) {
     event.preventDefault();
@@ -139,7 +161,7 @@ function onClick(event: MouseEvent): void {
   }
 
   if (url.searchParams.get("empty") === "reset") {
-    clearSession(origin);
+    void client.session.end();
     // A new tab cannot wait for a new session (see `swapHref`): it resets on
     // the server, as today.
     if (newTab) return;
@@ -148,7 +170,7 @@ function onClick(event: MouseEvent): void {
     // the item lands in and later clicks add to it. `empty` goes: the server
     // would reset again. With no session to be had, send the link as it is.
     event.preventDefault();
-    void ensureSession(origin).then((id) => {
+    void ensureSession().then((id) => {
       if (!id) return location.assign(url.href);
       const next = new URL(url);
       next.searchParams.delete("empty");
@@ -171,7 +193,7 @@ function onClick(event: MouseEvent): void {
     return;
   }
 
-  void ensureSession(origin).then((id) => {
+  void ensureSession().then((id) => {
     location.assign(id ? withSession(url, id) : url.href);
   });
 }
@@ -229,7 +251,7 @@ function onSubmit(event: SubmitEvent): void {
 
   const params = pairsOf(form, submitter, url);
   const search = new URLSearchParams(params);
-  const sessionId = getSession(origin);
+  const sessionId = client.session.id;
 
   if (!announce(form, { url, params, sessionId })) {
     event.preventDefault();
@@ -252,12 +274,12 @@ function onSubmit(event: SubmitEvent): void {
   }
 
   if (search.get("empty") === "reset") {
-    clearSession(origin);
+    void client.session.end();
     if (newTab) return;
     // Same as a link: get the new session first. `onFormData` then adds it
     // and removes `empty`, so the server does not reset again.
     event.preventDefault();
-    void ensureSession(origin).then(() => resubmit(form, submitter));
+    void ensureSession().then(() => resubmit(form, submitter));
     return;
   }
 
@@ -270,7 +292,7 @@ function onSubmit(event: SubmitEvent): void {
   }
 
   event.preventDefault();
-  void ensureSession(origin).then(() => resubmit(form, submitter));
+  void ensureSession().then(() => resubmit(form, submitter));
 }
 
 function resubmit(form: HTMLFormElement, submitter: HTMLElement | null): void {
@@ -304,7 +326,7 @@ function onFormData(event: Event): void {
   const origin = storeOrigin();
   if (origin === null) return;
 
-  const sessionId = getSession(origin);
+  const sessionId = client.session.id;
   const { formData } = event as FormDataEvent;
 
   if (!sessionId || formData.has(SESSION_PARAM)) return;
@@ -328,6 +350,7 @@ document.addEventListener("click", onClick);
 document.addEventListener("auxclick", onClick);
 document.addEventListener("submit", onSubmit);
 document.addEventListener("formdata", onFormData, true);
+adoptScriptStore(import.meta.url);
 
 /** Removes the listeners. Tests need it; a merchant page never does. */
 export function uninstallAddToCart(): void {
