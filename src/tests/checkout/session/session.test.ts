@@ -6,6 +6,11 @@ import { API } from "../../../checkout/API";
 import type { SessionStore } from "../../../checkout/session/stores";
 import { createApiJson } from "../fixtures/apiJson";
 
+// A PayPal gateway makes `hydrateJson` wait for a script load, which never ends here.
+vi.mock("@paypal/paypal-js/sdk-v6", () => ({
+  loadCoreSdkScript: vi.fn(() => new Promise(() => undefined)),
+}));
+
 const KEY = "foxy.session.store.test";
 
 function cart(sessionId: string | null): APIJson {
@@ -173,6 +178,23 @@ describe("client.session on a hydrated client", () => {
     expect(store.get).not.toHaveBeenCalled();
     expect(store.set).not.toHaveBeenCalled();
     expect(localStorage.length).toBe(0);
+  });
+
+  it("never runs the first load while hydrateJson is still resolving", async () => {
+    const api = new API({});
+    api.setStoreDomain("store.test");
+    const hosted: APIJson = {
+      ...cart("s-hosted"),
+      payment_gateways: [{ type: "paypal_platform", client_id: "paypal-client-id" }],
+    };
+
+    void api.hydrateJson(hosted);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(fetch).not.toHaveBeenCalled();
+    expect(localStorage.length).toBe(0);
+    expect(api.session.id).toBe("s-hosted");
   });
 });
 

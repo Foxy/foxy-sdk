@@ -445,6 +445,8 @@ export class API extends EventTarget {
   #bootScheduled = false;
   /** The first load has started. It runs once per instance. */
   #booted = false;
+  /** The json came from the page (`initialJson` or `hydrateJson`), so the first load must not run. */
+  #hydrated = false;
   /** The cart session: where its ID is stored, and how to start or end it. */
   readonly session: Session = new Session({
     storeOrigin: () => (this.#baseUrl ? new URL(this.#baseUrl).origin : null),
@@ -519,6 +521,7 @@ export class API extends EventTarget {
       this.#paypal = null;
       this.#square = null;
       this.#state = initialState ?? "idle";
+      this.#hydrated = true;
       this.session.observe(initialJson.session?.id ?? null);
       void this.replaceJson(initialJson);
     } else {
@@ -606,6 +609,7 @@ export class API extends EventTarget {
     nextJson: APIJson,
     options?: HydrateJsonOptions,
   ): Promise<void> {
+    this.#hydrated = true;
     this.session.observe(nextJson.session?.id ?? null);
     const resolutionVersion = ++this.#jsonResolutionVersion;
     const nextState = options?.state ?? "idle";
@@ -655,7 +659,7 @@ export class API extends EventTarget {
 
     setTimeout(() => {
       this.#bootScheduled = false;
-      if (this.#booted || this.#json !== null || !this.#baseUrl) return;
+      if (this.#booted || this.#hydrated || this.#json !== null || !this.#baseUrl) return;
       this.#booted = true;
 
       void this.session.boot().catch((error: unknown) => this.#reportError(error));
