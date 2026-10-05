@@ -214,3 +214,157 @@ describe("client.session.configure", () => {
     expect(localStorage.length).toBe(0);
   });
 });
+
+function fakeTransport() {
+  return { invoke: vi.fn().mockResolvedValue(undefined), show: vi.fn(), sessionChanged: vi.fn() };
+}
+
+describe("client.session.start", () => {
+  it("rejects an invalid ID and changes nothing", async () => {
+    const api = await boot((a) => a.session.configure({ autoStart: false }));
+
+    await expect(api.session.start("a;b")).rejects.toThrow(TypeError);
+
+    expect(fetch).not.toHaveBeenCalled();
+    expect(api.session.id).toBeNull();
+  });
+
+  it("adopts an ID: stores it, tells the sidecart, loads the cart", async () => {
+    const api = await boot((a) => a.session.configure({ autoStart: false }));
+    const transport = fakeTransport();
+    api.setSideCartTransport(transport);
+    vi.mocked(fetch).mockImplementation(async () => respond(cart("s-mine")));
+
+    await api.session.start("s-mine");
+
+    expect(localStorage.getItem(KEY)).toBe("s-mine");
+    expect(transport.sessionChanged).toHaveBeenCalledWith("s-mine");
+    expect(sessionIdOf(0)).toBe("s-mine");
+    expect(api.json?.session?.id).toBe("s-mine");
+  });
+
+  it("keeps an adopted ID stored when its cart load fails", async () => {
+    const api = await boot((a) => a.session.configure({ autoStart: false }));
+
+    await expect(api.session.start("s-mine")).rejects.toThrow();
+
+    expect(api.session.id).toBe("s-mine");
+    expect(localStorage.getItem(KEY)).toBe("s-mine");
+  });
+
+  it("creates a new session and replaces the old one", async () => {
+    localStorage.setItem(KEY, "s-old");
+    vi.mocked(fetch).mockImplementation(async () => respond(cart("s-old")));
+    const api = await boot();
+    vi.mocked(fetch).mockClear().mockImplementation(async () => respond(cart("s-new")));
+
+    await api.session.start();
+
+    expect(sessionIdOf(0)).toBeNull();
+    expect(api.session.id).toBe("s-new");
+    expect(localStorage.getItem(KEY)).toBe("s-new");
+  });
+
+  it("keeps the old session when a new one cannot be created", async () => {
+    localStorage.setItem(KEY, "s-old");
+    vi.mocked(fetch).mockImplementation(async () => respond(cart("s-old")));
+    const api = await boot();
+    vi.mocked(fetch).mockRejectedValue(new TypeError("offline"));
+
+    await expect(api.session.start()).rejects.toThrow("offline");
+
+    expect(api.session.id).toBe("s-old");
+    expect(localStorage.getItem(KEY)).toBe("s-old");
+  });
+
+  it("sends one request for two quick calls", async () => {
+    const api = await boot((a) => a.session.configure({ autoStart: false }));
+    vi.mocked(fetch).mockImplementation(async () => respond(cart("s-new")));
+
+    await Promise.all([api.session.start(), api.session.start()]);
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects before a store domain is set, and stores nothing", async () => {
+    const onError = vi.fn();
+    const api = new API({ onError });
+
+    await expect(api.session.start("s-1")).rejects.toThrow(
+      "This API instance is inactive until storeDomain is set.",
+    );
+
+    expect(localStorage.length).toBe(0);
+    expect(fetch).not.toHaveBeenCalled();
+  });
+});
+
+describe("client.session.end", () => {
+  it("forgets the session locally", async () => {
+    localStorage.setItem(KEY, "s-1");
+    vi.mocked(fetch).mockImplementation(async () => respond(cart("s-1")));
+    const api = await boot();
+    const transport = fakeTransport();
+    api.setSideCartTransport(transport);
+    vi.mocked(fetch).mockClear();
+
+    await api.session.end();
+
+    expect(fetch).not.toHaveBeenCalled();
+    expect(api.session.id).toBeNull();
+    expect(api.json).toBeNull();
+    expect(localStorage.getItem(KEY)).toBeNull();
+    expect(transport.sessionChanged).toHaveBeenCalledWith(null);
+  });
+
+  it("with reset, resets on the server and never stores the reset response's ID", async () => {
+    const store = spyStore("s-1");
+    vi.mocked(fetch).mockImplementation(async () => respond(cart("s-1")));
+    const api = await boot((a) => a.session.configure({ storage: store }));
+    vi.mocked(fetch).mockClear().mockImplementation(async () => respond(cart("s-after-reset")));
+
+    await api.session.end({ reset: true });
+
+    const [, init] = vi.mocked(fetch).mock.calls[0];
+    const body = new URLSearchParams(String(init?.body));
+    expect(body.get("empty")).toBe("reset");
+    expect(body.get("session_id")).toBe("s-1");
+    expect(store.set).not.toHaveBeenCalledWith("s-after-reset");
+    expect(store.value).toBeNull();
+    expect(api.session.id).toBeNull();
+  });
+
+  it("with reset, keeps the session when the reset fails", async () => {
+    localStorage.setItem(KEY, "s-1");
+    vi.mocked(fetch).mockImplementation(async () => respond(cart("s-1")));
+    const api = await boot();
+    vi.mocked(fetch).mockRejectedValue(new TypeError("offline"));
+
+    await expect(api.session.end({ reset: true })).rejects.toThrow("offline");
+
+    expect(api.session.id).toBe("s-1");
+    expect(localStorage.getItem(KEY)).toBe("s-1");
+  });
+});
+
+describe("client.session.ensure", () => {
+  it("waits for a first load still in flight instead of making a second session", async () => {
+    vi.mocked(fetch).mockImplementation(
+      () => new Promise((resolve) => setTimeout(() => resolve(respond(cart("s-boot"))), 5)),
+    );
+    const api = new API({});
+    api.setStoreDomain("store.test");
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    await expect(api.session.ensure()).resolves.toBe("s-boot");
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("creates a session when there is none", async () => {
+    const api = await boot((a) => a.session.configure({ autoStart: false }));
+    vi.mocked(fetch).mockImplementation(async () => respond(cart("s-new")));
+
+    await expect(api.session.ensure()).resolves.toBe("s-new");
+  });
+});

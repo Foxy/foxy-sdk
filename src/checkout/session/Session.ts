@@ -60,6 +60,7 @@ export class Session {
   /** Set during `end({ reset: true })`: the reset response carries a new ID nobody asked for. */
   #ending = false;
   #queue: Promise<unknown> = Promise.resolve();
+  #pendingStart: Promise<void> | null = null;
 
   constructor(host: SessionHost) {
     this.#host = host;
@@ -103,6 +104,81 @@ export class Session {
 
     this.#id = id;
     if (this.#managed) void this.#write(id);
+  }
+
+  /**
+   * With an `id`: adopts it. The ID is stored first, because the merchant
+   * owns it, so it stays stored even if its cart then fails to load.
+   *
+   * Without: creates a new, empty session. The old ID is replaced only once
+   * the new session exists. The old cart is not reset on the server.
+   */
+  start(id?: string): Promise<void> {
+    if (id !== undefined) {
+      if (!isSessionId(id)) {
+        return Promise.reject(new TypeError("start() needs a valid session ID."));
+      }
+
+      return this.#enqueue(async () => {
+        this.#managed = true;
+        this.#id = id;
+        await this.#write(id);
+        this.#host.changed(id);
+        await this.#host.load(id);
+      });
+    }
+
+    // Two quick calls (a double click) must not make two sessions.
+    this.#pendingStart ??= this.#enqueue(async () => {
+      this.#managed = true;
+      // The response's ID reaches `observe`, which stores it.
+      await this.#host.load(null);
+      this.#host.changed(this.#id);
+    }).finally(() => {
+      this.#pendingStart = null;
+    });
+
+    return this.#pendingStart;
+  }
+
+  /**
+   * Forgets the session locally: the store, `client.json`, and a mounted
+   * sidecart. With `reset`, first resets the cart on the server; if that
+   * fails, nothing changes, so the merchant can retry.
+   */
+  end(options: { reset?: boolean } = {}): Promise<void> {
+    return this.#enqueue(async () => {
+      this.#managed = true;
+
+      if (options.reset && this.#id !== null) {
+        this.#ending = true;
+        try {
+          await this.#host.reset();
+        } finally {
+          this.#ending = false;
+        }
+      }
+
+      this.#id = null;
+      await this.#remove();
+      this.#host.clear();
+      this.#host.changed(null);
+    });
+  }
+
+  /**
+   * @internal For SDK modules: the current session, or a new one. Queued, so
+   * it sees a first load or a `start()` still in flight.
+   */
+  ensure(): Promise<string | null> {
+    return this.#enqueue(async () => {
+      if (this.#id === null) {
+        this.#managed = true;
+        await this.#host.load(null);
+      }
+
+      return this.#id;
+    });
   }
 
   #enqueue<T>(action: () => Promise<T>): Promise<T> {
