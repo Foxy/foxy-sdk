@@ -134,18 +134,21 @@ describe("client.session boot", () => {
   });
 
   it("ignores an invalid stored value without deleting it", async () => {
-    localStorage.setItem(KEY, "a;b");
+    const store: SessionStore = { get: () => 42 as never, set: vi.fn(), remove: vi.fn() };
     vi.mocked(fetch).mockImplementation(async () => respond(cart("s-new")));
     const onError = vi.fn();
 
-    await boot(undefined, onError);
+    await boot((a) => a.session.configure({ storage: store }), onError);
 
     expect(sessionIdOf(0)).toBeNull();
-    expect(onError).toHaveBeenCalled();
+    expect(store.remove).not.toHaveBeenCalled();
+    expect(onError).toHaveBeenCalledWith(
+      expect.objectContaining({ message: "Ignored an invalid session ID from the session store." }),
+    );
   });
 
   it("does not store an invalid ID from the server", async () => {
-    vi.mocked(fetch).mockImplementation(async () => respond(cart("a;b")));
+    vi.mocked(fetch).mockImplementation(async () => respond(cart("")));
     const onError = vi.fn();
 
     const api = await boot(undefined, onError);
@@ -180,10 +183,9 @@ describe("client.session on a hydrated client", () => {
     expect(localStorage.length).toBe(0);
   });
 
-  it("sends the json's session ID even when it fails the session ID check", async () => {
-    // The ID check is provisional. A hosted page must not stop sending the
-    // server's own ID because of it.
-    const api = new API({ initialJson: cart("abc,def123"), storeDomain: "store.test", onError: vi.fn() });
+  it("takes the json's session ID whatever its characters, and reports nothing", async () => {
+    const onError = vi.fn();
+    const api = new API({ initialJson: cart("abc,def123"), storeDomain: "store.test", onError });
     await new Promise((resolve) => setTimeout(resolve, 0));
     vi.mocked(fetch).mockImplementation(async () => respond(cart("abc,def123")));
 
@@ -191,6 +193,8 @@ describe("client.session on a hydrated client", () => {
     await vi.waitFor(() => expect(fetch).toHaveBeenCalled());
 
     expect(sessionIdOf(0)).toBe("abc,def123");
+    expect(api.session.id).toBe("abc,def123");
+    expect(onError).not.toHaveBeenCalled();
   });
 
   it("never runs the first load while hydrateJson is still resolving", async () => {
@@ -236,7 +240,7 @@ describe("client.session.start", () => {
   it("rejects an invalid ID and changes nothing", async () => {
     const api = await boot((a) => a.session.configure({ autoStart: false }));
 
-    await expect(api.session.start("a;b")).rejects.toThrow(TypeError);
+    await expect(api.session.start("")).rejects.toThrow(TypeError);
 
     expect(fetch).not.toHaveBeenCalled();
     expect(api.session.id).toBeNull();
@@ -796,7 +800,7 @@ describe("store and frame failures", () => {
     const onError = vi.fn();
     const api = await boot(undefined, onError);
 
-    api.reportSideCartSession("a;b"); // what a frame `ready` or `state` does
+    api.reportSideCartSession(""); // what a frame `ready` or `state` does
 
     expect(onError).toHaveBeenCalledWith(
       expect.objectContaining({ message: "Ignored an invalid session ID." }),

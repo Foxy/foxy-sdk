@@ -26,14 +26,14 @@ afterEach(() => {
 });
 
 describe("isSessionId", () => {
-  it("accepts IDs of the allowed characters, including a realistic server ID", () => {
-    expect(isSessionId("abc_DEF-123")).toBe(true);
-    expect(isSessionId("k3j4h5g6f7d8s9a0p1o2i3u4y5")).toBe(true);
-    expect(isSessionId("a".repeat(128))).toBe(true);
+  it("accepts any non-empty string: the server owns the format, and every use encodes it", () => {
+    for (const value of ["abc_DEF-123", "k3j4h5g6f7d8s9a0p1o2i3u4y5", "abc,def123", "a b", "a;b", "a=b", "é", "a".repeat(1000)]) {
+      expect(isSessionId(value)).toBe(true);
+    }
   });
 
-  it("rejects empty, too long, unsafe and non-string values", () => {
-    for (const value of ["", "a".repeat(129), "a b", "a;b", "a=b", "é", 42, null, undefined]) {
+  it("rejects an empty string and non-strings", () => {
+    for (const value of ["", 42, null, undefined, {}]) {
       expect(isSessionId(value)).toBe(false);
     }
   });
