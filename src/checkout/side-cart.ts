@@ -385,9 +385,22 @@ class SideCart extends EventTarget {
 
   /** `client.session` changed under a mounted frame: show the new cart, or none. */
   sessionChanged(sessionId: string | null): void {
-    if (!this.#frame) return;
-    if (sessionId === null) this.unmount();
-    else this.reload();
+    if (sessionId !== null) {
+      if (this.#frame) this.reload();
+      return;
+    }
+
+    // No session means no cart: drop the ended session's cached count, frame
+    // or not, so the badge does not keep showing it.
+    const origin = this.#tryOrigin();
+    if (origin !== null) writeCachedState(origin, { sessionId: null, itemCount: 0 });
+
+    // `unmount()` resets the announced baseline silently. Put it back so the
+    // badge is told the count changed.
+    const announced = this.#lastAnnouncedCount;
+    this.unmount();
+    this.#lastAnnouncedCount = announced;
+    this.#announceIfCountChanged();
   }
 
   /** Called by `client` through the transport hook. */

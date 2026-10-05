@@ -646,21 +646,26 @@ export class API extends EventTarget {
 
   setStoreDomain(storeDomain: string): void {
     const previous = this.#baseUrl;
-    this.#baseUrl = resolveBaseUrlFromStoreDomain(storeDomain);
+    const next = resolveBaseUrlFromStoreDomain(storeDomain);
 
     // Another store: the session and the cart belong to the old one. A load
     // still in flight is stale now, so this does not wait for it.
     if (
       previous !== null &&
-      new URL(previous).origin !== new URL(this.#baseUrl).origin &&
+      new URL(previous).origin !== new URL(next).origin &&
       this.session.storeChanged()
     ) {
       this.#booted = false;
       this.#clearJson();
+      // Before `#baseUrl` moves: the sidecart clears the cached count of the
+      // store it is leaving, not the one it is about to read.
       this.#sideCartTransport?.sessionChanged(null);
+      this.#baseUrl = next;
       this.#scheduleBoot();
       return;
     }
+
+    this.#baseUrl = next;
 
     if (this.#json !== null || this.#booted || this.#state === "busy") {
       return;

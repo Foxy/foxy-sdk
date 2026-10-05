@@ -582,12 +582,42 @@ describe("checkout/side-cart", () => {
   });
 
   it("unmounts a mounted frame when the session ends", async () => {
+    // Cached before the sidecart loads, so 4 is the count it last announced.
+    localStorage.setItem(
+      `foxy.side-cart.${STORE_ORIGIN}`,
+      JSON.stringify({ sessionId: "s1", itemCount: 4 }),
+    );
     const { client, sideCart } = await loadSideCart();
+    await seedSession("s1");
     sideCart.mount();
+    const onChange = vi.fn();
+    sideCart.addEventListener("itemcountchange", onChange);
+    expect(sideCart.itemCount).toBe(4);
 
     await client.session.end();
 
     expect(frame()).toBeNull();
+    expect(sideCart.itemCount).toBe(0);
+    expect(onChange).toHaveBeenCalledTimes(1);
+  });
+
+  it("clears the cached count when the session ends with no frame mounted", async () => {
+    // Cached before the sidecart loads, so 4 is the count it last announced.
+    localStorage.setItem(
+      `foxy.side-cart.${STORE_ORIGIN}`,
+      JSON.stringify({ sessionId: "s1", itemCount: 4 }),
+    );
+    const { client, sideCart } = await loadSideCart();
+    await seedSession("s1");
+    const onChange = vi.fn();
+    sideCart.addEventListener("itemcountchange", onChange);
+    expect(sideCart.itemCount).toBe(4);
+
+    await client.session.end();
+
+    expect(frame()).toBeNull();
+    expect(sideCart.itemCount).toBe(0);
+    expect(onChange).toHaveBeenCalledTimes(1);
   });
 
   it("unmounts a mounted frame when the session moves to another store", async () => {
