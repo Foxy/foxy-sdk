@@ -1669,17 +1669,22 @@ export class API extends EventTarget {
       return;
     }
 
+    // The backend stores new_customer_password, but keeps the customer a guest
+    // (is_anonymous=1) unless create_account comes with it.
+    const account = extra?.newAccountPassword
+      ? { new_customer_password: extra.newAccountPassword, create_account: 1 }
+      : {};
     const payload =
       paymentMethod && typeof paymentMethod === "object"
         ? ({
             ...paymentMethod,
             action: "submit",
-            new_customer_password: extra?.newAccountPassword,
+            ...account,
           } as Record<string, unknown>)
         : {
             action: "submit",
             payment_method: paymentMethod,
-            new_customer_password: extra?.newAccountPassword,
+            ...account,
           };
 
     void this.runMutation(async () => {
