@@ -18,6 +18,8 @@ import type { PaymentMethodSets } from './payment_method_sets';
 import type { ProcessSubscriptionWebhook } from './process_subscription_webhook';
 import type { ReceiptTemplates } from './receipt_templates';
 import type { Reports } from './reports';
+import type { StoreShippingMethods } from './store_shipping_methods';
+import type { StoreTransactionFolders } from './store_transaction_folders';
 import type { StoreVersion } from './store_version';
 import type { SubscriptionSettings } from './subscription_settings';
 import type { Subscriptions } from './subscriptions';
@@ -25,8 +27,9 @@ import type { Taxes } from './taxes';
 import type { TemplateSets } from './template_sets';
 import type { Transactions } from './transactions';
 import type { UserAccesses } from './user_accesses';
+import type { UserInvitations } from './user_invitations';
 import type { Users } from './users';
-import type { StoreShippingMethods } from './store_shipping_methods';
+import type { Webhooks } from './webhooks';
 
 export interface Store extends Graph {
   curie: 'fx:store';
@@ -44,6 +47,8 @@ export interface Store extends Graph {
     'fx:reports': Reports;
     /** List of coupons available in this store. */
     'fx:coupons': Coupons;
+    /** List of webhooks configured for this store. */
+    'fx:webhooks': Webhooks;
     /** List of customers of this store. */
     'fx:customers': Customers;
     /** List of gift cards available in this store. */
@@ -70,6 +75,8 @@ export interface Store extends Graph {
     'fx:email_templates': EmailTemplates;
     /** List of item categories configured in this store. */
     'fx:item_categories': ItemCategories;
+    /** List of user invitations for this store. */
+    'fx:user_invitations': UserInvitations;
     /** List of fraud protection measures enabled on this store. */
     'fx:fraud_protections': FraudProtections;
     /** List of receipt templates for this store. */
@@ -78,6 +85,8 @@ export interface Store extends Graph {
     'fx:checkout_templates': CheckoutTemplates;
     /** List of payment method sets configured for this store. */
     'fx:payment_method_sets': PaymentMethodSets;
+    /** List of transaction folders for this store. */
+    'fx:transaction_folders': StoreTransactionFolders;
     /** Subscription settings for this store. */
     'fx:subscription_settings': SubscriptionSettings;
     /** List of cart include templates available in this store. */
@@ -90,6 +99,18 @@ export interface Store extends Graph {
     'fx:customer_portal_settings': CustomerPortalSettings;
     /** POST here to resend the daily subscription webhook notification for this store. */
     'fx:process_subscription_webhook': ProcessSubscriptionWebhook;
+    /** Add-to-cart URL for the Starter plan with yearly billing. */
+    'fx:activate_store_starter_yearly_url': { curie: 'fx:activate_store_starter_yearly_url' };
+    /** Add-to-cart URL for the Starter plan with monthly billing. */
+    'fx:activate_store_starter_monthly_url': { curie: 'fx:activate_store_starter_monthly_url' };
+    /** Add-to-cart URL for the Growth plan with yearly billing. */
+    'fx:activate_store_growth_yearly_url': { curie: 'fx:activate_store_growth_yearly_url' };
+    /** Add-to-cart URL for the Growth plan with monthly billing. */
+    'fx:activate_store_growth_monthly_url': { curie: 'fx:activate_store_growth_monthly_url' };
+    /** Add-to-cart URL for the Advanced plan with yearly billing. */
+    'fx:activate_store_advanced_yearly_url': { curie: 'fx:activate_store_advanced_yearly_url' };
+    /** Add-to-cart URL for the Advanced plan with monthly billing. */
+    'fx:activate_store_advanced_monthly_url': { curie: 'fx:activate_store_advanced_monthly_url' };
   };
 
   props: {
@@ -115,6 +136,8 @@ export interface Store extends Graph {
     use_email_dns: boolean;
     /** If you'd like to configure your own SMTP server for sending transaction receipt emails, you can do so here. The JSON supports the following fields: `username`,`password`,`host`,`port`,`security`. The security value can be blank, `ssl`, or `tls` */
     smtp_config: string;
+    /** Set to true if you would like to send HTML formatted emails. */
+    send_html_email: boolean;
     /** The postal code of your store. This will be used for calculating shipping costs if you sell shippable items. */
     postal_code: string;
     /** The two character code for states in the United States. Other countries may call this a province. When a two character code isn't available, use the full region name. This will be used for calculating shipping costs if you sell shippable items. */
@@ -167,6 +190,8 @@ export interface Store extends Graph {
     unified_order_entry_password: string;
     /** Instead of displaying the Foxy Transaction ID, you can display your own custom display ID on your store's receipt and receipt emails. This JSON config determines how those display ids will work. The JSON supports the following fields: `enabled`, `start`, `length`, `prefix`, `suffix`. */
     custom_display_id_config: string;
+    /** Per-store data retention settings controlling automatic anonymization of old customer PII. `auto_anonymize` opts in; `auto_anonymize_days` (minimum 90) is the age threshold and is required when `auto_anonymize` is true. Null when unset. */
+    data_retention: { auto_anonymize: boolean; auto_anonymize_days: number | null } | null;
     /** This can only be set during store creation. Contact us if you need this value changed later. */
     affiliate_id: number;
     /** This settings makes your checkout page completely non-functioning. Your customers will see the maintenance notification language string instead. The default is false. */
@@ -181,3 +206,36 @@ export interface Store extends Graph {
     date_modified: string | null;
   };
 }
+
+export type StoreWebhookKeyJson = {
+  cart_signing: string;
+  xml_datafeed: string;
+  api_legacy: string;
+  sso: string;
+};
+
+export type StoreSmtpConfigJson = {
+  username: string;
+  password: string;
+  security: string;
+  host: string;
+  port: string;
+};
+
+export type StoreCustomDisplayIdConfigJson = {
+  enabled: boolean;
+  start: string;
+  length: string;
+  prefix: string;
+  suffix: string;
+  transaction_journal_entries: {
+    enabled: boolean;
+    transaction_separator: string;
+    log_detail_request_types: {
+      transaction_authcapture: { prefix: string };
+      transaction_capture: { prefix: string };
+      transaction_refund: { prefix: string };
+      transaction_void: { prefix: string };
+    };
+  };
+};

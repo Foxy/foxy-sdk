@@ -1,4 +1,5 @@
 import type { Graph } from '../../core';
+import type { ItemOptions } from './item_options';
 
 export interface Item extends Graph {
   curie: 'fx:item';
@@ -61,5 +62,9 @@ export interface Item extends Graph {
     date_created: string | null;
     /** The date this resource was last modified. */
     date_modified: string | null;
+  };
+
+  zooms: {
+    item_options?: ItemOptions;
   };
 }

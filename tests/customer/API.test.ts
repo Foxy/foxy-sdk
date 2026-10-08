@@ -11,6 +11,7 @@ import { Request, Response, fetch } from 'cross-fetch';
 import { API as CoreAPI } from '../../src/core/API';
 import { Credentials, SignUpParams } from '../../src/customer/types';
 import { API as CustomerAPI } from '../../src/customer/API';
+import { exec } from 'child_process';
 
 const fetchMock = (fetch as unknown) as jest.MockInstance<unknown, unknown[]>;
 
@@ -26,6 +27,7 @@ const commonInit = {
 
 const sampleSession = {
   expires_in: 86400,
+  force_password_reset: false,
   jwt: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.NQemf8P8qIf_5lPQNqstWDGnAAfhjO1rGzHNqE8Fwuw',
   session_token: '20crb85zhy2y3hgrhyjthr96c43fgh43fda84klgh34q1fjmna90iubl',
 };
@@ -274,6 +276,55 @@ describe('Customer', () => {
       await expect(api.signUp(params)).rejects.toThrow(new CoreAPI.AuthError({ code: 'UNKNOWN' }));
 
       fetchMock.mockClear();
+    });
+
+    it('returns force_password_reset value in usesTemporaryPassword (false)', async () => {
+      fetchMock.mockImplementation(() => Promise.resolve(new Response(JSON.stringify(sampleSession))));
+
+      const api = new CustomerAPI(commonInit);
+      const credentials = { email: 'test@example.com', password: 'foo' };
+
+      expect(api.usesTemporaryPassword).toBe(false);
+      await api.signIn(credentials);
+      expect(api.usesTemporaryPassword).toBe(false);
+    });
+
+    it('returns force_password_reset value in usesTemporaryPassword (true)', async () => {
+      fetchMock.mockImplementation(() =>
+        Promise.resolve(new Response(JSON.stringify({ ...sampleSession, force_password_reset: true })))
+      );
+
+      const api = new CustomerAPI(commonInit);
+      const credentials = { email: 'test@example.com', password: 'foo' };
+
+      expect(api.usesTemporaryPassword).toBe(false);
+      await api.signIn(credentials);
+      expect(api.usesTemporaryPassword).toBe(true);
+    });
+
+    it('throws an error when usesTemporaryPassword setter is called with invalid value', async () => {
+      // @ts-expect-error testing invalid input
+      expect(() => (new CustomerAPI(commonInit).usesTemporaryPassword = 'foo')).toThrow();
+    });
+
+    it('sets force_password_reset value in usesTemporaryPassword', async () => {
+      fetchMock.mockImplementation(() =>
+        Promise.resolve(new Response(JSON.stringify({ ...sampleSession, force_password_reset: true })))
+      );
+
+      const api = new CustomerAPI(commonInit);
+      const credentials = { email: 'test@example.com', password: 'foo' };
+
+      expect(api.usesTemporaryPassword).toBe(false);
+      await api.signIn(credentials);
+      expect(api.usesTemporaryPassword).toBe(true);
+
+      api.usesTemporaryPassword = false;
+      expect(api.usesTemporaryPassword).toBe(false);
+      expect(JSON.parse(api.storage.getItem(CustomerAPI.SESSION) as string)).toHaveProperty(
+        'force_password_reset',
+        false
+      );
     });
   });
 });

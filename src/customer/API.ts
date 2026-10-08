@@ -34,6 +34,7 @@ export class API extends Core.API<Graph> {
       newPassword: v8n().optional(v8n().string()),
       password: v8n().string(),
     }),
+    boolean: v8n().boolean(),
     email: v8n().string(),
   });
 
@@ -115,6 +116,29 @@ export class API extends Core.API<Graph> {
 
     this.storage.clear();
     this.cache.clear();
+  }
+
+  /**
+   * When logged in with a temporary password, this property getter will return `true`.
+   * Will return `false` if password reset is not required or if the session has not been
+   * initiated, or if the session was initiated before the introduction of this feature.
+   *
+   * @returns {boolean} Password reset requirement.
+   */
+  get usesTemporaryPassword(): boolean {
+    const session = this.storage.getItem(API.SESSION);
+    if (session) return !!(JSON.parse(session) as StoredSession).force_password_reset;
+    return false;
+  }
+
+  set usesTemporaryPassword(value: boolean) {
+    API.v8n.boolean.check(value);
+    const session = this.storage.getItem(API.SESSION);
+    if (session) {
+      const storedSession = JSON.parse(session) as StoredSession;
+      storedSession.force_password_reset = value;
+      this.storage.setItem(API.SESSION, JSON.stringify(storedSession));
+    }
   }
 
   private async __fetch(input: RequestInfo, init?: RequestInit): Promise<Response> {

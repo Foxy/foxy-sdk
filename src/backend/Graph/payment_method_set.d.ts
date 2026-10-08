@@ -1,4 +1,5 @@
 import type { Graph } from '../../core';
+import type { ConnectGateway } from './connect_gateway';
 import type { PaymentGateway } from './payment_gateway';
 import type { PaymentMethodSetFraudProtections } from './payment_method_set_fraud_protections';
 import type { PaymentMethodSetHostedPaymentGateways } from './payment_method_set_hosted_payment_gateways';
@@ -21,6 +22,8 @@ export interface PaymentMethodSet extends Graph {
     'fx:payment_method_set_fraud_protections': PaymentMethodSetFraudProtections;
     /** Payment method set and hosted payment gateways relationships. */
     'fx:payment_method_set_hosted_payment_gateways': PaymentMethodSetHostedPaymentGateways;
+    /** POST here to get a URL that connects a payment gateway to this payment method set. */
+    'fx:connect_gateway': ConnectGateway;
   };
 
   props: {

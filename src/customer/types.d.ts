@@ -110,6 +110,7 @@ export interface SignUpParams {
 }
 
 export interface Session {
+  force_password_reset?: boolean;
   session_token: string;
   expires_in: number;
   jwt: string;

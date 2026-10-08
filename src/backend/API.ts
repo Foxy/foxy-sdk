@@ -119,6 +119,8 @@ export class API extends Core.API<Graph> {
 
   readonly version: BackendAPIVersion;
 
+  private __tokenRefreshPromise: Promise<StoredToken | null> | null;
+
   constructor(params: BackendAPIInit) {
     API.v8n.classConstructor.check(params);
 
@@ -134,48 +136,93 @@ export class API extends Core.API<Graph> {
     this.clientSecret = params.clientSecret;
     this.clientId = params.clientId;
     this.version = params.version ?? API.VERSION;
+
+    this.__tokenRefreshPromise = null;
   }
 
   private async __fetch(input: RequestInfo, init?: RequestInit): Promise<Response> {
-    let token = JSON.parse(this.storage.getItem(API.ACCESS_TOKEN) ?? 'null') as StoredToken | null;
-    const request = new Request(input, init);
+    let request = new Request(input, init);
+    let headers = request.headers;
 
-    if (token !== null) {
+    const fetchNewAccessToken = async (): Promise<StoredToken | null> => {
+      if (this.__tokenRefreshPromise) {
+        this.console.trace('Token refresh already in progress, waiting...');
+        return this.__tokenRefreshPromise;
+      }
+
+      this.__tokenRefreshPromise = (async () => {
+        try {
+          this.console.trace('Fetching a new access token...');
+          const rawToken = await API.getToken(this, true).catch(err => {
+            this.console.error(err.message);
+            return null;
+          });
+
+          if (rawToken) {
+            const token = { ...rawToken, date_created: new Date().toISOString() };
+            this.storage.setItem(API.ACCESS_TOKEN, JSON.stringify(token));
+            this.console.info('Access token updated.');
+            return token;
+          } else {
+            this.console.warn('Failed to fetch access token. Proceeding without authentication.');
+            return null;
+          }
+        } finally {
+          this.__tokenRefreshPromise = null;
+        }
+      })();
+
+      return this.__tokenRefreshPromise;
+    };
+
+    const setHeaders = (accessToken?: string) => {
+      if (!headers.get('Authorization') && accessToken) headers.set('Authorization', `Bearer ${accessToken}`);
+      if (!headers.get('Content-Type')) headers.set('Content-Type', 'application/json');
+      if (!headers.get('FOXY-API-VERSION')) headers.set('FOXY-API-VERSION', this.version);
+    };
+
+    let token = JSON.parse(this.storage.getItem(API.ACCESS_TOKEN) ?? 'null') as StoredToken | null;
+
+    if (token) {
       const expiresAt = new Date(token.date_created).getTime() + token.expires_in * 1000;
       const refreshAt = Date.now() + API.REFRESH_THRESHOLD;
 
       if (expiresAt < refreshAt) {
         this.storage.removeItem(API.ACCESS_TOKEN);
         this.console.info('Removed old access token from the storage.');
-        token = null;
+        token = await fetchNewAccessToken();
       }
+    } else {
+      this.console.trace("Access token isn't present in the storage.");
+      token = await fetchNewAccessToken();
     }
 
-    if (token === null) {
-      this.console.trace("Access token isn't present in the storage. Fetching a new one...");
-
-      const rawToken = await API.getToken(this, true).catch(err => {
-        this.console.error(err.message);
-        return null;
-      });
-
-      if (rawToken) {
-        token = { ...rawToken, date_created: new Date().toISOString() };
-        this.storage.setItem(API.ACCESS_TOKEN, JSON.stringify(token));
-        this.console.info('Access token updated.');
-      } else {
-        this.console.warn('Failed to fetch access token. Proceeding without authentication.');
-      }
-    }
-
-    const headers = request.headers;
+    setHeaders(token?.access_token);
     const method = init?.method?.toUpperCase() ?? 'GET';
-
-    if (!headers.get('Authorization') && token) headers.set('Authorization', `Bearer ${token.access_token}`);
-    if (!headers.get('Content-Type')) headers.set('Content-Type', 'application/json');
-    if (!headers.get('FOXY-API-VERSION')) headers.set('FOXY-API-VERSION', this.version);
-
     this.console.trace(`${method} ${request.url}`);
-    return fetch(request);
+    let response = await fetch(request);
+
+    if (response.status === 401) {
+      const { error } = (await response.clone().json()) as { error: string };
+
+      if (error === 'invalid_token') {
+        this.console.info('Access token is invalid or expired.');
+
+        this.storage.removeItem(API.ACCESS_TOKEN);
+        this.console.info('Removed old access token from the storage.');
+
+        token = await fetchNewAccessToken();
+
+        if (token) {
+          request = new Request(input, init);
+          headers = request.headers;
+          setHeaders(token.access_token);
+          this.console.trace(`Retrying ${method} ${request.url}`);
+          response = await fetch(request);
+        }
+      }
+    }
+
+    return response;
   }
 }

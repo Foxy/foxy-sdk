@@ -12,8 +12,8 @@ export interface Report extends Graph {
   };
 
   props: {
-    /** The type of report generated, indicating the content of the report. `complete` includes transaction details, summaries, coupon usage, subscription forecasts, and more. `customers` is for exporting customers to import elsewhere. `customers_ltv` includes the lifetime value per customer. */
-    name: 'complete' | 'customers' | 'customers_ltv';
+    /** The type of report generated, indicating the content of the report. `complete` includes transaction details, summaries, coupon usage, subscription forecasts, and more. `customers` is for exporting customers to import elsewhere. `customers_ltv` includes the lifetime value per customer. `transactions` includes transaction details only. */
+    name: 'complete' | 'customers' | 'customers_ltv' | 'transactions';
     /** In the event a report changes significantly, a new version of the report may be available. Leave this empty to retrieve the latest version, or pass a 1 to request a specific version. In the future, additional versions of each named report may be available. */
     version: '1';
     /** Current status of the report. Possible values include `queued`, `error`, and `ready`. */

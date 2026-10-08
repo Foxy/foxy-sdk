@@ -40,6 +40,14 @@ export interface PaymentGateway extends Graph {
     test_account_key: string;
     /** Your test payment gateway third party key. To view the specific description of this field for the given payment gateway, see {@link https://api-sandbox.foxycart.com/hal-browser/browser.html#https://api-sandbox.foxycart.com/property_helpers/payment_gateways payment_gateways} property helper `third_party_key_description` field. */
     test_third_party_key: string;
+    /** Live card verification mode if this gateway supports it. */
+    card_verification: 'disabled' | 'enabled_automatically' | 'enabled_override';
+    /** Live configuration for card verification amounts. This is a serialized JSON string that contains the amounts for each card type. Example: `{"verification_amounts": {"visa": 1, "mastercard": 1, "american_express": 1, "discover": 1, "default": 1}}`. */
+    card_verification_config: string;
+    /** Test card verification mode if this gateway supports it. */
+    test_card_verification: 'disabled' | 'enabled_automatically' | 'enabled_override';
+    /** Test configuration for card verification amounts. This is a serialized JSON string that contains the amounts for each card type. Example: `{"verification_amounts": {"visa": 1, "mastercard": 1, "american_express": 1, "discover": 1, "default": 1}}`. */
+    test_card_verification_config: string;
     /** The date this resource was created. */
     date_created: string | null;
     /** The date this resource was last modified. */

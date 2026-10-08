@@ -151,6 +151,16 @@ export class Rumour {
       if (patch.has(exactURI)) {
         const props = patch.get(exactURI);
 
+        // When props ending with `_uri` or `_id` change, it's possible that the embedded content
+        // will change as well, so we throw an error to ask the data host to reload its state.
+        if (props) {
+          for (const key in props) {
+            if (!key.endsWith('_uri') && !key.endsWith('_id')) continue;
+            if ((node as Record<string, unknown>)[key] === props[key]) continue;
+            throw new Rumour.UpdateError();
+          }
+        }
+
         if (props) return this.update({ ...node, ...props }, true);
         if (!(this.parent as traverse.TraverseContext).parent) return this.delete(true);
 
