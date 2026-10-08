@@ -8,6 +8,8 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-24.04
+    outputs:
+      tag: ${{ steps.semantic-release.outputs.tag }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -20,30 +22,32 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Release
+        id: semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npx semantic-release
+        # Expose the tag this run created (empty when nothing was released) so the CDN job uploads the new version.
+        run: |
+          git tag --points-at HEAD | sort > "$RUNNER_TEMP/tags-before"
+          npx semantic-release
+          git tag --points-at HEAD | sort > "$RUNNER_TEMP/tags-after"
+          echo "tag=$(comm -13 "$RUNNER_TEMP/tags-before" "$RUNNER_TEMP/tags-after" | head -n 1)" >> "$GITHUB_OUTPUT"
   upload-to-cdn:
     name: Upload to Foxy CDN
-    runs-on: ubuntu-20.04
+    needs: release
+    if: needs.release.outputs.tag != ''
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ssh-key: ${{ secrets.COMMIT_KEY }}
-          fetch-depth: 0
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
       - name: Install dependencies
         run: npm ci
       - name: Build
         run: npm run prepack
-      - name: Get the latest tag name and set it to the env variable
-        run: |
-          echo "LATEST_TAG_NAME=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
       - name: Upload to s3cdn
         uses: Foxy/foxy-github-action-s3cdn@main
         with:
@@ -53,3 +57,10 @@ jobs:
           AWS_S3_CDN_KEY_ID: ${{ secrets.AWS_S3_CDN_KEY_ID }}
           AWS_S3_CDN_KEY_SECRET: ${{ secrets.AWS_S3_CDN_KEY_SECRET }}
           SOURCE_DIR: 'dist/cdn'
+          LATEST_TAG_NAME: ${{ needs.release.outputs.tag }}
+      - name: Invalidate CloudFront cache
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_S3_CDN_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_S3_CDN_KEY_SECRET }}
+          AWS_DEFAULT_REGION: us-east-1
+        run: aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/sdk*"
