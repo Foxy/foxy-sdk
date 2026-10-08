@@ -453,6 +453,12 @@ export class API extends EventTarget {
   #hydrated = false;
   /** How many actions are running. The state is `busy` while any is. */
   #busyCount = 0;
+  /**
+   * The last POST sent, which the next one waits for. The server applies each
+   * change to the state it last stored, so two in flight at once read the same
+   * state and the second to land writes the first one's change away.
+   */
+  #postTail: Promise<unknown> = Promise.resolve();
   /** The cart session: where its ID is stored, and how to start or end it. */
   readonly session: Session = new Session({
     storeOrigin: () => (this.#baseUrl ? new URL(this.#baseUrl).origin : null),
@@ -1004,7 +1010,8 @@ export class API extends EventTarget {
    * HMAC-signed names (`name||hash`) go to the server untouched: the server
    * validates them, so this does not. `empty=reset` may be one of the pairs --
    * the server resets the session and then adds, in one request, which two
-   * separate mutations could not guarantee (`runMutation` does not queue).
+   * separate mutations could not guarantee (POSTs are queued, but a change sent
+   * between the two could still land in the gap).
    *
    * `session_id` and `output` are set by `postJson` and win over any pair with
    * the same name: the document that runs this owns the session.
@@ -1838,13 +1845,19 @@ export class API extends EventTarget {
     form.set("output", "json");
     if (sessionId) form.set("session_id", sessionId);
 
-    return this.#requestJson(path, this.resolveUrl(path), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-      },
-      body: form,
-    });
+    // Queued after the session waits above, not around them: a queued request
+    // then never waits on the session, so the session reset can queue too.
+    const request = this.#postTail.then(() =>
+      this.#requestJson(path, this.resolveUrl(path), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+        },
+        body: form,
+      }),
+    );
+    this.#postTail = request.catch(() => undefined);
+    return request;
   }
 
   private async getJson(path: string, sessionId: string | null): Promise<APIJson> {

@@ -161,4 +161,59 @@ describe("updateBillingAddress", () => {
     expect(body.has("use_separate_billing_address")).toBe(false);
     expect(body.get("billing_first_name")).toBe("Jane");
   });
+
+  // The server applies each update to the address it last stored. Two in
+  // flight at once read the same address, so the one that lands second writes
+  // the first one's change away (a postal code typed just before a region).
+  it("sends an update only after the previous one has its response", async () => {
+    const json = createApiJson();
+    let releaseFirst!: () => void;
+    const fetchSpy = vi
+      .spyOn(globalThis, "fetch")
+      .mockImplementationOnce(
+        () =>
+          new Promise<Response>((resolve) => {
+            releaseFirst = () => resolve(Response.json(json));
+          }),
+      )
+      .mockResolvedValue(Response.json(json));
+
+    const api = new API({ initialJson: json, storeDomain: "store.test" });
+
+    api.updateBillingAddress({ postal_code: "317" });
+    api.updateBillingAddress({ region: "Capital" });
+
+    await vi.waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(1));
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(api.state).toBe("busy");
+
+    releaseFirst();
+    await vi.waitFor(() => expect(api.state).toBe("idle"));
+
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+    const first = fetchSpy.mock.calls[0][1]?.body as URLSearchParams;
+    const second = fetchSpy.mock.calls[1][1]?.body as URLSearchParams;
+    expect(first.get("billing_postal_code")).toBe("317");
+    expect(second.get("billing_region")).toBe("Capital");
+  });
+
+  it("still sends the next update when the previous one fails", async () => {
+    const json = createApiJson();
+    const onError = vi.fn();
+    const fetchSpy = vi
+      .spyOn(globalThis, "fetch")
+      .mockRejectedValueOnce(new TypeError("Failed to fetch"))
+      .mockResolvedValue(Response.json(json));
+
+    const api = new API({ initialJson: json, storeDomain: "store.test", onError });
+
+    api.updateBillingAddress({ postal_code: "317" });
+    api.updateBillingAddress({ region: "Capital" });
+
+    await vi.waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(2));
+    await vi.waitFor(() => expect(api.state).toBe("idle"));
+    const second = fetchSpy.mock.calls[1][1]?.body as URLSearchParams;
+    expect(second.get("billing_region")).toBe("Capital");
+  });
 });
