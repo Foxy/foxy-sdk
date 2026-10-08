@@ -141,6 +141,7 @@ const savedCardOption = {
   last_4: "1111",
   expiry_year: 2030,
   expiry_month: 1,
+  csc_required: true,
 } as const;
 const klarnaOption = {
   type: "klarna",

@@ -127,6 +127,9 @@ describe("checkOut", () => {
     );
     expect(body.get("gateway")).toBe("purchase_order");
     expect(body.get("action")).toBe("submit");
+    // Without it the backend stores the password but keeps the customer a
+    // guest (is_anonymous=1), so the shopper can never sign in with it.
+    expect(body.get("create_account")).toBe("1");
   });
 
   it("omits new_customer_password from the submit payload when not provided", async () => {
@@ -151,5 +154,6 @@ describe("checkOut", () => {
 
     const body = fetchSpy.mock.calls[0][1]?.body as URLSearchParams;
     expect(body.has("new_customer_password")).toBe(false);
+    expect(body.has("create_account")).toBe(false);
   });
 });
