@@ -15,4 +15,10 @@ export type SavedPaymentMethod = {
   expiry_year: number;
   /** Expiration month from 1 to 12. */
   expiry_month: number;
+  /**
+   * The store wants the card's security code before it is charged. When true,
+   * submit a `card_token` minted in `card_csc` mode for this card alongside
+   * `saved_payment_method_id`; when false, the id alone charges it.
+   */
+  csc_required: boolean;
 };
