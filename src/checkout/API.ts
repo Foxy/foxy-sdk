@@ -45,6 +45,16 @@ import { Session } from "./session/Session";
 /** A response that arrived after its session changed. Dropped, never reported. */
 class StaleSessionResponse extends Error {}
 
+/** A non-OK HTTP response. `status` is what the first-load log reads, so it never parses the message. */
+class RequestError extends Error {
+  constructor(
+    readonly status: number,
+    message: string,
+  ) {
+    super(message);
+  }
+}
+
 export type { MutableAPIJson } from "./utils/json";
 export { cloneApiJson, toMutable };
 export type {
@@ -66,6 +76,8 @@ export type SideCartTransport = {
   show(): void;
   /** `client.session` changed: reload with the new ID, or unmount for null. */
   sessionChanged?(sessionId: string | null): void;
+  /** The client's first cart load failed (not a later mutation), so a UI can show an error state. */
+  loadFailed?(): void;
 };
 
 /**
@@ -695,7 +707,13 @@ export class API extends EventTarget {
         this.#bootTimer = null;
         if (!(this.#booted || this.#hydrated || this.#json !== null || !this.#baseUrl)) {
           this.#booted = true;
-          void this.session.boot().catch((error: unknown) => this.#reportError(error));
+          void this.session.boot().catch((error: unknown) => {
+            if (!(error instanceof StaleSessionResponse)) {
+              this.#logBootFailure(error);
+              this.#sideCartTransport?.loadFailed?.();
+            }
+            this.#reportError(error);
+          });
         }
         resolve();
       }, 0),
@@ -1767,6 +1785,25 @@ export class API extends EventTarget {
     form.submit();
   }
 
+  /** Tells the merchant why the first load failed. `#booted` makes this run once per instance. */
+  #logBootFailure(error: unknown): void {
+    const from = this.#baseUrl ? new URL(this.#baseUrl).origin : "the store";
+    const prefix = `[Foxy] Couldn't load the cart from ${from}:`;
+    if (error instanceof TypeError) {
+      // The browser hides whether it was CORS or the network, so the message names the usual cause.
+      const page = globalThis.location?.origin ?? "this page";
+      console.error(
+        `${prefix} the browser blocked the request or the network failed. The usual cause is CORS: the store accepts cart requests only from its own domain and from the origin of its Website setting, and this page is ${page}. To fix it, set the store's Website (Settings → Website) to ${page}, or serve this page from the Website's origin.${
+          this.#sideCartTransport ? " Until then, the cart count loads only after the shopper opens the cart." : ""
+        }`,
+      );
+    } else if (error instanceof RequestError) {
+      console.error(`${prefix} the store responded ${error.status}.`);
+    } else {
+      console.error(`${prefix} ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
   #reportError(error: unknown): void {
     if (error instanceof StaleSessionResponse) return;
     const normalized = error instanceof Error ? error : new Error(String(error));
@@ -1901,6 +1938,6 @@ export class API extends EventTarget {
   }
 
   private createRequestError(status: number, message: string): Error {
-    return new Error(`${message} HTTP status ${status}.`);
+    return new RequestError(status, `${message} HTTP status ${status}.`);
   }
 }

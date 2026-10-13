@@ -84,8 +84,20 @@ class SideCart extends EventTarget {
     if (event.key === "Escape") this.hide();
   };
 
+  /** Set by a failed first cart load or a missing store domain. Read through `itemCountUnavailable`. */
+  #loadFailed = false;
+
   constructor() {
     super();
+    // Nobody may set a store domain until the page's scripts have run, so the
+    // check waits for `load`.
+    const checkDomain = (): void => {
+      if (this.#tryOrigin() !== null) return;
+      console.warn(`[Foxy] ${NO_STORE_ORIGIN} Until then, the cart count can't load.`);
+      this.loadFailed();
+    };
+    if (document.readyState === "complete") setTimeout(checkDomain, 0);
+    else window.addEventListener("load", checkDomain, { once: true });
     // The client fetches the cart JSON on a merchant page regardless of the
     // sidecart, so its item count is live the moment it resolves. But `client`
     // fires "update" for any json change -- a coupon, an address edit, a
@@ -162,6 +174,24 @@ class SideCart extends EventTarget {
       this.#cachedItemCount() ??
       null
     );
+  }
+
+  /**
+   * `true` when the count could not load (the first cart load failed, or no
+   * store domain was ever set) and no count is known. A count that arrives
+   * later makes it `false` again.
+   */
+  get itemCountUnavailable(): boolean {
+    return this.#loadFailed && this.itemCount === null;
+  }
+
+  /** `SideCartTransport`: the client's first cart load failed. */
+  loadFailed(): void {
+    this.#loadFailed = true;
+    // Dispatched directly: `#announceIfCountChanged` ignores null -> null.
+    if (this.itemCount === null) {
+      this.dispatchEvent(new CustomEvent("itemcountchange", { detail: { corrected: false } }));
+    }
   }
 
   /**

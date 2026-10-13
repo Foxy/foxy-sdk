@@ -892,3 +892,60 @@ describe("cart changes sent before the first load", () => {
     expect(states.slice(0, -1)).not.toContain("idle");
   });
 });
+
+describe("first cart load failure", () => {
+  const transport = () => ({ invoke: vi.fn(), show: vi.fn(), loadFailed: vi.fn() });
+
+  async function bootWith(t: ReturnType<typeof transport>): Promise<void> {
+    const api = new API();
+    api.setSideCartTransport(t);
+    api.setStoreDomain("store.test");
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await vi.waitFor(() => expect(api.state).toBe("idle"));
+  }
+
+  it("logs the CORS cause and tells the sidecart when the request never got a response", async () => {
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const t = transport();
+
+    await bootWith(t);
+
+    expect(t.loadFailed).toHaveBeenCalledTimes(1);
+    expect(error).toHaveBeenCalledTimes(1);
+    const message = String(error.mock.calls[0][0]);
+    expect(message).toContain("https://store.test");
+    expect(message).toContain("CORS");
+    expect(message).toContain(`this page is ${location.origin}`);
+    expect(message).toContain(`to ${location.origin}, or serve`);
+  });
+
+  it("logs the status for an HTTP error", async () => {
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.mocked(fetch).mockImplementation(async () => new Response("{}", { status: 500 }));
+    const t = transport();
+
+    await bootWith(t);
+
+    expect(t.loadFailed).toHaveBeenCalledTimes(1);
+    expect(error).toHaveBeenCalledTimes(1);
+    expect(String(error.mock.calls[0][0])).toContain("the store responded 500.");
+  });
+
+  it("does nothing for a stale session response", async () => {
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const t = transport();
+    const api = new API();
+    api.setSideCartTransport(t);
+    // The session moves on while the first GET /cart is in flight.
+    vi.mocked(fetch).mockImplementation(async () => {
+      api.session.configure({ storage: "session", key: "other" });
+      await api.session.end();
+      return respond(cart("s-late"));
+    });
+    api.setStoreDomain("store.test");
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    if (t.loadFailed.mock.calls.length === 0) expect(error).not.toHaveBeenCalled();
+    expect(t.loadFailed.mock.calls.length).toBe(error.mock.calls.length);
+  });
+});

@@ -47,6 +47,10 @@ async function loadSideCartWithoutStoreDomain() {
   return { client, sideCart: module.sideCart };
 }
 
+function cartJson(quantity: number): APIJson {
+  return { items: [{ quantity }], messages: [], store: { domain: null } } as unknown as APIJson;
+}
+
 function frame(): HTMLIFrameElement | null {
   return document.querySelector("iframe[data-foxy-side-cart]");
 }
@@ -966,5 +970,59 @@ describe("checkout/side-cart", () => {
     sideCart.unmount();
 
     await expect(invoked).rejects.toThrow(/unmounted/);
+  });
+
+  describe("itemCountUnavailable", () => {
+    it("is true after loadFailed() with no count, and announces once", async () => {
+      const { sideCart } = await loadSideCart();
+      const listener = vi.fn();
+      sideCart.addEventListener("itemcountchange", listener);
+
+      sideCart.loadFailed();
+
+      expect(sideCart.itemCountUnavailable).toBe(true);
+      expect(listener).toHaveBeenCalledTimes(1);
+      expect(listener.mock.calls[0][0].detail).toEqual({ corrected: false });
+    });
+
+    it("is false with a known count, and once a count arrives later", async () => {
+      const { client, sideCart } = await loadSideCart();
+      sideCart.loadFailed();
+      expect(sideCart.itemCountUnavailable).toBe(true);
+
+      await client.hydrateJson(cartJson(2));
+
+      expect(sideCart.itemCount).toBe(2);
+      expect(sideCart.itemCountUnavailable).toBe(false);
+
+      const known = await loadSideCart();
+      await known.client.hydrateJson(cartJson(1));
+      const listener = vi.fn();
+      known.sideCart.addEventListener("itemcountchange", listener);
+      known.sideCart.loadFailed();
+      expect(known.sideCart.itemCountUnavailable).toBe(false);
+      expect(listener).not.toHaveBeenCalled();
+    });
+
+    it("warns once and is true when no store domain is set at load", async () => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const { sideCart } = await loadSideCartWithoutStoreDomain();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(warn).toHaveBeenCalledTimes(1);
+      expect(String(warn.mock.calls[0][0])).toMatch(/^\[Foxy\] .*Until then, the cart count can't load\.$/);
+      expect(sideCart.itemCountUnavailable).toBe(true);
+      warn.mockRestore();
+    });
+
+    it("does not warn when a store domain is set", async () => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const { sideCart } = await loadSideCart();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(warn).not.toHaveBeenCalled();
+      expect(sideCart.itemCountUnavailable).toBe(false);
+      warn.mockRestore();
+    });
   });
 });
