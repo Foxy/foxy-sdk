@@ -19,6 +19,7 @@ import type {
 } from "./types/PaymentGatewayConfig";
 import type { Listener } from "./types/Listener";
 import type { SideCartInvokeMethod } from "./side-cart/protocol";
+import { registerInternals } from "./internal";
 import { initializeAdyenEmbeddedSdk } from "./utils/adyen";
 import {
   isNonNegativeInteger,
@@ -531,6 +532,16 @@ export class API extends EventTarget {
 
   constructor(params?: APIConstructorParams) {
     super();
+    registerInternals(this, {
+      setSideCartTransport: (transport) => {
+        this.#sideCartTransport = transport;
+      },
+      sideCartTransport: () => this.#sideCartTransport,
+      storeUrl: () => this.#baseUrl ?? null,
+      reportSideCartError: (error) => this.#reportSideCartError(error),
+      reportSideCartSession: (sessionId) => this.session.observe(sessionId),
+      sessionSettled: () => this.#sessionSettled(),
+    });
     const { initialJson, storeDomain, initialState, onError } = params ?? {};
     this.#baseUrl = storeDomain
       ? resolveBaseUrlFromStoreDomain(storeDomain)
@@ -721,11 +732,11 @@ export class API extends EventTarget {
   }
 
   /**
-   * @internal For the sidecart and `postJson`: resolves once the session is known. That is
+   * For the sidecart and `postJson`: resolves once the session is known. That is
    * after a first load still waiting for its timer, and after every queued
    * session change. Never rejects.
    */
-  async sessionSettled(): Promise<void> {
+  async #sessionSettled(): Promise<void> {
     await this.#bootTimer;
     await this.session.settled();
   }
@@ -860,48 +871,14 @@ export class API extends EventTarget {
     });
   }
 
-  setSideCartTransport(transport: SideCartTransport | null): void {
-    this.#sideCartTransport = transport;
-  }
-
   /**
-   * The sidecart this client delegates to, or null. `checkout/add-to-cart`
-   * reads it to choose sidecart mode and to open the drawer after adding.
-   */
-  get sideCartTransport(): SideCartTransport | null {
-    return this.#sideCartTransport;
-  }
-
-  /**
-   * The store this client talks to, or null before a domain is set. The
-   * sidecart needs it to build the iframe URL and to check the origin of the
-   * frame's announcement, and `#baseUrl` is the only place it has been
-   * resolved -- on a merchant page there is no checkout json to read it from.
-   */
-  get storeUrl(): string | null {
-    return this.#baseUrl ?? null;
-  }
-
-  /**
-   * Routes a sidecart failure into both channels a merchant page has:
    * `addErrorMessage` no-ops without checkout json, which is exactly the
    * merchant-page case the sidecart exists for, so the failure also goes to
-   * the host's own error hook. Public because the sidecart host reports the
-   * frame's own unsolicited `error` messages through here too, and it can
-   * reach neither `addErrorMessage` (protected) nor `#onError` (private).
+   * the host's own error hook.
    */
-  reportSideCartError(error: Error): void {
+  #reportSideCartError(error: Error): void {
     this.addErrorMessage(error.message, "side-cart");
     this.#onError?.(error);
-  }
-
-  /**
-   * The session the sidecart frame reports. Public for the same reason as
-   * `reportSideCartError`: the sidecart host cannot reach `client.session`'s
-   * internals any other way.
-   */
-  reportSideCartSession(sessionId: string | null): void {
-    this.session.observe(sessionId);
   }
 
   /**
@@ -920,7 +897,7 @@ export class API extends EventTarget {
   private delegated(method: SideCartInvokeMethod, params: unknown[]): boolean {
     if (!this.#sideCartTransport) return false;
     void this.#sideCartTransport.invoke(method, params).catch((error: unknown) => {
-      this.reportSideCartError(
+      this.#reportSideCartError(
         error instanceof Error ? error : new Error(String(error)),
       );
     });
@@ -1871,10 +1848,10 @@ export class API extends EventTarget {
     if (this.#hydrated) {
       sessionId = this.#json?.session?.id ?? null;
     } else {
-      if (this.session.id === null) await this.sessionSettled();
+      if (this.session.id === null) await this.#sessionSettled();
       // Again while a store change scheduled a new first load during the wait.
       while (this.session.id === null && !this.#booted && this.#bootTimer) {
-        await this.sessionSettled();
+        await this.#sessionSettled();
       }
       sessionId = this.session.id ?? (this.#booted ? await this.session.ensure() : null);
     }

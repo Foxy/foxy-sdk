@@ -1,5 +1,6 @@
 // src/checkout/add-to-cart.ts
 import { client } from "./client";
+import { internalsOf } from "./internal";
 import { adoptScriptStore, resolveHostStoreOrigin } from "./side-cart/origin";
 
 /** `detail` of the cancelable, bubbling `foxy:add-to-cart` event. */
@@ -150,7 +151,7 @@ function onClick(event: MouseEvent): void {
   }
 
   const newTab = opensNewTab(event, link.target);
-  const sideCart = client.sideCartTransport;
+  const sideCart = internalsOf(client).sideCartTransport();
 
   if (!newTab && sideCart && !leavesTheCart(url.searchParams)) {
     event.preventDefault();
@@ -158,7 +159,7 @@ function onClick(event: MouseEvent): void {
       client.addItem(params);
       sideCart.show();
     } catch (error) {
-      client.reportSideCartError(error instanceof Error ? error : new Error(String(error)));
+      internalsOf(client).reportSideCartError(error instanceof Error ? error : new Error(String(error)));
     }
     return;
   }
@@ -262,7 +263,7 @@ function onSubmit(event: SubmitEvent): void {
     return;
   }
 
-  const sideCart = client.sideCartTransport;
+  const sideCart = internalsOf(client).sideCartTransport();
   const target = targetOf(form, submitter);
   const newTab = target !== "" && target !== "_self";
 
@@ -272,7 +273,7 @@ function onSubmit(event: SubmitEvent): void {
       client.addItem(params);
       sideCart.show();
     } catch (error) {
-      client.reportSideCartError(error instanceof Error ? error : new Error(String(error)));
+      internalsOf(client).reportSideCartError(error instanceof Error ? error : new Error(String(error)));
     }
     return;
   }

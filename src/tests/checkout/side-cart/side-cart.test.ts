@@ -23,9 +23,10 @@ async function loadSideCart() {
   await vi.waitFor(() => expect(fetch).toHaveBeenCalled());
   await new Promise((resolve) => setTimeout(resolve, 0));
   const module = await import("../../../checkout/side-cart");
+  const { internalsOf } = await import("../../../checkout/internal");
   mounted = module.sideCart;
 
-  return { client, sideCart: module.sideCart };
+  return { client, sideCart: module.sideCart, transport: internalsOf(client).sideCartTransport()! };
 }
 
 /**
@@ -42,9 +43,10 @@ async function loadSideCartWithoutStoreDomain() {
   vi.resetModules();
   const { client } = await import("../../../checkout/client");
   const module = await import("../../../checkout/side-cart");
+  const { internalsOf } = await import("../../../checkout/internal");
   mounted = module.sideCart;
 
-  return { client, sideCart: module.sideCart };
+  return { client, sideCart: module.sideCart, transport: internalsOf(client).sideCartTransport()! };
 }
 
 function cartJson(quantity: number): APIJson {
@@ -100,6 +102,23 @@ async function seedSession(id: string): Promise<void> {
 }
 
 describe("checkout/side-cart", () => {
+  it("keeps the client plumbing off client and sideCart", async () => {
+    const { client, sideCart, transport } = await loadSideCart();
+
+    for (const name of ["invoke", "loadFailed", "sessionChanged"]) expect(sideCart).not.toHaveProperty(name);
+    for (const name of [
+      "setSideCartTransport",
+      "sideCartTransport",
+      "storeUrl",
+      "reportSideCartError",
+      "reportSideCartSession",
+      "sessionSettled",
+    ]) {
+      expect(client).not.toHaveProperty(name);
+    }
+    expect(typeof transport.invoke).toBe("function");
+  });
+
   // `loadSideCart()`'s `client.setStoreDomain(...)` call always kicks off a
   // real, unmocked fetch as a side effect of the client's own pre-existing
   // auto-hydrate behavior (API.ts's constructor `setTimeout` and
@@ -898,18 +917,22 @@ describe("checkout/side-cart", () => {
     });
   });
 
+
+
   it("rejects rather than throwing when invoke cannot resolve a store origin", async () => {
-    const { sideCart } = await loadSideCartWithoutStoreDomain();
+    const { sideCart, transport } = await loadSideCartWithoutStoreDomain();
     let settled: Promise<void> | undefined;
 
     // `API.ts` does `void transport.invoke(...).catch(...)`, which cannot
     // catch a synchronous throw -- it would land in merchant code instead.
     expect(() => {
-      settled = sideCart.invoke("clearCart", []);
+      settled = transport.invoke("clearCart", []);
     }).not.toThrow();
 
     await expect(settled).rejects.toThrow(/does not know which store/);
   });
+
+
 
   it("is still mountable after an append that threw", async () => {
     const { sideCart } = await loadSideCart();
@@ -927,9 +950,11 @@ describe("checkout/side-cart", () => {
     expect(frame()).not.toBeNull();
   });
 
+
+
   it("holds an invoke until the frame reports ready", async () => {
-    const { sideCart } = await loadSideCart();
-    const invoked = sideCart.invoke("clearCart", []);
+    const { sideCart, transport } = await loadSideCart();
+    const invoked = transport.invoke("clearCart", []);
     const framePort = connectFrame();
     const received: unknown[] = [];
     framePort.onmessage = (event) => received.push(JSON.parse(event.data as string));
@@ -947,12 +972,14 @@ describe("checkout/side-cart", () => {
     await expect(invoked).resolves.toBeUndefined();
   });
 
+
+
   it("rejects a held invoke if ready never comes", async () => {
     // Before the fake timers: loadSideCart() waits on a real timer.
-    const { sideCart } = await loadSideCart();
+    const { sideCart, transport } = await loadSideCart();
     vi.useFakeTimers();
     try {
-      const invoked = sideCart.invoke("clearCart", []);
+      const invoked = transport.invoke("clearCart", []);
       const assertion = expect(invoked).rejects.toThrow(/did not respond in time/);
 
       await vi.advanceTimersByTimeAsync(8000);
@@ -963,9 +990,11 @@ describe("checkout/side-cart", () => {
     }
   });
 
+
+
   it("rejects a held invoke on unmount", async () => {
-    const { sideCart } = await loadSideCart();
-    const invoked = sideCart.invoke("clearCart", []);
+    const { sideCart, transport } = await loadSideCart();
+    const invoked = transport.invoke("clearCart", []);
 
     sideCart.unmount();
 
@@ -973,21 +1002,24 @@ describe("checkout/side-cart", () => {
   });
 
   describe("itemCountUnavailable", () => {
+
     it("is true after loadFailed() with no count, and announces once", async () => {
-      const { sideCart } = await loadSideCart();
+      const { sideCart, transport } = await loadSideCart();
       const listener = vi.fn();
       sideCart.addEventListener("itemcountchange", listener);
 
-      sideCart.loadFailed();
+      transport.loadFailed!();
 
       expect(sideCart.itemCountUnavailable).toBe(true);
       expect(listener).toHaveBeenCalledTimes(1);
       expect(listener.mock.calls[0][0].detail).toEqual({ corrected: false });
     });
 
+
+
     it("is false with a known count, and once a count arrives later", async () => {
-      const { client, sideCart } = await loadSideCart();
-      sideCart.loadFailed();
+      const { client, sideCart, transport } = await loadSideCart();
+      transport.loadFailed!();
       expect(sideCart.itemCountUnavailable).toBe(true);
 
       await client.hydrateJson(cartJson(2));
@@ -999,10 +1031,12 @@ describe("checkout/side-cart", () => {
       await known.client.hydrateJson(cartJson(1));
       const listener = vi.fn();
       known.sideCart.addEventListener("itemcountchange", listener);
-      known.sideCart.loadFailed();
+      known.transport.loadFailed!();
       expect(known.sideCart.itemCountUnavailable).toBe(false);
       expect(listener).not.toHaveBeenCalled();
     });
+
+
 
     it("warns once and is true when no store domain is set at load", async () => {
       const warn = vi.spyOn(console, "warn").mockImplementation(() => {});

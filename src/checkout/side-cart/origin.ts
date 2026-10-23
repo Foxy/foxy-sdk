@@ -1,12 +1,13 @@
 // src/checkout/side-cart/origin.ts
 import { resolveBaseUrlFromStoreDomain } from "../API";
 import { client } from "../client";
+import { internalsOf } from "../internal";
 
 /**
  * The store origin a module on the MERCHANT's page talks to, or null when
  * there is none. Shared by `side-cart.ts` and `add-to-cart.ts`.
  *
- * There are exactly two sources, both explicit: `client.storeUrl` and the
+ * There are exactly two sources, both explicit: the client's store URL and the
  * calling module's own `?store=` (pass its `import.meta.url`). There is
  * deliberately no `location.hostname` fallback -- `checkout/loader.ts` can
  * afford one because a store-hosted page's hostname IS the store, but these
@@ -18,7 +19,7 @@ import { client } from "../client";
  * case or with an explicit `:443` still matches the page's own origin.
  *
  * Resolving to this page's own origin means no store was supplied at all. It
- * gets here through `client.storeUrl`, where it looks explicit:
+ * gets here through the client's store URL, where it looks explicit:
  * `checkout/loader.ts` sets the domain from its own `location.hostname`
  * fallback when it is loaded without `?store=`. A store on a subdomain of
  * the same site is a different origin and still works.
@@ -29,7 +30,7 @@ import { client } from "../client";
 export function resolveHostStoreOrigin(scriptUrl: string): string | null {
   const fromScript = new URL(scriptUrl).searchParams.get("store");
   const baseUrl =
-    client.storeUrl ??
+    internalsOf(client).storeUrl() ??
     (fromScript === null ? null : resolveBaseUrlFromStoreDomain(fromScript));
 
   if (baseUrl === null) return null;
@@ -49,7 +50,7 @@ export function resolveHostStoreOrigin(scriptUrl: string): string | null {
  */
 export function adoptScriptStore(scriptUrl: string): void {
   const store = new URL(scriptUrl).searchParams.get("store");
-  if (store === null || client.storeUrl !== null) return;
+  if (store === null || internalsOf(client).storeUrl() !== null) return;
 
   try {
     client.setStoreDomain(store);

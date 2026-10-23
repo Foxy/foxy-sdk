@@ -2,6 +2,7 @@
 // src/tests/checkout/add-item.test.ts
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { API } from "../../checkout/API";
+import { internalsOf } from "../../checkout/internal";
 import type { APIJson } from "../../checkout/types";
 
 function minimalJson(sessionId: string | null): APIJson {
@@ -102,7 +103,7 @@ describe("checkout/API addItem", () => {
     const invoke = vi.fn().mockResolvedValue(undefined);
     const api = new API({ storeDomain: "demo.foxycart.test" });
 
-    api.setSideCartTransport({ invoke, show: vi.fn(), sessionChanged: vi.fn() });
+    internalsOf(api).setSideCartTransport({ invoke, show: vi.fn(), sessionChanged: vi.fn() });
     api.addItem([["name", "Shirt"]]);
 
     expect(invoke).toHaveBeenCalledWith("addItem", [[["name", "Shirt"]]]);
@@ -113,8 +114,8 @@ describe("checkout/API addItem", () => {
     const api = new API({ storeDomain: "demo.foxycart.test" });
     const transport = { invoke: vi.fn(), show: vi.fn(), sessionChanged: vi.fn() };
 
-    expect(api.sideCartTransport).toBeNull();
-    api.setSideCartTransport(transport);
-    expect(api.sideCartTransport).toBe(transport);
+    expect(internalsOf(api).sideCartTransport()).toBeNull();
+    internalsOf(api).setSideCartTransport(transport);
+    expect(internalsOf(api).sideCartTransport()).toBe(transport);
   });
 });
