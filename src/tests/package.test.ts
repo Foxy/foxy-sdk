@@ -13,9 +13,9 @@ describe('package.json', () => {
       './checkout/client',
       './checkout/loader',
       './checkout/side-cart',
-      './checkout/side-cart/protocol',
       './core',
       './customer',
+      './internal/side-cart/protocol',
     ]);
   });
 });

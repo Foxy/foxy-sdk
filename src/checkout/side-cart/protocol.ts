@@ -1,3 +1,11 @@
+/**
+ * Messages between the sidecart on the merchant's page (`side-cart.ts`) and the
+ * checkout page in its iframe. Published as `@foxy.io/sdk/internal/side-cart/protocol`
+ * only so that the checkout page can run the frame end with the same code. Not
+ * covered by semver: it can change in any release.
+ *
+ * @packageDocumentation
+ */
 import { isNonNegativeInteger } from "../v8n/isNonNegativeInteger";
 
 /**
