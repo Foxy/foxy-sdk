@@ -4,7 +4,7 @@ export type {
   ValidatedAddress,
   TemplateSet,
   Transaction,
-  Session,
+  CartSessionJson,
   Customer,
   Shipment,
   Item,
@@ -39,9 +39,7 @@ export type {
 
 export type { APIConstructorParams, APIOptions, CheckOutPaymentOption, HydrateJsonOptions } from "./API";
 export type { Listener } from "./types/Listener";
-// `Session` above is the checkout JSON's session shape, so the class type
-// is exported as `CartSession`.
-export type { Session as CartSession, SessionHost, SessionOptions } from "./session/Session";
+export type { CartSession, SessionHost, SessionOptions } from "./session/Session";
 export type {
   SessionCookieOptions,
   SessionStorageName,

@@ -1,4 +1,4 @@
-import type { Credentials, Session, SignUpParams, StoredSession } from './types';
+import type { Credentials, CustomerSession, SignUpParams, StoredSession } from './types';
 import type { Graph } from './Graph';
 
 import { assertBoolean, assertCredentials, assertEmail, assertSignUpParams } from '../core/guards.js';
@@ -35,7 +35,7 @@ export class API extends Core.API<Graph> {
     });
 
     if (response.ok) {
-      const session: Session = await response.json();
+      const session: CustomerSession = await response.json();
       const storedSession: StoredSession = { ...session, date_created: new Date().toISOString() };
       this.storage.setItem(API.SESSION, JSON.stringify(storedSession));
     } else {

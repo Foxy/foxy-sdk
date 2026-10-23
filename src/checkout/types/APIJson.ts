@@ -9,7 +9,7 @@ import type { Message } from "./Message";
 import type { NextAction } from "./NextAction";
 import type { PaymentGatewayConfig } from "./PaymentGatewayConfig";
 import type { SavedPaymentMethod } from "./SavedPaymentMethod";
-import type { Session } from "./Session";
+import type { CartSessionJson } from "./Session";
 import type { Shipment } from "./Shipment";
 import type { Store } from "./Store";
 import type { TemplateSet } from "./TemplateSet";
@@ -22,7 +22,7 @@ export type APIJson = {
   /** Public transaction details including ID, date and payments – available after purchase. */
   transaction: Transaction | null;
   /** The session information including the unique identifier. Null on a receipt the backend could not find. */
-  session: Session | null;
+  session: CartSessionJson | null;
   /** Whether debug mode is enabled for this template set. */
   debug: boolean;
   /** Current customer information. Null on a receipt that was not found. */

@@ -9,7 +9,7 @@ export type { Constraints } from '../rules/types';
 export type { AllowedFrequenciesOptions } from './getAllowedFrequencies.js';
 export type { NextDateRules, SubscriptionData } from './getNextTransactionDateConstraints.js';
 export type { NextTransactionDateOptions } from './isNextTransactionDate.js';
-export type { Credentials, PaymentCardEmbedConfig, Session, SignUpParams, StoredSession } from './types';
+export type { Credentials, CustomerSession, PaymentCardEmbedConfig, SignUpParams, StoredSession } from './types';
 
 import type * as Rels from './Rels';
 export type { Graph } from './Graph';

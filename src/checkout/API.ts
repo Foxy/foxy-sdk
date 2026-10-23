@@ -41,7 +41,7 @@ import { cloneApiJson, toMutable } from "./utils/json";
 import type { MutableAPIJson } from "./utils/json";
 import { toFormData, toQueryString } from "./utils/url";
 import { loadPayPalSdk } from "./utils/payPal";
-import { Session } from "./session/Session";
+import { CartSession } from "./session/Session";
 
 /** A response that arrived after its session changed. Dropped, never reported. */
 class StaleSessionResponse extends Error {}
@@ -473,7 +473,7 @@ export class API extends EventTarget {
    */
   #postTail: Promise<unknown> = Promise.resolve();
   /** The cart session: where its ID is stored, and how to start or end it. */
-  readonly session: Session = new Session({
+  readonly session: CartSession = new CartSession({
     storeOrigin: () => (this.#baseUrl ? new URL(this.#baseUrl).origin : null),
     run: (action) => this.#busy(action),
     load: async (sessionId) => {
