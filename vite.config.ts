@@ -15,7 +15,6 @@ const builtins = new Set([
 ]);
 
 const entryMap = {
-  index: resolve(__dirname, "src/index.ts"),
   admin: resolve(__dirname, "src/admin/index.ts"),
   checkout: resolve(__dirname, "src/checkout/index.ts"),
   "checkout/client": resolve(__dirname, "src/checkout/client.ts"),
@@ -52,7 +51,6 @@ export default defineConfig(({ mode }) => {
             rollupTypes: false,
             tsconfigPath: "./tsconfig.build.json",
             include: [
-              "src/index.ts",
               "src/admin",
               "src/checkout",
               "src/core",

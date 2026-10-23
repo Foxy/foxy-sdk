@@ -26,11 +26,8 @@ The type declarations need a bundler. They use extensionless relative imports, w
 
 ## Usage
 
-```ts
-import * as FoxySDK from "@foxy.io/sdk";
-```
-
-or:
+Import from a subpath: `@foxy.io/sdk/admin`, `/checkout`, `/core` or `/customer`.
+There is no root entry, so `import "@foxy.io/sdk"` does not resolve.
 
 ```ts
 import { API } from "@foxy.io/sdk/checkout";
