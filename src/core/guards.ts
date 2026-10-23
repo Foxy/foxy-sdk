@@ -205,8 +205,8 @@ export function assertBoolean(value: unknown, label: string): void {
 
 /**
  * Checks the Admin-specific fields of the Admin API constructor params
- * (`clientId`/`clientSecret`/`refreshToken`/`version`). The shared
- * `base`/`cache`/`storage`/`level` fields are intentionally left to
+ * (`clientId`/`clientSecret`/`redirectUri`/`authorizationUrl`/`version`). The shared
+ * `base`/`cache`/`level` fields are intentionally left to
  * `assertCoreAPIInit`, which `Core.API`'s own constructor already runs —
  * duplicating that check here would just repeat the same validation twice.
  *
@@ -216,11 +216,14 @@ export function assertBoolean(value: unknown, label: string): void {
 export function assertAdminAPIInit(value: unknown): void {
   if (!isRecord(value)) fail('init', 'an object');
 
-  const { clientId, clientSecret, refreshToken, version } = value;
+  const { authorizationUrl, clientId, clientSecret, redirectUri, version } = value;
 
   checkRequiredString(clientId, 'init.clientId');
   checkRequiredString(clientSecret, 'init.clientSecret');
-  checkRequiredString(refreshToken, 'init.refreshToken');
+  checkOptionalString(redirectUri, 'init.redirectUri');
+  if (authorizationUrl !== undefined && !(authorizationUrl instanceof URL)) {
+    fail('init.authorizationUrl', 'an instance of URL');
+  }
   if (version !== undefined && version !== '1') fail('init.version', '"1"');
 }
 
@@ -233,17 +236,65 @@ export function assertAdminAPIInit(value: unknown): void {
 export function assertAdminGetTokenOpts(value: unknown): void {
   if (!isRecord(value)) fail('opts', 'an object');
 
-  const { base, clientId, clientSecret, code, refreshToken, version } = value;
+  const { base, clientId, clientSecret, code, redirectUri, refreshToken, version } = value;
 
   if (code === undefined && refreshToken === undefined) {
     fail('opts', 'an object with a "code" or "refreshToken" property');
   }
-  if (code !== undefined) checkRequiredString(code, 'opts.code');
+  if (code !== undefined) {
+    checkRequiredString(code, 'opts.code');
+    checkRequiredString(redirectUri, 'opts.redirectUri');
+  }
   if (refreshToken !== undefined) checkRequiredString(refreshToken, 'opts.refreshToken');
   checkRequiredString(clientId, 'opts.clientId');
   checkRequiredString(clientSecret, 'opts.clientSecret');
   if (base !== undefined && !(base instanceof URL)) fail('opts.base', 'an instance of URL');
   if (version !== undefined && version !== '1') fail('opts.version', '"1"');
+}
+
+/**
+ * Checks the tokens passed to Admin API's `setTokens()` method.
+ *
+ * @param value Value to check.
+ * @throws TypeError when any member is of the wrong type.
+ */
+export function assertAdminTokens(value: unknown): void {
+  if (!isRecord(value)) fail('tokens', 'an object');
+
+  const { accessToken, expiresAt, refreshToken, scope } = value;
+
+  checkOptionalString(accessToken, 'tokens.accessToken');
+  checkOptionalString(refreshToken, 'tokens.refreshToken');
+  checkOptionalString(scope, 'tokens.scope');
+  if (expiresAt !== undefined && !Number.isFinite(expiresAt)) fail('tokens.expiresAt', 'a finite number');
+}
+
+/**
+ * Checks the params passed to Admin API's `signIn()` method.
+ *
+ * @param value Value to check.
+ * @throws TypeError when any member is of the wrong type, or `state` or `scope` is empty.
+ */
+export function assertAdminSignInParams(value: unknown): void {
+  if (!isRecord(value)) fail('params', 'an object');
+
+  const { prompt, scope, state } = value;
+
+  if (typeof state !== 'string' || state === '') fail('params.state', 'a non-empty string');
+  if (typeof scope !== 'string' || scope.trim() === '') fail('params.scope', 'a non-empty string');
+  checkOptionalString(prompt, 'params.prompt');
+}
+
+/**
+ * Checks the arguments passed to Admin API's `confirmSignIn()` method.
+ *
+ * @param callbackUrl Value to check as the callback URL.
+ * @param expectedState Value to check as the expected state.
+ * @throws TypeError when the URL is not a string or URL, or the state is empty.
+ */
+export function assertAdminConfirmSignInArgs(callbackUrl: unknown, expectedState: unknown): void {
+  if (typeof callbackUrl !== 'string' && !(callbackUrl instanceof URL)) fail('callbackUrl', 'a string or a URL');
+  if (typeof expectedState !== 'string' || expectedState === '') fail('expectedState', 'a non-empty string');
 }
 
 /**

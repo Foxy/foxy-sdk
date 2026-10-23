@@ -1,6 +1,9 @@
 import {
   assertAdminAPIInit,
+  assertAdminConfirmSignInArgs,
   assertAdminGetTokenOpts,
+  assertAdminSignInParams,
+  assertAdminTokens,
   assertAuthErrorParams,
   assertBoolean,
   assertCoreAPIInit,
@@ -168,29 +171,61 @@ describe('Core', () => {
     });
 
     it('assertAdminAPIInit validates the admin-specific constructor params', () => {
-      // base/cache/storage/level are intentionally NOT checked here: they're
+      // base/cache/level are intentionally NOT checked here: they're
       // validated downstream by Core.API's own assertCoreAPIInit inside
       // super(), so Admin's own guard only covers the fields Core doesn't
       // know about (avoids duplicating Core's validation).
-      const valid = { clientId: 'a', clientSecret: 'b', refreshToken: 'c' };
+      const valid = { clientId: 'a', clientSecret: 'b' };
 
       expect(() => assertAdminAPIInit(valid)).not.toThrow();
       expect(() => assertAdminAPIInit({ ...valid, version: '1' })).not.toThrow();
-      expect(() => assertAdminAPIInit({ clientId: 'a', clientSecret: 'b' })).toThrow(TypeError);
+      expect(() => assertAdminAPIInit({ ...valid, redirectUri: 'https://example.com/callback' })).not.toThrow();
+      expect(() => assertAdminAPIInit({ ...valid, authorizationUrl: new URL('https://example.com/authorize') })).not.toThrow();
+      expect(() => assertAdminAPIInit({ clientId: 'a' })).toThrow(TypeError);
       expect(() => assertAdminAPIInit({ ...valid, clientId: 0 })).toThrow(TypeError);
+      expect(() => assertAdminAPIInit({ ...valid, redirectUri: 1 })).toThrow(TypeError);
+      expect(() => assertAdminAPIInit({ ...valid, authorizationUrl: 'https://example.com/authorize' })).toThrow(TypeError);
       expect(() => assertAdminAPIInit({ ...valid, version: '2' })).toThrow(TypeError);
       expect(() => assertAdminAPIInit(null)).toThrow(TypeError);
     });
 
-    it('assertAdminGetTokenOpts requires a code or a refresh token plus client credentials', () => {
+    it('assertAdminGetTokenOpts requires a code with a redirect URI, or a refresh token, plus client credentials', () => {
       const base = { clientId: 'a', clientSecret: 'b' };
+      const code = { code: 'x', redirectUri: 'https://example.com/callback' };
 
-      expect(() => assertAdminGetTokenOpts({ ...base, code: 'x' })).not.toThrow();
+      expect(() => assertAdminGetTokenOpts({ ...base, ...code })).not.toThrow();
       expect(() => assertAdminGetTokenOpts({ ...base, refreshToken: 'x' })).not.toThrow();
+      expect(() => assertAdminGetTokenOpts({ ...base, code: 'x' })).toThrow(TypeError);
       expect(() => assertAdminGetTokenOpts(base)).toThrow(TypeError);
-      expect(() => assertAdminGetTokenOpts({ ...base, code: 'x', base: 'not-a-url' })).toThrow(TypeError);
-      expect(() => assertAdminGetTokenOpts({ clientId: 'a', code: 'x' })).toThrow(TypeError);
+      expect(() => assertAdminGetTokenOpts({ ...base, ...code, base: 'not-a-url' })).toThrow(TypeError);
+      expect(() => assertAdminGetTokenOpts({ clientId: 'a', ...code })).toThrow(TypeError);
       expect(() => assertAdminGetTokenOpts(null)).toThrow(TypeError);
+    });
+
+    it('assertAdminTokens accepts optional tokens of the right types', () => {
+      expect(() => assertAdminTokens({})).not.toThrow();
+      expect(() => assertAdminTokens({ accessToken: 'a', refreshToken: 'r', expiresAt: 1792790000000, scope: 's' })).not.toThrow();
+      expect(() => assertAdminTokens({ accessToken: 1 })).toThrow(TypeError);
+      expect(() => assertAdminTokens({ expiresAt: '1792790000000' })).toThrow(TypeError);
+      expect(() => assertAdminTokens({ expiresAt: Number.NaN })).toThrow(TypeError);
+      expect(() => assertAdminTokens(null)).toThrow(TypeError);
+    });
+
+    it('assertAdminSignInParams requires a non-empty state and scope', () => {
+      expect(() => assertAdminSignInParams({ state: 's', scope: 'a' })).not.toThrow();
+      expect(() => assertAdminSignInParams({ state: 's', scope: 'a b', prompt: 'login' })).not.toThrow();
+      expect(() => assertAdminSignInParams({ state: 's' })).toThrow(TypeError);
+      expect(() => assertAdminSignInParams({ state: 's', scope: '' })).toThrow(TypeError);
+      expect(() => assertAdminSignInParams({ state: '', scope: 'a' })).toThrow(TypeError);
+      expect(() => assertAdminSignInParams({ state: 's', scope: ['a'] })).toThrow(TypeError);
+      expect(() => assertAdminSignInParams(null)).toThrow(TypeError);
+    });
+
+    it('assertAdminConfirmSignInArgs requires a URL and a non-empty expected state', () => {
+      expect(() => assertAdminConfirmSignInArgs('https://example.com/callback', 's')).not.toThrow();
+      expect(() => assertAdminConfirmSignInArgs(new URL('https://example.com/callback'), 's')).not.toThrow();
+      expect(() => assertAdminConfirmSignInArgs(1, 's')).toThrow(TypeError);
+      expect(() => assertAdminConfirmSignInArgs('https://example.com/callback', '')).toThrow(TypeError);
     });
 
     it('assertSSOURLOptions enforces the required SSO fields', () => {

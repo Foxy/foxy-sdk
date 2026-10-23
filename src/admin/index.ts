@@ -1,4 +1,5 @@
 export { API } from './API.js';
+export type { SignInParams, Tokens } from './API.js';
 export { cartExcludes, cartExcludePrefixes, signFragment, signName, signUrl, signValue } from './Signer.js';
 export { createSSOURL } from './createSSOURL.js';
 export { verifyWebhookSignature } from './verifyWebhookSignature.js';
