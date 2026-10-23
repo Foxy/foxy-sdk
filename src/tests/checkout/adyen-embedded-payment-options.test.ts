@@ -275,7 +275,8 @@ async function createTestApi(json: APIJson) {
 
   class TestHttpCheckoutAPI extends API {
     async replaceJsonForTesting(nextJson: APIJson): Promise<void> {
-      await this.replaceJson(nextJson);
+      // `replaceJson` is private; these tests drive it directly to control when Adyen loads.
+      await (this as unknown as { replaceJson(json: APIJson): Promise<void> }).replaceJson(nextJson);
     }
   }
 

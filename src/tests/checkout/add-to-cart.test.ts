@@ -8,6 +8,28 @@ const CART = `${ORIGIN}/cart?name=Shirt&price=10`;
 let uninstall: (() => void) | null = null;
 
 /**
+ * `checkout/add-to-cart` adds its document listeners on import and offers no
+ * way to remove them. Records what the import adds and returns a function that
+ * removes exactly that.
+ */
+async function importCapturingListeners(load: () => Promise<unknown>): Promise<() => void> {
+  const added: Parameters<Document["addEventListener"]>[] = [];
+  const add = document.addEventListener.bind(document);
+  const spy = vi.spyOn(document, "addEventListener").mockImplementation((...args) => {
+    added.push(args);
+    add(...args);
+  });
+
+  try {
+    await load();
+  } finally {
+    spy.mockRestore();
+  }
+
+  return () => added.forEach((args) => document.removeEventListener(...args));
+}
+
+/**
  * A fresh module per test (its listeners go on the shared jsdom document, so
  * `afterEach` removes them). `sideCart: true` installs a fake transport the
  * way importing `checkout/side-cart` would.
@@ -25,8 +47,7 @@ async function load(options: { sideCart?: boolean } = {}) {
   const transport = { invoke: vi.fn().mockResolvedValue(undefined), show: vi.fn(), sessionChanged: vi.fn() };
   if (options.sideCart) internalsOf(client).setSideCartTransport(transport);
   const addItem = vi.spyOn(client, "addItem");
-  const module = await import("../../checkout/add-to-cart");
-  uninstall = module.uninstallAddToCart;
+  uninstall = await importCapturingListeners(() => import("../../checkout/add-to-cart"));
   return { client, internals: internalsOf(client), transport, addItem };
 }
 

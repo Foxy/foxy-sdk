@@ -493,10 +493,12 @@ export class API extends EventTarget {
     changed: (sessionId) => this.#sideCartTransport?.sessionChanged?.(sessionId),
   });
 
+  /** @internal No caller yet. Kept for the Apple Pay and Google Pay flow. */
   static canMakeApplePayPayments(): boolean {
     return getApplePayAvailability() === "available";
   }
 
+  /** @internal */
   static async ensureApplePayScriptLoaded(): Promise<void> {
     try {
       await loadApplePaySdk();
@@ -505,10 +507,12 @@ export class API extends EventTarget {
     }
   }
 
+  /** @internal */
   static async loadGooglePaySdk(): Promise<void> {
     await loadGooglePaySdkUtil();
   }
 
+  /** @internal */
   static async ensureGooglePayScriptLoaded(): Promise<void> {
     try {
       await API.loadGooglePaySdk();
@@ -517,12 +521,14 @@ export class API extends EventTarget {
     }
   }
 
+  /** @internal */
   static async createGooglePaymentsClient(
     environment: "TEST" | "PRODUCTION",
   ): Promise<GooglePaymentsClient> {
     return createGooglePaymentsClientUtil(environment);
   }
 
+  /** @internal */
   static async canMakeGooglePayPayments(
     allowedPaymentMethod: Record<string, unknown>,
     environment: "TEST" | "PRODUCTION",
@@ -741,7 +747,7 @@ export class API extends EventTarget {
     await this.session.settled();
   }
 
-  protected setState(state: "idle" | "busy", emitUpdate = true): void {
+  private setState(state: "idle" | "busy", emitUpdate = true): void {
     this.#state = state;
 
     if (emitUpdate) {
@@ -749,14 +755,14 @@ export class API extends EventTarget {
     }
   }
 
-  protected mutateJson(mutator: (json: MutableAPIJson) => void): void {
+  private mutateJson(mutator: (json: MutableAPIJson) => void): void {
     if (!this.#json) return;
     mutator(this.#json);
 
     this.dispatchEvent(new Event("update"));
   }
 
-  protected async replaceJson(nextJson: APIJson): Promise<void> {
+  private async replaceJson(nextJson: APIJson): Promise<void> {
     const resolutionVersion = ++this.#jsonResolutionVersion;
 
     const resolvedState = await resolveIncomingApiState(nextJson, {
@@ -845,14 +851,14 @@ export class API extends EventTarget {
     this.dispatchEvent(new Event("update"));
   }
 
-  protected dispatchCancelable<K extends EventWithoutDetailName>(
+  private dispatchCancelable<K extends EventWithoutDetailName>(
     type: K,
   ): boolean;
-  protected dispatchCancelable<K extends EventWithDetailName>(
+  private dispatchCancelable<K extends EventWithDetailName>(
     type: K,
     detail: EventDetail<K>,
   ): boolean;
-  protected dispatchCancelable<K extends EventName>(
+  private dispatchCancelable<K extends EventName>(
     type: K,
     detail?: EventDetail<K>,
   ): boolean {
@@ -864,7 +870,7 @@ export class API extends EventTarget {
     return this.dispatchEvent(event);
   }
 
-  protected addErrorMessage(message: string, context = "sdk"): void {
+  private addErrorMessage(message: string, context = "sdk"): void {
     if (!this.#json) return;
     this.mutateJson((json) => {
       json.messages.push({ context, message, level: "error" });
@@ -1629,6 +1635,7 @@ export class API extends EventTarget {
     });
   }
 
+  /** @internal No caller yet. Kept for the Apple Pay flow. */
   async validateApplePayMerchant(params: {
     validationURL: string;
   }): Promise<unknown> {

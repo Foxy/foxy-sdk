@@ -364,11 +364,3 @@ document.addEventListener("auxclick", onClick);
 document.addEventListener("submit", onSubmit);
 document.addEventListener("formdata", onFormData, true);
 adoptScriptStore(import.meta.url);
-
-/** Removes the listeners. Tests need it; a merchant page never does. */
-export function uninstallAddToCart(): void {
-  document.removeEventListener("click", onClick);
-  document.removeEventListener("auxclick", onClick);
-  document.removeEventListener("submit", onSubmit);
-  document.removeEventListener("formdata", onFormData, true);
-}

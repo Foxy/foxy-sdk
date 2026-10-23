@@ -84,7 +84,8 @@ async function rejectApplePayScriptLoad(): Promise<void> {
 
 class TestHttpCheckoutAPI extends HttpCheckoutAPI {
   async replaceJsonForTesting(nextJson: APIJson): Promise<void> {
-    await this.replaceJson(nextJson);
+    // `replaceJson` is private; these tests drive it directly to control when the SDK loads.
+    await (this as unknown as { replaceJson(json: APIJson): Promise<void> }).replaceJson(nextJson);
   }
 }
 
