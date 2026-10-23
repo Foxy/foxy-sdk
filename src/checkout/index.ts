@@ -61,14 +61,8 @@ export type {
   SquareSdkInstance,
 } from "./types";
 
-export { API, MIN_POSTAL_CODE_LOOKUP_LENGTH } from "./API";
+export { API } from "./API";
 export { toCountryOptions } from "./countryOptions";
 export type { CountryOption } from "./countryOptions";
-export {
-  REGION_TYPE_BY_COUNTRY,
-  loadRegionMessages,
-  regionLabelMessageId,
-  regionMessageId,
-  toRegionOptions,
-} from "./regionOptions";
+export { loadRegionMessages, regionLabelMessageId, toRegionOptions } from "./regionOptions";
 export type { RegionOption, RegionType } from "./regionOptions";
