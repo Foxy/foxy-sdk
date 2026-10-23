@@ -5,8 +5,8 @@ import type { Subscription } from './Graph/subscription';
 import { getNextTransactionDateConstraints as ruleUtility } from '../rules/getNextTransactionDateConstraints.js';
 
 type RuleRules = Parameters<typeof ruleUtility>[1];
-type Rules = Resource<CustomerPortalSettings>['subscriptions']['allow_next_date_modification'];
-type Data = Omit<Resource<Subscription>, '_links' | '_embedded'>;
+export type NextDateRules = Resource<CustomerPortalSettings>['subscriptions']['allow_next_date_modification'];
+export type SubscriptionData = Omit<Resource<Subscription>, '_links' | '_embedded'>;
 
 /**
  * Finds which next transaction date modification rules are applicable to
@@ -19,7 +19,7 @@ type Data = Omit<Resource<Subscription>, '_links' | '_embedded'>;
  * Returns true if all modifications are allowed, false if next date can't
  * be changed by the customer, object with constraints in any other case.
  */
-export function getNextTransactionDateConstraints(data: Data, rules: Rules): Constraints | boolean {
+export function getNextTransactionDateConstraints(data: SubscriptionData, rules: NextDateRules): Constraints | boolean {
   let ruleRules: RuleRules;
 
   if (typeof rules === 'boolean') {

@@ -19,7 +19,7 @@ export type SessionOptions = {
   autoStart?: boolean;
 };
 
-/** What `Session` needs from the `API` that owns it. Not public. */
+/** What `Session` needs from the `API` that owns it. Only the SDK creates one. */
 export type SessionHost = {
   storeOrigin(): string | null;
   /** Runs `action` with the client `busy`, and rethrows. */

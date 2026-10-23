@@ -41,7 +41,7 @@ export type { APIConstructorParams, APIOptions, CheckOutPaymentOption, HydrateJs
 export type { Listener } from "./types/Listener";
 // `Session` above is the checkout JSON's session shape, so the class type
 // is exported as `CartSession`.
-export type { Session as CartSession, SessionOptions } from "./session/Session";
+export type { Session as CartSession, SessionHost, SessionOptions } from "./session/Session";
 export type {
   SessionCookieOptions,
   SessionStorageName,

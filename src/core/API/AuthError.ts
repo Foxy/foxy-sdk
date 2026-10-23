@@ -2,7 +2,7 @@ import { assertAuthErrorParams } from '../guards.js';
 import type { AuthErrorCode } from '../guards.js';
 
 /** Constructor parameters of the  {@link UniversalAPIAuthError} class. */
-type AuthErrorParams = {
+export type AuthErrorParams = {
   code: AuthErrorCode;
   originalError?: unknown;
 };

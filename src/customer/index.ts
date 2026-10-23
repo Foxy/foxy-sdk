@@ -6,6 +6,9 @@ export { isNextTransactionDate } from './isNextTransactionDate.js';
 export { PaymentCardEmbed } from './PaymentCardEmbed.js';
 
 export type { Constraints } from '../rules/types';
+export type { AllowedFrequenciesOptions } from './getAllowedFrequencies.js';
+export type { NextDateRules, SubscriptionData } from './getNextTransactionDateConstraints.js';
+export type { NextTransactionDateOptions } from './isNextTransactionDate.js';
 export type { Credentials, PaymentCardEmbedConfig, Session, SignUpParams, StoredSession } from './types';
 
 import type * as Rels from './Rels';

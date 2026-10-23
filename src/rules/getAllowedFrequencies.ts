@@ -1,7 +1,7 @@
 import type { FrequencyRule, RuleSubject } from './types';
 import jsonata from 'jsonata';
 
-type Options = {
+export type AllowedFrequenciesOptions = {
   settings: { subscriptions: { allowFrequencyModification: FrequencyRule[] } };
   subscription: RuleSubject;
 };
@@ -11,7 +11,7 @@ type Options = {
  *
  * @param opts Subscription and settings.
  */
-export function* getAllowedFrequencies(opts: Options): Generator<string, void, void> {
+export function* getAllowedFrequencies(opts: AllowedFrequenciesOptions): Generator<string, void, void> {
   const returnedFrequencies: string[] = [];
 
   for (const rule of opts.settings.subscriptions.allowFrequencyModification) {

@@ -6,7 +6,7 @@ import { isNextTransactionDate as ruleIsNextTransactionDate } from '../rules/isN
 type RuleParameters = Parameters<typeof ruleIsNextTransactionDate>;
 type RuleConfig = RuleParameters[0]['settings']['subscriptions']['allowNextDateModification'];
 type Config = CustomerPortalSettings['props']['subscriptions']['allow_next_date_modification'];
-type Options = {
+export type NextTransactionDateOptions = {
   value: string;
   settings: { subscriptions: { allow_next_date_modification: Config } };
   subscription: Omit<Resource<Subscription>, '_links' | '_embedded'>;
@@ -19,7 +19,7 @@ type Options = {
  * @param opts Subscription, customer portal settings and value.
  * @returns True if given date can be used as next transaction date.
  */
-export function isNextTransactionDate(opts: Options): boolean {
+export function isNextTransactionDate(opts: NextTransactionDateOptions): boolean {
   const customerConfig = opts.settings.subscriptions.allow_next_date_modification;
   let allowNextDateModification: RuleConfig;
 
