@@ -442,8 +442,9 @@ export type APIConstructorParams = APIOptions & {
 };
 
 /**
- * This is going to be under SDK.Checkout.API in the @foxy.io/sdk package.
- * Pages using loader.js will have an initialized instance under window.Foxy.api.
+ * The checkout client. `checkout/client` and `checkout/loader` export one shared
+ * instance as `client`. The loader also sets its store, from the script's `?store=`
+ * or else the page's hostname.
  *
  * Fires non-cancelable `update` event whenever the resolved checkout state changes.
  */
