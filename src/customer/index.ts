@@ -1,7 +1,7 @@
 export { API } from './API.js';
 export { getAllowedFrequencies } from './getAllowedFrequencies.js';
 export { getNextTransactionDateConstraints } from './getNextTransactionDateConstraints.js';
-export { getTimeFromFrequency } from '../rules/getTimeFromFrequency.js';
+export { getTimeFromFrequency, InvalidFrequencyError } from '../rules/getTimeFromFrequency.js';
 export { isNextTransactionDate } from './isNextTransactionDate.js';
 export { PaymentCardEmbed } from './PaymentCardEmbed.js';
 

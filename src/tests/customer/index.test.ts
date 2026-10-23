@@ -17,9 +17,14 @@ describe('Customer', () => {
       expect(Customer).toHaveProperty('getTimeFromFrequency');
     });
 
+    it('exports the error getTimeFromFrequency throws', () => {
+      expect(() => Customer.getTimeFromFrequency('3x')).toThrow(Customer.InvalidFrequencyError);
+    });
+
     it('exports exactly the documented surface and nothing more', () => {
       expect(Object.keys(Customer).sort()).toStrictEqual([
         'API',
+        'InvalidFrequencyError',
         'PaymentCardEmbed',
         'getAllowedFrequencies',
         'getNextTransactionDateConstraints',

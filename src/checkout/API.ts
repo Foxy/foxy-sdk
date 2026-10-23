@@ -380,7 +380,7 @@ async function resolveIncomingApiState(
   };
 }
 
-type CheckOutPaymentOption =
+export type CheckOutPaymentOption =
   | { gateway: "adyen_embedded" }
   | {
       gateway: "klarna";

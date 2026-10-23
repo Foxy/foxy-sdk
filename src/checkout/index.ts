@@ -37,7 +37,7 @@ export type {
   CardEmbedTokenizeErrorCode,
 } from "./types";
 
-export type { APIOptions } from "./API";
+export type { APIOptions, CheckOutPaymentOption, HydrateJsonOptions } from "./API";
 // `Session` above is the checkout JSON's session shape, so the class type
 // is exported as `CartSession`.
 export type { Session as CartSession, SessionOptions } from "./session/Session";
@@ -57,6 +57,7 @@ export type {
   GooglePaymentsClient,
   KlarnaSdkInstance,
   PayPalSdkInstance,
+  SquareSdkInstance,
 } from "./types";
 
 export { API, MIN_POSTAL_CODE_LOOKUP_LENGTH } from "./API";
