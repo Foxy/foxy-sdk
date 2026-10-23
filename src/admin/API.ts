@@ -13,7 +13,7 @@ import type { Graph } from './Graph';
 type AdminAPIVersion = '1';
 
 /** Constructor parameters of the {@link API} class. */
-type AdminAPIInit = {
+export type APIInit = {
   clientSecret: string;
   clientId: string;
   /** Redirect URI registered for this OAuth client. Required for {@link API.signIn} and {@link API.confirmSignIn}. */
@@ -26,14 +26,14 @@ type AdminAPIInit = {
   cache?: Storage;
 };
 
-type GrantOpts = ({ code: string; redirectUri: string } | { refreshToken: string }) & {
+export type GrantOpts = ({ code: string; redirectUri: string } | { refreshToken: string }) & {
   clientSecret: string;
   clientId: string;
   version?: AdminAPIVersion;
   base?: URL; // pathname ending with "/" !!!
 };
 
-type Token = {
+export type TokenResponse = {
   refresh_token?: string;
   access_token: string;
   expires_in: number;
@@ -59,7 +59,7 @@ export type SignInParams = {
   prompt?: string;
 };
 
-type AdminAPIEventMap = {
+export type APIEventMap = {
   /** New tokens were obtained by {@link API.confirmSignIn} or by a token refresh. */
   tokens: CustomEvent<Tokens>;
 };
@@ -82,11 +82,11 @@ export class API extends Core.API<Graph> {
    * @param throwOnFailure If true, this method will throw an error instead of returning null on failure to obtain a token.
    * @returns Access token with additional info on success, null on failure.
    */
-  static async getToken(opts: GrantOpts): Promise<Token | null>;
+  static async getToken(opts: GrantOpts): Promise<TokenResponse | null>;
 
-  static async getToken(opts: GrantOpts, throwOnFailure: true): Promise<Token>;
+  static async getToken(opts: GrantOpts, throwOnFailure: true): Promise<TokenResponse>;
 
-  static async getToken(opts: GrantOpts, throwOnFailure = false): Promise<Token | null> {
+  static async getToken(opts: GrantOpts, throwOnFailure = false): Promise<TokenResponse | null> {
     assertAdminGetTokenOpts(opts);
 
     const headers = new Headers();
@@ -132,7 +132,7 @@ export class API extends Core.API<Graph> {
   // Private so that only this class can dispatch `tokens`.
   #events = new EventTarget();
 
-  constructor(params: AdminAPIInit) {
+  constructor(params: APIInit) {
     assertAdminAPIInit(params);
 
     super({
@@ -154,17 +154,17 @@ export class API extends Core.API<Graph> {
    * exception, which ends a Node process by default, so catch errors inside it.
    * An async listener is not awaited.
    */
-  addEventListener<K extends keyof AdminAPIEventMap>(
+  addEventListener<K extends keyof APIEventMap>(
     type: K,
-    listener: (event: AdminAPIEventMap[K]) => void,
+    listener: (event: APIEventMap[K]) => void,
     options?: boolean | AddEventListenerOptions,
   ): void {
     this.#events.addEventListener(type, listener as EventListener, options);
   }
 
-  removeEventListener<K extends keyof AdminAPIEventMap>(
+  removeEventListener<K extends keyof APIEventMap>(
     type: K,
-    listener: (event: AdminAPIEventMap[K]) => void,
+    listener: (event: APIEventMap[K]) => void,
     options?: boolean | EventListenerOptions,
   ): void {
     this.#events.removeEventListener(type, listener as EventListener, options);
@@ -253,7 +253,7 @@ export class API extends Core.API<Graph> {
     return this.#redirectUri;
   }
 
-  #toTokens(rawToken: Token, previous: Tokens): Tokens {
+  #toTokens(rawToken: TokenResponse, previous: Tokens): Tokens {
     return {
       accessToken: rawToken.access_token,
       refreshToken: rawToken.refresh_token ?? previous.refreshToken,

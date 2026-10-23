@@ -37,7 +37,8 @@ export type {
   CardEmbedTokenizeErrorCode,
 } from "./types";
 
-export type { APIOptions, CheckOutPaymentOption, HydrateJsonOptions } from "./API";
+export type { APIConstructorParams, APIOptions, CheckOutPaymentOption, HydrateJsonOptions } from "./API";
+export type { Listener } from "./types/Listener";
 // `Session` above is the checkout JSON's session shape, so the class type
 // is exported as `CartSession`.
 export type { Session as CartSession, SessionOptions } from "./session/Session";

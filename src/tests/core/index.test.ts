@@ -1,7 +1,14 @@
 import * as Core from '../../core/index.js';
+import type { APIInit, AuthErrorCode, Logger, NodeInit } from '../../core/index.js';
 
 describe('Core', () => {
   describe('index', () => {
+    it('exports the types its public signatures use', () => {
+      // The real assertion is the typecheck: it fails if a type is not exported.
+      const types: [APIInit?, AuthErrorCode?, Logger?, NodeInit?] = [];
+      expect(types).toHaveLength(0);
+    });
+
     it('exports the client classes', () => {
       expect(Core).toHaveProperty('API');
       expect(Core).toHaveProperty('Node');

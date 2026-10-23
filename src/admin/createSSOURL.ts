@@ -1,6 +1,6 @@
 import { assertSSOURLOptions } from '../core/guards.js';
 
-interface Options {
+export interface SSOURLOptions {
   /**
    * Integer, epoch time (seconds). The future time that this authentication token will expire.
    * If a customer makes a checkout request with an expired authentication token, then FoxyCart
@@ -73,7 +73,7 @@ interface Options {
  * @tutorial https://docs.foxycart.com/v/2.0/sso#the_details
  * @returns SSO URL as string.
  */
-export async function createSSOURL(options: Options): Promise<string> {
+export async function createSSOURL(options: SSOURLOptions): Promise<string> {
   assertSSOURLOptions(options);
 
   const timestamp = options.timestamp ?? Math.floor(Date.now() / 1000) + 3600;

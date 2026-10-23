@@ -577,6 +577,7 @@ class SideCart extends EventTarget {
   }
 }
 
+export type { SideCart };
 export const sideCart = new SideCart();
 
 // Importing this module is what makes `client` a sidecart client. The store's

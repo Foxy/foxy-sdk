@@ -1,7 +1,8 @@
 export { API } from './API.js';
-export type { SignInParams, Tokens } from './API.js';
+export type { APIEventMap, APIInit, GrantOpts, SignInParams, TokenResponse, Tokens } from './API.js';
 export { cartExcludes, cartExcludePrefixes, signFragment, signName, signUrl, signValue } from './Signer.js';
 export { createSSOURL } from './createSSOURL.js';
+export type { SSOURLOptions } from './createSSOURL.js';
 export { verifyWebhookSignature } from './verifyWebhookSignature.js';
 export { getAllowedFrequencies } from '../rules/getAllowedFrequencies.js';
 export { getNextTransactionDateConstraints } from '../rules/getNextTransactionDateConstraints.js';

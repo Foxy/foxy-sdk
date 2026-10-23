@@ -19,7 +19,7 @@ type GraphLinks<TGraph extends Graph> = NonNullable<TGraph['links']>;
 type CurieChain = [URL, ...string[]];
 
 /** Options of {@link APINode} constructor. */
-type NodeInit = {
+export type NodeInit = {
   /** Path to this resource node as base URL followed by a list of curies. */
   path: CurieChain;
   /** Custom Fetch API implementation for making authenticated requests. */

@@ -5,13 +5,19 @@
 import * as Checkout from '../../checkout';
 
 import type {
+  APIConstructorParams,
   CartSession,
+  CheckOutPaymentOption,
+  HydrateJsonOptions,
+  Listener,
+  SquareSdkInstance,
   SessionCookieOptions,
   SessionOptions,
   SessionStorageName,
   SessionStore,
 } from '../../checkout';
 
+import type { SideCart } from '../../checkout/side-cart';
 import { API as HttpCheckoutAPI } from '../../checkout/API';
 
 describe('Checkout', () => {
@@ -51,5 +57,12 @@ describe('Checkout', () => {
     const options: SessionOptions = { storage: store, cookie, autoStart: false };
     const session: Pick<CartSession, 'id' | 'start' | 'end' | 'configure'> | null = null;
     expect([store, cookie, name, options, session]).toHaveLength(5);
+  });
+
+  it('exports the types its public methods use', () => {
+    // The real assertion is the typecheck: it fails if a type is not exported.
+    const types: [APIConstructorParams?, CheckOutPaymentOption?, HydrateJsonOptions?, Listener<'update', unknown>?, SquareSdkInstance?] = [];
+    const sideCart: SideCart | null = null;
+    expect([types, sideCart]).toHaveLength(2);
   });
 });
