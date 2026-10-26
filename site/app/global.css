@@ -82,6 +82,14 @@ h6 {
   color: var(--foxy-heading);
 }
 
+.prose :not(h1, h2, h3, h4, h5, h6) > a:not([class]) {
+  color: var(--color-fd-primary);
+}
+
+.prose :is(h1, h2, h3, h4, h5, h6) {
+  overflow-wrap: anywhere;
+}
+
 .prose a:hover {
   color: var(--foxy-accent-hover);
 }
