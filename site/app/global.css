@@ -1,0 +1,87 @@
+@import 'tailwindcss';
+@import 'fumadocs-ui/css/neutral.css';
+@import 'fumadocs-ui/css/preset.css';
+
+html {
+  scrollbar-gutter: stable;
+}
+
+html > body[data-scroll-locked] {
+  margin-right: 0px !important;
+  --removed-body-scroll-bar-size: 0px !important;
+}
+
+@theme {
+  --font-sans: var(--font-albert-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+  --text-xs: 0.8125rem;
+  --text-sm: 0.9375rem;
+}
+
+:root {
+  --foxy-gray-50: #fafafa;
+  --foxy-gray-100: #f5f5f5;
+  --foxy-gray-200: #e5e5e5;
+  --foxy-gray-300: #d4d4d4;
+  --foxy-gray-400: #a3a3a3;
+  --foxy-gray-500: #737373;
+  --foxy-gray-600: #525252;
+  --foxy-gray-700: #424242;
+  --foxy-gray-800: #262626;
+  --foxy-gray-900: #171717;
+  --foxy-gray-950: #0a0a0a;
+  --foxy-heading: #3b1142;
+  --foxy-accent-hover: #3d1d45;
+
+  --color-fd-background: #ffffff;
+  --color-fd-foreground: #424242;
+  --color-fd-muted: #f1f1f1;
+  --color-fd-muted-foreground: #737373;
+  --color-fd-popover: #ffffff;
+  --color-fd-popover-foreground: #424242;
+  --color-fd-card: #fafafa;
+  --color-fd-card-foreground: #424242;
+  --color-fd-border: #e5e5e5;
+  --color-fd-primary: #54275e;
+  --color-fd-primary-foreground: #ffffff;
+  --color-fd-secondary: #f1f1f1;
+  --color-fd-secondary-foreground: #424242;
+  --color-fd-accent: #f1f1f1;
+  --color-fd-accent-foreground: #3b1142;
+  --color-fd-ring: #54275e;
+}
+
+.dark {
+  --foxy-heading: #ffffff;
+  --foxy-accent-hover: #d092dd;
+
+  --color-fd-background: #1b171c;
+  --color-fd-foreground: #e8e8e8;
+  --color-fd-muted: #221d23;
+  --color-fd-muted-foreground: #bbb9bb;
+  --color-fd-popover: #221d23;
+  --color-fd-popover-foreground: #e8e8e8;
+  --color-fd-card: #221d23;
+  --color-fd-card-foreground: #e8e8e8;
+  --color-fd-border: #322e33;
+  --color-fd-primary: #c06cd0;
+  --color-fd-primary-foreground: #1b171c;
+  --color-fd-secondary: #221d23;
+  --color-fd-secondary-foreground: #e8e8e8;
+  --color-fd-accent: #322e33;
+  --color-fd-accent-foreground: #ffffff;
+  --color-fd-ring: #c06cd0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--foxy-heading);
+}
+
+.prose a:hover {
+  color: var(--foxy-accent-hover);
+}
