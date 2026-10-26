@@ -4,6 +4,9 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev",
+    "prebuild": "npm run reference",
+    "reference": "node scripts/reference.mjs",
+    "test": "vitest run",
     "types:check": "next typegen && tsc --noEmit"
   },
   "dependencies": {
@@ -15,13 +18,20 @@
     "react-dom": "19.2.0"
   },
   "devDependencies": {
+    "@mdx-js/mdx": "^3.1.1",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/mdx": "^2.0.14",
     "@types/node": "^22.0.0",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "postcss": "^8.5.31",
+    "remark-frontmatter": "^5.0.0",
+    "remark-gfm": "^4.0.1",
     "tailwindcss": "^4.3.3",
-    "typescript": "^5.9.0"
+    "typedoc": "^0.28.20",
+    "typedoc-plugin-frontmatter": "^1.3.3",
+    "typedoc-plugin-markdown": "^4.14.1",
+    "typescript": "^5.9.0",
+    "vitest": "^5.0.5"
   }
 }

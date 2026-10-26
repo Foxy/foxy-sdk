@@ -1,0 +1,29 @@
+{
+  "entryPoints": [
+    "../src/admin/index.ts",
+    "../src/customer/index.ts",
+    "../src/checkout/index.ts",
+    "../src/checkout/client.ts",
+    "../src/checkout/loader.ts",
+    "../src/checkout/side-cart.ts",
+    "../src/checkout/add-to-cart.ts",
+    "../src/core/index.ts"
+  ],
+  "tsconfig": "../tsconfig.build.json",
+  "plugin": ["typedoc-plugin-markdown", "typedoc-plugin-frontmatter"],
+  "out": "out",
+  "fileExtension": ".mdx",
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "excludeInternal": true,
+  "skipErrorChecking": true,
+  "readme": "none",
+  "useCodeBlocks": true,
+  "parametersFormat": "table",
+  "hidePageHeader": true,
+  "hideBreadcrumbs": true,
+  "sanitizeComments": true,
+  "displayBasePath": "..",
+  "gitRevision": "release/2.0.0",
+  "sourceLinkTemplate": "https://github.com/Foxy/foxy-sdk/blob/release/2.0.0/{path}#L{line}"
+}
