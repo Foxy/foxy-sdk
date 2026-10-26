@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join, posix } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -40,7 +40,7 @@ export function escapeForMdx(mdx) {
         .replace(/<br\s*\/?>/gi, '<br />')
         .replace(/(?<!\\)\{/g, '\\{')
         .replace(/(?<!\\)\}/g, '\\}')
-        .replace(/(?<!\\)<(?!br \/>)(?=[a-zA-Z/!])/g, '\\<');
+        .replace(/(?<!\\)<(?!br \/>|a id="[^"]*"><\/a>|\/a>)(?=[a-zA-Z/!])/g, '\\<');
     })
     .join('');
 }
@@ -67,6 +67,19 @@ function readCuries(dir) {
     }
   }
   return curies;
+}
+
+/** Public entry points from `package.json` `exports`, as TypeDoc entry paths. */
+export function entryPoints() {
+  const { exports } = JSON.parse(readFileSync(join(siteDir, '../package.json'), 'utf8'));
+  return Object.keys(exports)
+    .filter(key => !key.startsWith('./internal/'))
+    .map(key => {
+      const name = key.slice(2);
+      const found = [`src/${name}/index.ts`, `src/${name}.ts`].find(path => existsSync(join(siteDir, '..', path)));
+      if (!found) throw new Error(`No source file for export ${key}.`);
+      return `../${found}`;
+    });
 }
 
 function* walk(dir) {
@@ -103,7 +116,7 @@ export async function generateReference() {
   process.chdir(siteDir); // typedoc.json is found from the cwd
   const tmp = mkdtempSync(join(tmpdir(), 'foxy-sdk-reference-'));
   try {
-    const app = await Application.bootstrapWithPlugins({ out: tmp });
+    const app = await Application.bootstrapWithPlugins({ out: tmp, entryPoints: entryPoints() });
     const project = await app.convert();
     if (!project) throw new Error('TypeDoc could not convert the SDK source.');
     await app.generateOutputs(project);

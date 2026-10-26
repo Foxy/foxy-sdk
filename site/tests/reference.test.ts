@@ -5,7 +5,7 @@ import remarkFrontmatter from 'remark-frontmatter';
 import remarkGfm from 'remark-gfm';
 import { describe, expect, it } from 'vitest';
 
-import { escapeForMdx, generateReference, relsSummary, rewriteLinks } from '../scripts/reference.mjs';
+import { entryPoints, escapeForMdx, generateReference, relsSummary, rewriteLinks } from '../scripts/reference.mjs';
 
 const compileMdx = (text: string) => compile(text, { remarkPlugins: [remarkFrontmatter, remarkGfm] });
 
@@ -33,6 +33,22 @@ describe('reference generator', () => {
   it('keeps a raw <br> from a doc comment as text', async () => {
     const out = escapeForMdx('Weight in pounds.<br> Default 0. Use {value}.');
     await expect(compileMdx(out)).resolves.toBeDefined();
+  });
+
+  it('keeps TypeDoc anchors in table cells', async () => {
+    const table = '| a |\n| --- |\n| <a id="type-parameter-t"></a> `T` <br> x |\n';
+    const out = escapeForMdx(table);
+    expect(out).toContain('<a id="type-parameter-t"></a>');
+    await expect(compileMdx(out)).resolves.toBeDefined();
+  });
+
+  it('derives entry points from package.json exports', () => {
+    expect(entryPoints().sort()).toEqual(
+      [
+        'admin/index', 'customer/index', 'checkout/index', 'core/index',
+        'checkout/client', 'checkout/loader', 'checkout/side-cart', 'checkout/add-to-cart',
+      ].map(name => `../src/${name}.ts`).sort(),
+    );
   });
 
   it('leaves code blocks untouched', () => {
