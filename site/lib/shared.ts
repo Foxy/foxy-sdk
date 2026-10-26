@@ -1,4 +1,3 @@
-export const appName = 'Foxy SDK v2';
 export const docsRoute = '/docs';
 
 export const gitConfig = {

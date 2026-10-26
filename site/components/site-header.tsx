@@ -219,6 +219,11 @@ export function HeaderContainer(props: ComponentProps<'div'>) {
   );
 }
 
+/** Replaces the Fumadocs sidebar title; the header already shows the logo. */
+export function NoNavTitle() {
+  return null;
+}
+
 /** Rendered at the top of the sidebar drawer; the top bar hides these links on phones. */
 export function MobileLinks() {
   return (
