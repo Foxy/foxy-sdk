@@ -2,6 +2,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { listInternalMembers, listPublicExports } from './exports.mjs';
+import { subentries } from './reference.mjs';
 
 const siteDir = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -51,7 +52,7 @@ export function findInternalLeaks(referenceDir) {
     for (const entry of readdirSync(referenceDir, { withFileTypes: true })) {
       if (!entry.isDirectory()) continue;
       const dirs = [join(referenceDir, entry.name)];
-      if (entry.name === 'checkout') dirs.push(...['client', 'loader', 'side-cart', 'add-to-cart'].map(sub => join(referenceDir, 'checkout', sub)));
+      if (entry.name === 'checkout') dirs.push(...subentries('checkout').map(sub => join(referenceDir, 'checkout', sub)));
       for (const dir of dirs) {
         const page = findPage(dir, name);
         if (!page) continue;

@@ -14,8 +14,7 @@ const SECTIONS = [
   ['checkout', 'Checkout API'],
   ['core', 'Core'],
 ];
-const KIND_ORDER = ['index', 'classes', 'functions', 'variables', 'interfaces', 'type-aliases', 'namespaces'];
-const SUBENTRY_ORDER = ['client', 'loader', 'side-cart', 'add-to-cart'];
+const KIND_ORDER = ['index', 'classes', 'functions', 'variables', 'interfaces', 'type-aliases', 'enumerations', 'namespaces'];
 
 /** Turns relative `.mdx` links between generated pages into site URLs. `fromPath` is relative to `content/docs`. */
 export function rewriteLinks(mdx, fromPath) {
@@ -33,7 +32,7 @@ export function rewriteLinks(mdx, fromPath) {
 export function escapeForMdx(mdx) {
   // split keeps fenced blocks and inline code spans at odd indexes
   return mdx
-    .split(/(^```[\s\S]*?^```|`[^`\n]*`)/m)
+    .split(/(^```[\s\S]*?^```|^~~~[\s\S]*?^~~~|`[^`\n]*`)/m)
     .map((part, i) => {
       if (i % 2) return part;
       return part
@@ -82,6 +81,37 @@ export function entryPoints() {
     });
 }
 
+/** Subpath keys of the public entries, like `admin` or `checkout/client`. */
+export function entryKeys() {
+  return entryPoints().map(path => path.replace(/^\.\.\/src\//, '').replace(/(\/index)?\.ts$/, ''));
+}
+
+/** Names of the sub-entries of a section, like `client` for `checkout`. */
+export function subentries(section) {
+  return entryKeys()
+    .filter(key => key.startsWith(`${section}/`))
+    .map(key => key.slice(section.length + 1));
+}
+
+/** Fails with a clear message when an entry has no section or a section has no overview file. */
+function checkSections() {
+  for (const key of entryKeys()) {
+    if (!SECTIONS.some(([dir]) => dir === key.split('/')[0])) {
+      throw new Error(`Entry "${key}" has no section. Add it to SECTIONS in scripts/reference.mjs and to content/docs/meta.json.`);
+    }
+  }
+  for (const [dir] of SECTIONS) {
+    if (!existsSync(join(siteDir, 'overviews', `${dir}.mdx`))) throw new Error(`Section "${dir}" has no overview. Add overviews/${dir}.mdx.`);
+  }
+}
+
+/** The import path a reference page documents, from its path like `reference/checkout/client/variables/client.mdx`. */
+function importPath(rel) {
+  const [, section, second] = rel.split('/');
+  if (!section || section.endsWith('.mdx')) return null;
+  return `@foxy.io/sdk/${section}${subentries(section).includes(second) ? `/${second}` : ''}`;
+}
+
 function* walk(dir) {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const path = join(dir, entry.name);
@@ -90,8 +120,9 @@ function* walk(dir) {
   }
 }
 
-function frontmatter(title, body) {
-  return `---\ntitle: ${JSON.stringify(title)}\n---\n\n${body.replace(/^\n+/, '')}`;
+function frontmatter(title, description, body) {
+  const desc = description ? `description: ${JSON.stringify(description)}\n` : '';
+  return `---\ntitle: ${JSON.stringify(title)}\n${desc}---\n\n${body.replace(/^\n+/, '')}`;
 }
 
 /** Splits `# Heading` off the top of a page and returns the title without the TypeDoc kind prefix. */
@@ -105,7 +136,7 @@ function splitTitle(mdx, fallback) {
 const moduleTitles = {
   reference: 'API reference',
   ...Object.fromEntries(SECTIONS.map(([dir, title]) => [`reference/${dir}`, title])),
-  ...Object.fromEntries(SUBENTRY_ORDER.map(name => [`reference/checkout/${name}`, `@foxy.io/sdk/checkout/${name}`])),
+  ...Object.fromEntries(subentries('checkout').map(name => [`reference/checkout/${name}`, `@foxy.io/sdk/checkout/${name}`])),
 };
 
 function writeMeta(dir, title, pages) {
@@ -114,6 +145,7 @@ function writeMeta(dir, title, pages) {
 
 export async function generateReference() {
   process.chdir(siteDir); // typedoc.json is found from the cwd
+  checkSections();
   const tmp = mkdtempSync(join(tmpdir(), 'foxy-sdk-reference-'));
   try {
     const app = await Application.bootstrapWithPlugins({ out: tmp, entryPoints: entryPoints() });
@@ -150,20 +182,21 @@ export async function generateReference() {
       const section = SECTIONS.find(([dir]) => rel === `reference/${dir}/README.mdx`)?.[0];
       const overview = section ? `${readFileSync(join(siteDir, 'overviews', `${section}.mdx`), 'utf8').trimEnd()}\n\n` : '';
       mkdirSync(dirname(target), { recursive: true });
-      writeFileSync(target, frontmatter(pageTitle, overview + rewriteLinks(escapeForMdx(body), rel)));
+      writeFileSync(target, frontmatter(pageTitle, importPath(rel), overview + rewriteLinks(escapeForMdx(body), rel)));
     }
 
-    writeMeta(outDir, 'API reference', ['index', ...SECTIONS.map(([dir]) => dir)]);
+    writeMeta(outDir, 'API reference', ['index', ...SECTIONS.map(([dir]) => dir), '...']);
     for (const [dir, title] of SECTIONS) {
       const section = join(outDir, dir);
       const sub = readdirSync(section, { withFileTypes: true }).filter(e => e.isDirectory()).map(e => e.name);
-      const ordered = [...KIND_ORDER, ...SUBENTRY_ORDER].filter(name => name === 'index' || sub.includes(name));
-      writeMeta(section, title, ordered);
-      for (const name of SUBENTRY_ORDER) {
+      const subs = subentries(dir);
+      const ordered = [...KIND_ORDER, ...subs].filter(name => name === 'index' || sub.includes(name));
+      writeMeta(section, title, [...ordered, '...']);
+      for (const name of subs) {
         const subDir = join(section, name);
         if (!sub.includes(name)) continue;
         const kinds = readdirSync(subDir, { withFileTypes: true }).filter(e => e.isDirectory()).map(e => e.name);
-        writeMeta(subDir, `@foxy.io/sdk/${dir}/${name}`, KIND_ORDER.filter(n => n === 'index' || kinds.includes(n)));
+        writeMeta(subDir, `@foxy.io/sdk/${dir}/${name}`, [...KIND_ORDER.filter(n => n === 'index' || kinds.includes(n)), '...']);
       }
     }
   } finally {

@@ -5,7 +5,7 @@ import remarkFrontmatter from 'remark-frontmatter';
 import remarkGfm from 'remark-gfm';
 import { describe, expect, it } from 'vitest';
 
-import { entryPoints, escapeForMdx, generateReference, relsSummary, rewriteLinks } from '../scripts/reference.mjs';
+import { entryPoints, escapeForMdx, generateReference, relsSummary, rewriteLinks, subentries } from '../scripts/reference.mjs';
 
 const compileMdx = (text: string) => compile(text, { remarkPlugins: [remarkFrontmatter, remarkGfm] });
 
@@ -81,8 +81,40 @@ describe('reference generator', () => {
   it('starts each section index with its overview and still lists the exports', async () => {
     await generateReference();
     const admin = readFileSync('content/docs/reference/admin/index.mdx', 'utf8');
-    expect(admin).toMatch(/^---\ntitle: "Admin API"\n---/);
+    expect(admin).toMatch(/^---\ntitle: "Admin API"\ndescription: "@foxy\.io\/sdk\/admin"\n---/);
     expect(admin).toContain('const url = api.signIn(');
     expect(admin).toMatch(/^- \[API\]\(/m);
+  }, 600_000);
+
+  it('leaves ~~~ fenced blocks untouched', () => {
+    const code = '~~~ts\nconst a = { b: 1 };\n~~~\n\nText {x}.';
+    expect(escapeForMdx(code)).toBe('~~~ts\nconst a = { b: 1 };\n~~~\n\nText \\{x\\}.');
+  });
+
+  it('lists the checkout subentries from the package exports', () => {
+    const keys = entryPoints()
+      .map(path => path.replace(/^\.\.\/src\//, '').replace(/(\/index)?\.ts$/, ''))
+      .filter(key => key.startsWith('checkout/'))
+      .map(key => key.slice('checkout/'.length));
+    expect(subentries('checkout').sort()).toEqual(keys.sort());
+    expect(subentries('admin')).toEqual([]);
+  });
+
+  it('writes the import subpath as the description of every page', async () => {
+    await generateReference();
+    const description = (file: string) => readFileSync(file, 'utf8').match(/^description: (.+)$/m)?.[1];
+    expect(description('content/docs/reference/admin/classes/API.mdx')).toBe('"@foxy.io/sdk/admin"');
+    expect(description('content/docs/reference/checkout/client/variables/client.mdx')).toBe('"@foxy.io/sdk/checkout/client"');
+    expect(description('content/docs/reference/checkout/classes/API.mdx')).toBe('"@foxy.io/sdk/checkout"');
+    expect(description('content/docs/reference/checkout/client/index.mdx')).toBe('"@foxy.io/sdk/checkout/client"');
+  }, 600_000);
+
+  it('keeps unknown kinds and folders in the sidebar with a rest item', async () => {
+    await generateReference();
+    for (const section of ['admin', 'customer', 'checkout', 'core', 'checkout/client']) {
+      const meta = JSON.parse(readFileSync(`content/docs/reference/${section}/meta.json`, 'utf8'));
+      expect(meta.pages, section).toContain('...');
+    }
+    expect(JSON.parse(readFileSync('content/docs/reference/meta.json', 'utf8')).pages).toContain('...');
   }, 600_000);
 });
