@@ -17,6 +17,7 @@ const api = new API({ base: new URL('https://example.foxycart.com/s/customer/') 
 await api.signIn({ email: 'customer@example.com', password: 'password' });
 
 // Which frequencies may this customer switch a subscription to?
+// settings: the customer's portal settings. subscription: the subscription resource to check.
 const frequencies = [...getAllowedFrequencies({ settings, subscription })];
 ```
 
@@ -25,6 +26,3 @@ const frequencies = [...getAllowedFrequencies({ settings, subscription })];
 - [`API`](/docs/reference/customer/classes/API): the client class.
 - [`getAllowedFrequencies`](/docs/reference/customer/functions/getAllowedFrequencies): portal rules for subscription frequencies.
 - [`Rels`](/docs/reference/customer/namespaces/Rels): types for every resource.
-
-## Exports
-

@@ -5,14 +5,13 @@ import { API as CustomerAPI, getAllowedFrequencies } from '@foxy.io/sdk/customer
 import { client } from '@foxy.io/sdk/checkout/client';
 import { sideCart } from '@foxy.io/sdk/checkout/side-cart';
 import { API as CoreAPI, getResourceId } from '@foxy.io/sdk/core';
-import type { Graph, Resource } from '@foxy.io/sdk/core';
+import type { Graph } from '@foxy.io/sdk/core';
 
 declare function save(tokens: unknown): void;
 declare const callbackUrl: string;
 declare const savedState: string;
 declare const settings: Parameters<typeof getAllowedFrequencies>[0]['settings'];
 declare const subscription: Parameters<typeof getAllowedFrequencies>[0]['subscription'];
-declare const store: Resource<Graph>;
 
 export async function admin() {
   const api = new AdminAPI({
@@ -63,5 +62,5 @@ export function core(uri: string) {
     }
   }
 
-  return { id, MyAPI, store };
+  return { id, MyAPI };
 }

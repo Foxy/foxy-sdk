@@ -23,9 +23,11 @@ const api = new API({
 const url = api.signIn({ state: 'random-value', scope: 'store_full_access' });
 
 // Step 2: on the redirect back to your site, check the state and get tokens.
+// callbackUrl: the URL Foxy redirected the user to. savedState: the `state` you kept in step 1.
 const tokens = await api.confirmSignIn(callbackUrl, savedState);
 
 // Save new tokens whenever they change, and pass saved tokens back later.
+// save: your own function that stores the tokens, for example in a database.
 api.addEventListener('tokens', event => save(event.detail));
 api.setTokens(tokens);
 ```
@@ -35,6 +37,3 @@ api.setTokens(tokens);
 - [`API`](/docs/reference/admin/classes/API): the client class.
 - [`SignInParams`](/docs/reference/admin/type-aliases/SignInParams) and [`Tokens`](/docs/reference/admin/type-aliases/Tokens): sign-in input and token shape.
 - [`Rels`](/docs/reference/admin/namespaces/Rels): types for every resource.
-
-## Exports
-
