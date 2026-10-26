@@ -8,6 +8,7 @@ const config = {
   output: 'export',
   trailingSlash: true,
   images: { unoptimized: true },
+  allowedDevOrigins: ['beta.sdk.foxy.test'],
 };
 
 export default withMDX(config);
