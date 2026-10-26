@@ -182,16 +182,17 @@ function SiteHeader() {
         >
           SDK
         </Link>
-        <div className="ms-auto flex items-center gap-2 md:gap-6">
+        <div className="ms-auto flex items-center gap-2 md:gap-4 lg:gap-6">
           <nav aria-label="Foxy resources" className="max-md:hidden">
-            <ul className="flex items-center gap-6">
+            {/* smaller below lg so the links fit on one line at tablet width */}
+            <ul className="flex items-center gap-4 lg:gap-6">
               {headerLinks.map((l) => (
                 <li key={l.href}>
                   <a
                     href={l.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`${focusOnDark} rounded-sm text-[1.05rem] text-[rgba(255,255,255,0.65)] transition-colors hover:text-white focus-visible:text-white`}
+                    className={`${focusOnDark} whitespace-nowrap rounded-sm text-[0.9375rem] lg:text-[1.05rem] text-[rgba(255,255,255,0.65)] transition-colors hover:text-white focus-visible:text-white`}
                   >
                     {l.label}
                   </a>
