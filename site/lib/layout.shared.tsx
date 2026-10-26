@@ -6,5 +6,7 @@ export function baseOptions(): BaseLayoutProps {
     nav: { enabled: false },
     // search lives in the site header, not the sidebar
     searchToggle: { enabled: false },
+    // the theme switch lives in the site header
+    themeSwitch: { enabled: false },
   };
 }

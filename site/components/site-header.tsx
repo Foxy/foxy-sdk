@@ -6,6 +6,7 @@ import { Container } from 'fumadocs-ui/layouts/docs/slots/container';
 import { useDocsLayout } from 'fumadocs-ui/layouts/docs';
 import { useSearchContext } from 'fumadocs-ui/contexts/search';
 import { useTreeContext, useTreePath } from 'fumadocs-ui/contexts/tree';
+import { ThemeSwitch } from 'fumadocs-ui/layouts/shared/slots/theme-switch';
 import { getBreadcrumbItemsFromPath } from 'fumadocs-core/breadcrumb';
 import type { ComponentProps } from 'react';
 import type * as PageTree from 'fumadocs-core/page-tree';
@@ -16,6 +17,12 @@ const focus =
   'outline-none focus-visible:ring-2 focus-visible:ring-fd-ring focus-visible:ring-offset-2 focus-visible:ring-offset-fd-background';
 const focusOnDark =
   'outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#3B1142]';
+// lines up with the sidebar item text: the sidebar's p-4 plus the item's p-2,
+// less 1px because Fumadocs sets the sidebar content 1px wider than its box
+const gutter = 'px-4 md:px-[23px]';
+// Fumadocs' switch reads these tokens; the top bar is dark in both themes
+const switchOnDark =
+  'border-white/20 [--color-fd-accent:rgba(255,255,255,0.15)] [--color-fd-accent-foreground:#fff] [--color-fd-muted-foreground:rgba(255,255,255,0.65)]';
 const searchButton =
   'flex items-center rounded-lg border border-[rgba(33,50,91,0.1)] bg-fd-background text-fd-foreground transition-colors hover:bg-fd-accent dark:border-fd-border dark:bg-fd-card dark:hover:bg-fd-accent';
 
@@ -164,7 +171,7 @@ function SiteHeader() {
 
   return (
     <header>
-      <div className="flex h-[73px] items-center bg-[#3B1142] px-4 md:px-[37px]">
+      <div className={`flex h-[73px] items-center bg-[#3B1142] ${gutter}`}>
         <Link href={home} className={`${focusOnDark} shrink-0 rounded-sm`}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/foxy-logo-light.svg" alt="Foxy Commerce" width={135} height={35} />
@@ -175,32 +182,35 @@ function SiteHeader() {
         >
           SDK
         </Link>
-        <nav aria-label="Foxy resources" className="ms-auto max-md:hidden">
-          <ul className="flex items-center gap-6">
-            {headerLinks.map((l) => (
-              <li key={l.href}>
-                <a
-                  href={l.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`${focusOnDark} rounded-sm text-[1.05rem] text-[rgba(255,255,255,0.65)] transition-colors hover:text-white focus-visible:text-white`}
-                >
-                  {l.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
-        <Trigger
-          aria-label="Open menu"
-          className={`${focusOnDark} ms-auto -me-2 inline-flex size-10 items-center justify-center rounded-md text-white md:hidden`}
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="size-6" aria-hidden>
-            <path d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </Trigger>
+        <div className="ms-auto flex items-center gap-2 md:gap-6">
+          <nav aria-label="Foxy resources" className="max-md:hidden">
+            <ul className="flex items-center gap-6">
+              {headerLinks.map((l) => (
+                <li key={l.href}>
+                  <a
+                    href={l.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`${focusOnDark} rounded-sm text-[1.05rem] text-[rgba(255,255,255,0.65)] transition-colors hover:text-white focus-visible:text-white`}
+                  >
+                    {l.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+          <ThemeSwitch className={`${focusOnDark} ${switchOnDark}`} />
+          <Trigger
+            aria-label="Open menu"
+            className={`${focusOnDark} -me-2 inline-flex size-10 items-center justify-center rounded-md text-white md:hidden`}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="size-6" aria-hidden>
+              <path d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </Trigger>
+        </div>
       </div>
-      <div className="flex h-16 items-center justify-between gap-4 border-b border-[rgba(33,50,91,0.1)] bg-fd-background py-2 dark:border-fd-border px-4 md:px-[37px]">
+      <div className={`flex h-16 items-center justify-between gap-4 border-b border-[rgba(33,50,91,0.1)] bg-fd-background py-2 dark:border-fd-border ${gutter}`}>
         <Breadcrumbs />
         <SearchButton />
         <SearchButton compact />
