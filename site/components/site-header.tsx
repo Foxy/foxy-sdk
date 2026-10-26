@@ -132,7 +132,7 @@ function SiteHeader() {
 
   return (
     <header>
-      <div className="flex h-[73px] items-center bg-[#3B1142] px-4 md:px-6">
+      <div className="flex h-[73px] items-center bg-[#3B1142] px-4 md:px-[37px]">
         <Link href={home} className={`${focusOnDark} shrink-0 rounded-sm`}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/foxy-logo-light.svg" alt="Foxy Commerce" width={135} height={35} />
@@ -168,7 +168,7 @@ function SiteHeader() {
           </svg>
         </Trigger>
       </div>
-      <div className="flex h-12 items-center justify-between gap-4 border-b bg-fd-background px-4 md:px-6">
+      <div className="flex h-16 items-center justify-between gap-4 border-b border-[rgba(33,50,91,0.1)] bg-fd-background py-2 dark:border-fd-border px-4 md:px-[37px]">
         <Breadcrumbs />
         <SearchButton />
         <SearchButton compact />
