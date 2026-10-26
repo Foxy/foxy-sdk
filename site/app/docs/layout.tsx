@@ -10,7 +10,12 @@ export default function Layout({ children }: LayoutProps<'/docs'>) {
         tree={source.getPageTree()}
         {...baseOptions()}
         slots={{ container: HeaderContainer, navTitle: NoNavTitle }}
-        sidebar={{ banner: <MobileLinks />, collapsible: false }}
+        sidebar={{
+          banner: <MobileLinks />,
+          collapsible: false,
+          // the title block above the tree is empty on wide screens: no title, and MobileLinks is md:hidden
+          className: '[&>div:first-child]:hidden',
+        }}
       >
         {children}
       </DocsLayout>
