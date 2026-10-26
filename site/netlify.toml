@@ -1,7 +1,13 @@
 [build]
   base = "site"
-  command = "npm run build"
+  # The reference is generated from the SDK source, which needs the SDK's own dependencies for its types.
+  command = "(cd .. && npm ci --ignore-scripts) && npm run build"
   publish = "out"
 
 [build.environment]
   NODE_VERSION = "22"
+
+[[redirects]]
+  from = "/"
+  to = "/docs/"
+  status = 301

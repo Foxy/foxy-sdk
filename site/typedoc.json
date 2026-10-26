@@ -9,7 +9,7 @@
   "excludePrivate": true,
   "excludeProtected": true,
   "excludeInternal": true,
-  "skipErrorChecking": true,
+  "skipErrorChecking": false,
   "readme": "none",
   "useCodeBlocks": true,
   "parametersFormat": "table",

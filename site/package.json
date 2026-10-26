@@ -4,7 +4,7 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev",
-    "prebuild": "npm run reference && node scripts/check-completeness.mjs",
+    "prebuild": "npm run reference && node scripts/check-completeness.mjs && npm run examples:check",
     "reference": "node scripts/reference.mjs",
     "test": "vitest run",
     "examples:check": "tsc --noEmit -p tsconfig.examples.json",
