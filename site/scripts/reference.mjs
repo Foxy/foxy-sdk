@@ -146,8 +146,11 @@ export async function generateReference() {
       const target = join(siteDir, 'content/docs', isReadme ? join(dirname(rel), 'index.mdx') : rel);
       const { title, body } = splitTitle(readFileSync(file, 'utf8'), basename(file, '.mdx'));
       const pageTitle = moduleTitles[rel.replace(/\/README\.mdx$/, '')] ?? title;
+      // each section's index page starts with its hand-written overview
+      const section = SECTIONS.find(([dir]) => rel === `reference/${dir}/README.mdx`)?.[0];
+      const overview = section ? `${readFileSync(join(siteDir, 'overviews', `${section}.mdx`), 'utf8').trimEnd()}\n\n` : '';
       mkdirSync(dirname(target), { recursive: true });
-      writeFileSync(target, frontmatter(pageTitle, rewriteLinks(escapeForMdx(body), rel)));
+      writeFileSync(target, frontmatter(pageTitle, overview + rewriteLinks(escapeForMdx(body), rel)));
     }
 
     writeMeta(outDir, 'API reference', ['index', ...SECTIONS.map(([dir]) => dir)]);

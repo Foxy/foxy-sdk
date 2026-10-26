@@ -1,0 +1,33 @@
+Building blocks shared by the other APIs. Most apps do not need it. Use it directly to write your own client for a Foxy-style hypermedia API, or to work with resource types and IDs.
+
+```sh
+npm i @foxy.io/sdk@2
+```
+
+```ts
+import { API, getResourceId } from '@foxy.io/sdk/core';
+import type { Graph, Resource } from '@foxy.io/sdk/core';
+```
+
+## Example
+
+Read the ID from a resource's `self` link, and build a client by extending `API`.
+
+```ts
+const id = getResourceId('https://api.foxy.io/stores/123'); // 123
+
+class MyAPI extends API<Graph> {
+  constructor() {
+    super({ base: new URL('https://api.example.com/') });
+  }
+}
+```
+
+## Learn more
+
+- [`API`](/docs/reference/core/classes/API): base class for clients.
+- [`getResourceId`](/docs/reference/core/functions/getResourceId): ID from a URI.
+- [`Resource`](/docs/reference/core/type-aliases/Resource): a resource record type.
+
+## Exports
+

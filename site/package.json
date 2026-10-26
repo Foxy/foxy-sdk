@@ -7,6 +7,7 @@
     "prebuild": "npm run reference && node scripts/check-completeness.mjs",
     "reference": "node scripts/reference.mjs",
     "test": "vitest run",
+    "examples:check": "tsc --noEmit -p tsconfig.examples.json",
     "types:check": "next typegen && tsc --noEmit"
   },
   "dependencies": {

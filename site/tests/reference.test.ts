@@ -77,4 +77,12 @@ describe('reference generator', () => {
       await expect(compileMdx(text), file).resolves.toBeDefined();
     }
   }, 600_000);
+
+  it('starts each section index with its overview and still lists the exports', async () => {
+    await generateReference();
+    const admin = readFileSync('content/docs/reference/admin/index.mdx', 'utf8');
+    expect(admin).toMatch(/^---\ntitle: "Admin API"\n---/);
+    expect(admin).toContain('const url = api.signIn(');
+    expect(admin).toMatch(/^- \[API\]\(/m);
+  }, 600_000);
 });

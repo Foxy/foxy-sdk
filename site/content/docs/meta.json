@@ -1,4 +1,4 @@
 {
   "title": "Foxy SDK v2",
-  "pages": ["index"]
+  "pages": ["index", "reference/admin", "reference/customer", "reference/checkout", "reference/core"]
 }

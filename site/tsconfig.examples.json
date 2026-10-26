@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "types": ["node"],
+    "paths": { "@foxy.io/sdk/*": ["../src/*"] }
+  },
+  "include": ["tests/examples.test-d.ts", "../src/vite-env.d.ts"]
+}

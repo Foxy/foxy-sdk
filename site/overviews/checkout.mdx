@@ -1,0 +1,44 @@
+Cart and checkout for the browser. It has a shared `client`, a side cart drawer, and add-to-cart links and forms. Load it from npm, or from the Foxy CDN with no build step.
+
+```sh
+npm i @foxy.io/sdk@2
+```
+
+```ts
+import { client } from '@foxy.io/sdk/checkout/client';
+```
+
+From the CDN, the store domain goes in the `store` parameter:
+
+```js
+import { client } from 'https://cdn-js.foxy.io/sdk@2/checkout/loader.js?store=example.foxycart.com';
+```
+
+## Example
+
+Add an item to the cart.
+
+```ts
+client.addItem([
+  ['name', 'Mug'],
+  ['price', '15'],
+]);
+```
+
+Show the side cart. `store` is required here unless the loader is already on the page.
+
+```js
+import { sideCart } from 'https://cdn-js.foxy.io/sdk@2/checkout/side-cart.js?store=example.foxycart.com';
+
+sideCart.show();
+```
+
+## Learn more
+
+- [`client`](/docs/reference/checkout/client): the shared client.
+- [`side-cart`](/docs/reference/checkout/side-cart): the drawer.
+- [`add-to-cart`](/docs/reference/checkout/add-to-cart): links and forms.
+- [`loader`](/docs/reference/checkout/loader): sets the store for the page.
+
+## Exports
+

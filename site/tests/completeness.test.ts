@@ -24,7 +24,7 @@ describe('reference completeness', () => {
 
   it('reports a class member that has no heading', () => {
     const exports = listPublicExports();
-    exports.get('./admin')!.find(e => e.name === 'API')!.members.push('notAMember');
+    exports.get('./admin')!.find((e: { name: string }) => e.name === 'API')!.members.push('notAMember');
     expect(findMissing(exports, dir)).toContain('./admin API.notAMember');
   });
 
@@ -40,6 +40,6 @@ describe('reference completeness', () => {
     const keys = [...exports.keys()];
     expect(keys).not.toContain('./internal/side-cart/protocol');
     expect(keys).toHaveLength(8);
-    expect(exports.get('./admin')!.map(e => e.name)).toContain('Rels');
+    expect(exports.get('./admin')!.map((e: { name: string }) => e.name)).toContain('Rels');
   });
 });
