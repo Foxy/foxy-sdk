@@ -47,7 +47,7 @@ export type ZoomOn<
   TQuery extends Query<TGraph> | undefined,
   TRel extends keyof TGraph['zooms']
 > = TQuery extends With<Query<TGraph>, 'zoom'>
-  ? ZoomIn<TQuery['zoom'], TRel> extends Query<Required<TGraph['zooms']>[TRel]>['zoom']
+  ? ZoomIn<TQuery['zoom'], TRel> extends Query<NonNullable<NonNullable<TGraph['zooms']>[TRel]>>['zoom']
     ? ZoomIn<TQuery['zoom'], TRel>
     : never
   : never;

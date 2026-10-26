@@ -3,6 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { APIJson } from "../../../checkout/types";
 import { API } from "../../../checkout/API";
+import { internalsOf } from "../../../checkout/internal";
 import type { SessionStore } from "../../../checkout/session/stores";
 import { createApiJson } from "../fixtures/apiJson";
 
@@ -249,7 +250,7 @@ describe("client.session.start", () => {
   it("adopts an ID: stores it, tells the sidecart, loads the cart", async () => {
     const api = await boot((a) => a.session.configure({ autoStart: false }));
     const transport = fakeTransport();
-    api.setSideCartTransport(transport);
+    internalsOf(api).setSideCartTransport(transport);
     vi.mocked(fetch).mockImplementation(async () => respond(cart("s-mine")));
 
     await api.session.start("s-mine");
@@ -307,7 +308,7 @@ describe("client.session.start", () => {
     const onError = vi.fn();
     const api = new API({ onError });
     const transport = fakeTransport();
-    api.setSideCartTransport(transport);
+    internalsOf(api).setSideCartTransport(transport);
 
     await expect(api.session.start("s-1")).rejects.toThrow(
       "This API instance is inactive until storeDomain is set.",
@@ -326,7 +327,7 @@ describe("client.session.end", () => {
     vi.mocked(fetch).mockImplementation(async () => respond(cart("s-1")));
     const api = await boot();
     const transport = fakeTransport();
-    api.setSideCartTransport(transport);
+    internalsOf(api).setSideCartTransport(transport);
     vi.mocked(fetch).mockClear();
 
     await api.session.end();
@@ -342,7 +343,7 @@ describe("client.session.end", () => {
     localStorage.setItem(KEY, "s-1");
     vi.mocked(fetch).mockImplementation(async () => respond(cart("s-1")));
     const api = await boot();
-    api.setSideCartTransport({ invoke: vi.fn().mockResolvedValue(undefined), show: vi.fn() });
+    internalsOf(api).setSideCartTransport({ invoke: vi.fn().mockResolvedValue(undefined), show: vi.fn() });
 
     await expect(api.session.end()).resolves.toBeUndefined();
     expect(api.session.id).toBeNull();
@@ -429,7 +430,7 @@ describe("client.session.configure after the first load", () => {
   it("adopts the new store's session and reloads", async () => {
     const api = await bootedWith("s-1");
     const transport = fakeTransport();
-    api.setSideCartTransport(transport);
+    internalsOf(api).setSideCartTransport(transport);
     vi.mocked(fetch).mockImplementation(async () => respond(cart("s-2")));
 
     api.session.configure({ storage: spyStore("s-2") });
@@ -532,7 +533,7 @@ describe("responses from an old session", () => {
     const starting = api.session.start();
     await new Promise((resolve) => setTimeout(resolve, 0)); // the load is in flight
     expect(fetch).toHaveBeenCalledTimes(1);
-    api.reportSideCartSession("s-frame");
+    internalsOf(api).reportSideCartSession("s-frame");
 
     await expect(starting).resolves.toBeUndefined();
     expect(api.session.id).toBe("s-frame");
@@ -549,7 +550,7 @@ describe("responses from an old session", () => {
     api.session.configure({ storage: spyStore("s-2") });
     await new Promise((resolve) => setTimeout(resolve, 0)); // the adopt load is in flight
     expect(fetch).toHaveBeenCalledTimes(1);
-    api.reportSideCartSession("s-frame");
+    internalsOf(api).reportSideCartSession("s-frame");
     await new Promise((resolve) => setTimeout(resolve, 10));
 
     expect(onError).not.toHaveBeenCalled();
@@ -709,7 +710,7 @@ describe("frame reports while an async store works", () => {
 
     const ending = api.session.end();
     await tick();
-    api.reportSideCartSession("s-1"); // the old frame's `state` while remove() runs
+    internalsOf(api).reportSideCartSession("s-1"); // the old frame's `state` while remove() runs
     await ending;
     await new Promise((resolve) => setTimeout(resolve, 30));
 
@@ -720,7 +721,7 @@ describe("frame reports while an async store works", () => {
   it("end() waits for a store write that started before it", async () => {
     const store = slowStore(null, { set: 30, remove: 10 });
     const api = await boot((a) => a.session.configure({ storage: store, autoStart: false }));
-    api.reportSideCartSession("s-2");
+    internalsOf(api).reportSideCartSession("s-2");
 
     await api.session.end();
     await new Promise((resolve) => setTimeout(resolve, 40));
@@ -737,7 +738,7 @@ describe("frame reports while an async store works", () => {
 
     const starting = api.session.start("s-2");
     await tick();
-    api.reportSideCartSession("s-1"); // the old frame's `state` while set() runs
+    internalsOf(api).reportSideCartSession("s-1"); // the old frame's `state` while set() runs
     await starting;
 
     expect(store.set).not.toHaveBeenCalledWith("s-1");
@@ -752,7 +753,7 @@ describe("frame reports while an async store works", () => {
     vi.mocked(fetch).mockRejectedValue(new TypeError("offline"));
     await expect(api.session.end({ reset: true })).rejects.toThrow("offline");
 
-    api.reportSideCartSession("s-2");
+    internalsOf(api).reportSideCartSession("s-2");
 
     expect(api.session.id).toBe("s-2");
   });
@@ -800,7 +801,7 @@ describe("store and frame failures", () => {
     const onError = vi.fn();
     const api = await boot(undefined, onError);
 
-    api.reportSideCartSession(""); // what a frame `ready` or `state` does
+    internalsOf(api).reportSideCartSession(""); // what a frame `ready` or `state` does
 
     expect(onError).toHaveBeenCalledWith(
       expect.objectContaining({ message: "Ignored an invalid session ID." }),
@@ -898,7 +899,7 @@ describe("first cart load failure", () => {
 
   async function bootWith(t: ReturnType<typeof transport>): Promise<void> {
     const api = new API();
-    api.setSideCartTransport(t);
+    internalsOf(api).setSideCartTransport(t);
     api.setStoreDomain("store.test");
     await new Promise((resolve) => setTimeout(resolve, 0));
     await vi.waitFor(() => expect(api.state).toBe("idle"));
@@ -935,7 +936,7 @@ describe("first cart load failure", () => {
     const error = vi.spyOn(console, "error").mockImplementation(() => {});
     const t = transport();
     const api = new API();
-    api.setSideCartTransport(t);
+    internalsOf(api).setSideCartTransport(t);
     // The session moves on while the first GET /cart is in flight.
     vi.mocked(fetch).mockImplementation(async () => {
       api.session.configure({ storage: "session", key: "other" });

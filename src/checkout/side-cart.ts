@@ -1,6 +1,8 @@
 // src/checkout/side-cart.ts
 import type { FrameToHostMessage, SideCartInvokeMethod } from "./side-cart/protocol";
+import type { SideCartTransport } from "./API";
 import { client } from "./client";
+import { internalsOf } from "./internal";
 import { hashSessionId, readCachedState, writeCachedState } from "./side-cart/session-cache";
 import { adoptScriptStore, resolveHostStoreOrigin } from "./side-cart/origin";
 import { SideCartHostChannel } from "./side-cart/channel";
@@ -35,7 +37,19 @@ const CLOSE_FALLBACK_MS = 1000;
  */
 const READY_FALLBACK_MS = 8000;
 
+/** Set by `SideCart`'s static block, which can reach its private hooks. */
+let transportOf: (sideCart: SideCart) => SideCartTransport;
+
 class SideCart extends EventTarget {
+  static {
+    transportOf = (sideCart) => ({
+      invoke: (method, params) => sideCart.#invoke(method, params),
+      show: () => sideCart.show(),
+      sessionChanged: (sessionId) => sideCart.#onSessionChanged(sessionId),
+      loadFailed: () => sideCart.#onLoadFailed(),
+    });
+  }
+
   #frame: HTMLIFrameElement | null = null;
   #channel: SideCartHostChannel | null = null;
   #open = false;
@@ -94,7 +108,7 @@ class SideCart extends EventTarget {
     const checkDomain = (): void => {
       if (this.#tryOrigin() !== null) return;
       console.warn(`[Foxy] ${NO_STORE_ORIGIN} Until then, the cart count can't load.`);
-      this.loadFailed();
+      this.#onLoadFailed();
     };
     if (document.readyState === "complete") setTimeout(checkDomain, 0);
     else window.addEventListener("load", checkDomain, { once: true });
@@ -185,8 +199,8 @@ class SideCart extends EventTarget {
     return this.#loadFailed && this.itemCount === null;
   }
 
-  /** `SideCartTransport`: the client's first cart load failed. */
-  loadFailed(): void {
+  /** The client's first cart load failed. */
+  #onLoadFailed(): void {
     this.#loadFailed = true;
     // Dispatched directly: `#announceIfCountChanged` ignores null -> null.
     if (this.itemCount === null) {
@@ -244,7 +258,7 @@ class SideCart extends EventTarget {
     // The frame loads only once the session is known. With no ID, the cart
     // page in the frame would create a new session, and its report would
     // replace the stored one: the first load may not have read the store yet.
-    void client.sessionSettled().then(() => {
+    void internalsOf(client).sessionSettled().then(() => {
       if (this.#frame !== frame) return;
       // The store changed while the session settled: this frame points at the
       // old store, and the session now belongs to the new one.
@@ -388,7 +402,7 @@ class SideCart extends EventTarget {
     document.removeEventListener("keydown", this.#onKeyDown);
     this.#channel?.post({ type: "hide" });
     this.dispatchEvent(new Event("close"));
-    client.reportSideCartError(
+    internalsOf(client).reportSideCartError(
       new Error(
         "The cart drawer did not respond in time. This usually means the store " +
           "page failed to load -- check for a Content-Security-Policy frame-src " +
@@ -427,7 +441,7 @@ class SideCart extends EventTarget {
   }
 
   /** `client.session` changed under a mounted frame: show the new cart, or none. */
-  sessionChanged(sessionId: string | null): void {
+  #onSessionChanged(sessionId: string | null): void {
     if (sessionId !== null) {
       if (this.#frame) this.reload();
       return;
@@ -447,7 +461,7 @@ class SideCart extends EventTarget {
   }
 
   /** Called by `client` through the transport hook. */
-  async invoke(method: SideCartInvokeMethod, params: unknown[]): Promise<void> {
+  async #invoke(method: SideCartInvokeMethod, params: unknown[]): Promise<void> {
     // `async` is load-bearing. `mount()` throws synchronously when no store
     // origin is set, and `API.ts`'s `void transport.invoke(...).catch(...)`
     // cannot catch a synchronous throw: it would escape into merchant code
@@ -479,7 +493,7 @@ class SideCart extends EventTarget {
       // The frame's only unsolicited error channel, routed where a rejected
       // delegated mutation goes: the checkout json's messages when there is
       // one, and the client's own error hook either way.
-      client.reportSideCartError(new Error(message.message));
+      internalsOf(client).reportSideCartError(new Error(message.message));
       return;
     }
 
@@ -495,7 +509,7 @@ class SideCart extends EventTarget {
         if (this.#open) this.#revealFrame();
       }
 
-      client.reportSideCartSession(message.sessionId);
+      internalsOf(client).reportSideCartSession(message.sessionId);
       this.#reportedItemCount = message.itemCount;
       const origin = this.#tryOrigin();
 
@@ -563,10 +577,11 @@ class SideCart extends EventTarget {
   }
 }
 
+export type { SideCart };
 export const sideCart = new SideCart();
 
 // Importing this module is what makes `client` a sidecart client. The store's
 // own cart and checkout pages never import it, so their client keeps talking
 // to the store directly.
 adoptScriptStore(import.meta.url);
-client.setSideCartTransport(sideCart);
+internalsOf(client).setSideCartTransport(transportOf(sideCart));

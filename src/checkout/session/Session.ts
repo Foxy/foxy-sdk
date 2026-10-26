@@ -19,7 +19,7 @@ export type SessionOptions = {
   autoStart?: boolean;
 };
 
-/** What `Session` needs from the `API` that owns it. Not public. */
+/** What `CartSession` needs from the `API` that owns it. Only the SDK creates one. */
 export type SessionHost = {
   storeOrigin(): string | null;
   /** Runs `action` with the client `busy`, and rethrows. */
@@ -35,7 +35,7 @@ export type SessionHost = {
   changed(sessionId: string | null): void;
 };
 
-/** What a request saw when it was sent. See `Session#isStale`. */
+/** What a request saw when it was sent. See `CartSession#isStale`. */
 export type SessionSnapshot = { readonly id: string | null; readonly epoch: number };
 
 function toError(error: unknown): Error {
@@ -48,7 +48,7 @@ function toError(error: unknown): Error {
  * Every change runs in one queue, one at a time, so a double click or a
  * `start()` during the first load cannot make two sessions.
  */
-export class Session {
+export class CartSession {
   readonly #host: SessionHost;
   #options: SessionOptions = {};
   #store: SessionStore | null = null;

@@ -1,12 +1,16 @@
 export { API } from './API.js';
+export type { APIEventMap, APIInit, GrantOpts, SignInParams, TokenResponse, Tokens } from './API.js';
 export { cartExcludes, cartExcludePrefixes, signFragment, signName, signUrl, signValue } from './Signer.js';
 export { createSSOURL } from './createSSOURL.js';
+export type { SSOURLOptions } from './createSSOURL.js';
 export { verifyWebhookSignature } from './verifyWebhookSignature.js';
 export { getAllowedFrequencies } from '../rules/getAllowedFrequencies.js';
 export { getNextTransactionDateConstraints } from '../rules/getNextTransactionDateConstraints.js';
 export { getTimeFromFrequency, InvalidFrequencyError } from '../rules/getTimeFromFrequency.js';
 export { isNextTransactionDate } from '../rules/isNextTransactionDate.js';
-export type { Constraints } from '../rules/types';
+export type { Constraints, NextDateRules } from '../rules/types';
+export type { AllowedFrequenciesOptions } from '../rules/getAllowedFrequencies.js';
+export type { NextTransactionDateOptions } from '../rules/isNextTransactionDate.js';
 export type { Graph } from './Graph';
 import type * as Rels from './Rels';
 export type { Rels };

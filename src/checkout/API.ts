@@ -19,6 +19,7 @@ import type {
 } from "./types/PaymentGatewayConfig";
 import type { Listener } from "./types/Listener";
 import type { SideCartInvokeMethod } from "./side-cart/protocol";
+import { registerInternals } from "./internal";
 import { initializeAdyenEmbeddedSdk } from "./utils/adyen";
 import {
   isNonNegativeInteger,
@@ -40,7 +41,7 @@ import { cloneApiJson, toMutable } from "./utils/json";
 import type { MutableAPIJson } from "./utils/json";
 import { toFormData, toQueryString } from "./utils/url";
 import { loadPayPalSdk } from "./utils/payPal";
-import { Session } from "./session/Session";
+import { CartSession } from "./session/Session";
 
 /** A response that arrived after its session changed. Dropped, never reported. */
 class StaleSessionResponse extends Error {}
@@ -379,7 +380,7 @@ async function resolveIncomingApiState(
   };
 }
 
-type CheckOutPaymentOption =
+export type CheckOutPaymentOption =
   | { gateway: "adyen_embedded" }
   | {
       gateway: "klarna";
@@ -441,8 +442,9 @@ export type APIConstructorParams = APIOptions & {
 };
 
 /**
- * This is going to be under SDK.Checkout.API in the @foxy.io/sdk package.
- * Pages using loader.js will have an initialized instance under window.Foxy.api.
+ * The checkout client. `checkout/client` and `checkout/loader` export one shared
+ * instance as `client`. The loader also sets its store, from the script's `?store=`
+ * or else the page's hostname.
  *
  * Fires non-cancelable `update` event whenever the resolved checkout state changes.
  */
@@ -472,7 +474,7 @@ export class API extends EventTarget {
    */
   #postTail: Promise<unknown> = Promise.resolve();
   /** The cart session: where its ID is stored, and how to start or end it. */
-  readonly session: Session = new Session({
+  readonly session: CartSession = new CartSession({
     storeOrigin: () => (this.#baseUrl ? new URL(this.#baseUrl).origin : null),
     run: (action) => this.#busy(action),
     load: async (sessionId) => {
@@ -492,10 +494,12 @@ export class API extends EventTarget {
     changed: (sessionId) => this.#sideCartTransport?.sessionChanged?.(sessionId),
   });
 
+  /** @internal No caller yet. Kept for the Apple Pay and Google Pay flow. */
   static canMakeApplePayPayments(): boolean {
     return getApplePayAvailability() === "available";
   }
 
+  /** @internal */
   static async ensureApplePayScriptLoaded(): Promise<void> {
     try {
       await loadApplePaySdk();
@@ -504,10 +508,12 @@ export class API extends EventTarget {
     }
   }
 
+  /** @internal */
   static async loadGooglePaySdk(): Promise<void> {
     await loadGooglePaySdkUtil();
   }
 
+  /** @internal */
   static async ensureGooglePayScriptLoaded(): Promise<void> {
     try {
       await API.loadGooglePaySdk();
@@ -516,12 +522,14 @@ export class API extends EventTarget {
     }
   }
 
+  /** @internal */
   static async createGooglePaymentsClient(
     environment: "TEST" | "PRODUCTION",
   ): Promise<GooglePaymentsClient> {
     return createGooglePaymentsClientUtil(environment);
   }
 
+  /** @internal */
   static async canMakeGooglePayPayments(
     allowedPaymentMethod: Record<string, unknown>,
     environment: "TEST" | "PRODUCTION",
@@ -531,6 +539,16 @@ export class API extends EventTarget {
 
   constructor(params?: APIConstructorParams) {
     super();
+    registerInternals(this, {
+      setSideCartTransport: (transport) => {
+        this.#sideCartTransport = transport;
+      },
+      sideCartTransport: () => this.#sideCartTransport,
+      storeUrl: () => this.#baseUrl ?? null,
+      reportSideCartError: (error) => this.#reportSideCartError(error),
+      reportSideCartSession: (sessionId) => this.session.observe(sessionId),
+      sessionSettled: () => this.#sessionSettled(),
+    });
     const { initialJson, storeDomain, initialState, onError } = params ?? {};
     this.#baseUrl = storeDomain
       ? resolveBaseUrlFromStoreDomain(storeDomain)
@@ -721,16 +739,16 @@ export class API extends EventTarget {
   }
 
   /**
-   * @internal For the sidecart and `postJson`: resolves once the session is known. That is
+   * For the sidecart and `postJson`: resolves once the session is known. That is
    * after a first load still waiting for its timer, and after every queued
    * session change. Never rejects.
    */
-  async sessionSettled(): Promise<void> {
+  async #sessionSettled(): Promise<void> {
     await this.#bootTimer;
     await this.session.settled();
   }
 
-  protected setState(state: "idle" | "busy", emitUpdate = true): void {
+  private setState(state: "idle" | "busy", emitUpdate = true): void {
     this.#state = state;
 
     if (emitUpdate) {
@@ -738,14 +756,14 @@ export class API extends EventTarget {
     }
   }
 
-  protected mutateJson(mutator: (json: MutableAPIJson) => void): void {
+  private mutateJson(mutator: (json: MutableAPIJson) => void): void {
     if (!this.#json) return;
     mutator(this.#json);
 
     this.dispatchEvent(new Event("update"));
   }
 
-  protected async replaceJson(nextJson: APIJson): Promise<void> {
+  private async replaceJson(nextJson: APIJson): Promise<void> {
     const resolutionVersion = ++this.#jsonResolutionVersion;
 
     const resolvedState = await resolveIncomingApiState(nextJson, {
@@ -834,14 +852,14 @@ export class API extends EventTarget {
     this.dispatchEvent(new Event("update"));
   }
 
-  protected dispatchCancelable<K extends EventWithoutDetailName>(
+  private dispatchCancelable<K extends EventWithoutDetailName>(
     type: K,
   ): boolean;
-  protected dispatchCancelable<K extends EventWithDetailName>(
+  private dispatchCancelable<K extends EventWithDetailName>(
     type: K,
     detail: EventDetail<K>,
   ): boolean;
-  protected dispatchCancelable<K extends EventName>(
+  private dispatchCancelable<K extends EventName>(
     type: K,
     detail?: EventDetail<K>,
   ): boolean {
@@ -853,55 +871,21 @@ export class API extends EventTarget {
     return this.dispatchEvent(event);
   }
 
-  protected addErrorMessage(message: string, context = "sdk"): void {
+  private addErrorMessage(message: string, context = "sdk"): void {
     if (!this.#json) return;
     this.mutateJson((json) => {
       json.messages.push({ context, message, level: "error" });
     });
   }
 
-  setSideCartTransport(transport: SideCartTransport | null): void {
-    this.#sideCartTransport = transport;
-  }
-
   /**
-   * The sidecart this client delegates to, or null. `checkout/add-to-cart`
-   * reads it to choose sidecart mode and to open the drawer after adding.
-   */
-  get sideCartTransport(): SideCartTransport | null {
-    return this.#sideCartTransport;
-  }
-
-  /**
-   * The store this client talks to, or null before a domain is set. The
-   * sidecart needs it to build the iframe URL and to check the origin of the
-   * frame's announcement, and `#baseUrl` is the only place it has been
-   * resolved -- on a merchant page there is no checkout json to read it from.
-   */
-  get storeUrl(): string | null {
-    return this.#baseUrl ?? null;
-  }
-
-  /**
-   * Routes a sidecart failure into both channels a merchant page has:
    * `addErrorMessage` no-ops without checkout json, which is exactly the
    * merchant-page case the sidecart exists for, so the failure also goes to
-   * the host's own error hook. Public because the sidecart host reports the
-   * frame's own unsolicited `error` messages through here too, and it can
-   * reach neither `addErrorMessage` (protected) nor `#onError` (private).
+   * the host's own error hook.
    */
-  reportSideCartError(error: Error): void {
+  #reportSideCartError(error: Error): void {
     this.addErrorMessage(error.message, "side-cart");
     this.#onError?.(error);
-  }
-
-  /**
-   * The session the sidecart frame reports. Public for the same reason as
-   * `reportSideCartError`: the sidecart host cannot reach `client.session`'s
-   * internals any other way.
-   */
-  reportSideCartSession(sessionId: string | null): void {
-    this.session.observe(sessionId);
   }
 
   /**
@@ -920,7 +904,7 @@ export class API extends EventTarget {
   private delegated(method: SideCartInvokeMethod, params: unknown[]): boolean {
     if (!this.#sideCartTransport) return false;
     void this.#sideCartTransport.invoke(method, params).catch((error: unknown) => {
-      this.reportSideCartError(
+      this.#reportSideCartError(
         error instanceof Error ? error : new Error(String(error)),
       );
     });
@@ -1652,6 +1636,7 @@ export class API extends EventTarget {
     });
   }
 
+  /** @internal No caller yet. Kept for the Apple Pay flow. */
   async validateApplePayMerchant(params: {
     validationURL: string;
   }): Promise<unknown> {
@@ -1871,10 +1856,10 @@ export class API extends EventTarget {
     if (this.#hydrated) {
       sessionId = this.#json?.session?.id ?? null;
     } else {
-      if (this.session.id === null) await this.sessionSettled();
+      if (this.session.id === null) await this.#sessionSettled();
       // Again while a store change scheduled a new first load during the wait.
       while (this.session.id === null && !this.#booted && this.#bootTimer) {
-        await this.sessionSettled();
+        await this.#sessionSettled();
       }
       sessionId = this.session.id ?? (this.#booted ? await this.session.ensure() : null);
     }

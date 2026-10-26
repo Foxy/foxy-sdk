@@ -8,8 +8,8 @@
 ## What Is In This Branch
 
 - `release/2.0.0` ships the **Checkout, Core, Customer and Admin** clients. `src/`
-  holds `checkout/`, `core/`, `customer/`, `admin/` and `rules/`; `src/index.ts`
-  re-exports the first four as namespaces.
+  holds `checkout/`, `core/`, `customer/`, `admin/` and `rules/`. There is no
+  root entry: each client is imported from its own subpath.
 - Admin is v1's Backend client, ported and renamed. Nucleon has not been ported;
   `BooleanSelector`, `Nucleon` and `Rumour` were deliberately left in v1.
 - `src/rules/` is internal: it evaluates `customer_portal_settings` gating rules
@@ -47,7 +47,7 @@ inputs, so `@microsoft/api-extractor` never sees them and a rolled-up
 `skipLibCheck` silently turns into `any`. See FX-274 notes before changing this.
 
 Caveat that applies **only under `rollupTypes: true`**: with that setting, a tree
-reached from `src/index.ts` but missing from the `dts()` `include` array fails the
+reached from an entry but missing from the `dts()` `include` array fails the
 build outright with `Internal Error: getResolvedModule() could not resolve module
 name`. Under the committed `rollupTypes: false` it fails silently instead — see
 Entry Points.
@@ -56,9 +56,16 @@ Entry Points.
 
 `exports` in `package.json`, `entryMap` in `vite.config.ts`, the `include` array
 in the `dts()` plugin call, and `include` in `tsconfig.build.json` are four
-hand-maintained lists covering the same entries — `index`, `checkout`,
-`checkout/client`, `checkout/loader`, `core`, `customer`, `admin`. Adding an
-entry means editing all four; nothing checks that they agree.
+hand-maintained lists covering the same entries — `admin`, `checkout`,
+`checkout/client`, `checkout/loader`, `checkout/side-cart`,
+`checkout/add-to-cart`, `core`, `customer`, `internal/side-cart/protocol`.
+
+`internal/*` subpaths exist only for Foxy's own apps and are outside semver.
+`internal/side-cart/protocol` is built from `src/checkout/side-cart/protocol.ts`
+for Foxy's checkout page, which runs the sidecart's frame end; its CDN build loads it
+from `sdk@2/internal/side-cart/protocol.js`.
+Adding an entry means editing all four; `src/tests/package.test.ts` checks only
+the `exports` list.
 
 The two type lists do not fail the same way, and only one of them gates emission:
 

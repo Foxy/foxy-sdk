@@ -13,13 +13,13 @@ const NULL_BODY_STATUSES = new Set([204, 205, 304]);
  * Links of a graph node with the optionality of `Graph['links']` removed, so that
  * indexing into it is known to produce a {@link Graph}.
  */
-type GraphLinks<TGraph extends Graph> = NonNullable<TGraph['links']>;
+export type GraphLinks<TGraph extends Graph> = NonNullable<TGraph['links']>;
 
 /** Chain of curies leading to a hAPI resource starting with a base URL. */
 type CurieChain = [URL, ...string[]];
 
 /** Options of {@link APINode} constructor. */
-type NodeInit = {
+export type NodeInit = {
   /** Path to this resource node as base URL followed by a list of curies. */
   path: CurieChain;
   /** Custom Fetch API implementation for making authenticated requests. */

@@ -15,13 +15,12 @@ const builtins = new Set([
 ]);
 
 const entryMap = {
-  index: resolve(__dirname, "src/index.ts"),
   admin: resolve(__dirname, "src/admin/index.ts"),
   checkout: resolve(__dirname, "src/checkout/index.ts"),
   "checkout/client": resolve(__dirname, "src/checkout/client.ts"),
   "checkout/loader": resolve(__dirname, "src/checkout/loader.ts"),
   "checkout/side-cart": resolve(__dirname, "src/checkout/side-cart.ts"),
-  "checkout/side-cart/protocol": resolve(__dirname, "src/checkout/side-cart/protocol.ts"),
+  "internal/side-cart/protocol": resolve(__dirname, "src/checkout/side-cart/protocol.ts"),
   "checkout/add-to-cart": resolve(__dirname, "src/checkout/add-to-cart.ts"),
   core: resolve(__dirname, "src/core/index.ts"),
   customer: resolve(__dirname, "src/customer/index.ts"),
@@ -52,7 +51,6 @@ export default defineConfig(({ mode }) => {
             rollupTypes: false,
             tsconfigPath: "./tsconfig.build.json",
             include: [
-              "src/index.ts",
               "src/admin",
               "src/checkout",
               "src/core",

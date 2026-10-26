@@ -2,7 +2,7 @@ export type { AddressSuggestion } from "./AddressSuggestion";
 export type { AddressValidation, ValidatedAddress } from "./AddressValidation";
 export type { TemplateSet } from "./TemplateSet";
 export type { Transaction } from "./Transaction";
-export type { Session } from "./Session";
+export type { CartSessionJson } from "./Session";
 export type { Customer } from "./Customer";
 export type { Shipment } from "./Shipment";
 export type { Item, ItemOption } from "./Item";

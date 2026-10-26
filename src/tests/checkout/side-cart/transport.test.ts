@@ -2,6 +2,7 @@
 // src/tests/checkout/side-cart/transport.test.ts
 import { describe, expect, it, vi } from "vitest";
 import { API } from "../../../checkout/API";
+import { internalsOf } from "../../../checkout/internal";
 import type { APIJson } from "../../../checkout/types";
 
 describe("checkout/API sidecart transport", () => {
@@ -10,7 +11,7 @@ describe("checkout/API sidecart transport", () => {
     const invoke = vi.fn().mockResolvedValue(undefined);
     const api = new API({ storeDomain: "demo.foxycart.test" });
 
-    api.setSideCartTransport({ invoke, show: vi.fn(), sessionChanged: vi.fn() });
+    internalsOf(api).setSideCartTransport({ invoke, show: vi.fn(), sessionChanged: vi.fn() });
     api.updateItemQuantity({ id: 9, quantity: 2 });
 
     expect(invoke).toHaveBeenCalledWith("updateItemQuantity", [{ id: 9, quantity: 2 }]);
@@ -25,7 +26,7 @@ describe("checkout/API sidecart transport", () => {
     const invoke = vi.fn().mockResolvedValue(undefined);
     const api = new API({ storeDomain: "demo.foxycart.test" });
 
-    api.setSideCartTransport({ invoke, show: vi.fn(), sessionChanged: vi.fn() });
+    internalsOf(api).setSideCartTransport({ invoke, show: vi.fn(), sessionChanged: vi.fn() });
     expect(api.json).toBeNull();
     api.clearCart();
 
@@ -36,8 +37,8 @@ describe("checkout/API sidecart transport", () => {
     const invoke = vi.fn().mockResolvedValue(undefined);
     const api = new API({ storeDomain: "demo.foxycart.test" });
 
-    api.setSideCartTransport({ invoke, show: vi.fn(), sessionChanged: vi.fn() });
-    api.setSideCartTransport(null);
+    internalsOf(api).setSideCartTransport({ invoke, show: vi.fn(), sessionChanged: vi.fn() });
+    internalsOf(api).setSideCartTransport(null);
     api.clearCart();
 
     expect(invoke).not.toHaveBeenCalled();
@@ -56,7 +57,7 @@ describe("checkout/API sidecart transport", () => {
       messages: [],
       store: { domain: null },
     } as unknown as APIJson);
-    api.reportSideCartError(failure);
+    internalsOf(api).reportSideCartError(failure);
 
     expect(onError).toHaveBeenCalledWith(failure);
     expect(api.json?.messages).toContainEqual({
@@ -72,7 +73,7 @@ describe("checkout/API sidecart transport", () => {
     const onError = vi.fn();
     const api = new API({ storeDomain: "demo.foxycart.test", onError });
 
-    api.setSideCartTransport({ invoke, show: vi.fn(), sessionChanged: vi.fn() });
+    internalsOf(api).setSideCartTransport({ invoke, show: vi.fn(), sessionChanged: vi.fn() });
     expect(api.json).toBeNull();
     api.clearCart();
 

@@ -109,13 +109,13 @@ export interface SignUpParams {
   email: string;
 }
 
-export interface Session {
+export interface CustomerSession {
   force_password_reset?: boolean;
   session_token: string;
   expires_in: number;
   jwt: string;
 }
 
-export interface StoredSession extends Session {
+export interface StoredSession extends CustomerSession {
   date_created: string;
 }

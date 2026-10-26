@@ -8,6 +8,28 @@ const CART = `${ORIGIN}/cart?name=Shirt&price=10`;
 let uninstall: (() => void) | null = null;
 
 /**
+ * `checkout/add-to-cart` adds its document listeners on import and offers no
+ * way to remove them. Records what the import adds and returns a function that
+ * removes exactly that.
+ */
+async function importCapturingListeners(load: () => Promise<unknown>): Promise<() => void> {
+  const added: Parameters<Document["addEventListener"]>[] = [];
+  const add = document.addEventListener.bind(document);
+  const spy = vi.spyOn(document, "addEventListener").mockImplementation((...args) => {
+    added.push(args);
+    add(...args);
+  });
+
+  try {
+    await load();
+  } finally {
+    spy.mockRestore();
+  }
+
+  return () => added.forEach((args) => document.removeEventListener(...args));
+}
+
+/**
  * A fresh module per test (its listeners go on the shared jsdom document, so
  * `afterEach` removes them). `sideCart: true` installs a fake transport the
  * way importing `checkout/side-cart` would.
@@ -15,6 +37,7 @@ let uninstall: (() => void) | null = null;
 async function load(options: { sideCart?: boolean } = {}) {
   vi.resetModules();
   const { client } = await import("../../checkout/client");
+  const { internalsOf } = await import("../../checkout/internal");
   client.setStoreDomain("demo.foxycart.test");
   // The client's own first GET /cart runs one task later. Let it run (and
   // fail: fetch rejects in these tests) before counting requests.
@@ -22,11 +45,10 @@ async function load(options: { sideCart?: boolean } = {}) {
   await new Promise((resolve) => setTimeout(resolve, 0));
   vi.mocked(fetch).mockClear();
   const transport = { invoke: vi.fn().mockResolvedValue(undefined), show: vi.fn(), sessionChanged: vi.fn() };
-  if (options.sideCart) client.setSideCartTransport(transport);
+  if (options.sideCart) internalsOf(client).setSideCartTransport(transport);
   const addItem = vi.spyOn(client, "addItem");
-  const module = await import("../../checkout/add-to-cart");
-  uninstall = module.uninstallAddToCart;
-  return { client, transport, addItem };
+  uninstall = await importCapturingListeners(() => import("../../checkout/add-to-cart"));
+  return { client, internals: internalsOf(client), transport, addItem };
 }
 
 /** Seeds `client.session`. The cart load fails in these tests; the ID stays. */
@@ -364,8 +386,8 @@ describe("checkout/add-to-cart: sidecart mode", () => {
   });
 
   it("routes a sidecart error to reportSideCartError instead of letting it escape the click", async () => {
-    const { client, transport, addItem } = await load({ sideCart: true });
-    const reportSideCartError = vi.spyOn(client, "reportSideCartError");
+    const { internals, transport, addItem } = await load({ sideCart: true });
+    const reportSideCartError = vi.spyOn(internals, "reportSideCartError");
     transport.show.mockImplementation(() => {
       throw new Error("boom");
     });

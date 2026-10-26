@@ -1,10 +1,10 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "types": []
+    "types": [],
+    "stripInternal": true
   },
   "include": [
-    "src/index.ts",
     "src/admin/**/*",
     "src/checkout/**/*",
     "src/core/**/*",

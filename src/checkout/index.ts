@@ -4,7 +4,7 @@ export type {
   ValidatedAddress,
   TemplateSet,
   Transaction,
-  Session,
+  CartSessionJson,
   Customer,
   Shipment,
   Item,
@@ -37,10 +37,9 @@ export type {
   CardEmbedTokenizeErrorCode,
 } from "./types";
 
-export type { APIOptions } from "./API";
-// `Session` above is the checkout JSON's session shape, so the class type
-// is exported as `CartSession`.
-export type { Session as CartSession, SessionOptions } from "./session/Session";
+export type { APIConstructorParams, APIOptions, CheckOutPaymentOption, HydrateJsonOptions } from "./API";
+export type { Listener } from "./types/Listener";
+export type { CartSession, SessionHost, SessionOptions } from "./session/Session";
 export type {
   SessionCookieOptions,
   SessionStorageName,
@@ -57,16 +56,11 @@ export type {
   GooglePaymentsClient,
   KlarnaSdkInstance,
   PayPalSdkInstance,
+  SquareSdkInstance,
 } from "./types";
 
-export { API, MIN_POSTAL_CODE_LOOKUP_LENGTH } from "./API";
+export { API } from "./API";
 export { toCountryOptions } from "./countryOptions";
 export type { CountryOption } from "./countryOptions";
-export {
-  REGION_TYPE_BY_COUNTRY,
-  loadRegionMessages,
-  regionLabelMessageId,
-  regionMessageId,
-  toRegionOptions,
-} from "./regionOptions";
+export { loadRegionMessages, regionLabelMessageId, toRegionOptions } from "./regionOptions";
 export type { RegionOption, RegionType } from "./regionOptions";

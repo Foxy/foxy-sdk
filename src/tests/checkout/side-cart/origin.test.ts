@@ -54,7 +54,7 @@ describe("checkout/side-cart store origin", () => {
   it("refuses a store origin that is this page's own origin", async () => {
     // `checkout/loader.ts` falls back to `location.hostname` when it is loaded
     // without `?store=`. That fallback is right on a store-hosted page and
-    // wrong here, and it reaches the sidecart through `client.storeUrl`, where
+    // wrong here, and it reaches the sidecart through the client's store URL, where
     // it looks like an explicit store.
     const { sideCart } = await loadSideCart("shop.example.com");
 
@@ -84,22 +84,24 @@ describe("adoptScriptStore", () => {
   it("sets the client's domain from ?store= when none is set", async () => {
     vi.resetModules();
     const { client } = await import("../../../checkout/client");
+    const { internalsOf } = await import("../../../checkout/internal");
     const { adoptScriptStore } = await import("../../../checkout/side-cart/origin");
 
     adoptScriptStore("https://cdn.test/side-cart.js?store=demo.foxycart.test");
 
-    expect(client.storeUrl).toBe("https://demo.foxycart.test/");
+    expect(internalsOf(client).storeUrl()).toBe("https://demo.foxycart.test/");
   });
 
   it("keeps a domain that is already set", async () => {
     vi.resetModules();
     const { client } = await import("../../../checkout/client");
+    const { internalsOf } = await import("../../../checkout/internal");
     const { adoptScriptStore } = await import("../../../checkout/side-cart/origin");
     client.setStoreDomain("first.foxycart.test");
 
     adoptScriptStore("https://cdn.test/side-cart.js?store=second.foxycart.test");
 
-    expect(client.storeUrl).toBe("https://first.foxycart.test/");
+    expect(internalsOf(client).storeUrl()).toBe("https://first.foxycart.test/");
   });
 
   it("does not throw on a bad domain", async () => {

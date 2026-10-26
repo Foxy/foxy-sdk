@@ -3,7 +3,7 @@ import type { NextDateRules, RuleSubject } from './types';
 import { getNextTransactionDateConstraints } from './getNextTransactionDateConstraints.js';
 import { getTimeFromFrequency } from './getTimeFromFrequency.js';
 
-type Options = {
+export type NextTransactionDateOptions = {
   value: string;
   settings: { subscriptions: { allowNextDateModification: NextDateRules } };
   subscription: RuleSubject;
@@ -27,7 +27,7 @@ function toDate(yyyyMmDd: string) {
  * @param opts Subscription, customer portal settings and value.
  * @returns True if given date can be used as next transaction date.
  */
-export function isNextTransactionDate(opts: Options): boolean {
+export function isNextTransactionDate(opts: NextTransactionDateOptions): boolean {
   const valueAsDate = toDate(opts.value);
   const valueAsTime = valueAsDate.getTime();
   const constraints = getNextTransactionDateConstraints(

@@ -8,7 +8,7 @@ import type { Graph } from '../Graph';
 import { Node } from './Node.js';
 
 /** API constructor parameters. */
-type Init = {
+export type APIInit = {
   /**
    * Credentials storage implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API).
    * Access tokens and other related info will be stored here. Defaults to in-memory storage.
@@ -73,7 +73,7 @@ export class API<TGraph extends Graph> extends Node<TGraph> {
    */
   readonly base: URL;
 
-  constructor(init: Init) {
+  constructor(init: APIInit) {
     assertCoreAPIInit(init);
 
     super({
