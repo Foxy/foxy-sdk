@@ -4,7 +4,7 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev",
-    "prebuild": "npm run reference",
+    "prebuild": "npm run reference && node scripts/check-completeness.mjs",
     "reference": "node scripts/reference.mjs",
     "test": "vitest run",
     "types:check": "next typegen && tsc --noEmit"
