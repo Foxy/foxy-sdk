@@ -42,6 +42,8 @@ export async function customer() {
 }
 
 export function checkout() {
+  client.setStoreDomain('example.foxycart.com');
+
   client.addItem([
     ['name', 'Mug'],
     ['price', '15'],

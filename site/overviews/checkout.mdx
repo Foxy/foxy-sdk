@@ -16,9 +16,11 @@ import { client } from 'https://cdn-js.foxy.io/sdk@2/checkout/loader.js?store=ex
 
 ## Example
 
-Add an item to the cart.
+Add an item to the cart. From npm, set the store first. The CDN loader does this for you through `?store=`.
 
 ```ts
+client.setStoreDomain('example.foxycart.com');
+
 client.addItem([
   ['name', 'Mug'],
   ['price', '15'],
