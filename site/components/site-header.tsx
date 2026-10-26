@@ -8,6 +8,7 @@ import { useSearchContext } from 'fumadocs-ui/contexts/search';
 import { useTreeContext, useTreePath } from 'fumadocs-ui/contexts/tree';
 import { getBreadcrumbItemsFromPath } from 'fumadocs-core/breadcrumb';
 import type { ComponentProps } from 'react';
+import type * as PageTree from 'fumadocs-core/page-tree';
 import { docsRoute } from '@/lib/shared';
 import { headerLinks } from '@/lib/header-links';
 
@@ -68,6 +69,18 @@ function SearchButton({ compact }: { compact?: boolean }) {
   );
 }
 
+/** The folder's index page url: its first page, when it is named like the folder. */
+function indexOf(folder: PageTree.Folder) {
+  const first = folder.children.find((c) => c.type === 'page');
+  return first?.type === 'page' && first.name === folder.name ? first.url : undefined;
+}
+
+const slugify = (name: string) =>
+  name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+
 function Breadcrumbs() {
   const path = useTreePath();
   const { root } = useTreeContext();
@@ -75,10 +88,18 @@ function Breadcrumbs() {
   const items = useMemo(() => {
     const list = getBreadcrumbItemsFromPath(root, path, { includePage: false }).map((item) => {
       if (item.url) return item;
-      // a folder without an index page links to its first page
-      const folder = path.find((n) => n.type === 'folder' && n.name === item.name);
-      const first = folder?.type === 'folder' && folder.children.find((c) => c.type === 'page');
-      return first && first.type === 'page' ? { ...item, url: first.url } : item;
+      const at = path.findIndex((n) => n.type === 'folder' && n.name === item.name);
+      const folder = path[at];
+      if (folder?.type !== 'folder') return item;
+      const index = indexOf(folder);
+      if (index) return { ...item, url: index };
+      // a kind folder (Classes, Interfaces, ...) links to its section heading
+      for (let i = at - 1; i >= 0; i--) {
+        const parent = path[i];
+        const parentIndex = parent.type === 'folder' ? indexOf(parent) : undefined;
+        if (parentIndex) return { ...item, url: `${parentIndex}#${slugify(String(item.name))}` };
+      }
+      return item;
     });
     // an index page's own folder is the page itself, not a parent
     if (list.length && list[list.length - 1].name === current.name) list.pop();
