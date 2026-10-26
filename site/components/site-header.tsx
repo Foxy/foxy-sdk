@@ -71,48 +71,59 @@ function SearchButton({ compact }: { compact?: boolean }) {
 function Breadcrumbs() {
   const path = useTreePath();
   const { root } = useTreeContext();
-  const items = useMemo(
-    () =>
-      getBreadcrumbItemsFromPath(root, path, { includePage: true }).map((item) => {
-        if (item.url) return item;
-        // a folder without an index page links to its first page, unless that is this page
-        const folder = path.find((n) => n.type === 'folder' && n.name === item.name);
-        const first = folder?.type === 'folder' && folder.children.find((c) => c.type === 'page');
-        const current = path[path.length - 1];
-        return first && first.type === 'page' && first.url !== (current as { url?: string }).url
-          ? { ...item, url: first.url }
-          : item;
-      }),
-    [root, path],
-  );
-  // nearest ancestor that has a page to link to
-  const parent = items.slice(0, -1).reverse().find((item) => item.url);
+  const current = path[path.length - 1] as { url?: string; name?: unknown };
+  const items = useMemo(() => {
+    const list = getBreadcrumbItemsFromPath(root, path, { includePage: false }).map((item) => {
+      if (item.url) return item;
+      // a folder without an index page links to its first page
+      const folder = path.find((n) => n.type === 'folder' && n.name === item.name);
+      const first = folder?.type === 'folder' && folder.children.find((c) => c.type === 'page');
+      return first && first.type === 'page' ? { ...item, url: first.url } : item;
+    });
+    // an index page's own folder is the page itself, not a parent
+    if (list.length && list[list.length - 1].name === current.name) list.pop();
+    return list;
+  }, [root, path, current.name]);
+  // nearest ancestor that is not this page
+  const parent = [...items].reverse().find((item) => item.url && item.url !== current.url);
 
   return (
     <>
-      {items.length > 0 && (
-        <nav aria-label="Breadcrumb" className="min-w-0 max-md:hidden">
-          <ol className="flex items-center gap-1.5 text-[0.91875rem] text-fd-primary">
-            {items.map((item, i) => {
-              const last = i === items.length - 1;
-              return (
-                <li key={i} className="flex min-w-0 items-center gap-1.5">
-                  {i > 0 && <span aria-hidden>/</span>}
-                  {item.url && !last ? (
-                    <Link href={item.url} className={`${focus} truncate rounded-sm hover:underline`}>
-                      {item.name}
-                    </Link>
-                  ) : (
-                    <span className="truncate" aria-current={last ? 'page' : undefined}>
-                      {item.name}
-                    </span>
-                  )}
-                </li>
-              );
-            })}
-          </ol>
-        </nav>
-      )}
+      <nav aria-label="Breadcrumb" className="min-w-0 max-md:hidden">
+        <ol className="flex items-center gap-1.5 text-[0.91875rem] text-fd-primary">
+          <li className="flex items-center">
+            <Link href={`${docsRoute}/`} aria-label="Docs home" className={`${focus} rounded-sm`}>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="size-[15px]"
+                aria-hidden
+              >
+                <path d="M3 11.5 12 4l9 7.5" />
+                <path d="M5.5 10v9.5h4.5V14h4v5.5h4.5V10" />
+              </svg>
+            </Link>
+          </li>
+          {items.map((item, i) => (
+            <li key={i} className="flex min-w-0 items-center gap-1.5">
+              <span aria-hidden className="text-fd-foreground dark:text-fd-muted-foreground">
+                /
+              </span>
+              {item.url ? (
+                <Link href={item.url} className={`${focus} truncate rounded-sm hover:underline`}>
+                  {item.name}
+                </Link>
+              ) : (
+                <span className="truncate">{item.name}</span>
+              )}
+            </li>
+          ))}
+        </ol>
+      </nav>
       {parent?.url && (
         <Link
           href={parent.url}
