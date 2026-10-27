@@ -11,6 +11,16 @@ Returns the last path segment, which is usually an ID.
 If it's a non-NaN numeric ID (true for most Foxy resources) then a `number` is returned.
 Otherwise returns a string or `null` if the path is empty.
 
+## Example
+
+```ts
+import { getResourceId } from '@foxy.io/sdk/admin';
+
+console.log(getResourceId('https://api.foxy.io/customers/123')); // 123
+console.log(getResourceId('https://api.foxy.io/stores/abc')); // 'abc'
+console.log(getResourceId('not a url')); // null
+```
+
 ## Parameters
 
 | Parameter | Type | Description |

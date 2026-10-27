@@ -12,6 +12,19 @@ module-level catalog registry and cache. See `resolveCatalog` for the
 resolution rule; this wrapper exists so callers never need to know the
 loader map or cache exist.
 
+## Example
+
+```ts
+import { loadRegionMessages, toRegionOptions } from '@foxy.io/sdk/checkout';
+
+// Load the region names once. Later calls use the cached catalog.
+const messages = await loadRegionMessages('en-US');
+
+for (const { messageId } of toRegionOptions(['CA', 'NY'], 'US')) {
+  console.log(messages[messageId]);
+}
+```
+
 ## Parameters
 
 | Parameter | Type |

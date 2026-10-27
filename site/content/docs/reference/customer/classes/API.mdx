@@ -9,6 +9,22 @@ Customer API for adding custom functionality to websites and web apps with our C
 If you're still on beta, please consider updating your code to the latest stable version.
 You can use @foxy.io/sdk prior to 1.0.0-beta.15 or a custom API client until you transition.
 
+## Example
+
+```ts
+import { API } from '@foxy.io/sdk/customer';
+
+const api = new API({ base: new URL('https://example.foxycart.com/s/customer/') });
+await api.signIn({ email: 'customer@example.com', password: 'password' });
+
+// Read the signed-in customer and their first page of subscriptions.
+const customer = await api.get().then(response => response.json());
+const subscriptions = await api.follow('fx:subscriptions').get().then(response => response.json());
+console.log(customer.email, subscriptions.returned_items);
+
+await api.signOut();
+```
+
 ## Extends
 
 - `API`\<[`Graph`](/docs/reference/customer/interfaces/Graph)\>

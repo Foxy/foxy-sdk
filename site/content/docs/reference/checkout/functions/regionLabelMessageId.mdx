@@ -14,6 +14,18 @@ These ids already exist in Foxy's language strings and already arrive in
 every checkout payload's `language_strings`, so they are translated and
 store-overridable already — no new messages are introduced.
 
+## Example
+
+```ts
+import { regionLabelMessageId } from '@foxy.io/sdk/checkout';
+import { client } from '@foxy.io/sdk/checkout/client';
+
+// The label for the region field changes by country: State, Province, Prefecture.
+const id = regionLabelMessageId('JP');
+const label = document.createElement('label');
+label.textContent = client.json?.language_strings[id] ?? 'State';
+```
+
 ## Parameters
 
 | Parameter | Type |

@@ -1,0 +1,11 @@
+import { sideCart } from '@foxy.io/sdk/checkout/side-cart';
+
+// Open the drawer from your own cart button.
+document.querySelector('#cart-button')?.addEventListener('click', () => {
+  sideCart.show();
+});
+
+// Close it when the shopper presses Escape.
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape') sideCart.hide();
+});

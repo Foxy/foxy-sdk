@@ -13,6 +13,17 @@ IMPORTANT: this function SHOULD NOT be used to calculate precise dates
 as it doesn't account for leap years, months of variable length, etc. It works
 best for broad estimates and comparing frequencies.
 
+## Example
+
+```ts
+import { getTimeFromFrequency } from '@foxy.io/sdk/admin';
+
+// Returns milliseconds. A month is 31 days and a year is 365 days.
+const week = getTimeFromFrequency('1w'); // 604800000
+const twoMonths = getTimeFromFrequency('2m');
+console.log(week, twoMonths);
+```
+
 ## Parameters
 
 | Parameter | Type | Description |

@@ -8,6 +8,21 @@ The cart session of one `API` instance: `client.session`.
 Every change runs in one queue, one at a time, so a double click or a
 `start()` during the first load cannot make two sessions.
 
+## Example
+
+```ts
+import { client } from '@foxy.io/sdk/checkout/client';
+
+// Keep the session ID in a cookie. Do this before the store domain is set.
+client.session.configure({
+  storage: 'cookie',
+  cookie: { maxAge: 60 * 60 * 24 * 30, sameSite: 'Lax' },
+});
+
+// Later, when the shopper signs out, forget the session and reset the cart.
+await client.session.end({ reset: true });
+```
+
 ## Accessors
 
 ### id

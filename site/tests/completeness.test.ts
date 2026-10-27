@@ -29,6 +29,17 @@ describe('reference pages', () => {
       await expect(compile(text, { remarkPlugins: [remarkFrontmatter, remarkGfm] }), file).resolves.toBeDefined();
     }
   }, 120_000);
+
+  // examples/<page path>.ts is type-checked by `npm run examples:check`; the page must show it as is
+  it('show their type-checked example', () => {
+    const exportPages = listMdx(dir).filter(file => /\/(classes|functions|interfaces|variables)\//.test(file));
+    expect(exportPages.length).toBeGreaterThan(30);
+    for (const page of exportPages) {
+      const example = join('examples', page.slice(dir.length + 1).replace(/\.mdx$/, '.ts'));
+      const code = readFileSync(example, 'utf8').trim();
+      expect(readFileSync(page, 'utf8'), page).toContain(`## Example\n\n\`\`\`ts\n${code}\n\`\`\``);
+    }
+  });
 });
 
 describe('public entries', () => {

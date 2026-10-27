@@ -24,6 +24,21 @@ must not throw over a bad locale string.
 Returns an empty array for anything that is not an array of usable codes,
 so callers can branch on `.length` to keep a plain-text fallback.
 
+## Example
+
+```ts
+import { toCountryOptions } from '@foxy.io/sdk/checkout';
+import { client } from '@foxy.io/sdk/checkout/client';
+
+const shipment = client.json?.shipments[0];
+const select = document.createElement('select');
+
+// Names are localized and sorted for the locale you pass.
+for (const { value, label } of toCountryOptions(shipment?.country_options, 'en-US')) {
+  select.append(new Option(label, value));
+}
+```
+
 ## Parameters
 
 | Parameter | Type |

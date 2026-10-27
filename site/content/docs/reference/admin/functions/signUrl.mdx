@@ -10,6 +10,20 @@ function signUrl(secret, urlStr): Promise<string>;
 Signs a query string. All query fields within the query string will be
 signed, provided it is a proper URL and there is a code field.
 
+## Example
+
+```ts
+import { signUrl } from '@foxy.io/sdk/admin';
+
+// The URL must have a `code` field. All query fields are signed.
+const url = await signUrl(
+  process.env.FOXY_STORE_SECRET!,
+  'https://example.foxycart.com/cart?name=Mug&price=10&code=mug',
+);
+
+console.log(url);
+```
+
 ## Parameters
 
 | Parameter | Type | Description |

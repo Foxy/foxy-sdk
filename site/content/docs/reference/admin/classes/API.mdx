@@ -5,6 +5,24 @@ description: "@foxy.io/sdk/admin"
 
 JS SDK for building admin integrations with [Foxy Hypermedia API](https://api.foxy.io/docs). Hypermedia API is designed to give you complete control over all aspects of your Foxy accounts, whether working with a single store or automating the provisioning of thousands. Anything you can do within the Foxy administration, you can also do through the API. This means that you can embed Foxy into any application (CMS, LMS, CRM, etc.) and expose as much or as little of Foxy's functionality as desired.
 
+## Example
+
+```ts
+import { API } from '@foxy.io/sdk/admin';
+
+const api = new API({
+  clientId: 'client_123',
+  clientSecret: process.env.FOXY_CLIENT_SECRET!,
+});
+
+// Restore tokens you saved earlier. The API refreshes them when needed.
+api.setTokens({ refreshToken: process.env.FOXY_REFRESH_TOKEN! });
+
+const response = await api.follow('fx:store').get();
+const store = await response.json();
+console.log(store.store_name);
+```
+
 ## Extends
 
 - `API`\<[`Graph`](/docs/reference/admin/interfaces/Graph)\>

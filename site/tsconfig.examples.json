@@ -10,5 +10,5 @@
     "types": ["node"],
     "paths": { "@foxy.io/sdk/*": ["../src/*"] }
   },
-  "include": ["tests/examples.test-d.ts", "../src/vite-env.d.ts"]
+  "include": ["tests/examples.test-d.ts", "examples/**/*.ts", "../src/vite-env.d.ts"]
 }
