@@ -1,0 +1,201 @@
+---
+title: "Types"
+description: "@foxy.io/sdk/customer"
+---
+
+## Type aliases
+
+### AllowedFrequenciesOptions
+
+```ts
+type AllowedFrequenciesOptions = {
+  settings: { subscriptions: { allow_frequency_modification: Rules } };
+  subscription: Omit<Resource<Subscription>, '_links' | '_embedded'>;
+};
+```
+
+### APIInit
+
+API constructor parameters.
+
+```ts
+type APIInit = {
+  /**
+   * Credentials storage implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API).
+   * Access tokens and other related info will be stored here. Defaults to in-memory storage.
+   */
+  storage?: Storage;
+
+  /**
+   * Numeric log level; methods above this level are no-ops.
+   * If omitted, the default level will be used.
+   */
+  level?: number;
+
+  /**
+   * Request handler implementing [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).
+   * This function will be called whenever a resource is requested. Defaults to native fetch or a custom implementation of Fetch API for Node.
+   */
+  fetch?: typeof globalThis.fetch;
+
+  /**
+   * Resolver cache implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API).
+   * Every resolved path will be stored here for future use. Defaults to in-memory storage.
+   */
+  cache?: Storage;
+
+  /**
+   * Bookmark [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) for this API.
+   * This is where the tree traversal begins. We also use this URL as a base for relative paths.
+   */
+  base: URL;
+};
+```
+
+### NextDateRules
+
+```ts
+type NextDateRules = Resource<CustomerPortalSettings>['subscriptions']['allow_next_date_modification'];
+```
+
+### NextTransactionDateOptions
+
+```ts
+type NextTransactionDateOptions = {
+  value: string;
+  settings: { subscriptions: { allow_next_date_modification: Config } };
+  subscription: Omit<Resource<Subscription>, '_links' | '_embedded'>;
+};
+```
+
+### PaymentCardEmbedConfig
+
+Tokenization embed configuration that can be updated any time after mount.
+
+```ts
+type PaymentCardEmbedConfig = Partial<{
+  /** Translations. Note that Stripe and Square provide their own translations that can't be customized. */
+  translations: {
+    stripe?: {
+      label?: string;
+      status?: {
+        idle?: string;
+        busy?: string;
+        fail?: string;
+      };
+    };
+    square?: {
+      label?: string;
+      status?: {
+        idle?: string;
+        busy?: string;
+        fail?: string;
+      };
+    };
+    default?: {
+      'cc-number'?: {
+        label?: string;
+        placeholder?: string;
+        v8n_required?: string;
+        v8n_invalid?: string;
+        v8n_unsupported?: string;
+      };
+      'cc-exp'?: {
+        label?: string;
+        placeholder?: string;
+        v8n_required?: string;
+        v8n_invalid?: string;
+        v8n_expired?: string;
+      };
+      'cc-csc'?: {
+        label?: string;
+        placeholder?: string;
+        v8n_required?: string;
+        v8n_invalid?: string;
+      };
+      'status'?: {
+        idle?: string;
+        busy?: string;
+        fail?: string;
+        misconfigured?: string;
+      };
+    };
+  };
+  /** If true, all fields inside the embed will be disabled. */
+  disabled: boolean;
+  /** If true, all fields inside the embed will be set to be read-only. For Stripe and Square the fields will be disabled and styled as readonly. */
+  readonly: boolean;
+  /** Appearance settings. */
+  style: Partial<{
+    '--lumo-space-m': string;
+    '--lumo-space-s': string;
+    '--lumo-contrast-5pct': string;
+    '--lumo-contrast-10pct': string;
+    '--lumo-contrast-50pct': string;
+    '--lumo-size-m': string;
+    '--lumo-size-xs': string;
+    '--lumo-border-radius-m': string;
+    '--lumo-border-radius-s': string;
+    '--lumo-font-family': string;
+    '--lumo-font-size-m': string;
+    '--lumo-font-size-s': string;
+    '--lumo-font-size-xs': string;
+    '--lumo-primary-color': string;
+    '--lumo-primary-text-color': string;
+    '--lumo-primary-color-50pct': string;
+    '--lumo-secondary-text-color': string;
+    '--lumo-disabled-text-color': string;
+    '--lumo-body-text-color': string;
+    '--lumo-error-text-color': string;
+    '--lumo-error-color-10pct': string;
+    '--lumo-error-color-50pct': string;
+    '--lumo-line-height-xs': string;
+    '--lumo-base-color': string;
+  }>;
+  /** Locale to use with Stripe or Square. Has no effect on the default UI. */
+  lang: string;
+}>;
+```
+
+### SubscriptionData
+
+```ts
+type SubscriptionData = Omit<Resource<Subscription>, '_links' | '_embedded'>;
+```
+
+## Namespaces
+
+### Rels
+
+Types for every resource in the Customer API. See the [API docs](https://api.foxy.io/docs).
+
+| Type | Rel |
+| --- | --- |
+| `Attribute` | [fx:attribute](https://api.foxy.io/docs) |
+| `Attributes` | [fx:attributes](https://api.foxy.io/docs) |
+| `CustomerAddress` | [fx:customer_address](https://api.foxy.io/docs) |
+| `CustomerAddresses` | [fx:customer_addresses](https://api.foxy.io/docs) |
+| `CustomerPortalSettings` | [fx:customer_portal_settings](https://api.foxy.io/docs) |
+| `CustomField` | [fx:custom_field](https://api.foxy.io/docs) |
+| `CustomFields` | [fx:custom_fields](https://api.foxy.io/docs) |
+| `DefaultBillingAddress` | [fx:default_billing_address](https://api.foxy.io/docs) |
+| `DefaultPaymentMethod` | [fx:default_payment_method](https://api.foxy.io/docs) |
+| `DefaultShippingAddress` | [fx:default_shipping_address](https://api.foxy.io/docs) |
+| `Item` | [fx:item](https://api.foxy.io/docs) |
+| `ItemOption` | [fx:item_option](https://api.foxy.io/docs) |
+| `ItemOptions` | [fx:item_options](https://api.foxy.io/docs) |
+| `Items` | [fx:items](https://api.foxy.io/docs) |
+| `LastTransaction` | [fx:last_transaction](https://api.foxy.io/docs) |
+| `OriginalTransaction` | [fx:original_transaction](https://api.foxy.io/docs) |
+| `Payment` | [fx:payment](https://api.foxy.io/docs) |
+| `Payments` | [fx:payments](https://api.foxy.io/docs) |
+| `Receipt` | [fx:receipt](https://api.foxy.io/docs) |
+| `Shipment` | [fx:shipment](https://api.foxy.io/docs) |
+| `Shipments` | [fx:shipments](https://api.foxy.io/docs) |
+| `SubModificationUrl` | [fx:sub_modification_url](https://api.foxy.io/docs) |
+| `Subscription` | [fx:subscription](https://api.foxy.io/docs) |
+| `Subscriptions` | [fx:subscriptions](https://api.foxy.io/docs) |
+| `SubTokenUrl` | [fx:sub_token_url](https://api.foxy.io/docs) |
+| `Transaction` | [fx:transaction](https://api.foxy.io/docs) |
+| `Transactions` | [fx:transactions](https://api.foxy.io/docs) |
+| `TransactionTemplate` | [fx:transaction_template](https://api.foxy.io/docs) |

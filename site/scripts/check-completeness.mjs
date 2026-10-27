@@ -29,12 +29,13 @@ export function findMissing(exports, referenceDir) {
   const missing = [];
   for (const [key, list] of exports) {
     const entryDir = join(referenceDir, key.slice(2));
-    const index = join(entryDir, 'index.mdx');
+    // an export with no page of its own has a `###` heading on the entry's index page
+    // (re-exports, the add-to-cart alias) or on its types page (type aliases, Rels)
+    const shared = ['index.mdx', 'types.mdx'].map(file => join(entryDir, file)).filter(existsSync).flatMap(headings);
     for (const { name, members } of list) {
       const page = findPage(entryDir, name);
-      // an entry that only re-exports another one lists the export under `## References`
       if (!page) {
-        if (!existsSync(index) || !headings(index).includes(name)) missing.push(`${key} ${name}`);
+        if (!shared.includes(name)) missing.push(`${key} ${name}`);
         continue;
       }
       const found = headings(page);

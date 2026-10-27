@@ -25,7 +25,7 @@ new API(params?): API;
 
 | Parameter | Type |
 | ------ | ------ |
-| `params?` | [`APIConstructorParams`](/docs/reference/checkout/type-aliases/APIConstructorParams) |
+| `params?` | [`APIConstructorParams`](/docs/reference/checkout/types#apiconstructorparams) |
 
 #### Returns
 
@@ -59,7 +59,7 @@ get adyenEmbedded():
 
 ##### Returns
 
-  \| [`AdyenEmbeddedSdkInstance`](/docs/reference/checkout/type-aliases/AdyenEmbeddedSdkInstance)
+  \| [`AdyenEmbeddedSdkInstance`](/docs/reference/checkout/types#adyenembeddedsdkinstance)
   \| `null`
 
 ***
@@ -74,7 +74,7 @@ get json(): APIJson | null;
 
 ##### Returns
 
-[`APIJson`](/docs/reference/checkout/type-aliases/APIJson) \| `null`
+[`APIJson`](/docs/reference/checkout/types#apijson) \| `null`
 
 ***
 
@@ -88,7 +88,7 @@ get klarna(): KlarnaSdkInstance | null;
 
 ##### Returns
 
-[`KlarnaSdkInstance`](/docs/reference/checkout/type-aliases/KlarnaSdkInstance) \| `null`
+[`KlarnaSdkInstance`](/docs/reference/checkout/types#klarnasdkinstance) \| `null`
 
 ***
 
@@ -102,7 +102,7 @@ get paypal(): PayPalSdkInstance | null;
 
 ##### Returns
 
-[`PayPalSdkInstance`](/docs/reference/checkout/type-aliases/PayPalSdkInstance) \| `null`
+[`PayPalSdkInstance`](/docs/reference/checkout/types#paypalsdkinstance) \| `null`
 
 ***
 
@@ -116,7 +116,7 @@ get square(): SquareSdkInstance | null;
 
 ##### Returns
 
-[`SquareSdkInstance`](/docs/reference/checkout/type-aliases/SquareSdkInstance) \| `null`
+[`SquareSdkInstance`](/docs/reference/checkout/types#squaresdkinstance) \| `null`
 
 ***
 
@@ -150,14 +150,14 @@ The **`addEventListener()`** method of the EventTarget interface sets up a funct
 
 | Type Parameter |
 | ------ |
-| <a id="type-parameter-k"></a> `K` *extends* keyof [`APIEventMap`](/docs/reference/checkout/type-aliases/APIEventMap) |
+| <a id="type-parameter-k"></a> `K` *extends* keyof [`APIEventMap`](/docs/reference/checkout/types#apieventmap) |
 
 ##### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
 | `type` | `K` |
-| `listener` | [`Listener`](/docs/reference/checkout/type-aliases/Listener)\<`K`, `API`\> |
+| `listener` | [`Listener`](/docs/reference/checkout/types#listener)\<`K`, `API`\> |
 
 ##### Returns
 
@@ -234,7 +234,7 @@ addMessage(params): number;
 
 | Parameter | Type |
 | ------ | ------ |
-| `params` | [`Message`](/docs/reference/checkout/type-aliases/Message) |
+| `params` | [`Message`](/docs/reference/checkout/types#message) |
 
 #### Returns
 
@@ -271,7 +271,7 @@ checkOut(paymentMethod, extra?): void;
 
 | Parameter | Type |
 | ------ | ------ |
-| `paymentMethod` | [`CheckOutPaymentOption`](/docs/reference/checkout/type-aliases/CheckOutPaymentOption) |
+| `paymentMethod` | [`CheckOutPaymentOption`](/docs/reference/checkout/types#checkoutpaymentoption) |
 | `extra?` | \{ `newAccountPassword?`: `string`; \} |
 | `extra.newAccountPassword?` | `string` |
 
@@ -379,7 +379,7 @@ getAddressSuggestions(params): Promise<AddressSuggestion[]>;
 
 #### Returns
 
-`Promise`\<[`AddressSuggestion`](/docs/reference/checkout/type-aliases/AddressSuggestion)[]\>
+`Promise`\<[`AddressSuggestion`](/docs/reference/checkout/types#addresssuggestion)[]\>
 
 ***
 
@@ -393,8 +393,8 @@ hydrateJson(nextJson, options?): Promise<void>;
 
 | Parameter | Type |
 | ------ | ------ |
-| `nextJson` | [`APIJson`](/docs/reference/checkout/type-aliases/APIJson) |
-| `options?` | [`HydrateJsonOptions`](/docs/reference/checkout/type-aliases/HydrateJsonOptions) |
+| `nextJson` | [`APIJson`](/docs/reference/checkout/types#apijson) |
+| `options?` | [`HydrateJsonOptions`](/docs/reference/checkout/types#hydratejsonoptions) |
 
 #### Returns
 
@@ -455,14 +455,14 @@ The **`removeEventListener()`** method of the EventTarget interface removes an e
 
 | Type Parameter |
 | ------ |
-| <a id="type-parameter-k-1"></a> `K` *extends* keyof [`APIEventMap`](/docs/reference/checkout/type-aliases/APIEventMap) |
+| <a id="type-parameter-k-1"></a> `K` *extends* keyof [`APIEventMap`](/docs/reference/checkout/types#apieventmap) |
 
 ##### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
 | `type` | `K` |
-| `listener` | [`Listener`](/docs/reference/checkout/type-aliases/Listener)\<`K`, `API`\> |
+| `listener` | [`Listener`](/docs/reference/checkout/types#listener)\<`K`, `API`\> |
 
 ##### Returns
 
@@ -578,7 +578,7 @@ setCustomFields(fields): void;
 
 | Parameter | Type |
 | ------ | ------ |
-| `fields` | [`CustomFields`](/docs/reference/checkout/type-aliases/CustomFields) |
+| `fields` | [`CustomFields`](/docs/reference/checkout/types#customfields) |
 
 #### Returns
 

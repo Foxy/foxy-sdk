@@ -1,7 +1,143 @@
 ---
-title: "Rels"
+title: "Types"
 description: "@foxy.io/sdk/admin"
 ---
+
+## Type aliases
+
+### AllowedFrequenciesOptions
+
+```ts
+type AllowedFrequenciesOptions = {
+  settings: { subscriptions: { allowFrequencyModification: FrequencyRule[] } };
+  subscription: RuleSubject;
+};
+```
+
+### APIEventMap
+
+```ts
+type APIEventMap = {
+  /** New tokens were obtained by {@link API.confirmSignIn} or by a token refresh. */
+  tokens: CustomEvent<Tokens>;
+};
+```
+
+### APIInit
+
+Constructor parameters of the [API](/docs/reference/admin/classes/API) class.
+
+```ts
+type APIInit = {
+  clientSecret: string;
+  clientId: string;
+  /** Redirect URI registered for this OAuth client. Required for {@link API.signIn} and {@link API.confirmSignIn}. */
+  redirectUri?: string;
+  /** OAuth authorization endpoint. Defaults to {@link API.AUTHORIZATION_URL}. */
+  authorizationUrl?: URL;
+  level?: number;
+  version?: AdminAPIVersion;
+  base?: URL;
+  cache?: Storage;
+};
+```
+
+### Constraints
+
+Merged result of every applicable next date modification rule.
+
+```ts
+type Constraints = {
+  min?: string;
+  max?: string;
+  disallowedDates?: string[];
+  allowedDaysOfWeek?: number[];
+  allowedDaysOfMonth?: number[];
+};
+```
+
+### GrantOpts
+
+```ts
+type GrantOpts = ({ code: string; redirectUri: string } | { refreshToken: string }) & {
+  clientSecret: string;
+  clientId: string;
+  version?: AdminAPIVersion;
+  base?: URL;
+};
+```
+
+### NextDateRules
+
+False disables modification, true lifts all constraints, an array defines custom rules.
+
+```ts
+type NextDateRules = boolean | NextDateRule[];
+```
+
+### NextTransactionDateOptions
+
+```ts
+type NextTransactionDateOptions = {
+  value: string;
+  settings: { subscriptions: { allowNextDateModification: NextDateRules } };
+  subscription: RuleSubject;
+};
+```
+
+### Resource
+
+Constructs a resource record for given graph node and query.
+
+```ts
+type Resource<TGraph extends Graph, TQuery extends Query<TGraph> | undefined = undefined> = Links<TGraph> &
+  Props<TGraph, TQuery> &
+  Embeds<TGraph, TQuery>;
+```
+
+### SignInParams
+
+Parameters of [API.signIn](/docs/reference/admin/classes/API#signin).
+
+```ts
+type SignInParams = {
+  /** Opaque value to keep in the user's session and pass to {@link API.confirmSignIn}. Protects the callback from login CSRF. */
+  state: string;
+  /** Space-separated OAuth scopes. Foxy denies a request without any. */
+  scope: string;
+  prompt?: string;
+};
+```
+
+### TokenResponse
+
+```ts
+type TokenResponse = {
+  refresh_token?: string;
+  access_token: string;
+  expires_in: number;
+  token_type: string;
+  scope: string;
+};
+```
+
+### Tokens
+
+OAuth tokens held by an [API](/docs/reference/admin/classes/API) instance. Plain JSON, so it can be saved as is and passed back to [API.setTokens](/docs/reference/admin/classes/API#settokens).
+
+```ts
+type Tokens = {
+  accessToken?: string;
+  refreshToken?: string;
+  /** When the access token expires, in milliseconds since the Unix epoch. */
+  expiresAt?: number;
+  scope?: string;
+};
+```
+
+## Namespaces
+
+### Rels
 
 Types for every resource in the Admin API. Each links to its page in the Hypermedia API docs.
 

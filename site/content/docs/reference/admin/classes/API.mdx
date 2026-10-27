@@ -21,7 +21,7 @@ new API(params): API;
 
 | Parameter | Type |
 | ------ | ------ |
-| `params` | [`APIInit`](/docs/reference/admin/type-aliases/APIInit) |
+| `params` | [`APIInit`](/docs/reference/admin/types#apiinit) |
 
 #### Returns
 
@@ -248,7 +248,7 @@ exchanges the code for tokens, keeps them and dispatches `tokens`.
 
 #### Returns
 
-`Promise`\<[`Tokens`](/docs/reference/admin/type-aliases/Tokens)\>
+`Promise`\<[`Tokens`](/docs/reference/admin/types#tokens)\>
 
 New tokens.
 
@@ -519,7 +519,7 @@ earlier `tokens` event. Does not dispatch `tokens`.
 
 | Parameter | Type |
 | ------ | ------ |
-| `tokens` | [`Tokens`](/docs/reference/admin/type-aliases/Tokens) |
+| `tokens` | [`Tokens`](/docs/reference/admin/types#tokens) |
 
 #### Returns
 
@@ -540,7 +540,7 @@ Foxy redirects back to `redirectUri` with a code; pass that URL to [API.confirmS
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `params` | [`SignInParams`](/docs/reference/admin/type-aliases/SignInParams) | Sign-in parameters. |
+| `params` | [`SignInParams`](/docs/reference/admin/types#signinparams) | Sign-in parameters. |
 
 #### Returns
 
@@ -565,11 +565,11 @@ or a refresh token. See more in our [authentication docs](https://api.foxy.io/do
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `opts` | [`GrantOpts`](/docs/reference/admin/type-aliases/GrantOpts) | Request options. |
+| `opts` | [`GrantOpts`](/docs/reference/admin/types#grantopts) | Request options. |
 
 ##### Returns
 
-`Promise`\<[`TokenResponse`](/docs/reference/admin/type-aliases/TokenResponse) \| `null`\>
+`Promise`\<[`TokenResponse`](/docs/reference/admin/types#tokenresponse) \| `null`\>
 
 Access token with additional info on success, null on failure.
 
@@ -586,11 +586,11 @@ or a refresh token. See more in our [authentication docs](https://api.foxy.io/do
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `opts` | [`GrantOpts`](/docs/reference/admin/type-aliases/GrantOpts) | Request options. |
+| `opts` | [`GrantOpts`](/docs/reference/admin/types#grantopts) | Request options. |
 | `throwOnFailure` | `true` | If true, this method will throw an error instead of returning null on failure to obtain a token. |
 
 ##### Returns
 
-`Promise`\<[`TokenResponse`](/docs/reference/admin/type-aliases/TokenResponse)\>
+`Promise`\<[`TokenResponse`](/docs/reference/admin/types#tokenresponse)\>
 
 Access token with additional info on success, null on failure.

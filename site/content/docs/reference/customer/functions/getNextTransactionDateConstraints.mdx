@@ -14,12 +14,12 @@ the given subscription and merges them together.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `data` | [`SubscriptionData`](/docs/reference/customer/type-aliases/SubscriptionData) | Subscription to generate constraints for. |
+| `data` | [`SubscriptionData`](/docs/reference/customer/types#subscriptiondata) | Subscription to generate constraints for. |
 | `rules` | `boolean` \| `object`[] | Next date modification config from the customer portal settings. |
 
 ## Returns
 
-`boolean` \| [`Constraints`](/docs/reference/admin/type-aliases/Constraints)
+`boolean` \| [`Constraints`](/docs/reference/admin/types#constraints)
 
 Returns true if all modifications are allowed, false if next date can't
 be changed by the customer, object with constraints in any other case.

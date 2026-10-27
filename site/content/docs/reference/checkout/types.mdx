@@ -1,0 +1,1165 @@
+---
+title: "Types"
+description: "@foxy.io/sdk/checkout"
+---
+
+## Type aliases
+
+### AchHostedFieldsPublicState
+
+```ts
+type AchHostedFieldsPublicState = {
+  empty: boolean;
+  complete: boolean;
+  errorCode: string | null;
+  focused?: boolean;
+  touched?: boolean;
+};
+```
+
+### AchHostedFieldsTokenizeErrorCode
+
+```ts
+type AchHostedFieldsTokenizeErrorCode =
+  | 'invalid_state'
+  | 'validation_failed'
+  | 'collect_timeout'
+  | 'tokenization_network_error'
+  | 'tokenization_failed'
+  | 'unknown_error';
+```
+
+### AddressSuggestion
+
+One city/region candidate for a postal code.
+
+Deliberately narrow. The lookup sources behind it — a US tax table and
+GeoNames — return a city and a region and nothing else, so the shape carries
+no street fields: committing an empty `address1` over a shopper's typed
+street address is a data-loss bug, not a no-op.
+
+No display name for the region either. The client maps the code through its
+own region catalog, which renders in the shopper's locale; a name from the
+server arrives in whatever language the source chose.
+
+```ts
+type AddressSuggestion = {
+  /** City name. Never empty — an entry without one is not a suggestion. */
+  city: string;
+  /**
+   * Region code from the same vocabulary as the address's `region_options`, or
+   * `""` when the source has no region for this postal code.
+   */
+  region: string;
+};
+```
+
+### AddressValidation
+
+The store's validation verdict on one address, computed server-side where
+the address was stored.
+
+`suggestion` is present only when `status` is `"suggested"`. The whole
+object is absent from an address when there is nothing to say — validation
+is off for the store, the country is not covered, the address is not
+complete, or the provider did not answer in time.
+
+```ts
+type AddressValidation = {
+  status: "ok" | "suggested" | "failed";
+  suggestion?: ValidatedAddress;
+};
+```
+
+### AdyenEmbeddedAmount
+
+Monetary amount accepted by Adyen Checkout.
+
+```ts
+type AdyenEmbeddedAmount = {
+  /** Amount in minor units (for example cents). */
+  value: number;
+  /** ISO 4217 currency code. */
+  currency: string;
+};
+```
+
+### AdyenEmbeddedCheckoutConfiguration
+
+Minimal configuration used to initialise Adyen Checkout in Advanced Flow.
+
+```ts
+type AdyenEmbeddedCheckoutConfiguration = {
+  /** Payment methods response from Adyen's /paymentMethods endpoint. */
+  paymentMethodsResponse: AdyenEmbeddedPaymentMethodsResponse;
+  /** Adyen environment matching the client-side asset region. */
+  environment: AdyenEmbeddedEnvironment;
+  /** Amount displayed by Adyen's payment components. */
+  amount: AdyenEmbeddedAmount;
+  /** Shopper country code used to filter payment methods. */
+  countryCode: string;
+  /** Client-side authentication key required by Adyen. */
+  clientKey: string;
+  /** Shopper locale used for UI translations. */
+  locale?: string;
+  /** Additional configuration properties supported by Adyen. */
+  [key: string]: unknown;
+};
+```
+
+### AdyenEmbeddedEnvironment
+
+Supported Adyen Web environments for Advanced Flow.
+
+```ts
+type AdyenEmbeddedEnvironment =
+  | "test"
+  | "live"
+  | "live-us"
+  | "live-au"
+  | "live-apse"
+  | "live-in"
+  | "live-nea";
+```
+
+### AdyenEmbeddedPaymentMethod
+
+Raw payment method entry returned by Adyen.
+
+```ts
+type AdyenEmbeddedPaymentMethod = {
+  /** Adyen payment method identifier, for example "scheme" or "ideal". */
+  type: string;
+  /** Buyer-facing payment method name when Adyen provides one. */
+  name?: string;
+  /** Optional list of supported brands for card-like methods. */
+  brands?: string[];
+  /** Additional provider-specific properties exposed by Adyen. */
+  [key: string]: unknown;
+};
+```
+
+### AdyenEmbeddedPaymentMethodsResponse
+
+Payment methods payload returned by Adyen's /paymentMethods endpoint.
+
+```ts
+type AdyenEmbeddedPaymentMethodsResponse = {
+  /** Regular payment methods available for this merchant/country/currency. */
+  paymentMethods?: AdyenEmbeddedPaymentMethod[];
+  /** Stored shopper payment methods, when present. */
+  storedPaymentMethods?: AdyenEmbeddedPaymentMethod[];
+  /** Additional provider-specific response properties. */
+  [key: string]: unknown;
+};
+```
+
+### AdyenEmbeddedSdkInstance
+
+Initialised Adyen Checkout instance.
+
+```ts
+type AdyenEmbeddedSdkInstance = {
+  /** Discovered payment methods available for the current configuration. */
+  paymentMethodsResponse: AdyenEmbeddedPaymentMethodsResponse;
+  /** Updates the checkout instance with new global properties. */
+  update(
+    props?: Record<string, unknown>,
+    options?: { shouldReinitializeCheckout?: boolean },
+  ): Promise<AdyenEmbeddedSdkInstance>;
+  /** Creates an action component from an Adyen action payload when supported. */
+  createFromAction?(
+    action: Record<string, unknown>,
+    options?: Record<string, unknown>,
+  ): unknown;
+  /** Additional Adyen instance properties and methods. */
+  [key: string]: unknown;
+};
+```
+
+### AdyenEmbeddedSdkNamespace
+
+Browser namespace exposed by the Adyen Web script.
+
+```ts
+type AdyenEmbeddedSdkNamespace = {
+  /** Async factory used to create an Adyen Checkout instance. */
+  AdyenCheckout(
+    configuration: AdyenEmbeddedCheckoutConfiguration,
+  ): Promise<AdyenEmbeddedSdkInstance>;
+};
+```
+
+### APIConstructorParams
+
+```ts
+type APIConstructorParams = APIOptions & {
+  initialJson?: APIJson;
+};
+```
+
+### APIEventMap
+
+```ts
+type APIEventMap = {
+  'billing-address-update': CustomEvent<BillingAddress>;
+  'cart-clear': Event;
+  'checkout': Event;
+  'checkout-continue': CustomEvent<{ resumeToken: string }>;
+  'coupon-or-gift-card-apply': CustomEvent<{ code: string }>;
+  'coupon-remove': CustomEvent<{ coupon: Coupon }>;
+  'custom-fields-update': CustomEvent<CustomFields>;
+  'email-update': CustomEvent<{ email: string }>;
+  'gift-card-remove': CustomEvent<{ giftCard: GiftCard }>;
+  'item-remove': CustomEvent<{ item: Item }>;
+  'item-update': CustomEvent<{ oldItem: Item; newItem: Item }>;
+  'messages-add': CustomEvent<{ message: Message }>;
+  'messages-clear': Event;
+  'messages-remove': CustomEvent<{ message: Message }>;
+  'next-action-redirect': CustomEvent<RedirectNextAction>;
+  'next-action-required': CustomEvent<RequiresActionNextAction>;
+  'shipment-update': CustomEvent<Shipment>;
+  'sign-in': CustomEvent<{ email: string; password: string }>;
+  'sign-out': Event;
+  'temporary-password-request': CustomEvent<{ email: string }>;
+  'update': Event;
+};
+```
+
+### APIJson
+
+```ts
+type APIJson = {
+  /** Public template set info (fx:template_set). */
+  template_set: TemplateSet;
+  /** Public transaction details including ID, date and payments – available after purchase. */
+  transaction: Transaction | null;
+  /** The session information including the unique identifier. Null on a receipt the backend could not find. */
+  session: CartSessionJson | null;
+  /** Whether debug mode is enabled for this template set. */
+  debug: boolean;
+  /** Current customer information. Null on a receipt that was not found. */
+  customer: Customer | null;
+  /** Array of shipment addresses and their associated details. */
+  shipments: Shipment[];
+  /** Array of cart items. */
+  items: Item[];
+  /** Array of totals for this order, ordered from current to future. */
+  totals: Totals[];
+  /** Whether the shopper is entering a billing address separate from shipping. */
+  use_separate_billing_address?: boolean;
+  /** Billing address information. Null on a receipt that was not found. */
+  billing_address: BillingAddress | null;
+  /** Store configuration and information. */
+  store: Store;
+  /** Array of messages (errors, warnings, or informational). */
+  messages: Message[];
+  /** Custom fields with keys prefixed by 'h:'. */
+  custom_fields: CustomFields;
+  /** Formatting and localization settings. */
+  format: Format;
+  /** Display and UI configuration options. */
+  display: Display;
+  /** Custom configuration options for this checkout. */
+  custom_config: CustomConfig;
+  /** Saved payment methods available for this order. */
+  saved_payment_methods: SavedPaymentMethod[] | null;
+  /** Payment gateway configurations available for this order. */
+  payment_gateways: PaymentGatewayConfig[] | null;
+  /** Language strings for localization, keyed by string identifiers. */
+  language_strings: Record<string, string>;
+  /** Follow-up action the client must complete before the checkout submission resolves. */
+  next_action: NextAction | null;
+};
+```
+
+### APIOptions
+
+```ts
+type APIOptions = {
+  storeDomain?: string;
+  initialState?: "idle" | "busy";
+  onError?: (error: Error) => void;
+};
+```
+
+### ApplePayConfig
+
+```ts
+type ApplePayConfig = {
+  /** Apple Pay merchant identifier used for this gateway config. */
+  merchant_id: string;
+};
+```
+
+### BillingAddress
+
+```ts
+type BillingAddress = {
+  /**
+   * Whether the billing address mirrors the customer's shipping address. This
+   * is the raw flag, the inverse of the transaction's `use_different_addresses`.
+   * It is not the same field as `APIJson.use_separate_billing_address`, which
+   * reports true for every cart with no shippable products regardless of the
+   * flag. The two agree only on a shippable cart.
+   */
+  use_customer_shipping_address: boolean;
+  /** Unique identifier for the saved address. */
+  address_id: number | null;
+  /**
+   * Name or label for this address. Always null in practice — the checkout
+   * JSON hardcodes it empty and the wire turns an empty string into null. It
+   * stays declared so the shape matches `Shipment`.
+   */
+  address_name: string | null;
+  /** Recipient's first name. */
+  first_name: string | null;
+  /** Recipient's last name. */
+  last_name: string | null;
+  /** Company name for shipping. */
+  company: string | null;
+  /** Contact phone number. */
+  phone: string | null;
+  /** Address line 1. */
+  address1: string | null;
+  /** Address line 2. */
+  address2: string | null;
+  /** City. */
+  city: string | null;
+  /** State, region or province. A 2-letter code (if available) or full name. */
+  region: string | null;
+  /** Postal code or ZIP code. */
+  postal_code: string | null;
+  /** 2-letter country code. */
+  country: string | null;
+  /** Available region options for the selected country. */
+  region_options?: string[];
+  /** Available country options for billing. */
+  country_options?: string[];
+  /**
+   * Whether postal-code lookup applies to this address. Resolved server-side
+   * from the store's `postal_code_lookup` setting AND whether this address's
+   * country supports lookup at all — the two conditions the shopper sees as
+   * one. Absent on payloads from a backend that predates the feature, which
+   * reads as disabled.
+   */
+  postal_code_lookup?: boolean;
+  /**
+   * The store's validation verdict on this address. Absent when there is
+   * nothing to say — validation is off, the country is not covered, the
+   * address is incomplete, or the provider did not answer in time. Absent is
+   * also what a backend predating the feature sends, which reads as "off".
+   */
+  address_validation?: AddressValidation;
+};
+```
+
+### CardEmbedConfigErrorCode
+
+Why the card-entry shell could not resolve a configuration at all.
+
+A different channel from the codes above: the shell posts one of these to the
+parent at load time and never imports the element bundle, so no tokenization
+is ever attempted. All four are merchant configuration problems.
+
+```ts
+type CardEmbedConfigErrorCode =
+  | 'tokenization_config_not_found'
+  | 'tokenization_config_no_provider'
+  | 'tokenization_config_brand_parity'
+  | 'tokenization_config_incomplete';
+```
+
+### CardEmbedTokenizeErrorCode
+
+Why a card tokenization attempt failed.
+
+The vault mint (`POST /tokenize`) answers with a machine context rather than
+shopper text, so the host renders the copy — before the vault, every one of
+these came back as one generic card-number error. The first three are the
+element's own states, raised without ever reaching the mint.
+
+```ts
+type CardEmbedTokenizeErrorCode =
+  | 'invalid_state'
+  | 'invalid_config'
+  | 'tokenization_failed'
+  | 'tokenization_network_error'
+  | 'card_number_invalid'
+  | 'card_expiry_invalid'
+  | 'card_csc_invalid'
+  | 'card_brand_unsupported'
+  | 'saved_card_unavailable'
+  | 'tokenization_config_stale'
+  | 'tokenization_not_supported_for_provider'
+  | 'rate_limited'
+  | 'malformed_request'
+  | 'method_not_allowed';
+```
+
+### CardValidationField
+
+```ts
+type CardValidationField = 'cc-number' | 'cc-exp' | 'cc-csc' | 'form';
+```
+
+### CartSessionJson
+
+```ts
+type CartSessionJson = {
+  /**
+   * Unique identifier for the session. Null when the backend has no session to
+   * report: the checkout JSON turns an empty session id into null on the wire.
+   */
+  id: string | null;
+};
+```
+
+### CheckOutPaymentOption
+
+```ts
+type CheckOutPaymentOption =
+  | { gateway: "adyen_embedded" }
+  | {
+      gateway: "klarna";
+      authorization_token: string;
+    }
+  | ({ gateway: "paypal_platform" } & (
+      | {
+          order_id: string;
+          payer_id: string;
+          payment_id?: string;
+          billing_token?: string;
+        }
+      | { card_token: string }
+      | { apple_pay_token: string }
+      | { google_pay_token: string }
+      | { subscription_id: string; payer_id: string }
+    ))
+  | {
+      gateway: "square_up";
+      nonce: string;
+    }
+  | {
+      gateway: "purchase_order";
+      purchase_order_number: string;
+    }
+  | {
+      gateway: StandardACHGateway;
+      ach_token: string;
+    }
+  | ({
+      gateway: StandardCardGateway;
+    } & (
+      | { card_token: string }
+      | { apple_pay_token: string }
+      | { google_pay_token: string }
+    ))
+  | {
+      gateway: StandardRedirectGateway;
+    }
+  | { gateway: "stripe_v2" };
+```
+
+### CountryOption
+
+```ts
+type CountryOption = { value: string; label: string };
+```
+
+### Coupon
+
+```ts
+type Coupon = {
+  /** Unique identifier for the coupon. */
+  id: number;
+  /** Coupon code. */
+  code: string;
+  /** Code ID. */
+  code_id: number;
+  /** Display name for the coupon. */
+  name: string;
+  /** Discount amount. */
+  amount: number;
+  /** Whether the coupon discount is subject to tax. */
+  is_taxable: boolean;
+  /** Whether this coupon was applied automatically. */
+  is_auto_apply: boolean;
+};
+```
+
+### CustomConfig
+
+```ts
+type CustomConfig =
+  | string
+  | number
+  | boolean
+  | null
+  | CustomConfig[]
+  | { [key: string]: CustomConfig };
+```
+
+### Customer
+
+```ts
+type Customer = {
+  /** Customer's first name. */
+  first_name: string | null;
+  /** Customer's last name. */
+  last_name: string | null;
+  /** Customer's email address. */
+  email: string | null;
+  /** Customer type (guest, registered, or not identified). */
+  type: "guest" | "registered" | null;
+  /** Unique customer identifier. */
+  id: number | null;
+  /** JWT token for authenticated customers. */
+  token: string | null;
+};
+```
+
+### CustomFields
+
+Custom fields without the `h:` prefix. For example, if we get `h:name=value`, the object will have `name: "value"`.
+
+```ts
+type CustomFields = Record<string, string>;
+```
+
+### Display
+
+```ts
+type Display = {
+  /** Product option names to hide from display (includes sub_frequency, code, category, etc). */
+  hidden_product_options: string[];
+  /** Form field names that are required. */
+  required_form_fields: string[];
+  /** Form field names to hide from display. */
+  hidden_form_fields: string[];
+  /** Whether to use a read-only cart display during checkout. */
+  use_readonly_cart_on_checkout: boolean;
+  /** Whether prices include tax. */
+  use_tax_inclusive_pricing: boolean;
+  /** Requirement level for secure data transfer consent. */
+  secure_data_transfer_consent: "required" | "optional" | "disabled";
+  /** The type of checkout flow to use. */
+  checkout_flow: "default" | "subscription_cancellation" | "subscription_modification";
+  /** Customer registration requirement. */
+  registration: "required" | "optional" | "disabled";
+};
+```
+
+### Format
+
+```ts
+type Format = {
+  /**
+   * Default weight unit for display. Null when there are no items in the
+   * transaction.
+   */
+  weight_unit: "pound" | "kilogram" | null;
+  /** Locale code for formatting (e.g., 'en-US'). */
+  locale_code: string;
+  /** 3-letter currency code (e.g., 'USD'). */
+  currency_code: string;
+  /** How to display currency (symbol, code, or none). */
+  currency_display: "symbol" | "code" | "none";
+  /** Maximum number of decimal places for prices. */
+  maximum_fraction_digits: number;
+};
+```
+
+### GiftCard
+
+```ts
+type GiftCard = {
+  /** Unique identifier for the gift card. */
+  id: number;
+  /** Gift card code. */
+  code: string;
+  /** Code ID. */
+  code_id: number;
+  /** Display name for the gift card. */
+  name: string;
+  /** Amount applied to this order. */
+  amount: number;
+  /** Remaining balance on the gift card before this order. */
+  current_balance: number;
+};
+```
+
+### GooglePayConfig
+
+```ts
+type GooglePayConfig = {
+  /** Google Pay merchant identifier used for this gateway config. */
+  merchant_id: string;
+  /** Custom tokenization parameters for payment gateway: https://developers.google.com/pay/api/web/reference/request-objects#gateway. */
+  gateway_parameters?: Record<string, string>;
+  /**
+   * Google Pay environment matching the gateway's own configuration, spelled
+   * the way Google's API spells it. A property of the gateway, not of the
+   * bundle: the client must not derive it from its own build mode.
+   */
+  environment: "TEST" | "PRODUCTION";
+};
+```
+
+### GooglePaymentsClient
+
+```ts
+type GooglePaymentsClient = {
+  isReadyToPay: (request: Record<string, unknown>) => Promise<{ result: boolean }>;
+  loadPaymentData: (request: Record<string, unknown>) => Promise<Record<string, unknown>>;
+  createButton: (options: Record<string, unknown>) => HTMLElement;
+};
+```
+
+### HydrateJsonOptions
+
+```ts
+type HydrateJsonOptions = {
+  state?: "idle" | "busy";
+  emitUpdate?: boolean;
+};
+```
+
+### Item
+
+```ts
+type Item = {
+  /** Unique identifier for the item. */
+  id: number;
+  /** Display name of the item. */
+  name: string | null;
+  /** Product code. */
+  code: string | null;
+  /** Parent product code. If set, this item is a child item. */
+  parent_code: string | null;
+  /** URL to the item's image. */
+  image: string | null;
+  /** URL to the item on the store. */
+  url: string | null;
+  /** Length dimension. */
+  length: number | null;
+  /** Unit of measurement for length. */
+  length_unit: 'inch' | 'centimeter';
+  /** Width dimension. */
+  width: number | null;
+  /** Height dimension. */
+  height: number | null;
+  /** Weight of the item. */
+  weight: number | null;
+  /** Unit of measurement for weight. */
+  weight_unit: 'pound' | 'kilogram';
+  /** Quantity in the cart. */
+  quantity: number;
+  /** Minimum quantity allowed. If this value is non-zero and parent code is present, then the quantity of this item is locked to its parent. */
+  quantity_min: number;
+  /** Maximum quantity allowed. If null then there is no maximum limit. */
+  quantity_max: number | null;
+  /** Price per unit before any discounts are applied. */
+  base_price: number;
+  /** Price per unit after discounts but before tax. */
+  price_each: number;
+  /** Price per unit including tax. */
+  price_each_with_tax: number;
+  /** Total price for all units of this item before tax. */
+  price: number;
+  /** Total price for all units of this item including tax. */
+  price_with_tax: number;
+  /** Category code for this item. */
+  item_category_code: string | null;
+  /** How the item will be delivered. */
+  item_delivery_type: 'shipped' | 'downloaded' | 'flat_rate' | 'pickup' | 'notshipped' | null;
+  /**
+   * Delivery type code. Always null — the checkout JSON hardcodes it empty and
+   * the wire turns an empty string into null.
+   */
+  delivery_type: string | null;
+  /** Identifier for downloadable product. */
+  downloadable_id: number | null;
+  /** URL to download the product (only available after purchase). */
+  downloadable_url: string | null;
+  /** Subscription frequency in format like '1m', '1y', or '.5m'. */
+  /** Subscription frequency in format like '1m', '1y', '2w', '10d', or '.5m'. */
+  subscription_frequency: string | null;
+  /** Subscription start date in YYYY-MM-DD format. */
+  subscription_start_date: string | null;
+  /** Next transaction date for subscription in YYYY-MM-DD format. */
+  subscription_next_transaction_date: string | null;
+  /** Subscription end date in YYYY-MM-DD format. */
+  subscription_end_date: string | null;
+  /** Item expiration date in ISO 8601 format. */
+  expires: string | null;
+  /** Product options for this item. */
+  options: ItemOption[];
+};
+```
+
+### ItemOption
+
+```ts
+type ItemOption = {
+  id: number;
+  /** Option name. */
+  name: string | null;
+  /** Option value. */
+  value: string | null;
+  /** Price modifier for this option. */
+  price_mod: number;
+  /** Weight modifier for this option in the item's weight unit. */
+  weight_mod: number;
+};
+```
+
+### KlarnaSdkInstance
+
+Browser namespace exposed by Klarna after their SDK script has loaded.
+
+```ts
+type KlarnaSdkInstance = {
+  /** Payments API used to initialize, render, authorize, and observe Klarna widgets. */
+  Payments: KlarnaPaymentsApi;
+};
+```
+
+### Listener
+
+```ts
+type Listener<TAPIEventMap extends keyof APIEventMap, TAPI> = (
+  this: TAPI,
+  event: APIEventMap[TAPIEventMap]
+) => void;
+```
+
+### Message
+
+```ts
+type Message = {
+  /**
+   * Context or category for this message. Null when the message is not tied to
+   * one — the "receipt not found" error is the case that reaches the client.
+   */
+  context: string | null;
+  /** The message text. */
+  message: string;
+  /** Severity level of the message. */
+  level: "error" | "warning" | "info";
+};
+```
+
+### NextAction
+
+Follow-up action the client must take before a checkout submission resolves.
+
+```ts
+type NextAction = RequiresActionNextAction | RedirectNextAction;
+```
+
+### PaymentGatewayConfig
+
+```ts
+type PaymentGatewayConfig =
+  | StandardCardPaymentGatewayConfig
+  | StandardAchPaymentGatewayConfig
+  | RedirectGatewayConfig
+  | StripePaymentElementGatewayConfig
+  | PayPalPlatformGatewayConfig
+  | KlarnaGatewayConfig
+  | AdyenEmbeddedGatewayConfig
+  | SquareUpGatewayConfig;
+```
+
+### PayPalSdkInstance
+
+```ts
+type PayPalSdkInstance = SdkInstance<PayPalSdkComponents> &
+  UndocumentedPayPalSessionCreators;
+```
+
+### RedirectNextAction
+
+```ts
+type RedirectNextAction = {
+  /** Full-page, offsite redirect required to complete the checkout (hosted / BNPL gateways, 3DS v1). */
+  type: "redirect";
+  /** Server-sourced redirect destination. */
+  url: string;
+  /** GET navigates directly to `url`; POST auto-submits a hidden form built from `body`. */
+  method: "GET" | "POST";
+  /** Server-sourced form fields to submit when `method` is `POST`. */
+  body?: Record<string, string>;
+};
+```
+
+### RegionOption
+
+```ts
+type RegionOption = {
+  /** The code exactly as it must be sent back to the API. */
+  value: string;
+  /** react-intl message id for the human-readable name. */
+  messageId: string;
+};
+```
+
+### RegionType
+
+```ts
+type RegionType = "state" | "province" | "county" | "canton" | "prefecture";
+```
+
+### RequiresActionNextAction
+
+```ts
+type RequiresActionNextAction = {
+  /** The client-side step the customer must complete before the payment resolves. */
+  type: "confirm_intent" | "three_ds_challenge" | "captcha";
+  /** Signed, single-use JWT sent back to `POST /checkout?action=continue` to resume the transaction. */
+  resume_token: string;
+  /** Gateway (or 3DS provider) this action is occurring with. */
+  gateway: NextActionGateway;
+  /** Opaque, provider-specific payload passed straight to the matching SDK adapter. */
+  params: Record<string, unknown>;
+};
+```
+
+### SavedPaymentMethod
+
+```ts
+type SavedPaymentMethod = {
+  /** Payment option type. */
+  type: "card";
+  /** Gateway used for saved card submission. */
+  gateway: StandardCardGateway | "stripe_v2" | "adyen_embedded";
+  /** Payment method identifier. */
+  id: string;
+  /** Card brand (e.g., "visa", "mastercard"). */
+  brand: string;
+  /** Last 4 card digits (e.g., "1234"). */
+  last_4: string;
+  /** Full expiration year (e.g., 2030). */
+  expiry_year: number;
+  /** Expiration month from 1 to 12. */
+  expiry_month: number;
+  /**
+   * The store wants the card's security code before it is charged. When true,
+   * submit a `card_token` minted in `card_csc` mode for this card alongside
+   * `saved_payment_method_id`; when false, the id alone charges it.
+   */
+  csc_required: boolean;
+};
+```
+
+### SessionCookieOptions
+
+```ts
+type SessionCookieOptions = {
+  domain?: string;
+  /** Default `/`. */
+  path?: string;
+  /** Seconds. Omit for a cookie that ends with the browser session. */
+  maxAge?: number;
+  /** Default `Lax`. `None` needs an https: page. */
+  sameSite?: "Strict" | "Lax" | "None";
+};
+```
+
+### SessionHost
+
+What `CartSession` needs from the `API` that owns it. Only the SDK creates one.
+
+```ts
+type SessionHost = {
+  storeOrigin(): string | null;
+  /** Runs `action` with the client `busy`, and rethrows. */
+  run<T>(action: () => Promise<T>): Promise<T>;
+  /** `GET /cart` with this ID (or none: a new session), then replaces the client's json. */
+  load(sessionId: string | null): Promise<void>;
+  /** `POST /cart` with `empty=reset` for the current session. */
+  reset(): Promise<void>;
+  /** Sets the client's json to null. */
+  clear(): void;
+  onError(error: Error): void;
+  /** Tells the sidecart: reload with this ID, or unmount for null. */
+  changed(sessionId: string | null): void;
+};
+```
+
+### SessionOptions
+
+```ts
+type SessionOptions = {
+  /** Default `"local"`. */
+  storage?: SessionStorageName | SessionStore;
+  /** Default `foxy.session.<store host>`. Not used with a `SessionStore` object. */
+  key?: string;
+  /** Only for `storage: "cookie"`. */
+  cookie?: SessionCookieOptions;
+  /** Default `true`: with no stored ID, the first load creates a session. */
+  autoStart?: boolean;
+};
+```
+
+### SessionStorageName
+
+```ts
+type SessionStorageName = "local" | "session" | "cookie" | "memory";
+```
+
+### SessionStore
+
+Where `client.session` keeps the session ID. Any method may be async.
+
+```ts
+type SessionStore = {
+  get(): string | null | Promise<string | null>;
+  set(id: string): void | Promise<void>;
+  remove(): void | Promise<void>;
+};
+```
+
+### Shipment
+
+```ts
+type Shipment = {
+  /** Unique identifier for the saved address, if available. */
+  address_id: number | null;
+  /**
+   * Name or label for this address. Null on a non-multiship transaction,
+   * which reports a single unnamed shipment built from the customer's
+   * shipping contact rather than from a named `shipto`.
+   */
+  address_name: string | null;
+  /** Recipient's first name. */
+  first_name: string | null;
+  /** Recipient's last name. */
+  last_name: string | null;
+  /** Company name for shipping. */
+  company: string | null;
+  /** Contact phone number. */
+  phone: string | null;
+  /** Address line 1. */
+  address1: string | null;
+  /** Address line 2. */
+  address2: string | null;
+  /** City. */
+  city: string | null;
+  /** State, region or province. A 2-letter code (if available) or full name. */
+  region: string | null;
+  /** Postal code or ZIP code. */
+  postal_code: string | null;
+  /** 2-letter country code. */
+  country: string | null;
+  /** Selected shipping service ID for when live shipping rates are used. */
+  shipping_service_id: number | null;
+  /** Whether this shipment contains any shippable items. Non-shippable items, like digital downloads, can still technically form a shipment. */
+  has_shippable_items: boolean;
+  /** Whether this shipment has items that support live rate calculation. */
+  has_live_rate_shippable_items: boolean;
+  /** Available region options for the selected country. */
+  region_options?: string[];
+  /** Available country options for shipping. */
+  country_options?: string[];
+  /**
+   * Whether postal-code lookup applies to this address. Resolved server-side
+   * from the store's `postal_code_lookup` setting AND whether this address's
+   * country supports lookup at all — the two conditions the shopper sees as
+   * one. Absent on payloads from a backend that predates the feature, which
+   * reads as disabled.
+   */
+  postal_code_lookup?: boolean;
+  /**
+   * The store's validation verdict on this address. Absent when there is
+   * nothing to say — validation is off, the country is not covered, the
+   * address is incomplete, or the provider did not answer in time. Absent is
+   * also what a backend predating the feature sends, which reads as "off".
+   */
+  address_validation?: AddressValidation;
+  /** Available shipping service options for this shipment with their costs. */
+  shipping_service_options?: {
+    id: number;
+    name: string | null;
+    cost: number;
+  }[];
+};
+```
+
+### SquareSdkInstance
+
+The initialized Payments instance returned by Square.payments().
+
+```ts
+type SquareSdkInstance = {
+  /** Creates a Card payment component for rendering a card input form. */
+  card(options?: Record<string, unknown>): Promise<SquarePaymentComponent>;
+  /** Creates an ACH bank-transfer component. */
+  ach(options?: SquareAchOptions): Promise<SquarePaymentComponent>;
+  /** Creates a Google Pay button component. */
+  googlePay(paymentRequest: unknown): Promise<SquarePaymentComponent>;
+  /** Creates an Apple Pay button component. */
+  applePay(paymentRequest: unknown): Promise<SquarePaymentComponent>;
+  /** Verifies the buyer's identity for SCA / 3DS flows. */
+  verifyBuyer(token: string, verificationDetails: Record<string, unknown>): Promise<{ token: string }>;
+  /** Creates a payment request object used by wallet payment methods. */
+  paymentRequest(details: Record<string, unknown>): unknown;
+};
+```
+
+### Store
+
+```ts
+type Store = {
+  /** Store identifier. */
+  id: number;
+  /** Store name. */
+  name: string | null;
+  /** Store domain. */
+  domain: string | null;
+  /** URL to the store logo. */
+  logo_url: string | null;
+  /** Store website URL. */
+  website_url: string | null;
+  /** Store checkout URL. */
+  checkout_url: string;
+  /** Cancel or Continue Shopping URL. */
+  cancel_and_continue_url: string | null;
+  /** Whether this store has taxes that are calculated based on customer location. */
+  has_location_dependent_taxes: boolean;
+  /** Whether this store has gift cards that can be applied to this order. */
+  has_eligible_gift_cards: boolean;
+  /** Whether this store has coupons that can be applied to this order. */
+  has_eligible_coupons: boolean;
+  /** Array of supported payment card types. */
+  supported_payment_cards: string[];
+};
+```
+
+### StripeConfirmIntentParams
+
+`params` of a `confirm_intent` action raised by `stripe_v2`.
+
+The submit leg creates an unconfirmed PaymentIntent server-side and hands
+back only its client secret — nothing is authorized yet. The client confirms
+it with the mounted Payment Element, then resumes with
+`POST /checkout?action=continue`, which verifies the outcome with Stripe
+server-to-server. There is no client-minted token in this flow.
+
+```ts
+type StripeConfirmIntentParams = {
+  /** Client secret of the unconfirmed PaymentIntent to confirm. */
+  client_secret: string;
+};
+```
+
+### Tax
+
+```ts
+type Tax = {
+  /** Tax name. */
+  name: string;
+  /** Tax rate as a percentage (e.g., 8.875 for 8.875%), not a decimal fraction. */
+  rate: number;
+  /** Tax amount. */
+  amount: number;
+  /** Whether this tax is included in the item prices. */
+  is_included: boolean;
+};
+```
+
+### TemplateSet
+
+```ts
+type TemplateSet = {
+  /** Template set code. */
+  code: string;
+  /** Template set unique identifier. */
+  id: number;
+};
+```
+
+### Totals
+
+```ts
+type Totals = {
+  /** Date for this totals snapshot (null means current/now). */
+  date: string | null;
+  /** Array of applicable taxes. */
+  taxes: Tax[];
+  /** Array of applied coupon codes. */
+  coupons: Coupon[];
+  /** Array of applied gift cards (empty for future totals snapshots). */
+  gift_cards: GiftCard[];
+  /** Total discount amount from all line item discounts. */
+  total_line_item_discount: number;
+  /** Total shipping cost before tax. */
+  total_shipping: number;
+  /** Total shipping cost including tax. */
+  total_shipping_with_tax: number;
+  /** Shippable value for calculating shipping. */
+  total_shipping_value: number;
+  /** Total tax amount. */
+  total_tax: number;
+  /** Total price of all items before tax. */
+  total_item_price: number;
+  /** Total price of all items including tax. */
+  total_item_price_with_tax: number;
+  /** Total weight of all items. */
+  total_weight: number;
+  /** Total weight of shippable items. */
+  total_weight_shippable: number;
+  /** Final order total after all discounts and taxes. */
+  total_order: number;
+};
+```
+
+### Transaction
+
+```ts
+type Transaction = {
+  /** Unique identifier for the transaction. */
+  id: string;
+  /** Current status of the transaction. */
+  status:
+    | 'completed'
+    | 'approved'
+    | 'authorized'
+    | 'captured'
+    | 'capturing'
+    | 'declined'
+    | 'pending'
+    | 'rejected'
+    | 'voided'
+    | 'refunded'
+    | 'refunding'
+    | 'verified'
+    | 'problem'
+    | 'pending_fraud_review';
+  /** Array of payments associated with this transaction. */
+  payments: (CardPayment | ACHPayment | POSPayment | PurchaseOrderPayment)[];
+  /** Date and time when the transaction occurred. */
+  transaction_date: string;
+};
+```
+
+### ValidatedAddress
+
+An address as a validation provider returns it.
+
+Wire-shaped and every field optional, for the same reason `AddressSuggestion`
+is deliberately narrow: a provider that has no opinion about a field omits
+it, and writing an empty string over a shopper's typed value is a data-loss
+bug rather than a no-op.
+
+```ts
+type ValidatedAddress = {
+  address1?: string;
+  address2?: string;
+  city?: string;
+  region?: string;
+  postal_code?: string;
+  country?: string;
+};
+```

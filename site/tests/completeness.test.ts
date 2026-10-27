@@ -21,7 +21,7 @@ function listMdx(path: string): string[] {
 describe('reference pages', () => {
   it('all compile, start with a title and hold no local paths', async () => {
     const files = listMdx(dir);
-    expect(files.length).toBeGreaterThan(50);
+    expect(files.length).toBeGreaterThan(40);
     for (const file of files) {
       const text = readFileSync(file, 'utf8');
       expect(text, file).not.toMatch(/\/Users\/|\.\.\/\.\.\/\.\.\//);

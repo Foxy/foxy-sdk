@@ -3,6 +3,16 @@ title: "@foxy.io/sdk/checkout/add-to-cart"
 description: "@foxy.io/sdk/checkout/add-to-cart"
 ---
 
-## Type Aliases
+## Type aliases
 
-- [AddToCartDetail](/docs/reference/checkout/add-to-cart/type-aliases/AddToCartDetail)
+### AddToCartDetail
+
+`detail` of the cancelable, bubbling `foxy:add-to-cart` event.
+
+```ts
+type AddToCartDetail = {
+  url: URL;
+  params: [string, string][];
+  sessionId: string | null;
+};
+```

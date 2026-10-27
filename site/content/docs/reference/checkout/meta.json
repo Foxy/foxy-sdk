@@ -4,7 +4,7 @@
     "classes",
     "functions",
     "interfaces",
-    "type-aliases",
+    "types",
     "loader",
     "client",
     "side-cart",

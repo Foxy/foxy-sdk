@@ -4,8 +4,7 @@
     "classes",
     "functions",
     "interfaces",
-    "type-aliases",
-    "namespaces",
+    "types",
     "..."
   ]
 }
