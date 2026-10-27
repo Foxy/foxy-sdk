@@ -1,7 +1,6 @@
 {
   "title": "Customer API",
   "pages": [
-    "index",
     "classes",
     "functions",
     "interfaces",

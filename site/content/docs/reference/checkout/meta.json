@@ -1,7 +1,6 @@
 {
   "title": "Checkout API",
   "pages": [
-    "index",
     "classes",
     "functions",
     "interfaces",

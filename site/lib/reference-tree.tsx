@@ -38,6 +38,9 @@ function KindIcon({ kind }: { kind: string }) {
 
 const folderName = (node: PageTree.Folder) => node.$ref?.folder?.split('/').pop() ?? '';
 
+/** A folder holding only its index page, like a namespace or `checkout/loader`, as a plain page link. */
+const asPage = (node: PageTree.Node) => (node.type === 'folder' && node.index && !node.children.length ? node.index : node);
+
 /** Flattens the kind folders of each reference section into one list sorted by name, and adds a kind icon to each page. */
 export function referenceTreePlugin(): LoaderPlugin {
   return {
@@ -51,13 +54,12 @@ export function referenceTreePlugin(): LoaderPlugin {
         const isKind = (child: PageTree.Node): child is PageTree.Folder =>
           child.type === 'folder' && folderName(child) in kinds && !grouped.has(folderName(child));
         const first = node.children.findIndex(isKind);
-        if (first === -1) return node;
+        if (first === -1) return { ...node, children: node.children.map(asPage) };
         const flat = node.children
           .filter(isKind)
-          // a namespace like Rels is a folder holding only its index page
-          .flatMap(folder => folder.children.map(child => (child.type === 'folder' && child.index && !child.children.length ? child.index : child)))
+          .flatMap(folder => folder.children.map(asPage))
           .sort((a, b) => String(a.name).localeCompare(String(b.name), 'en', { sensitivity: 'base' }));
-        const rest = node.children.filter(child => !isKind(child));
+        const rest = node.children.filter(child => !isKind(child)).map(asPage);
         return { ...node, children: [...rest.slice(0, first), ...flat, ...rest.slice(first)] };
       },
     },
