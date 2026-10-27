@@ -171,6 +171,127 @@ A customer's subscription without its `_links` and `_embedded` parts. [`getNextT
 type SubscriptionData = Omit<Resource<Subscription>, '_links' | '_embedded'>;
 ```
 
+## Interfaces
+
+### Credentials
+
+A customer's email and password, or a temporary password or one-time code during access recovery. Passed to [`API.signIn()`](/docs/reference/customer/classes/API#signin).
+
+```ts
+interface Credentials {
+  /** Email address associated with an account. */
+  email: string;
+  /** Current password during regular sign-in, temporary password or a one-time code during access recovery. */
+  password: string;
+}
+```
+
+### CustomerSession
+
+The session the Customer API returns after sign-in: a session token, a JWT, its lifetime in seconds, and whether the customer must change their password. [`StoredSession`](/docs/reference/customer/types#storedsession) adds the time it was created.
+
+```ts
+interface CustomerSession {
+  force_password_reset?: boolean;
+  session_token: string;
+  expires_in: number;
+  jwt: string;
+}
+```
+
+### Graph
+
+The root of the Customer API graph: the signed-in customer, with their name and email and links to their addresses, subscriptions, transactions and default payment method. A customer [`API`](/docs/reference/customer/classes/API) client starts here, so [`API.follow()`](/docs/reference/customer/classes/API#follow) takes these link names.
+
+```ts
+interface Graph {
+  curie: 'fx:customer';
+
+  links: {
+    /** This resource. */
+    'self': Customer;
+    /** Attributes for this customer. */
+    'fx:attributes': Attributes;
+    /** List of customer's transactions. */
+    'fx:transactions': Transactions;
+    /** List of customer's subscriptions. */
+    'fx:subscriptions': Subscriptions;
+    /** List of customer's addresses. */
+    'fx:customer_addresses': CustomerAddresses;
+    /** Customer's default payment method. */
+    'fx:default_payment_method': DefaultPaymentMethod;
+    /** Customer's default billing address. */
+    'fx:default_billing_address': DefaultBillingAddress;
+    /** Customer's default shipping address. */
+    'fx:default_shipping_address': DefaultShippingAddress;
+    /** Navigate to this URL to open a cart with subscription details. */
+    'fx:sub_token_url': SubTokenUrl;
+    /** Navigate to this URL to make changes to this subscription. */
+    'fx:sub_modification_url': SubModificationUrl;
+  };
+
+  props: {
+    /** The FoxyCart customer id, useful for Single Sign On integrations. */
+    id: number;
+    /** The date of the last time this customer authenticated with the FoxyCart checkout. */
+    last_login_date: string;
+    /** The customer's given name. */
+    first_name: string | null;
+    /** The customer's surname. */
+    last_name: string | null;
+    /** The customer's email address. This is used as the login to the FoxyCart checkout for this customer. */
+    email: string;
+    /** A tax identification number for this customer. */
+    tax_id: string;
+    /** The date this resource was created. */
+    date_created: string | null;
+    /** The date this resource was last modified. */
+    date_modified: string | null;
+  };
+
+  zooms: {
+    default_shipping_address?: DefaultShippingAddress;
+    default_billing_address?: DefaultBillingAddress;
+    default_payment_method?: DefaultPaymentMethod;
+    attributes: Attributes;
+  };
+}
+```
+
+### SignUpParams
+
+Input of [`API.signUp()`](/docs/reference/customer/classes/API#signup): the new customer's email, an optional name and password, and the hCaptcha verification.
+
+```ts
+interface SignUpParams {
+  /** Signup verification (currently only hCaptcha is supported). */
+  verification: {
+    /** Verification type. Currently only hCaptcha is supported. */
+    type: 'hcaptcha';
+    /** hCaptcha verification token. */
+    token: string;
+  };
+  /** Customer's first name, optional, up to 50 characters. */
+  first_name?: string;
+  /** Customer's last name, optional, up to 50 characters. */
+  last_name?: string;
+  /** Customer's password (up to 50 characters). If not provided, Foxy will generate a random password for this account server-side. */
+  password?: string;
+  /** Customer's email address (up to 100 characters), required. */
+  email: string;
+}
+```
+
+### StoredSession
+
+A [`CustomerSession`](/docs/reference/customer/types#customersession) plus the time it was created. After sign-in, the customer [`API`](/docs/reference/customer/classes/API) client keeps it in its `storage` under [`API.SESSION`](/docs/reference/customer/classes/API#session).
+
+```ts
+interface StoredSession extends CustomerSession {
+  date_created: string;
+}
+```
+
 ## Namespaces
 
 ### Rels

@@ -145,6 +145,96 @@ type Tokens = {
 };
 ```
 
+## Interfaces
+
+### Graph
+
+The root of the Admin API graph, where an admin [`API`](/docs/reference/admin/classes/API) client starts. Its `links` are the names you can pass to [`API.follow()`](/docs/reference/admin/classes/API#follow) from the root, such as `fx:store` and `fx:user`.
+
+```ts
+interface Graph {
+  links: {
+    /** Your API starting point. */
+    'self': Graph;
+    /** Various helpers used for determing valid property values. */
+    'fx:property_helpers': PropertyHelpers;
+    /** Reporting API home. */
+    'fx:reporting': Reporting;
+    /** POST here to encode a body of html for use with our HMAC cart encryption. */
+    'fx:encode': Encode;
+    /** Your stores. */
+    'fx:stores': Stores;
+    /** The current store for your authentication token. */
+    'fx:store': Store;
+    /** OAuth endpoint for obtaining an access + refresh token pair. Use `API.getToken()` to work with this endpoint. */
+    'fx:token': never;
+    /** Your API home page. */
+    'fx:user': User;
+  };
+
+  props: {
+    /** A small, human readable explanation of this resource. */
+    message: string;
+  };
+}
+```
+
+### SSOURLOptions
+
+Input of [`createSSOURL()`](/docs/reference/admin/functions/createSSOURL): the store's cart domain, its secret, the customer ID, and optional `timestamp` and `session` values.
+
+```ts
+interface SSOURLOptions {
+  /**
+   * Integer, epoch time (seconds). The future time that this authentication token will expire.
+   * If a customer makes a checkout request with an expired authentication token, then FoxyCart
+   * will redirect them to the endpoint in order to generate a new token. You can make use of the
+   * timestamp value you received to your endpoint in the GET parameters, and add additional time
+   * to it for how long you want it to be valid for. For example, adding 3600 to the timestamp will
+   * extend it by 3600 seconds, or 60 minutes.
+   *
+   * Defaults to an hour from now.
+   *
+   * @see https://docs.foxycart.com/v/2.0/sso#the_details
+   */
+  timestamp?: number;
+
+  /**
+   * The FoxyCart session ID. This is necessary to prevent issues with users with 3rd party cookies
+   * disabled and stores that are not using a custom subdomain.
+   *
+   * @see https://docs.foxycart.com/v/2.0/sso#the_details
+   */
+  session?: string;
+
+  /**
+   * Integer, the customer ID, as determined and stored when the user is first created or synched using the API.
+   * If a customer is not authenticated and you would like to allow them through to checkout,
+   * enter a customer ID of 0 (the number).
+   *
+   * @see https://docs.foxycart.com/v/2.0/sso#the_details
+   */
+  customer: number;
+
+  /**
+   * Store's {@link https://docs.foxycart.com/v/2.0/store_secret secret key}.
+   * A random 60 character key that helps secure sensitive information provided by some of our functionality.
+   *
+   * @see https://docs.foxycart.com/v/2.0/sso#the_details
+   */
+  secret: string;
+
+  /**
+   * The unique FoxyCart subdomain URL for your cart, checkout, and receipt
+   * that usually looks like this: `https://yourdomain.foxycart.com`.
+   *
+   * @see https://docs.foxycart.com/v/2.0/sso#the_details
+   * @see https://api.foxy.io/rels/store
+   */
+  domain: string;
+}
+```
+
 ## Namespaces
 
 ### Rels

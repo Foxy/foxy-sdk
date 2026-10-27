@@ -9,19 +9,15 @@ const kinds: Record<string, { letter: string; label: string; className: string }
   interfaces: { letter: 'I', label: 'Interface', className: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' },
 };
 
-// a section's types.mdx holds its type aliases and Rels
-const typesIcon = { letter: 'T', label: 'Types', className: 'bg-rose-500/15 text-rose-700 dark:text-rose-300' };
-
 /** Kind of a reference page from its path, like `reference/admin/classes/API.mdx`. */
 function kindOf(path: string) {
   const parts = path.split('/');
   if (parts[0] !== 'reference') return undefined;
-  if (parts.at(-1) === 'types.mdx') return 'types';
   return parts.slice(0, -1).reverse().find(part => part in kinds);
 }
 
 function KindIcon({ kind }: { kind: string }) {
-  const { letter, label, className } = kind === 'types' ? typesIcon : kinds[kind];
+  const { letter, label, className } = kinds[kind];
   return (
     <span
       role="img"

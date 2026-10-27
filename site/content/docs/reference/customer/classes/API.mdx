@@ -27,7 +27,7 @@ await api.signOut();
 
 ## Extends
 
-- `API`\<[`Graph`](/docs/reference/customer/interfaces/Graph)\>
+- `API`\<[`Graph`](/docs/reference/customer/types#graph)\>
 
 ## Constructors
 
@@ -233,7 +233,7 @@ removing this resource.
 
 #### Returns
 
-`Promise`\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/customer/interfaces/Graph), `undefined`\>\>
+`Promise`\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/customer/types#graph), `undefined`\>\>
 
 Instance of APIResponse representing this resource.
 
@@ -323,7 +323,7 @@ get(): Promise<Response<Graph, undefined>>;
 
 ##### Returns
 
-`Promise`\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/customer/interfaces/Graph), `undefined`\>\>
+`Promise`\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/customer/types#graph), `undefined`\>\>
 
 ##### Inherited from
 
@@ -339,7 +339,7 @@ get<Q>(query): Promise<Response<Graph, Q>>;
 
 | Type Parameter |
 | ------ |
-| <a id="type-parameter-q"></a> `Q` *extends* `Query`\<[`Graph`](/docs/reference/customer/interfaces/Graph)\> |
+| <a id="type-parameter-q"></a> `Q` *extends* `Query`\<[`Graph`](/docs/reference/customer/types#graph)\> |
 
 ##### Parameters
 
@@ -349,7 +349,7 @@ get<Q>(query): Promise<Response<Graph, Q>>;
 
 ##### Returns
 
-`Promise`\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/customer/interfaces/Graph), `Q`\>\>
+`Promise`\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/customer/types#graph), `Q`\>\>
 
 ##### Inherited from
 
@@ -374,7 +374,7 @@ with provided properties, updating this resource.
 
 #### Returns
 
-`Promise`\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/customer/interfaces/Graph), `undefined`\>\>
+`Promise`\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/customer/types#graph), `undefined`\>\>
 
 Instance of APIResponse representing this resource.
 
@@ -409,7 +409,7 @@ with provided properties, creating a resource or triggering an action.
 
 #### Returns
 
-`Promise`\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/customer/interfaces/Graph), `undefined`\>\>
+`Promise`\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/customer/types#graph), `undefined`\>\>
 
 Instance of APIResponse representing this resource.
 
@@ -444,7 +444,7 @@ with provided properties, replacing the existing resource.
 
 #### Returns
 
-`Promise`\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/customer/interfaces/Graph), `undefined`\>\>
+`Promise`\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/customer/types#graph), `undefined`\>\>
 
 Instance of APIResponse representing this resource.
 
@@ -489,7 +489,7 @@ Incorrect email and password will trigger `AuthError` with code `UNAUTHORIZED`.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `credentials` | [`Credentials`](/docs/reference/customer/interfaces/Credentials) | Customer email and password (one-time code). |
+| `credentials` | [`Credentials`](/docs/reference/customer/types#credentials) | Customer email and password (one-time code). |
 
 #### Returns
 
@@ -526,7 +526,7 @@ If the provided form data is invalid (e.g. captcha is expired), `AuthError` with
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `params` | [`SignUpParams`](/docs/reference/customer/interfaces/SignUpParams) | Customer information. |
+| `params` | [`SignUpParams`](/docs/reference/customer/types#signupparams) | Customer information. |
 
 #### Returns
 
