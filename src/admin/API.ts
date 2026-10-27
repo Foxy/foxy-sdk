@@ -208,7 +208,7 @@ export class API extends Core.API<Graph> {
    * @param callbackUrl URL Foxy redirected the user to.
    * @param expectedState The `state` passed to {@link API.signIn} for this user.
    * @returns New tokens.
-   * @throws Core.API.AuthError with code `UNAUTHORIZED` when the state doesn't match, the user denied access, or the exchange failed.
+   * @throws AuthError with code `UNAUTHORIZED` when the state doesn't match, the user denied access, or the exchange failed.
    */
   async confirmSignIn(callbackUrl: string | URL, expectedState: string): Promise<Tokens> {
     assertAdminConfirmSignInArgs(callbackUrl, expectedState);

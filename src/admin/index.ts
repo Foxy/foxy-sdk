@@ -4,6 +4,8 @@ export { cartExcludes, cartExcludePrefixes, signFragment, signName, signUrl, sig
 export { createSSOURL } from './createSSOURL.js';
 export type { SSOURLOptions } from './createSSOURL.js';
 export { verifyWebhookSignature } from './verifyWebhookSignature.js';
+export { AuthError, getResourceId, ResolutionError, Response } from '../core/index.js';
+export type { Resource } from '../core/Resource';
 export { getAllowedFrequencies } from '../rules/getAllowedFrequencies.js';
 export { getNextTransactionDateConstraints } from '../rules/getNextTransactionDateConstraints.js';
 export { getTimeFromFrequency, InvalidFrequencyError } from '../rules/getTimeFromFrequency.js';

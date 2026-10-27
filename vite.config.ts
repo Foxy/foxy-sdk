@@ -22,7 +22,7 @@ const entryMap = {
   "checkout/side-cart": resolve(__dirname, "src/checkout/side-cart.ts"),
   "internal/side-cart/protocol": resolve(__dirname, "src/checkout/side-cart/protocol.ts"),
   "checkout/add-to-cart": resolve(__dirname, "src/checkout/add-to-cart.ts"),
-  core: resolve(__dirname, "src/core/index.ts"),
+  "internal/core": resolve(__dirname, "src/core/index.ts"),
   customer: resolve(__dirname, "src/customer/index.ts"),
 };
 

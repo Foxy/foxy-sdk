@@ -41,12 +41,16 @@ describe('Admin', () => {
     it('exports exactly the documented surface and nothing more', () => {
       expect(Object.keys(Admin).sort()).toStrictEqual([
         'API',
+        'AuthError',
         'InvalidFrequencyError',
+        'ResolutionError',
+        'Response',
         'cartExcludePrefixes',
         'cartExcludes',
         'createSSOURL',
         'getAllowedFrequencies',
         'getNextTransactionDateConstraints',
+        'getResourceId',
         'getTimeFromFrequency',
         'isNextTransactionDate',
         'signFragment',

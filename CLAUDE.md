@@ -58,12 +58,16 @@ Entry Points.
 in the `dts()` plugin call, and `include` in `tsconfig.build.json` are four
 hand-maintained lists covering the same entries — `admin`, `checkout`,
 `checkout/client`, `checkout/loader`, `checkout/side-cart`,
-`checkout/add-to-cart`, `core`, `customer`, `internal/side-cart/protocol`.
+`checkout/add-to-cart`, `customer`, `internal/core`, `internal/side-cart/protocol`.
 
 `internal/*` subpaths exist only for Foxy's own apps and are outside semver.
 `internal/side-cart/protocol` is built from `src/checkout/side-cart/protocol.ts`
 for Foxy's checkout page, which runs the sidecart's frame end; its CDN build loads it
 from `sdk@2/internal/side-cart/protocol.js`.
+`internal/core` is built from `src/core/index.ts` for the beta admin, which extends the
+base `API` and `Graph`. Core has no public subpath: `admin` and `customer` each
+re-export the Core names their users need (`Resource`, `getResourceId`, the errors,
+`Response`).
 Adding an entry means editing all four; `src/tests/package.test.ts` checks only
 the `exports` list.
 

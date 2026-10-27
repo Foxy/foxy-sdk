@@ -2,6 +2,7 @@ export type { FollowableResource } from './FollowableResource';
 export type { Resource } from './Resource';
 export type { Query } from './Query';
 export type { Graph } from './Graph';
+export type { CollectionGraphLinks, CollectionGraphProps } from './defaults';
 export type { AuthErrorCode } from './guards.js';
 export type { APIInit } from './API/API.js';
 export type { AuthErrorParams } from './API/AuthError.js';

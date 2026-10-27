@@ -22,7 +22,7 @@ export class API extends Core.API<Graph> {
 
   /**
    * Creates a Customer Portal session for a customer with the given credentials.
-   * Incorrect email and password will trigger `Core.API.AuthError` with code `UNAUTHORIZED`.
+   * Incorrect email and password will trigger `AuthError` with code `UNAUTHORIZED`.
    *
    * @param credentials Customer email and password (one-time code).
    */
@@ -46,9 +46,9 @@ export class API extends Core.API<Graph> {
 
   /**
    * Creates a new customer account with the given credentials.
-   * If the email is already taken, `Core.API.AuthError` with code `UNAVAILABLE` will be thrown.
-   * If customer registration is disabled, `Core.API.AuthError` with code `UNAUTHORIZED` will be thrown.
-   * If the provided form data is invalid (e.g. captcha is expired), `Core.API.AuthError` with code `INVALID_FORM` will be thrown.
+   * If the email is already taken, `AuthError` with code `UNAVAILABLE` will be thrown.
+   * If customer registration is disabled, `AuthError` with code `UNAUTHORIZED` will be thrown.
+   * If the provided form data is invalid (e.g. captcha is expired), `AuthError` with code `INVALID_FORM` will be thrown.
    *
    * @param params Customer information.
    */

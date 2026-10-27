@@ -45,7 +45,7 @@ describe('reference generator', () => {
   it('derives entry points from package.json exports', () => {
     expect(entryPoints().sort()).toEqual(
       [
-        'admin/index', 'customer/index', 'checkout/index', 'core/index',
+        'admin/index', 'customer/index', 'checkout/index',
         'checkout/client', 'checkout/loader', 'checkout/side-cart', 'checkout/add-to-cart',
       ].map(name => `../src/${name}.ts`).sort(),
     );
@@ -111,7 +111,7 @@ describe('reference generator', () => {
 
   it('keeps unknown kinds and folders in the sidebar with a rest item', async () => {
     await generateReference();
-    for (const section of ['admin', 'customer', 'checkout', 'core', 'checkout/client']) {
+    for (const section of ['admin', 'customer', 'checkout', 'checkout/client']) {
       const meta = JSON.parse(readFileSync(`content/docs/reference/${section}/meta.json`, 'utf8'));
       expect(meta.pages, section).toContain('...');
     }

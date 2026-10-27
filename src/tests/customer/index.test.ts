@@ -24,10 +24,14 @@ describe('Customer', () => {
     it('exports exactly the documented surface and nothing more', () => {
       expect(Object.keys(Customer).sort()).toStrictEqual([
         'API',
+        'AuthError',
         'InvalidFrequencyError',
         'PaymentCardEmbed',
+        'ResolutionError',
+        'Response',
         'getAllowedFrequencies',
         'getNextTransactionDateConstraints',
+        'getResourceId',
         'getTimeFromFrequency',
         'isNextTransactionDate',
       ]);

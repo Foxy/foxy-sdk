@@ -39,7 +39,8 @@ describe('reference completeness', () => {
     const exports = listPublicExports();
     const keys = [...exports.keys()];
     expect(keys).not.toContain('./internal/side-cart/protocol');
-    expect(keys).toHaveLength(8);
+    expect(keys).not.toContain('./internal/core');
+    expect(keys).toHaveLength(7);
     expect(exports.get('./admin')!.map((e: { name: string }) => e.name)).toContain('Rels');
   });
 });

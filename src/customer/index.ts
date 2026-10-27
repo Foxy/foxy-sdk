@@ -4,6 +4,10 @@ export { getNextTransactionDateConstraints } from './getNextTransactionDateConst
 export { getTimeFromFrequency, InvalidFrequencyError } from '../rules/getTimeFromFrequency.js';
 export { isNextTransactionDate } from './isNextTransactionDate.js';
 export { PaymentCardEmbed } from './PaymentCardEmbed.js';
+export { AuthError, getResourceId, ResolutionError, Response } from '../core/index.js';
+
+export type { APIInit } from '../core/API/API.js';
+export type { Resource } from '../core/Resource';
 
 export type { Constraints } from '../rules/types';
 export type { AllowedFrequenciesOptions } from './getAllowedFrequencies.js';

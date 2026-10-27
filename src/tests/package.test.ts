@@ -13,8 +13,8 @@ describe('package.json', () => {
       './checkout/client',
       './checkout/loader',
       './checkout/side-cart',
-      './core',
       './customer',
+      './internal/core',
       './internal/side-cart/protocol',
     ]);
   });

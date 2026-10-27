@@ -32,9 +32,9 @@
       "types": "./dist/npm/internal/side-cart/protocol.d.ts",
       "import": "./dist/npm/internal/side-cart/protocol.js"
     },
-    "./core": {
-      "types": "./dist/npm/core.d.ts",
-      "import": "./dist/npm/core.js"
+    "./internal/core": {
+      "types": "./dist/npm/internal/core.d.ts",
+      "import": "./dist/npm/internal/core.js"
     },
     "./customer": {
       "types": "./dist/npm/customer.d.ts",
@@ -52,7 +52,7 @@
     "localdev:build:cdn": "VITE_FOXYCART_DOMAIN=foxycart.test vite build --mode cdn",
     "build:cdn": "vite build --mode cdn",
     "build:npm": "vite build --mode npm",
-    "build:docs": "typedoc --excludePrivate --out dist/docs src/admin/index.ts src/checkout/index.ts src/core/index.ts src/customer/index.ts",
+    "build:docs": "typedoc --excludePrivate --out dist/docs src/admin/index.ts src/checkout/index.ts src/customer/index.ts",
     "generate:regions": "node scripts/generate-region-messages.mjs",
     "prepack": "npm run build:npm"
   },

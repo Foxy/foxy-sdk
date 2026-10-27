@@ -12,7 +12,6 @@ const SECTIONS = [
   ['admin', 'Admin API'],
   ['customer', 'Customer API'],
   ['checkout', 'Checkout API'],
-  ['core', 'Core'],
 ];
 const KIND_ORDER = ['index', 'classes', 'functions', 'variables', 'interfaces', 'type-aliases', 'enumerations', 'namespaces'];
 

@@ -4,8 +4,6 @@ import { API as AdminAPI } from '@foxy.io/sdk/admin';
 import { API as CustomerAPI, getAllowedFrequencies } from '@foxy.io/sdk/customer';
 import { client } from '@foxy.io/sdk/checkout/client';
 import { sideCart } from '@foxy.io/sdk/checkout/side-cart';
-import { API as CoreAPI, getResourceId } from '@foxy.io/sdk/core';
-import type { Graph } from '@foxy.io/sdk/core';
 
 declare function save(tokens: unknown): void;
 declare const callbackUrl: string;
@@ -51,16 +49,4 @@ export function checkout() {
   sideCart.show();
   sideCart.hide();
   sideCart.addEventListener('itemcountchange', () => console.log(sideCart.itemCount));
-}
-
-export function core(uri: string) {
-  const id: string | number | null = getResourceId(uri);
-
-  class MyAPI extends CoreAPI<Graph> {
-    constructor() {
-      super({ base: new URL('https://api.example.com/') });
-    }
-  }
-
-  return { id, MyAPI };
 }
