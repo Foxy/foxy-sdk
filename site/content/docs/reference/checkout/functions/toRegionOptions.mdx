@@ -1,0 +1,33 @@
+---
+title: "toRegionOptions()"
+description: "@foxy.io/sdk/checkout"
+---
+
+```ts
+function toRegionOptions(codes, countryCode): RegionOption[];
+```
+
+Maps `Shipment.region_options` / `BillingAddress.region_options` to
+`{ value, messageId }` pairs.
+
+The value is trimmed and OTHERWISE UNTOUCHED. Unlike country codes it must
+never be uppercased: Spain's codes are human-readable names containing
+spaces, and uppercasing them makes them unmatchable against the very list
+they came from.
+
+Input order is preserved rather than sorted. There is no localized name at
+this layer to sort by — the caller has the react-intl context, not the SDK.
+
+Returns an empty array for anything that is not an array of usable codes,
+so callers can branch on `.length` and keep a plain-text fallback.
+
+## Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `codes` | `unknown` |
+| `countryCode` | `string` |
+
+## Returns
+
+[`RegionOption`](/docs/reference/checkout/type-aliases/RegionOption)[]

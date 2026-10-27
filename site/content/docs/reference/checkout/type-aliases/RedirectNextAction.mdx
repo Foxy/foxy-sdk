@@ -1,0 +1,48 @@
+---
+title: "RedirectNextAction"
+description: "@foxy.io/sdk/checkout"
+---
+
+```ts
+type RedirectNextAction = object;
+```
+
+## Properties
+
+### body?
+
+```ts
+body?: Record<string, string>;
+```
+
+Server-sourced form fields to submit when `method` is `POST`.
+
+***
+
+### method
+
+```ts
+method: "GET" | "POST";
+```
+
+GET navigates directly to `url`; POST auto-submits a hidden form built from `body`.
+
+***
+
+### type
+
+```ts
+type: "redirect";
+```
+
+Full-page, offsite redirect required to complete the checkout (hosted / BNPL gateways, 3DS v1).
+
+***
+
+### url
+
+```ts
+url: string;
+```
+
+Server-sourced redirect destination.

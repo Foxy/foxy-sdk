@@ -1,0 +1,39 @@
+---
+title: "Message"
+description: "@foxy.io/sdk/checkout"
+---
+
+```ts
+type Message = object;
+```
+
+## Properties
+
+### context
+
+```ts
+context: string | null;
+```
+
+Context or category for this message. Null when the message is not tied to
+one — the "receipt not found" error is the case that reaches the client.
+
+***
+
+### level
+
+```ts
+level: "error" | "warning" | "info";
+```
+
+Severity level of the message.
+
+***
+
+### message
+
+```ts
+message: string;
+```
+
+The message text.

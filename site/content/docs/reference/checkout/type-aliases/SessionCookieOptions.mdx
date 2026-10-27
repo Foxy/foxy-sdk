@@ -1,0 +1,46 @@
+---
+title: "SessionCookieOptions"
+description: "@foxy.io/sdk/checkout"
+---
+
+```ts
+type SessionCookieOptions = object;
+```
+
+## Properties
+
+### domain?
+
+```ts
+domain?: string;
+```
+
+***
+
+### maxAge?
+
+```ts
+maxAge?: number;
+```
+
+Seconds. Omit for a cookie that ends with the browser session.
+
+***
+
+### path?
+
+```ts
+path?: string;
+```
+
+Default `/`.
+
+***
+
+### sameSite?
+
+```ts
+sameSite?: "Strict" | "Lax" | "None";
+```
+
+Default `Lax`. `None` needs an https: page.

@@ -1,0 +1,596 @@
+---
+title: "API"
+description: "@foxy.io/sdk/admin"
+---
+
+JS SDK for building admin integrations with [Foxy Hypermedia API](https://api.foxy.io/docs). Hypermedia API is designed to give you complete control over all aspects of your Foxy accounts, whether working with a single store or automating the provisioning of thousands. Anything you can do within the Foxy administration, you can also do through the API. This means that you can embed Foxy into any application (CMS, LMS, CRM, etc.) and expose as much or as little of Foxy's functionality as desired.
+
+## Extends
+
+- `API`\<[`Graph`](/docs/reference/admin/interfaces/Graph)\>
+
+## Constructors
+
+### Constructor
+
+```ts
+new API(params): API;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `params` | [`APIInit`](/docs/reference/admin/type-aliases/APIInit) |
+
+#### Returns
+
+`API`
+
+#### Overrides
+
+`Core.API<Graph>.constructor`
+
+## Properties
+
+### base
+
+```ts
+readonly base: URL;
+```
+
+Bookmark [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) for this API.
+This is where the tree traversal begins. We also use this URL as a base for relative paths.
+
+#### Inherited from
+
+`Core.API.base`
+
+***
+
+### cache
+
+```ts
+readonly cache: Storage;
+```
+
+Resolver cache implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API).
+Every resolved path will be stored here for future use. You can clear this cache by calling `clear()`.
+
+#### Inherited from
+
+`Core.API.cache`
+
+***
+
+### console
+
+```ts
+readonly console: Logger;
+```
+
+Shared Logger instance.
+If you extend this class and add logging in your code, use this instead of native console.
+
+#### Inherited from
+
+`Core.API.console`
+
+***
+
+### storage
+
+```ts
+readonly storage: Storage;
+```
+
+Credentials storage implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API).
+Access tokens and other related info will be stored here. Clearing this storage will log you out.
+
+#### Inherited from
+
+`Core.API.storage`
+
+***
+
+### version
+
+```ts
+readonly version: "1";
+```
+
+***
+
+### AuthError
+
+```ts
+readonly static AuthError: typeof AuthError;
+```
+
+#### Inherited from
+
+`Core.API.AuthError`
+
+***
+
+### AUTHORIZATION\_URL
+
+```ts
+readonly static AUTHORIZATION_URL: URL;
+```
+
+***
+
+### BASE\_URL
+
+```ts
+readonly static BASE_URL: URL;
+```
+
+***
+
+### Node
+
+```ts
+readonly static Node: typeof Node;
+```
+
+#### Inherited from
+
+`Core.API.Node`
+
+***
+
+### REFRESH\_THRESHOLD
+
+```ts
+readonly static REFRESH_THRESHOLD: number;
+```
+
+***
+
+### ResolutionError
+
+```ts
+readonly static ResolutionError: typeof ResolutionError;
+```
+
+#### Inherited from
+
+`Core.API.ResolutionError`
+
+***
+
+### VERSION
+
+```ts
+readonly static VERSION: "1" = '1';
+```
+
+## Accessors
+
+### Response
+
+#### Get Signature
+
+```ts
+get static Response(): typeof Response;
+```
+
+This SDK's [Response](/docs/reference/admin/classes/Response) class.
+
+A getter, not a static field. `Response.ts` imports this module for
+`addFollowableLinks`, so the two form a value cycle. A static field is read
+during this class's static initialization, which under plain ESM happens
+while `Response.ts` is still evaluating whenever `Response.ts` is the entry
+point, and the binding is still in its temporal dead zone. A getter defers
+the read until the first access, by which time both modules are done.
+
+##### Returns
+
+*typeof* [`Response`](/docs/reference/admin/classes/Response)
+
+#### Inherited from
+
+`Core.API.Response`
+
+## Methods
+
+### addEventListener()
+
+```ts
+addEventListener<K>(
+   type, 
+   listener, 
+   options?
+): void;
+```
+
+Listens for API events. A listener that throws is reported as an uncaught
+exception, which ends a Node process by default, so catch errors inside it.
+An async listener is not awaited.
+
+#### Type Parameters
+
+| Type Parameter |
+| ------ |
+| <a id="type-parameter-k"></a> `K` *extends* `"tokens"` |
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `type` | `K` |
+| `listener` | (`event`) => `void` |
+| `options?` | `boolean` \| `AddEventListenerOptions` |
+
+#### Returns
+
+`void`
+
+***
+
+### confirmSignIn()
+
+```ts
+confirmSignIn(callbackUrl, expectedState): Promise<Tokens>;
+```
+
+Completes the sign-in started by [API.signIn](#signin): checks the state,
+exchanges the code for tokens, keeps them and dispatches `tokens`.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `callbackUrl` | `string` \| `URL` | URL Foxy redirected the user to. |
+| `expectedState` | `string` | The `state` passed to [API.signIn](#signin) for this user. |
+
+#### Returns
+
+`Promise`\<[`Tokens`](/docs/reference/admin/type-aliases/Tokens)\>
+
+New tokens.
+
+#### Throws
+
+AuthError with code `UNAUTHORIZED` when the state doesn't match, the user denied access, or the exchange failed.
+
+***
+
+### delete()
+
+```ts
+delete(): Promise<Response<Graph, undefined>>;
+```
+
+Resolves the URL of this node and sends a DELETE request,
+removing this resource.
+
+#### Returns
+
+`Promise`\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/admin/interfaces/Graph), `undefined`\>\>
+
+Instance of APIResponse representing this resource.
+
+#### Inherited from
+
+`Core.API.delete`
+
+***
+
+### fetch()
+
+```ts
+fetch(...args): Promise<Response>;
+```
+
+Makes a raw and, if possible, authenticated request to the API.
+This method implements native [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| ...`args` | \[`input`: `URL` \| `RequestInfo`, `init?`: `RequestInit`\] | Fetch API arguments (url and request parameters). |
+
+#### Returns
+
+`Promise`\<`Response`\>
+
+Fetch API response.
+
+#### Inherited from
+
+`Core.API.fetch`
+
+***
+
+### follow()
+
+```ts
+follow<C>(curie): Node<object[C]>;
+```
+
+Resource path builder. Calling this method instructs our
+SDK to find the provided curie in this resource's links and
+navigate to its location on request.
+
+#### Type Parameters
+
+| Type Parameter |
+| ------ |
+| <a id="type-parameter-c"></a> `C` *extends* \| `"self"` \| `"fx:property_helpers"` \| `"fx:store"` \| `"fx:encode"` \| `"fx:user"` \| `"fx:stores"` \| `"fx:reporting"` \| `"fx:token"` |
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `curie` | `C` | Curie to follow. |
+
+#### Returns
+
+`Node`\<`object`\[`C`\]\>
+
+Instance of APINode representing the resource at curie location.
+
+#### Inherited from
+
+`Core.API.follow`
+
+***
+
+### get()
+
+Resolves the URL of this node and sends a GET request
+using provided parameters.
+
+#### Param
+
+**query**
+
+Query parameters such as zoom, fields etc.
+
+#### Call Signature
+
+```ts
+get(): Promise<Response<Graph, undefined>>;
+```
+
+##### Returns
+
+`Promise`\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/admin/interfaces/Graph), `undefined`\>\>
+
+##### Inherited from
+
+`Core.API.get`
+
+#### Call Signature
+
+```ts
+get<Q>(query): Promise<Response<Graph, Q>>;
+```
+
+##### Type Parameters
+
+| Type Parameter |
+| ------ |
+| <a id="type-parameter-q"></a> `Q` *extends* `Query`\<[`Graph`](/docs/reference/admin/interfaces/Graph)\> |
+
+##### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `query` | `Q` |
+
+##### Returns
+
+`Promise`\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/admin/interfaces/Graph), `Q`\>\>
+
+##### Inherited from
+
+`Core.API.get`
+
+***
+
+### patch()
+
+```ts
+patch(body?): Promise<Response<Graph, undefined>>;
+```
+
+Resolves the URL of this node and sends a PATCH request
+with provided properties, updating this resource.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `body?` | `Partial`\<\{ `message`: `string`; \}\> | Partial resource object. |
+
+#### Returns
+
+`Promise`\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/admin/interfaces/Graph), `undefined`\>\>
+
+Instance of APIResponse representing this resource.
+
+#### Inherited from
+
+`Core.API.patch`
+
+***
+
+### post()
+
+```ts
+post(body?): Promise<Response<Graph, undefined>>;
+```
+
+Resolves the URL of this node and sends a POST request
+with provided properties, creating a resource or triggering an action.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `body?` | \{ `message`: `string`; \} | Complete resource object. |
+| `body.message` | `string` | A small, human readable explanation of this resource. |
+
+#### Returns
+
+`Promise`\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/admin/interfaces/Graph), `undefined`\>\>
+
+Instance of APIResponse representing this resource.
+
+#### Inherited from
+
+`Core.API.post`
+
+***
+
+### put()
+
+```ts
+put(body?): Promise<Response<Graph, undefined>>;
+```
+
+Resolves the URL of this node and sends a PUT request
+with provided properties, replacing the existing resource.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `body?` | \{ `message`: `string`; \} | Complete resource object. |
+| `body.message` | `string` | A small, human readable explanation of this resource. |
+
+#### Returns
+
+`Promise`\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/admin/interfaces/Graph), `undefined`\>\>
+
+Instance of APIResponse representing this resource.
+
+#### Inherited from
+
+`Core.API.put`
+
+***
+
+### removeEventListener()
+
+```ts
+removeEventListener<K>(
+   type, 
+   listener, 
+   options?
+): void;
+```
+
+#### Type Parameters
+
+| Type Parameter |
+| ------ |
+| <a id="type-parameter-k-1"></a> `K` *extends* `"tokens"` |
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `type` | `K` |
+| `listener` | (`event`) => `void` |
+| `options?` | `boolean` \| `EventListenerOptions` |
+
+#### Returns
+
+`void`
+
+***
+
+### setTokens()
+
+```ts
+setTokens(tokens): void;
+```
+
+Replaces the tokens this instance uses, for example ones saved from an
+earlier `tokens` event. Does not dispatch `tokens`.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `tokens` | [`Tokens`](/docs/reference/admin/type-aliases/Tokens) |
+
+#### Returns
+
+`void`
+
+***
+
+### signIn()
+
+```ts
+signIn(params): string;
+```
+
+Builds the URL to send the user to for the OAuth authorization code grant.
+Foxy redirects back to `redirectUri` with a code; pass that URL to [API.confirmSignIn](#confirmsignin).
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `params` | [`SignInParams`](/docs/reference/admin/type-aliases/SignInParams) | Sign-in parameters. |
+
+#### Returns
+
+`string`
+
+Authorization URL.
+
+***
+
+### getToken()
+
+#### Call Signature
+
+```ts
+static getToken(opts): Promise<TokenResponse | null>;
+```
+
+Fetches a new access token in exchange for an authorization code
+or a refresh token. See more in our [authentication docs](https://api.foxy.io/docs/authentication).
+
+##### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `opts` | [`GrantOpts`](/docs/reference/admin/type-aliases/GrantOpts) | Request options. |
+
+##### Returns
+
+`Promise`\<[`TokenResponse`](/docs/reference/admin/type-aliases/TokenResponse) \| `null`\>
+
+Access token with additional info on success, null on failure.
+
+#### Call Signature
+
+```ts
+static getToken(opts, throwOnFailure): Promise<TokenResponse>;
+```
+
+Fetches a new access token in exchange for an authorization code
+or a refresh token. See more in our [authentication docs](https://api.foxy.io/docs/authentication).
+
+##### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `opts` | [`GrantOpts`](/docs/reference/admin/type-aliases/GrantOpts) | Request options. |
+| `throwOnFailure` | `true` | If true, this method will throw an error instead of returning null on failure to obtain a token. |
+
+##### Returns
+
+`Promise`\<[`TokenResponse`](/docs/reference/admin/type-aliases/TokenResponse)\>
+
+Access token with additional info on success, null on failure.

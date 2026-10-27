@@ -1,0 +1,135 @@
+---
+title: "SquareSdkInstance"
+description: "@foxy.io/sdk/checkout"
+---
+
+```ts
+type SquareSdkInstance = object;
+```
+
+The initialized Payments instance returned by Square.payments().
+
+## Methods
+
+### ach()
+
+```ts
+ach(options?): Promise<SquarePaymentComponent>;
+```
+
+Creates an ACH bank-transfer component.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options?` | `SquareAchOptions` |
+
+#### Returns
+
+`Promise`\<`SquarePaymentComponent`\>
+
+***
+
+### applePay()
+
+```ts
+applePay(paymentRequest): Promise<SquarePaymentComponent>;
+```
+
+Creates an Apple Pay button component.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `paymentRequest` | `unknown` |
+
+#### Returns
+
+`Promise`\<`SquarePaymentComponent`\>
+
+***
+
+### card()
+
+```ts
+card(options?): Promise<SquarePaymentComponent>;
+```
+
+Creates a Card payment component for rendering a card input form.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options?` | `Record`\<`string`, `unknown`\> |
+
+#### Returns
+
+`Promise`\<`SquarePaymentComponent`\>
+
+***
+
+### googlePay()
+
+```ts
+googlePay(paymentRequest): Promise<SquarePaymentComponent>;
+```
+
+Creates a Google Pay button component.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `paymentRequest` | `unknown` |
+
+#### Returns
+
+`Promise`\<`SquarePaymentComponent`\>
+
+***
+
+### paymentRequest()
+
+```ts
+paymentRequest(details): unknown;
+```
+
+Creates a payment request object used by wallet payment methods.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `details` | `Record`\<`string`, `unknown`\> |
+
+#### Returns
+
+`unknown`
+
+***
+
+### verifyBuyer()
+
+```ts
+verifyBuyer(token, verificationDetails): Promise<{
+  token: string;
+}>;
+```
+
+Verifies the buyer's identity for SCA / 3DS flows.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `token` | `string` |
+| `verificationDetails` | `Record`\<`string`, `unknown`\> |
+
+#### Returns
+
+`Promise`\<\{
+  `token`: `string`;
+\}\>

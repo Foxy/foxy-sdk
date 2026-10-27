@@ -1,0 +1,25 @@
+---
+title: "getNextTransactionDateConstraints()"
+description: "@foxy.io/sdk/customer"
+---
+
+```ts
+function getNextTransactionDateConstraints(data, rules): boolean | Constraints;
+```
+
+Finds which next transaction date modification rules are applicable to
+the given subscription and merges them together.
+
+## Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `data` | [`SubscriptionData`](/docs/reference/customer/type-aliases/SubscriptionData) | Subscription to generate constraints for. |
+| `rules` | `boolean` \| `object`[] | Next date modification config from the customer portal settings. |
+
+## Returns
+
+`boolean` \| [`Constraints`](/docs/reference/admin/type-aliases/Constraints)
+
+Returns true if all modifications are allowed, false if next date can't
+be changed by the customer, object with constraints in any other case.

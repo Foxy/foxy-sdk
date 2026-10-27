@@ -1,0 +1,26 @@
+---
+title: "StripeConfirmIntentParams"
+description: "@foxy.io/sdk/checkout"
+---
+
+```ts
+type StripeConfirmIntentParams = object;
+```
+
+`params` of a `confirm_intent` action raised by `stripe_v2`.
+
+The submit leg creates an unconfirmed PaymentIntent server-side and hands
+back only its client secret — nothing is authorized yet. The client confirms
+it with the mounted Payment Element, then resumes with
+`POST /checkout?action=continue`, which verifies the outcome with Stripe
+server-to-server. There is no client-minted token in this flow.
+
+## Properties
+
+### client\_secret
+
+```ts
+client_secret: string;
+```
+
+Client secret of the unconfirmed PaymentIntent to confirm.

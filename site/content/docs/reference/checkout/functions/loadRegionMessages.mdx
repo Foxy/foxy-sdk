@@ -1,0 +1,23 @@
+---
+title: "loadRegionMessages()"
+description: "@foxy.io/sdk/checkout"
+---
+
+```ts
+function loadRegionMessages(locale): Promise<Record<string, string>>;
+```
+
+Lazily loads the region-name catalog for `locale`, memoized against the
+module-level catalog registry and cache. See `resolveCatalog` for the
+resolution rule; this wrapper exists so callers never need to know the
+loader map or cache exist.
+
+## Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `locale` | `string` |
+
+## Returns
+
+`Promise`\<`Record`\<`string`, `string`\>\>

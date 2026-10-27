@@ -2,6 +2,5 @@ node_modules
 .next
 out
 .source
-content/docs/reference
 next-env.d.ts
 *.tsbuildinfo

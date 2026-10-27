@@ -52,7 +52,6 @@
     "localdev:build:cdn": "VITE_FOXYCART_DOMAIN=foxycart.test vite build --mode cdn",
     "build:cdn": "vite build --mode cdn",
     "build:npm": "vite build --mode npm",
-    "build:docs": "typedoc --excludePrivate --out dist/docs src/admin/index.ts src/checkout/index.ts src/customer/index.ts",
     "generate:regions": "node scripts/generate-region-messages.mjs",
     "prepack": "npm run build:npm"
   },
@@ -81,7 +80,6 @@
     "@types/node": "^22.0.0",
     "@vitest/coverage-v8": "^4.1.5",
     "jsdom": "^29.0.2",
-    "typedoc": "^0.28.19",
     "typescript": "~5.9.3",
     "vite": "^8.0.10",
     "vite-plugin-dts": "^4.5.4",

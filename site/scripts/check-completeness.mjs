@@ -1,8 +1,7 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { listInternalMembers, listPublicExports } from './exports.mjs';
-import { subentries } from './reference.mjs';
+import { listInternalMembers, listPublicExports, subentries } from './exports.mjs';
 
 const siteDir = join(dirname(fileURLToPath(import.meta.url)), '..');
 

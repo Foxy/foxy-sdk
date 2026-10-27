@@ -1,6 +1,6 @@
 [build]
   base = "site"
-  # The reference is generated from the SDK source, which needs the SDK's own dependencies for its types.
+  # The completeness and examples checks type-check the SDK source, which needs the SDK's own dependencies.
   command = "(cd .. && npm ci --ignore-scripts) && npm run build"
   publish = "out"
 

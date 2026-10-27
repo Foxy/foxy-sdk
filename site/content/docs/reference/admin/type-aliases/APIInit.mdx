@@ -1,0 +1,78 @@
+---
+title: "APIInit"
+description: "@foxy.io/sdk/admin"
+---
+
+```ts
+type APIInit = object;
+```
+
+Constructor parameters of the [API](/docs/reference/admin/classes/API) class.
+
+## Properties
+
+### authorizationUrl?
+
+```ts
+authorizationUrl?: URL;
+```
+
+OAuth authorization endpoint. Defaults to [API.AUTHORIZATION\_URL](/docs/reference/admin/classes/API#authorization_url).
+
+***
+
+### base?
+
+```ts
+base?: URL;
+```
+
+***
+
+### cache?
+
+```ts
+cache?: Storage;
+```
+
+***
+
+### clientId
+
+```ts
+clientId: string;
+```
+
+***
+
+### clientSecret
+
+```ts
+clientSecret: string;
+```
+
+***
+
+### level?
+
+```ts
+level?: number;
+```
+
+***
+
+### redirectUri?
+
+```ts
+redirectUri?: string;
+```
+
+Redirect URI registered for this OAuth client. Required for [API.signIn](/docs/reference/admin/classes/API#signin) and [API.confirmSignIn](/docs/reference/admin/classes/API#confirmsignin).
+
+***
+
+### version?
+
+```ts
+version?: AdminAPIVersion;
+```

@@ -4,8 +4,7 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev",
-    "prebuild": "npm run reference && node scripts/check-completeness.mjs && npm run examples:check",
-    "reference": "node scripts/reference.mjs",
+    "prebuild": "node scripts/check-completeness.mjs && npm run examples:check",
     "test": "vitest run",
     "examples:check": "tsc --noEmit -p tsconfig.examples.json",
     "types:check": "next typegen && tsc --noEmit"
@@ -29,9 +28,6 @@
     "remark-frontmatter": "^5.0.0",
     "remark-gfm": "^4.0.1",
     "tailwindcss": "^4.3.3",
-    "typedoc": "^0.28.20",
-    "typedoc-plugin-frontmatter": "^1.3.3",
-    "typedoc-plugin-markdown": "^4.14.1",
     "typescript": "^5.9.0",
     "vitest": "^5.0.5"
   }

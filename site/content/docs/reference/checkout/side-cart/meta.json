@@ -1,0 +1,9 @@
+{
+  "title": "@foxy.io/sdk/checkout/side-cart",
+  "pages": [
+    "index",
+    "variables",
+    "interfaces",
+    "..."
+  ]
+}

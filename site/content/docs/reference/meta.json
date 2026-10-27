@@ -1,0 +1,10 @@
+{
+  "title": "API reference",
+  "pages": [
+    "index",
+    "admin",
+    "customer",
+    "checkout",
+    "..."
+  ]
+}

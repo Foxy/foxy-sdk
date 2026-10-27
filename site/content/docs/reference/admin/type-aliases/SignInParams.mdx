@@ -1,0 +1,38 @@
+---
+title: "SignInParams"
+description: "@foxy.io/sdk/admin"
+---
+
+```ts
+type SignInParams = object;
+```
+
+Parameters of [API.signIn](/docs/reference/admin/classes/API#signin).
+
+## Properties
+
+### prompt?
+
+```ts
+prompt?: string;
+```
+
+***
+
+### scope
+
+```ts
+scope: string;
+```
+
+Space-separated OAuth scopes. Foxy denies a request without any.
+
+***
+
+### state
+
+```ts
+state: string;
+```
+
+Opaque value to keep in the user's session and pass to [API.confirmSignIn](/docs/reference/admin/classes/API#confirmsignin). Protects the callback from login CSRF.

@@ -1,0 +1,15 @@
+{
+  "title": "Checkout API",
+  "pages": [
+    "index",
+    "classes",
+    "functions",
+    "interfaces",
+    "type-aliases",
+    "loader",
+    "client",
+    "side-cart",
+    "add-to-cart",
+    "..."
+  ]
+}

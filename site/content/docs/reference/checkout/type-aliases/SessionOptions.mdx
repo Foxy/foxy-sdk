@@ -1,0 +1,50 @@
+---
+title: "SessionOptions"
+description: "@foxy.io/sdk/checkout"
+---
+
+```ts
+type SessionOptions = object;
+```
+
+## Properties
+
+### autoStart?
+
+```ts
+autoStart?: boolean;
+```
+
+Default `true`: with no stored ID, the first load creates a session.
+
+***
+
+### cookie?
+
+```ts
+cookie?: SessionCookieOptions;
+```
+
+Only for `storage: "cookie"`.
+
+***
+
+### key?
+
+```ts
+key?: string;
+```
+
+Default `foxy.session.<store host>`. Not used with a `SessionStore` object.
+
+***
+
+### storage?
+
+```ts
+storage?: 
+  | SessionStorageName
+  | SessionStore;
+```
+
+Default `"local"`.

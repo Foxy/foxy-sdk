@@ -1,0 +1,13 @@
+{
+  "title": "Admin API",
+  "pages": [
+    "index",
+    "classes",
+    "functions",
+    "variables",
+    "interfaces",
+    "type-aliases",
+    "namespaces",
+    "..."
+  ]
+}

@@ -1,0 +1,48 @@
+---
+title: "RequiresActionNextAction"
+description: "@foxy.io/sdk/checkout"
+---
+
+```ts
+type RequiresActionNextAction = object;
+```
+
+## Properties
+
+### gateway
+
+```ts
+gateway: NextActionGateway;
+```
+
+Gateway (or 3DS provider) this action is occurring with.
+
+***
+
+### params
+
+```ts
+params: Record<string, unknown>;
+```
+
+Opaque, provider-specific payload passed straight to the matching SDK adapter.
+
+***
+
+### resume\_token
+
+```ts
+resume_token: string;
+```
+
+Signed, single-use JWT sent back to `POST /checkout?action=continue` to resume the transaction.
+
+***
+
+### type
+
+```ts
+type: "confirm_intent" | "three_ds_challenge" | "captcha";
+```
+
+The client-side step the customer must complete before the payment resolves.

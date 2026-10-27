@@ -1,0 +1,218 @@
+---
+title: "SideCart"
+description: "@foxy.io/sdk/checkout/side-cart"
+---
+
+## Extends
+
+- `EventTarget`
+
+## Accessors
+
+### itemCount
+
+#### Get Signature
+
+```ts
+get itemCount(): number | null;
+```
+
+`null` means "not known yet", which is not the same as an empty cart.
+Most-recent-wins: what the iframe reported this session, then the
+client's own json, then the persisted cache. A delegated mutation never
+refreshes `client.json` -- it forwards to the transport and returns --
+so once the iframe has reported, its number is the only one still being
+kept live and must outrank the client's page-load snapshot.
+
+This is a count of units, not line items -- the cart page inside the
+iframe (and its `ready`/`state` reports) shows a total quantity, e.g. a
+cart holding 3 of one product reads "Your cart - 3 items", not 1. The
+middle tier has to use the same rule or the badge would read 1 until the
+frame connects and then silently jump to 3. `Math.max(0, ...)` clamps a
+negative quantity to 0 rather than letting it subtract from the total.
+
+##### Returns
+
+`number` \| `null`
+
+***
+
+### itemCountUnavailable
+
+#### Get Signature
+
+```ts
+get itemCountUnavailable(): boolean;
+```
+
+`true` when the count could not load (the first cart load failed, or no
+store domain was ever set) and no count is known. A count that arrives
+later makes it `false` again.
+
+##### Returns
+
+`boolean`
+
+***
+
+### open
+
+#### Get Signature
+
+```ts
+get open(): boolean;
+```
+
+##### Returns
+
+`boolean`
+
+## Methods
+
+### addEventListener()
+
+```ts
+addEventListener(
+   type, 
+   callback, 
+   options?
+): void;
+```
+
+The **`addEventListener()`** method of the EventTarget interface sets up a function that will be called whenever the specified event is delivered to the target.
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/EventTarget/addEventListener)
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `type` | `string` |
+| `callback` | `EventListenerOrEventListenerObject` \| `null` |
+| `options?` | `boolean` \| `AddEventListenerOptions` |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+`EventTarget.addEventListener`
+
+***
+
+### dispatchEvent()
+
+```ts
+dispatchEvent(event): boolean;
+```
+
+The **`dispatchEvent()`** method of the EventTarget sends an Event to the object, (synchronously) invoking the affected event listeners in the appropriate order.
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/EventTarget/dispatchEvent)
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `event` | `Event` |
+
+#### Returns
+
+`boolean`
+
+#### Inherited from
+
+`EventTarget.dispatchEvent`
+
+***
+
+### hide()
+
+```ts
+hide(): void;
+```
+
+#### Returns
+
+`void`
+
+***
+
+### mount()
+
+```ts
+mount(): void;
+```
+
+#### Returns
+
+`void`
+
+***
+
+### reload()
+
+```ts
+reload(): void;
+```
+
+#### Returns
+
+`void`
+
+***
+
+### removeEventListener()
+
+```ts
+removeEventListener(
+   type, 
+   callback, 
+   options?
+): void;
+```
+
+The **`removeEventListener()`** method of the EventTarget interface removes an event listener previously registered with EventTarget.addEventListener() from the target.
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/EventTarget/removeEventListener)
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `type` | `string` |
+| `callback` | `EventListenerOrEventListenerObject` \| `null` |
+| `options?` | `boolean` \| `EventListenerOptions` |
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+`EventTarget.removeEventListener`
+
+***
+
+### show()
+
+```ts
+show(): void;
+```
+
+#### Returns
+
+`void`
+
+***
+
+### unmount()
+
+```ts
+unmount(): void;
+```
+
+#### Returns
+
+`void`

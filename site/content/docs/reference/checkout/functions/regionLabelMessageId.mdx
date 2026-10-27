@@ -1,0 +1,25 @@
+---
+title: "regionLabelMessageId()"
+description: "@foxy.io/sdk/checkout"
+---
+
+```ts
+function regionLabelMessageId(countryCode): string;
+```
+
+The message id for the region FIELD's label, e.g. "State" for the US,
+"Prefecture" for Japan.
+
+These ids already exist in Foxy's language strings and already arrive in
+every checkout payload's `language_strings`, so they are translated and
+store-overridable already — no new messages are introduced.
+
+## Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `countryCode` | `string` |
+
+## Returns
+
+`string`

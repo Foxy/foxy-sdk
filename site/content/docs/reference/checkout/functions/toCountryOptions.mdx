@@ -1,0 +1,36 @@
+---
+title: "toCountryOptions()"
+description: "@foxy.io/sdk/checkout"
+---
+
+```ts
+function toCountryOptions(codes, locale): CountryOption[];
+```
+
+Maps ISO 3166-1 alpha-2 country codes — the shape of
+`Shipment.country_options` and `BillingAddress.country_options` — to
+`{ value, label }` options whose names are localized for `locale` and
+sorted by that locale's collation.
+
+Codes are uppercased first: `Intl.DisplayNames#of` matches region codes
+case-sensitively, so lowercase input doesn't throw but silently falls back
+to returning the raw code as the label instead of resolving a country
+name.
+
+`locale` is normalized (POSIX underscores converted to hyphens) and, if
+still unusable, replaced with a default — this is a public SDK export and
+must not throw over a bad locale string.
+
+Returns an empty array for anything that is not an array of usable codes,
+so callers can branch on `.length` to keep a plain-text fallback.
+
+## Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `codes` | `unknown` |
+| `locale` | `string` |
+
+## Returns
+
+[`CountryOption`](/docs/reference/checkout/type-aliases/CountryOption)[]

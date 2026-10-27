@@ -1,0 +1,10 @@
+---
+title: "CustomFields"
+description: "@foxy.io/sdk/checkout"
+---
+
+```ts
+type CustomFields = Record<string, string>;
+```
+
+Custom fields without the `h:` prefix. For example, if we get `h:name=value`, the object will have `name: "value"`.

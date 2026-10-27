@@ -1,0 +1,66 @@
+---
+title: "GooglePaymentsClient"
+description: "@foxy.io/sdk/checkout"
+---
+
+```ts
+type GooglePaymentsClient = object;
+```
+
+## Properties
+
+### createButton
+
+```ts
+createButton: (options) => HTMLElement;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options` | `Record`\<`string`, `unknown`\> |
+
+#### Returns
+
+`HTMLElement`
+
+***
+
+### isReadyToPay
+
+```ts
+isReadyToPay: (request) => Promise<{
+  result: boolean;
+}>;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `request` | `Record`\<`string`, `unknown`\> |
+
+#### Returns
+
+`Promise`\<\{
+  `result`: `boolean`;
+\}\>
+
+***
+
+### loadPaymentData
+
+```ts
+loadPaymentData: (request) => Promise<Record<string, unknown>>;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `request` | `Record`\<`string`, `unknown`\> |
+
+#### Returns
+
+`Promise`\<`Record`\<`string`, `unknown`\>\>

@@ -1,0 +1,24 @@
+---
+title: "getResourceId()"
+description: "@foxy.io/sdk/admin"
+---
+
+```ts
+function getResourceId(uri): string | number | null;
+```
+
+Returns the last path segment, which is usually an ID.
+If it's a non-NaN numeric ID (true for most Foxy resources) then a `number` is returned.
+Otherwise returns a string or `null` if the path is empty.
+
+## Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `uri` | `string` | `self` link on a resource, e.g. `https://api.foxy.io/stores/123` |
+
+## Returns
+
+`string` \| `number` \| `null`
+
+resource ID or `null` if not found

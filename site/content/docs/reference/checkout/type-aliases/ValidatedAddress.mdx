@@ -1,0 +1,63 @@
+---
+title: "ValidatedAddress"
+description: "@foxy.io/sdk/checkout"
+---
+
+```ts
+type ValidatedAddress = object;
+```
+
+An address as a validation provider returns it.
+
+Wire-shaped and every field optional, for the same reason `AddressSuggestion`
+is deliberately narrow: a provider that has no opinion about a field omits
+it, and writing an empty string over a shopper's typed value is a data-loss
+bug rather than a no-op.
+
+## Properties
+
+### address1?
+
+```ts
+address1?: string;
+```
+
+***
+
+### address2?
+
+```ts
+address2?: string;
+```
+
+***
+
+### city?
+
+```ts
+city?: string;
+```
+
+***
+
+### country?
+
+```ts
+country?: string;
+```
+
+***
+
+### postal\_code?
+
+```ts
+postal_code?: string;
+```
+
+***
+
+### region?
+
+```ts
+region?: string;
+```

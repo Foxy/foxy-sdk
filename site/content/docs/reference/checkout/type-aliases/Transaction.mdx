@@ -1,0 +1,62 @@
+---
+title: "Transaction"
+description: "@foxy.io/sdk/checkout"
+---
+
+```ts
+type Transaction = object;
+```
+
+## Properties
+
+### id
+
+```ts
+id: string;
+```
+
+Unique identifier for the transaction.
+
+***
+
+### payments
+
+```ts
+payments: (CardPayment | ACHPayment | POSPayment | PurchaseOrderPayment)[];
+```
+
+Array of payments associated with this transaction.
+
+***
+
+### status
+
+```ts
+status: 
+  | "completed"
+  | "approved"
+  | "authorized"
+  | "captured"
+  | "capturing"
+  | "declined"
+  | "pending"
+  | "rejected"
+  | "voided"
+  | "refunded"
+  | "refunding"
+  | "verified"
+  | "problem"
+  | "pending_fraud_review";
+```
+
+Current status of the transaction.
+
+***
+
+### transaction\_date
+
+```ts
+transaction_date: string;
+```
+
+Date and time when the transaction occurred.

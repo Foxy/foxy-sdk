@@ -1,0 +1,148 @@
+---
+title: "Totals"
+description: "@foxy.io/sdk/checkout"
+---
+
+```ts
+type Totals = object;
+```
+
+## Properties
+
+### coupons
+
+```ts
+coupons: Coupon[];
+```
+
+Array of applied coupon codes.
+
+***
+
+### date
+
+```ts
+date: string | null;
+```
+
+Date for this totals snapshot (null means current/now).
+
+***
+
+### gift\_cards
+
+```ts
+gift_cards: GiftCard[];
+```
+
+Array of applied gift cards (empty for future totals snapshots).
+
+***
+
+### taxes
+
+```ts
+taxes: Tax[];
+```
+
+Array of applicable taxes.
+
+***
+
+### total\_item\_price
+
+```ts
+total_item_price: number;
+```
+
+Total price of all items before tax.
+
+***
+
+### total\_item\_price\_with\_tax
+
+```ts
+total_item_price_with_tax: number;
+```
+
+Total price of all items including tax.
+
+***
+
+### total\_line\_item\_discount
+
+```ts
+total_line_item_discount: number;
+```
+
+Total discount amount from all line item discounts.
+
+***
+
+### total\_order
+
+```ts
+total_order: number;
+```
+
+Final order total after all discounts and taxes.
+
+***
+
+### total\_shipping
+
+```ts
+total_shipping: number;
+```
+
+Total shipping cost before tax.
+
+***
+
+### total\_shipping\_value
+
+```ts
+total_shipping_value: number;
+```
+
+Shippable value for calculating shipping.
+
+***
+
+### total\_shipping\_with\_tax
+
+```ts
+total_shipping_with_tax: number;
+```
+
+Total shipping cost including tax.
+
+***
+
+### total\_tax
+
+```ts
+total_tax: number;
+```
+
+Total tax amount.
+
+***
+
+### total\_weight
+
+```ts
+total_weight: number;
+```
+
+Total weight of all items.
+
+***
+
+### total\_weight\_shippable
+
+```ts
+total_weight_shippable: number;
+```
+
+Total weight of shippable items.

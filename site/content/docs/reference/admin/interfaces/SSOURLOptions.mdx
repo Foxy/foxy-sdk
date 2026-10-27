@@ -1,0 +1,87 @@
+---
+title: "SSOURLOptions"
+description: "@foxy.io/sdk/admin"
+---
+
+## Properties
+
+### customer
+
+```ts
+customer: number;
+```
+
+Integer, the customer ID, as determined and stored when the user is first created or synched using the API.
+If a customer is not authenticated and you would like to allow them through to checkout,
+enter a customer ID of 0 (the number).
+
+#### See
+
+https://docs.foxycart.com/v/2.0/sso#the_details
+
+***
+
+### domain
+
+```ts
+domain: string;
+```
+
+The unique FoxyCart subdomain URL for your cart, checkout, and receipt
+that usually looks like this: `https://yourdomain.foxycart.com`.
+
+#### See
+
+ - https://docs.foxycart.com/v/2.0/sso#the_details
+ - https://api.foxy.io/rels/store
+
+***
+
+### secret
+
+```ts
+secret: string;
+```
+
+Store's [secret key](https://docs.foxycart.com/v/2.0/store_secret).
+A random 60 character key that helps secure sensitive information provided by some of our functionality.
+
+#### See
+
+https://docs.foxycart.com/v/2.0/sso#the_details
+
+***
+
+### session?
+
+```ts
+session?: string;
+```
+
+The FoxyCart session ID. This is necessary to prevent issues with users with 3rd party cookies
+disabled and stores that are not using a custom subdomain.
+
+#### See
+
+https://docs.foxycart.com/v/2.0/sso#the_details
+
+***
+
+### timestamp?
+
+```ts
+timestamp?: number;
+```
+
+Integer, epoch time (seconds). The future time that this authentication token will expire.
+If a customer makes a checkout request with an expired authentication token, then FoxyCart
+will redirect them to the endpoint in order to generate a new token. You can make use of the
+timestamp value you received to your endpoint in the GET parameters, and add additional time
+to it for how long you want it to be valid for. For example, adding 3600 to the timestamp will
+extend it by 3600 seconds, or 60 minutes.
+
+Defaults to an hour from now.
+
+#### See
+
+https://docs.foxycart.com/v/2.0/sso#the_details

@@ -1,0 +1,68 @@
+---
+title: "Customer"
+description: "@foxy.io/sdk/checkout"
+---
+
+```ts
+type Customer = object;
+```
+
+## Properties
+
+### email
+
+```ts
+email: string | null;
+```
+
+Customer's email address.
+
+***
+
+### first\_name
+
+```ts
+first_name: string | null;
+```
+
+Customer's first name.
+
+***
+
+### id
+
+```ts
+id: number | null;
+```
+
+Unique customer identifier.
+
+***
+
+### last\_name
+
+```ts
+last_name: string | null;
+```
+
+Customer's last name.
+
+***
+
+### token
+
+```ts
+token: string | null;
+```
+
+JWT token for authenticated customers.
+
+***
+
+### type
+
+```ts
+type: "guest" | "registered" | null;
+```
+
+Customer type (guest, registered, or not identified).

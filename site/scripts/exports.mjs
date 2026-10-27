@@ -1,9 +1,34 @@
+import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
-import { entryPoints } from './reference.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '../..');
+
+/** Source files of the public entries from `package.json` `exports`, relative to `site/`. */
+export function entryPoints() {
+  const { exports } = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
+  return Object.keys(exports)
+    .filter(key => !key.startsWith('./internal/'))
+    .map(key => {
+      const name = key.slice(2);
+      const found = [`src/${name}/index.ts`, `src/${name}.ts`].find(path => existsSync(join(root, path)));
+      if (!found) throw new Error(`No source file for export ${key}.`);
+      return `../${found}`;
+    });
+}
+
+/** Subpath keys of the public entries, like `admin` or `checkout/client`. */
+export function entryKeys() {
+  return entryPoints().map(path => path.replace(/^\.\.\/src\//, '').replace(/(\/index)?\.ts$/, ''));
+}
+
+/** Names of the sub-entries of a section, like `client` for `checkout`. */
+export function subentries(section) {
+  return entryKeys()
+    .filter(key => key.startsWith(`${section}/`))
+    .map(key => key.slice(section.length + 1));
+}
 
 let cache;
 
@@ -58,8 +83,7 @@ function* publicExports() {
 /**
  * Public exports of every public entry, keyed by subpath (`./admin`).
  * `members` holds the public members a class declares itself, statics included.
- * Inherited members are not listed: the page of the base class documents them,
- * and TypeDoc repeats them on a subclass page only when it can resolve them.
+ * Inherited members are not listed, so a subclass page may document them or not.
  */
 export function listPublicExports() {
   const { checker } = load();

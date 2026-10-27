@@ -1,0 +1,744 @@
+---
+title: "API"
+description: "@foxy.io/sdk/checkout"
+---
+
+The checkout client. `checkout/client` and `checkout/loader` export one shared
+instance as `client`. The loader also sets its store, from the script's `?store=`
+or else the page's hostname.
+
+Fires non-cancelable `update` event whenever the resolved checkout state changes.
+
+## Extends
+
+- `EventTarget`
+
+## Constructors
+
+### Constructor
+
+```ts
+new API(params?): API;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `params?` | [`APIConstructorParams`](/docs/reference/checkout/type-aliases/APIConstructorParams) |
+
+#### Returns
+
+`API`
+
+#### Overrides
+
+`EventTarget.constructor`
+
+## Properties
+
+### session
+
+```ts
+readonly session: CartSession;
+```
+
+The cart session: where its ID is stored, and how to start or end it.
+
+## Accessors
+
+### adyenEmbedded
+
+#### Get Signature
+
+```ts
+get adyenEmbedded(): 
+  | AdyenEmbeddedSdkInstance
+  | null;
+```
+
+##### Returns
+
+  \| [`AdyenEmbeddedSdkInstance`](/docs/reference/checkout/type-aliases/AdyenEmbeddedSdkInstance)
+  \| `null`
+
+***
+
+### json
+
+#### Get Signature
+
+```ts
+get json(): APIJson | null;
+```
+
+##### Returns
+
+[`APIJson`](/docs/reference/checkout/type-aliases/APIJson) \| `null`
+
+***
+
+### klarna
+
+#### Get Signature
+
+```ts
+get klarna(): KlarnaSdkInstance | null;
+```
+
+##### Returns
+
+[`KlarnaSdkInstance`](/docs/reference/checkout/type-aliases/KlarnaSdkInstance) \| `null`
+
+***
+
+### paypal
+
+#### Get Signature
+
+```ts
+get paypal(): PayPalSdkInstance | null;
+```
+
+##### Returns
+
+[`PayPalSdkInstance`](/docs/reference/checkout/type-aliases/PayPalSdkInstance) \| `null`
+
+***
+
+### square
+
+#### Get Signature
+
+```ts
+get square(): SquareSdkInstance | null;
+```
+
+##### Returns
+
+[`SquareSdkInstance`](/docs/reference/checkout/type-aliases/SquareSdkInstance) \| `null`
+
+***
+
+### state
+
+#### Get Signature
+
+```ts
+get state(): "idle" | "busy";
+```
+
+##### Returns
+
+`"idle"` \| `"busy"`
+
+## Methods
+
+### addEventListener()
+
+#### Call Signature
+
+```ts
+addEventListener<K>(type, listener): void;
+```
+
+The **`addEventListener()`** method of the EventTarget interface sets up a function that will be called whenever the specified event is delivered to the target.
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/EventTarget/addEventListener)
+
+##### Type Parameters
+
+| Type Parameter |
+| ------ |
+| <a id="type-parameter-k"></a> `K` *extends* keyof [`APIEventMap`](/docs/reference/checkout/type-aliases/APIEventMap) |
+
+##### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `type` | `K` |
+| `listener` | [`Listener`](/docs/reference/checkout/type-aliases/Listener)\<`K`, `API`\> |
+
+##### Returns
+
+`void`
+
+##### Overrides
+
+`EventTarget.addEventListener`
+
+#### Call Signature
+
+```ts
+addEventListener(type, listener): void;
+```
+
+##### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `type` | `string` |
+| `listener` | `EventListenerOrEventListenerObject` |
+
+##### Returns
+
+`void`
+
+##### Overrides
+
+`EventTarget.addEventListener`
+
+***
+
+### addItem()
+
+```ts
+addItem(params): void;
+```
+
+Adds items the way an add-to-cart link or form does. `params` is the
+link's query or the form's fields, in order. Repeated names and
+HMAC-signed names (`name||hash`) go to the server untouched: the server
+validates them, so this does not. `empty=reset` may be one of the pairs --
+the server resets the session and then adds, in one request, which two
+separate mutations could not guarantee (POSTs are queued, but a change sent
+between the two could still land in the gap).
+
+`session_id` and `output` are set by `postJson` and win over any pair with
+the same name: the document that runs this owns the session.
+
+Unlike its siblings, this dispatches no cancelable `item-add` event: the
+caller already decided. `checkout/add-to-cart`'s own cancelable event is
+`foxy:add-to-cart`, dispatched before this runs, and on a store page
+there is no cart item yet for `item-add`'s detail to describe.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `params` | \[`string`, `string`\][] |
+
+#### Returns
+
+`void`
+
+***
+
+### addMessage()
+
+```ts
+addMessage(params): number;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `params` | [`Message`](/docs/reference/checkout/type-aliases/Message) |
+
+#### Returns
+
+`number`
+
+***
+
+### applyCouponOrGiftCardCode()
+
+```ts
+applyCouponOrGiftCardCode(params): void;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `params` | \{ `code`: `string`; \} |
+| `params.code` | `string` |
+
+#### Returns
+
+`void`
+
+***
+
+### checkOut()
+
+```ts
+checkOut(paymentMethod, extra?): void;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `paymentMethod` | [`CheckOutPaymentOption`](/docs/reference/checkout/type-aliases/CheckOutPaymentOption) |
+| `extra?` | \{ `newAccountPassword?`: `string`; \} |
+| `extra.newAccountPassword?` | `string` |
+
+#### Returns
+
+`void`
+
+***
+
+### clearCart()
+
+```ts
+clearCart(reset?): void;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `reset?` | `boolean` |
+
+#### Returns
+
+`void`
+
+***
+
+### clearMessages()
+
+```ts
+clearMessages(): void;
+```
+
+#### Returns
+
+`void`
+
+***
+
+### continueCheckOut()
+
+```ts
+continueCheckOut(params): void;
+```
+
+Resume a submission that came back with a `requires_action` next action,
+once the client-side step it asked for has been completed.
+
+The resume token is the only thing sent: the outcome of the step is never
+taken from the client — the server re-reads it from the gateway before it
+completes or reopens the transaction.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `params` | \{ `resumeToken`: `string`; \} |
+| `params.resumeToken` | `string` |
+
+#### Returns
+
+`void`
+
+***
+
+### dispatchEvent()
+
+```ts
+dispatchEvent(event): boolean;
+```
+
+The **`dispatchEvent()`** method of the EventTarget sends an Event to the object, (synchronously) invoking the affected event listeners in the appropriate order.
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/EventTarget/dispatchEvent)
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `event` | `Event` |
+
+#### Returns
+
+`boolean`
+
+#### Inherited from
+
+`EventTarget.dispatchEvent`
+
+***
+
+### getAddressSuggestions()
+
+```ts
+getAddressSuggestions(params): Promise<AddressSuggestion[]>;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `params` | \{ `country`: `string`; `postalCode`: `string`; \} |
+| `params.country` | `string` |
+| `params.postalCode` | `string` |
+
+#### Returns
+
+`Promise`\<[`AddressSuggestion`](/docs/reference/checkout/type-aliases/AddressSuggestion)[]\>
+
+***
+
+### hydrateJson()
+
+```ts
+hydrateJson(nextJson, options?): Promise<void>;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `nextJson` | [`APIJson`](/docs/reference/checkout/type-aliases/APIJson) |
+| `options?` | [`HydrateJsonOptions`](/docs/reference/checkout/type-aliases/HydrateJsonOptions) |
+
+#### Returns
+
+`Promise`\<`void`\>
+
+***
+
+### logError()
+
+```ts
+logError(error): void;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `error` | `Error` |
+
+#### Returns
+
+`void`
+
+***
+
+### removeCouponCode()
+
+```ts
+removeCouponCode(params): void;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `params` | \{ `couponId`: `number`; \} |
+| `params.couponId` | `number` |
+
+#### Returns
+
+`void`
+
+***
+
+### removeEventListener()
+
+#### Call Signature
+
+```ts
+removeEventListener<K>(type, listener): void;
+```
+
+The **`removeEventListener()`** method of the EventTarget interface removes an event listener previously registered with EventTarget.addEventListener() from the target.
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/EventTarget/removeEventListener)
+
+##### Type Parameters
+
+| Type Parameter |
+| ------ |
+| <a id="type-parameter-k-1"></a> `K` *extends* keyof [`APIEventMap`](/docs/reference/checkout/type-aliases/APIEventMap) |
+
+##### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `type` | `K` |
+| `listener` | [`Listener`](/docs/reference/checkout/type-aliases/Listener)\<`K`, `API`\> |
+
+##### Returns
+
+`void`
+
+##### Overrides
+
+`EventTarget.removeEventListener`
+
+#### Call Signature
+
+```ts
+removeEventListener(type, listener): void;
+```
+
+##### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `type` | `string` |
+| `listener` | `EventListenerOrEventListenerObject` |
+
+##### Returns
+
+`void`
+
+##### Overrides
+
+`EventTarget.removeEventListener`
+
+***
+
+### removeGiftCardCode()
+
+```ts
+removeGiftCardCode(params): void;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `params` | \{ `giftCardId`: `number`; \} |
+| `params.giftCardId` | `number` |
+
+#### Returns
+
+`void`
+
+***
+
+### removeItem()
+
+```ts
+removeItem(...params): void;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| ...`params` | `object`[] |
+
+#### Returns
+
+`void`
+
+***
+
+### removeMessage()
+
+```ts
+removeMessage(index): void;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `index` | `number` |
+
+#### Returns
+
+`void`
+
+***
+
+### requestTemporaryPassword()
+
+```ts
+requestTemporaryPassword(email?): void;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `email?` | `string` |
+
+#### Returns
+
+`void`
+
+***
+
+### setCustomFields()
+
+```ts
+setCustomFields(fields): void;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `fields` | [`CustomFields`](/docs/reference/checkout/type-aliases/CustomFields) |
+
+#### Returns
+
+`void`
+
+***
+
+### setEmail()
+
+```ts
+setEmail(email, mode?): void;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `email` | `string` |
+| `mode?` | `"guest"` \| `"registered"` |
+
+#### Returns
+
+`void`
+
+***
+
+### setStoreDomain()
+
+```ts
+setStoreDomain(storeDomain): void;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `storeDomain` | `string` |
+
+#### Returns
+
+`void`
+
+***
+
+### signIn()
+
+```ts
+signIn(params): void;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `params` | \{ `email`: `string`; `password`: `string`; \} |
+| `params.email` | `string` |
+| `params.password` | `string` |
+
+#### Returns
+
+`void`
+
+***
+
+### signOut()
+
+```ts
+signOut(): void;
+```
+
+#### Returns
+
+`void`
+
+***
+
+### submitAdyenEmbeddedPayment()
+
+```ts
+submitAdyenEmbeddedPayment(data): Promise<Record<string, unknown>>;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `data` | `Record`\<`string`, `unknown`\> |
+
+#### Returns
+
+`Promise`\<`Record`\<`string`, `unknown`\>\>
+
+***
+
+### submitAdyenEmbeddedPaymentDetails()
+
+```ts
+submitAdyenEmbeddedPaymentDetails(data): Promise<Record<string, unknown>>;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `data` | `Record`\<`string`, `unknown`\> |
+
+#### Returns
+
+`Promise`\<`Record`\<`string`, `unknown`\>\>
+
+***
+
+### updateBillingAddress()
+
+```ts
+updateBillingAddress(params): void;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `params` | `Partial`\<\{ `address1`: `string`; `address2`: `string`; `city`: `string`; `company`: `string`; `country`: `string`; `first_name`: `string`; `last_name`: `string`; `phone`: `string`; `postal_code`: `string`; `region`: `string`; `use_separate_billing_address`: `boolean`; \}\> |
+
+#### Returns
+
+`void`
+
+***
+
+### updateItemQuantity()
+
+```ts
+updateItemQuantity(...params): void;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| ...`params` | `object`[] |
+
+#### Returns
+
+`void`
+
+***
+
+### updateShipment()
+
+```ts
+updateShipment(params): void;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `params` | `Partial`\<\{ `address1`: `string`; `address2`: `string`; `city`: `string`; `company`: `string`; `country`: `string`; `first_name`: `string`; `index`: `number`; `last_name`: `string`; `phone`: `string`; `postal_code`: `string`; `region`: `string`; `shipping_service_id`: `number` \| `null`; \}\> |
+
+#### Returns
+
+`void`

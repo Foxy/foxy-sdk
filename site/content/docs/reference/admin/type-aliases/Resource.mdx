@@ -1,0 +1,17 @@
+---
+title: "Resource\\<TGraph, TQuery\\>"
+description: "@foxy.io/sdk/admin"
+---
+
+```ts
+type Resource<TGraph, TQuery> = Links<TGraph> & Props<TGraph, TQuery> & Embeds<TGraph, TQuery>;
+```
+
+Constructs a resource record for given graph node and query.
+
+## Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| <a id="type-parameter-tgraph"></a> `TGraph` *extends* `Graph` | - |
+| <a id="type-parameter-tquery"></a> `TQuery` *extends* `Query`\<`TGraph`\> \| `undefined` | `undefined` |

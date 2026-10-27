@@ -1,0 +1,38 @@
+---
+title: "AdyenEmbeddedPaymentMethodsResponse"
+description: "@foxy.io/sdk/checkout"
+---
+
+```ts
+type AdyenEmbeddedPaymentMethodsResponse = object;
+```
+
+Payment methods payload returned by Adyen's /paymentMethods endpoint.
+
+## Indexable
+
+```ts
+[key: string]: unknown
+```
+
+Additional provider-specific response properties.
+
+## Properties
+
+### paymentMethods?
+
+```ts
+paymentMethods?: AdyenEmbeddedPaymentMethod[];
+```
+
+Regular payment methods available for this merchant/country/currency.
+
+***
+
+### storedPaymentMethods?
+
+```ts
+storedPaymentMethods?: AdyenEmbeddedPaymentMethod[];
+```
+
+Stored shopper payment methods, when present.

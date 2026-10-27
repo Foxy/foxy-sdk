@@ -1,0 +1,24 @@
+---
+title: "signUrl()"
+description: "@foxy.io/sdk/admin"
+---
+
+```ts
+function signUrl(secret, urlStr): Promise<string>;
+```
+
+Signs a query string. All query fields within the query string will be
+signed, provided it is a proper URL and there is a code field.
+
+## Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `secret` | `string` | Store API key (the `webhook_key` field on the store's `fx:store` resource). Only ever call this in a trusted, authenticated context (e.g. a store admin's own dashboard session) — never in code served to or executed by end customers. |
+| `urlStr` | `string` | Full URL including the query string that needs to be signed. |
+
+## Returns
+
+`Promise`\<`string`\>
+
+the signed query string.

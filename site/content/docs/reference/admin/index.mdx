@@ -1,0 +1,95 @@
+---
+title: "Admin API"
+description: "@foxy.io/sdk/admin"
+---
+
+Typed client for the [Foxy Hypermedia API](https://api.foxy.io/docs). Use it on your server to read and change anything in a store. It signs in with OAuth, keeps the tokens, and refreshes them for you.
+
+```sh
+npm i @foxy.io/sdk@2
+```
+
+```ts
+import { API } from '@foxy.io/sdk/admin';
+```
+
+## Example
+
+Sign in with the OAuth authorization code flow.
+
+```ts
+const api = new API({
+  clientId: 'client_123',
+  clientSecret: 'secret_123',
+  redirectUri: 'https://example.com/callback',
+});
+
+// Step 1: send the user to this URL. Keep `state` in their session.
+const url = api.signIn({ state: 'random-value', scope: 'store_full_access' });
+
+// Step 2: on the redirect back to your site, check the state and get tokens.
+// callbackUrl: the URL Foxy redirected the user to. savedState: the `state` you kept in step 1.
+const tokens = await api.confirmSignIn(callbackUrl, savedState);
+
+// Save new tokens whenever they change, and pass saved tokens back later.
+// save: your own function that stores the tokens, for example in a database.
+api.addEventListener('tokens', event => save(event.detail));
+api.setTokens(tokens);
+```
+
+## Learn more
+
+- [`API`](/docs/reference/admin/classes/API): the client class.
+- [`SignInParams`](/docs/reference/admin/type-aliases/SignInParams) and [`Tokens`](/docs/reference/admin/type-aliases/Tokens): sign-in input and token shape.
+- [`Rels`](/docs/reference/admin/namespaces/Rels): types for every resource.
+
+
+## Namespaces
+
+- [Rels](/docs/reference/admin/namespaces/Rels)
+
+## Classes
+
+- [API](/docs/reference/admin/classes/API)
+- [AuthError](/docs/reference/admin/classes/AuthError)
+- [InvalidFrequencyError](/docs/reference/admin/classes/InvalidFrequencyError)
+- [ResolutionError](/docs/reference/admin/classes/ResolutionError)
+- [Response](/docs/reference/admin/classes/Response)
+
+## Interfaces
+
+- [Graph](/docs/reference/admin/interfaces/Graph)
+- [SSOURLOptions](/docs/reference/admin/interfaces/SSOURLOptions)
+
+## Type Aliases
+
+- [AllowedFrequenciesOptions](/docs/reference/admin/type-aliases/AllowedFrequenciesOptions)
+- [APIEventMap](/docs/reference/admin/type-aliases/APIEventMap)
+- [APIInit](/docs/reference/admin/type-aliases/APIInit)
+- [Constraints](/docs/reference/admin/type-aliases/Constraints)
+- [GrantOpts](/docs/reference/admin/type-aliases/GrantOpts)
+- [NextDateRules](/docs/reference/admin/type-aliases/NextDateRules)
+- [NextTransactionDateOptions](/docs/reference/admin/type-aliases/NextTransactionDateOptions)
+- [Resource](/docs/reference/admin/type-aliases/Resource)
+- [SignInParams](/docs/reference/admin/type-aliases/SignInParams)
+- [TokenResponse](/docs/reference/admin/type-aliases/TokenResponse)
+- [Tokens](/docs/reference/admin/type-aliases/Tokens)
+
+## Variables
+
+- [cartExcludePrefixes](/docs/reference/admin/variables/cartExcludePrefixes)
+- [cartExcludes](/docs/reference/admin/variables/cartExcludes)
+
+## Functions
+
+- [createSSOURL](/docs/reference/admin/functions/createSSOURL)
+- [getAllowedFrequencies](/docs/reference/admin/functions/getAllowedFrequencies)
+- [getNextTransactionDateConstraints](/docs/reference/admin/functions/getNextTransactionDateConstraints)
+- [getResourceId](/docs/reference/admin/functions/getResourceId)
+- [getTimeFromFrequency](/docs/reference/admin/functions/getTimeFromFrequency)
+- [isNextTransactionDate](/docs/reference/admin/functions/isNextTransactionDate)
+- [signFragment](/docs/reference/admin/functions/signFragment)
+- [signName](/docs/reference/admin/functions/signName)
+- [signUrl](/docs/reference/admin/functions/signUrl)
+- [signValue](/docs/reference/admin/functions/signValue)
+- [verifyWebhookSignature](/docs/reference/admin/functions/verifyWebhookSignature)

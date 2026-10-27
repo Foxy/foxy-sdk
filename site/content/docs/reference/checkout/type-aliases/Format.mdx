@@ -1,0 +1,59 @@
+---
+title: "Format"
+description: "@foxy.io/sdk/checkout"
+---
+
+```ts
+type Format = object;
+```
+
+## Properties
+
+### currency\_code
+
+```ts
+currency_code: string;
+```
+
+3-letter currency code (e.g., 'USD').
+
+***
+
+### currency\_display
+
+```ts
+currency_display: "symbol" | "code" | "none";
+```
+
+How to display currency (symbol, code, or none).
+
+***
+
+### locale\_code
+
+```ts
+locale_code: string;
+```
+
+Locale code for formatting (e.g., 'en-US').
+
+***
+
+### maximum\_fraction\_digits
+
+```ts
+maximum_fraction_digits: number;
+```
+
+Maximum number of decimal places for prices.
+
+***
+
+### weight\_unit
+
+```ts
+weight_unit: "pound" | "kilogram" | null;
+```
+
+Default weight unit for display. Null when there are no items in the
+transaction.

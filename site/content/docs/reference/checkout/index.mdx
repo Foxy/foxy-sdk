@@ -1,0 +1,127 @@
+---
+title: "Checkout API"
+description: "@foxy.io/sdk/checkout"
+---
+
+Cart and checkout for the browser. It has a shared `client`, a side cart drawer, and add-to-cart links and forms. Load it from npm, or from the Foxy CDN with no build step.
+
+```sh
+npm i @foxy.io/sdk@2
+```
+
+```ts
+import { client } from '@foxy.io/sdk/checkout/client';
+```
+
+From the CDN, the store domain goes in the `store` parameter:
+
+```js
+import { client } from 'https://cdn-js.foxy.io/sdk@2/checkout/loader.js?store=example.foxycart.com';
+```
+
+## Example
+
+Add an item to the cart. From npm, set the store first. The CDN loader does this for you through `?store=`.
+
+```ts
+client.setStoreDomain('example.foxycart.com');
+
+client.addItem([
+  ['name', 'Mug'],
+  ['price', '15'],
+]);
+```
+
+Show the side cart. `store` is required here unless the loader is already on the page.
+
+```js
+import { sideCart } from 'https://cdn-js.foxy.io/sdk@2/checkout/side-cart.js?store=example.foxycart.com';
+
+sideCart.show();
+```
+
+## Learn more
+
+- [`client`](/docs/reference/checkout/client): the shared client.
+- [`side-cart`](/docs/reference/checkout/side-cart): the drawer.
+- [`add-to-cart`](/docs/reference/checkout/add-to-cart): links and forms.
+- [`loader`](/docs/reference/checkout/loader): sets the store for the page.
+
+
+## Classes
+
+- [API](/docs/reference/checkout/classes/API)
+
+## Interfaces
+
+- [CartSession](/docs/reference/checkout/interfaces/CartSession)
+
+## Type Aliases
+
+- [AchHostedFieldsPublicState](/docs/reference/checkout/type-aliases/AchHostedFieldsPublicState)
+- [AchHostedFieldsTokenizeErrorCode](/docs/reference/checkout/type-aliases/AchHostedFieldsTokenizeErrorCode)
+- [AddressSuggestion](/docs/reference/checkout/type-aliases/AddressSuggestion)
+- [AddressValidation](/docs/reference/checkout/type-aliases/AddressValidation)
+- [AdyenEmbeddedAmount](/docs/reference/checkout/type-aliases/AdyenEmbeddedAmount)
+- [AdyenEmbeddedCheckoutConfiguration](/docs/reference/checkout/type-aliases/AdyenEmbeddedCheckoutConfiguration)
+- [AdyenEmbeddedEnvironment](/docs/reference/checkout/type-aliases/AdyenEmbeddedEnvironment)
+- [AdyenEmbeddedPaymentMethod](/docs/reference/checkout/type-aliases/AdyenEmbeddedPaymentMethod)
+- [AdyenEmbeddedPaymentMethodsResponse](/docs/reference/checkout/type-aliases/AdyenEmbeddedPaymentMethodsResponse)
+- [AdyenEmbeddedSdkInstance](/docs/reference/checkout/type-aliases/AdyenEmbeddedSdkInstance)
+- [AdyenEmbeddedSdkNamespace](/docs/reference/checkout/type-aliases/AdyenEmbeddedSdkNamespace)
+- [APIConstructorParams](/docs/reference/checkout/type-aliases/APIConstructorParams)
+- [APIEventMap](/docs/reference/checkout/type-aliases/APIEventMap)
+- [APIJson](/docs/reference/checkout/type-aliases/APIJson)
+- [APIOptions](/docs/reference/checkout/type-aliases/APIOptions)
+- [ApplePayConfig](/docs/reference/checkout/type-aliases/ApplePayConfig)
+- [BillingAddress](/docs/reference/checkout/type-aliases/BillingAddress)
+- [CardEmbedConfigErrorCode](/docs/reference/checkout/type-aliases/CardEmbedConfigErrorCode)
+- [CardEmbedTokenizeErrorCode](/docs/reference/checkout/type-aliases/CardEmbedTokenizeErrorCode)
+- [CardValidationField](/docs/reference/checkout/type-aliases/CardValidationField)
+- [CartSessionJson](/docs/reference/checkout/type-aliases/CartSessionJson)
+- [CheckOutPaymentOption](/docs/reference/checkout/type-aliases/CheckOutPaymentOption)
+- [CountryOption](/docs/reference/checkout/type-aliases/CountryOption)
+- [Coupon](/docs/reference/checkout/type-aliases/Coupon)
+- [CustomConfig](/docs/reference/checkout/type-aliases/CustomConfig)
+- [Customer](/docs/reference/checkout/type-aliases/Customer)
+- [CustomFields](/docs/reference/checkout/type-aliases/CustomFields)
+- [Display](/docs/reference/checkout/type-aliases/Display)
+- [Format](/docs/reference/checkout/type-aliases/Format)
+- [GiftCard](/docs/reference/checkout/type-aliases/GiftCard)
+- [GooglePayConfig](/docs/reference/checkout/type-aliases/GooglePayConfig)
+- [GooglePaymentsClient](/docs/reference/checkout/type-aliases/GooglePaymentsClient)
+- [HydrateJsonOptions](/docs/reference/checkout/type-aliases/HydrateJsonOptions)
+- [Item](/docs/reference/checkout/type-aliases/Item)
+- [ItemOption](/docs/reference/checkout/type-aliases/ItemOption)
+- [KlarnaSdkInstance](/docs/reference/checkout/type-aliases/KlarnaSdkInstance)
+- [Listener](/docs/reference/checkout/type-aliases/Listener)
+- [Message](/docs/reference/checkout/type-aliases/Message)
+- [NextAction](/docs/reference/checkout/type-aliases/NextAction)
+- [PaymentGatewayConfig](/docs/reference/checkout/type-aliases/PaymentGatewayConfig)
+- [PayPalSdkInstance](/docs/reference/checkout/type-aliases/PayPalSdkInstance)
+- [RedirectNextAction](/docs/reference/checkout/type-aliases/RedirectNextAction)
+- [RegionOption](/docs/reference/checkout/type-aliases/RegionOption)
+- [RegionType](/docs/reference/checkout/type-aliases/RegionType)
+- [RequiresActionNextAction](/docs/reference/checkout/type-aliases/RequiresActionNextAction)
+- [SavedPaymentMethod](/docs/reference/checkout/type-aliases/SavedPaymentMethod)
+- [SessionCookieOptions](/docs/reference/checkout/type-aliases/SessionCookieOptions)
+- [SessionHost](/docs/reference/checkout/type-aliases/SessionHost)
+- [SessionOptions](/docs/reference/checkout/type-aliases/SessionOptions)
+- [SessionStorageName](/docs/reference/checkout/type-aliases/SessionStorageName)
+- [SessionStore](/docs/reference/checkout/type-aliases/SessionStore)
+- [Shipment](/docs/reference/checkout/type-aliases/Shipment)
+- [SquareSdkInstance](/docs/reference/checkout/type-aliases/SquareSdkInstance)
+- [Store](/docs/reference/checkout/type-aliases/Store)
+- [StripeConfirmIntentParams](/docs/reference/checkout/type-aliases/StripeConfirmIntentParams)
+- [Tax](/docs/reference/checkout/type-aliases/Tax)
+- [TemplateSet](/docs/reference/checkout/type-aliases/TemplateSet)
+- [Totals](/docs/reference/checkout/type-aliases/Totals)
+- [Transaction](/docs/reference/checkout/type-aliases/Transaction)
+- [ValidatedAddress](/docs/reference/checkout/type-aliases/ValidatedAddress)
+
+## Functions
+
+- [loadRegionMessages](/docs/reference/checkout/functions/loadRegionMessages)
+- [regionLabelMessageId](/docs/reference/checkout/functions/regionLabelMessageId)
+- [toCountryOptions](/docs/reference/checkout/functions/toCountryOptions)
+- [toRegionOptions](/docs/reference/checkout/functions/toRegionOptions)

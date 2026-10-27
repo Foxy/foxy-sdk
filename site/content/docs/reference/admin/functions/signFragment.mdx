@@ -1,0 +1,34 @@
+---
+title: "signFragment()"
+description: "@foxy.io/sdk/admin"
+---
+
+```ts
+function signFragment(secret, root): Promise<ParentNode>;
+```
+
+Signs every cart form and cart link within a DOM tree in place. The tree
+can be a live `document`/`Element` (browser) or one built with a DOM
+parser (e.g. jsdom's `new JSDOM(str).window.document` in Node) — this
+function only needs standard DOM interfaces, not a specific environment.
+
+If signing any form or anchor throws (e.g. a form with multiple product
+codes), the tree may be left partially signed — anchors and forms
+processed before the failure keep their signed state.
+
+Anchors whose href doesn't need signing (not a cart URL, or missing a code
+parameter) are left untouched — their href attribute is not rewritten to
+an absolute URL, unlike v1's signHtml.
+
+## Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `secret` | `string` | Store API key (the `webhook_key` field on the store's `fx:store` resource). Only ever call this in a trusted, authenticated context (e.g. a store admin's own dashboard session) — never in code served to or executed by end customers. |
+| `root` | `ParentNode` | the DOM tree to sign. |
+
+## Returns
+
+`Promise`\<`ParentNode`\>
+
+the same tree, mutated in place.

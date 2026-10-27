@@ -1,0 +1,32 @@
+---
+title: "signValue()"
+description: "@foxy.io/sdk/admin"
+---
+
+```ts
+function signValue(
+   secret, 
+   name, 
+   code, 
+   parentCode?, 
+   value?
+): Promise<string>;
+```
+
+Signs input value.
+
+## Parameters
+
+| Parameter | Type | Default value | Description |
+| ------ | ------ | ------ | ------ |
+| `secret` | `string` | `undefined` | Store API key (the `webhook_key` field on the store's `fx:store` resource). Only ever call this in a trusted, authenticated context (e.g. a store admin's own dashboard session) — never in code served to or executed by end customers. |
+| `name` | `string` | `undefined` | Name of the input element. |
+| `code` | `string` | `undefined` | Product code. |
+| `parentCode?` | `string` | `''` | Parent product code. |
+| `value?` | `string` \| `number` | `undefined` | Input value. |
+
+## Returns
+
+`Promise`\<`string`\>
+
+the signed value.

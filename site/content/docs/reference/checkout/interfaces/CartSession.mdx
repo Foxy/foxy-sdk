@@ -1,0 +1,90 @@
+---
+title: "CartSession"
+description: "@foxy.io/sdk/checkout"
+---
+
+The cart session of one `API` instance: `client.session`.
+
+Every change runs in one queue, one at a time, so a double click or a
+`start()` during the first load cannot make two sessions.
+
+## Accessors
+
+### id
+
+#### Get Signature
+
+```ts
+get id(): string | null;
+```
+
+##### Returns
+
+`string` \| `null`
+
+## Methods
+
+### configure()
+
+```ts
+configure(options): void;
+```
+
+Throws a `TypeError` for bad options. Call it before the store domain is set.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options` | [`SessionOptions`](/docs/reference/checkout/type-aliases/SessionOptions) |
+
+#### Returns
+
+`void`
+
+***
+
+### end()
+
+```ts
+end(options?): Promise<void>;
+```
+
+Forgets the session locally: the store, `client.json`, and a mounted
+sidecart. With `reset`, first resets the cart on the server; if that
+fails, nothing changes, so the merchant can retry.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options?` | \{ `reset?`: `boolean`; \} |
+| `options.reset?` | `boolean` |
+
+#### Returns
+
+`Promise`\<`void`\>
+
+***
+
+### start()
+
+```ts
+start(id?): Promise<void>;
+```
+
+With an `id`: adopts it. The ID is stored first, because the merchant
+owns it, so it stays stored even if its cart then fails to load.
+
+Without: creates a new, empty session. The old ID is replaced only once
+the new session exists. The old cart is not reset on the server.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `id?` | `string` |
+
+#### Returns
+
+`Promise`\<`void`\>

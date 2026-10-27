@@ -1,0 +1,18 @@
+---
+title: "CardEmbedConfigErrorCode"
+description: "@foxy.io/sdk/checkout"
+---
+
+```ts
+type CardEmbedConfigErrorCode = 
+  | "tokenization_config_not_found"
+  | "tokenization_config_no_provider"
+  | "tokenization_config_brand_parity"
+  | "tokenization_config_incomplete";
+```
+
+Why the card-entry shell could not resolve a configuration at all.
+
+A different channel from the codes above: the shell posts one of these to the
+parent at load time and never imports the element bundle, so no tokenization
+is ever attempted. All four are merchant configuration problems.

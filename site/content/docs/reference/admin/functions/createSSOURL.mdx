@@ -1,0 +1,36 @@
+---
+title: "createSSOURL()"
+description: "@foxy.io/sdk/admin"
+---
+
+```ts
+function createSSOURL(options): Promise<string>;
+```
+
+Generates an SSO url for the given configuration.
+
+## Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `options` | [`SSOURLOptions`](/docs/reference/admin/interfaces/SSOURLOptions) | sso url configuration. `options.secret` is the store's API key — only ever call this in a trusted, authenticated context (e.g. a store admin's own dashboard session) — never in code served to or executed by end customers. |
+
+## Returns
+
+`Promise`\<`string`\>
+
+SSO URL as string.
+
+## Example
+
+```ts
+const url = await FoxySDK.Admin.createSSOURL({
+  customer: 123,
+  secret: "...",
+  domain: "https://yourdomain.foxycart.com"
+});
+```
+
+## Tutorial
+
+https://docs.foxycart.com/v/2.0/sso#the_details

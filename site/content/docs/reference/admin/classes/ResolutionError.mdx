@@ -1,0 +1,93 @@
+---
+title: "ResolutionError"
+description: "@foxy.io/sdk/admin"
+---
+
+This error is thrown when one of the requests for a resource
+in a path returns a non-2XX status code during the URL resolution process.
+If you're implementing a custom resolver, consider using this class
+to indicate resolution errors.
+
+## Extends
+
+- `Error`
+
+## Constructors
+
+### Constructor
+
+```ts
+new ResolutionError(response): ResolutionError;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `response` | `Response` |
+
+#### Returns
+
+`ResolutionError`
+
+#### Overrides
+
+`Error.constructor`
+
+## Properties
+
+### cause?
+
+```ts
+cause?: unknown;
+```
+
+#### Inherited from
+
+`Error.cause`
+
+***
+
+### message
+
+```ts
+message: string;
+```
+
+#### Inherited from
+
+`Error.message`
+
+***
+
+### name
+
+```ts
+name: string;
+```
+
+#### Inherited from
+
+`Error.name`
+
+***
+
+### response
+
+```ts
+readonly response: Response;
+```
+
+API response object with a non-2XX status code.
+
+***
+
+### stack?
+
+```ts
+stack?: string;
+```
+
+#### Inherited from
+
+`Error.stack`

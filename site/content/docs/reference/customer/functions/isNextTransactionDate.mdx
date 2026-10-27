@@ -1,0 +1,23 @@
+---
+title: "isNextTransactionDate()"
+description: "@foxy.io/sdk/customer"
+---
+
+```ts
+function isNextTransactionDate(opts): boolean;
+```
+
+Checks if given date (YYYY-MM-DD) can be used as the next transaction
+date for given subscription.
+
+## Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `opts` | [`NextTransactionDateOptions`](/docs/reference/customer/type-aliases/NextTransactionDateOptions) | Subscription, customer portal settings and value. |
+
+## Returns
+
+`boolean`
+
+True if given date can be used as next transaction date.

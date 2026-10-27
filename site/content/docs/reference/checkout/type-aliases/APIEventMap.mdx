@@ -1,0 +1,200 @@
+---
+title: "APIEventMap"
+description: "@foxy.io/sdk/checkout"
+---
+
+```ts
+type APIEventMap = object;
+```
+
+## Properties
+
+### billing-address-update
+
+```ts
+"billing-address-update": CustomEvent<BillingAddress>;
+```
+
+***
+
+### cart-clear
+
+```ts
+"cart-clear": Event;
+```
+
+***
+
+### checkout
+
+```ts
+checkout: Event;
+```
+
+***
+
+### checkout-continue
+
+```ts
+"checkout-continue": CustomEvent<{
+  resumeToken: string;
+}>;
+```
+
+***
+
+### coupon-or-gift-card-apply
+
+```ts
+"coupon-or-gift-card-apply": CustomEvent<{
+  code: string;
+}>;
+```
+
+***
+
+### coupon-remove
+
+```ts
+"coupon-remove": CustomEvent<{
+  coupon: Coupon;
+}>;
+```
+
+***
+
+### custom-fields-update
+
+```ts
+"custom-fields-update": CustomEvent<CustomFields>;
+```
+
+***
+
+### email-update
+
+```ts
+"email-update": CustomEvent<{
+  email: string;
+}>;
+```
+
+***
+
+### gift-card-remove
+
+```ts
+"gift-card-remove": CustomEvent<{
+  giftCard: GiftCard;
+}>;
+```
+
+***
+
+### item-remove
+
+```ts
+"item-remove": CustomEvent<{
+  item: Item;
+}>;
+```
+
+***
+
+### item-update
+
+```ts
+"item-update": CustomEvent<{
+  newItem: Item;
+  oldItem: Item;
+}>;
+```
+
+***
+
+### messages-add
+
+```ts
+"messages-add": CustomEvent<{
+  message: Message;
+}>;
+```
+
+***
+
+### messages-clear
+
+```ts
+"messages-clear": Event;
+```
+
+***
+
+### messages-remove
+
+```ts
+"messages-remove": CustomEvent<{
+  message: Message;
+}>;
+```
+
+***
+
+### next-action-redirect
+
+```ts
+"next-action-redirect": CustomEvent<RedirectNextAction>;
+```
+
+***
+
+### next-action-required
+
+```ts
+"next-action-required": CustomEvent<RequiresActionNextAction>;
+```
+
+***
+
+### shipment-update
+
+```ts
+"shipment-update": CustomEvent<Shipment>;
+```
+
+***
+
+### sign-in
+
+```ts
+"sign-in": CustomEvent<{
+  email: string;
+  password: string;
+}>;
+```
+
+***
+
+### sign-out
+
+```ts
+"sign-out": Event;
+```
+
+***
+
+### temporary-password-request
+
+```ts
+"temporary-password-request": CustomEvent<{
+  email: string;
+}>;
+```
+
+***
+
+### update
+
+```ts
+update: Event;
+```

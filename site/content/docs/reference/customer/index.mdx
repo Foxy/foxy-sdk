@@ -1,0 +1,114 @@
+---
+title: "Customer API"
+description: "@foxy.io/sdk/customer"
+---
+
+Typed client for the Foxy Customer API. Use it in the browser to build a customer portal: sign in, read the customer's data, and apply the store's portal rules.
+
+```sh
+npm i @foxy.io/sdk@2
+```
+
+```ts
+import { API, getAllowedFrequencies } from '@foxy.io/sdk/customer';
+```
+
+## Example
+
+`base` is the Customer API URL of your store.
+
+```ts
+const api = new API({ base: new URL('https://example.foxycart.com/s/customer/') });
+await api.signIn({ email: 'customer@example.com', password: 'password' });
+
+// Which frequencies may this customer switch a subscription to?
+// settings: the customer's portal settings. subscription: the subscription resource to check.
+const frequencies = [...getAllowedFrequencies({ settings, subscription })];
+```
+
+## Learn more
+
+- [`API`](/docs/reference/customer/classes/API): the client class.
+- [`getAllowedFrequencies`](/docs/reference/customer/functions/getAllowedFrequencies): portal rules for subscription frequencies.
+- [`Rels`](/docs/reference/customer/namespaces/Rels): types for every resource.
+
+
+## Namespaces
+
+- [Rels](/docs/reference/customer/namespaces/Rels)
+
+## Classes
+
+- [API](/docs/reference/customer/classes/API)
+- [PaymentCardEmbed](/docs/reference/customer/classes/PaymentCardEmbed)
+
+## Interfaces
+
+- [Credentials](/docs/reference/customer/interfaces/Credentials)
+- [CustomerSession](/docs/reference/customer/interfaces/CustomerSession)
+- [Graph](/docs/reference/customer/interfaces/Graph)
+- [SignUpParams](/docs/reference/customer/interfaces/SignUpParams)
+- [StoredSession](/docs/reference/customer/interfaces/StoredSession)
+
+## Type Aliases
+
+- [AllowedFrequenciesOptions](/docs/reference/customer/type-aliases/AllowedFrequenciesOptions)
+- [APIInit](/docs/reference/customer/type-aliases/APIInit)
+- [NextDateRules](/docs/reference/customer/type-aliases/NextDateRules)
+- [NextTransactionDateOptions](/docs/reference/customer/type-aliases/NextTransactionDateOptions)
+- [PaymentCardEmbedConfig](/docs/reference/customer/type-aliases/PaymentCardEmbedConfig)
+- [SubscriptionData](/docs/reference/customer/type-aliases/SubscriptionData)
+
+## Functions
+
+- [getAllowedFrequencies](/docs/reference/customer/functions/getAllowedFrequencies)
+- [getNextTransactionDateConstraints](/docs/reference/customer/functions/getNextTransactionDateConstraints)
+- [isNextTransactionDate](/docs/reference/customer/functions/isNextTransactionDate)
+
+## References
+
+### AuthError
+
+Re-exports [AuthError](/docs/reference/admin/classes/AuthError)
+
+***
+
+### Constraints
+
+Re-exports [Constraints](/docs/reference/admin/type-aliases/Constraints)
+
+***
+
+### getResourceId
+
+Re-exports [getResourceId](/docs/reference/admin/functions/getResourceId)
+
+***
+
+### getTimeFromFrequency
+
+Re-exports [getTimeFromFrequency](/docs/reference/admin/functions/getTimeFromFrequency)
+
+***
+
+### InvalidFrequencyError
+
+Re-exports [InvalidFrequencyError](/docs/reference/admin/classes/InvalidFrequencyError)
+
+***
+
+### ResolutionError
+
+Re-exports [ResolutionError](/docs/reference/admin/classes/ResolutionError)
+
+***
+
+### Resource
+
+Re-exports [Resource](/docs/reference/admin/type-aliases/Resource)
+
+***
+
+### Response
+
+Re-exports [Response](/docs/reference/admin/classes/Response)

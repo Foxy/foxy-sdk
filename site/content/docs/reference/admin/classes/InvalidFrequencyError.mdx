@@ -1,0 +1,81 @@
+---
+title: "InvalidFrequencyError"
+description: "@foxy.io/sdk/admin"
+---
+
+Instances of this error are thrown by `getTimeFromFrequency` when
+provided with unsupported frequency.
+
+## Extends
+
+- `Error`
+
+## Constructors
+
+### Constructor
+
+```ts
+new InvalidFrequencyError(frequency): InvalidFrequencyError;
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `frequency` | `string` |
+
+#### Returns
+
+`InvalidFrequencyError`
+
+#### Overrides
+
+`Error.constructor`
+
+## Properties
+
+### cause?
+
+```ts
+cause?: unknown;
+```
+
+#### Inherited from
+
+`Error.cause`
+
+***
+
+### message
+
+```ts
+message: string;
+```
+
+#### Inherited from
+
+`Error.message`
+
+***
+
+### name
+
+```ts
+name: string;
+```
+
+#### Inherited from
+
+`Error.name`
+
+***
+
+### stack?
+
+```ts
+stack?: string;
+```
+
+#### Inherited from
+
+`Error.stack`

@@ -1,0 +1,78 @@
+---
+title: "AdyenEmbeddedCheckoutConfiguration"
+description: "@foxy.io/sdk/checkout"
+---
+
+```ts
+type AdyenEmbeddedCheckoutConfiguration = object;
+```
+
+Minimal configuration used to initialise Adyen Checkout in Advanced Flow.
+
+## Indexable
+
+```ts
+[key: string]: unknown
+```
+
+Additional configuration properties supported by Adyen.
+
+## Properties
+
+### amount
+
+```ts
+amount: AdyenEmbeddedAmount;
+```
+
+Amount displayed by Adyen's payment components.
+
+***
+
+### clientKey
+
+```ts
+clientKey: string;
+```
+
+Client-side authentication key required by Adyen.
+
+***
+
+### countryCode
+
+```ts
+countryCode: string;
+```
+
+Shopper country code used to filter payment methods.
+
+***
+
+### environment
+
+```ts
+environment: AdyenEmbeddedEnvironment;
+```
+
+Adyen environment matching the client-side asset region.
+
+***
+
+### locale?
+
+```ts
+locale?: string;
+```
+
+Shopper locale used for UI translations.
+
+***
+
+### paymentMethodsResponse
+
+```ts
+paymentMethodsResponse: AdyenEmbeddedPaymentMethodsResponse;
+```
+
+Payment methods response from Adyen's /paymentMethods endpoint.
