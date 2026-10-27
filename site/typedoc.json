@@ -17,6 +17,5 @@
   "hideBreadcrumbs": true,
   "sanitizeComments": true,
   "displayBasePath": "..",
-  "gitRevision": "release/2.0.0",
-  "sourceLinkTemplate": "https://github.com/Foxy/foxy-sdk/blob/release/2.0.0/{path}#L{line}"
+  "disableSources": true
 }
