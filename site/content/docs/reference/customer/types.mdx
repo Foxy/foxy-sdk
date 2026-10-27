@@ -7,6 +7,8 @@ description: "@foxy.io/sdk/customer"
 
 ### AllowedFrequenciesOptions
 
+Input of [`getAllowedFrequencies()`](/docs/reference/customer/functions/getAllowedFrequencies): the customer portal settings in the snake_case form the Customer API returns, and the subscription to check.
+
 ```ts
 type AllowedFrequenciesOptions = {
   settings: { subscriptions: { allow_frequency_modification: Rules } };
@@ -16,7 +18,7 @@ type AllowedFrequenciesOptions = {
 
 ### APIInit
 
-API constructor parameters.
+Settings for the customer [`API`](/docs/reference/customer/classes/API) constructor: the base URL of the store's Customer API, and optional storage for the session, a cache, a `fetch` function and a log level.
 
 ```ts
 type APIInit = {
@@ -54,11 +56,15 @@ type APIInit = {
 
 ### NextDateRules
 
+The customer portal's rules for changing a subscription's next transaction date. `false` blocks changes, `true` allows any date, and an array lists custom rules. Passed to [`getNextTransactionDateConstraints()`](/docs/reference/customer/functions/getNextTransactionDateConstraints) and inside [`NextTransactionDateOptions`](/docs/reference/customer/types#nexttransactiondateoptions).
+
 ```ts
 type NextDateRules = Resource<CustomerPortalSettings>['subscriptions']['allow_next_date_modification'];
 ```
 
 ### NextTransactionDateOptions
+
+Input of [`isNextTransactionDate()`](/docs/reference/customer/functions/isNextTransactionDate): the date to check, the portal's next date rules, and the subscription.
 
 ```ts
 type NextTransactionDateOptions = {
@@ -70,7 +76,7 @@ type NextTransactionDateOptions = {
 
 ### PaymentCardEmbedConfig
 
-Tokenization embed configuration that can be updated any time after mount.
+Settings of the card entry form that [`PaymentCardEmbed`](/docs/reference/customer/classes/PaymentCardEmbed) shows: translations, styles, the language, and whether the form is disabled or read-only. Pass it to [`new PaymentCardEmbed()`](/docs/reference/customer/classes/PaymentCardEmbed#constructor), or change it later with [`PaymentCardEmbed.configure()`](/docs/reference/customer/classes/PaymentCardEmbed#configure).
 
 ```ts
 type PaymentCardEmbedConfig = Partial<{
@@ -158,6 +164,8 @@ type PaymentCardEmbedConfig = Partial<{
 ```
 
 ### SubscriptionData
+
+A customer's subscription without its `_links` and `_embedded` parts. [`getNextTransactionDateConstraints()`](/docs/reference/customer/functions/getNextTransactionDateConstraints) takes it.
 
 ```ts
 type SubscriptionData = Omit<Resource<Subscription>, '_links' | '_embedded'>;

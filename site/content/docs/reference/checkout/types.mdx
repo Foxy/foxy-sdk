@@ -7,6 +7,8 @@ description: "@foxy.io/sdk/checkout"
 
 ### AchHostedFieldsPublicState
 
+The state of a hosted bank account (ACH) field: whether it is empty, complete, focused or touched, and its current error code. No public SDK method uses it. The `<foxy-ach-field>` element in Foxy Elements reads it.
+
 ```ts
 type AchHostedFieldsPublicState = {
   empty: boolean;
@@ -18,6 +20,8 @@ type AchHostedFieldsPublicState = {
 ```
 
 ### AchHostedFieldsTokenizeErrorCode
+
+Why tokenizing a hosted bank account (ACH) field failed. No public SDK method uses it. The `<foxy-ach-field>` element in Foxy Elements reports it.
 
 ```ts
 type AchHostedFieldsTokenizeErrorCode =
@@ -31,16 +35,7 @@ type AchHostedFieldsTokenizeErrorCode =
 
 ### AddressSuggestion
 
-One city/region candidate for a postal code.
-
-Deliberately narrow. The lookup sources behind it — a US tax table and
-GeoNames — return a city and a region and nothing else, so the shape carries
-no street fields: committing an empty `address1` over a shopper's typed
-street address is a data-loss bug, not a no-op.
-
-No display name for the region either. The client maps the code through its
-own region catalog, which renders in the shopper's locale; a name from the
-server arrives in whatever language the source chose.
+One city and region that match a postal code, so a form can fill those fields for the shopper. Returned by [`API.getAddressSuggestions()`](/docs/reference/checkout/classes/API#getaddresssuggestions).
 
 ```ts
 type AddressSuggestion = {
@@ -56,13 +51,7 @@ type AddressSuggestion = {
 
 ### AddressValidation
 
-The store's validation verdict on one address, computed server-side where
-the address was stored.
-
-`suggestion` is present only when `status` is `"suggested"`. The whole
-object is absent from an address when there is nothing to say — validation
-is off for the store, the country is not covered, the address is not
-complete, or the provider did not answer in time.
+The store's check of an address: `ok`, `failed`, or `suggested` with a corrected [`ValidatedAddress`](/docs/reference/checkout/types#validatedaddress). Found on [`Shipment`](/docs/reference/checkout/types#shipment) and [`BillingAddress`](/docs/reference/checkout/types#billingaddress). It is missing when there is nothing to report, for example when the store does not validate addresses.
 
 ```ts
 type AddressValidation = {
@@ -73,7 +62,7 @@ type AddressValidation = {
 
 ### AdyenEmbeddedAmount
 
-Monetary amount accepted by Adyen Checkout.
+An amount and currency in the form Adyen Checkout takes them. The amount is in minor units, such as cents. Part of [`AdyenEmbeddedCheckoutConfiguration`](/docs/reference/checkout/types#adyenembeddedcheckoutconfiguration).
 
 ```ts
 type AdyenEmbeddedAmount = {
@@ -86,7 +75,7 @@ type AdyenEmbeddedAmount = {
 
 ### AdyenEmbeddedCheckoutConfiguration
 
-Minimal configuration used to initialise Adyen Checkout in Advanced Flow.
+The settings that start Adyen Checkout for the `adyen_embedded` gateway: the payment methods, environment, client key, amount, country and locale. `AdyenCheckout()` in [`AdyenEmbeddedSdkNamespace`](/docs/reference/checkout/types#adyenembeddedsdknamespace) takes it.
 
 ```ts
 type AdyenEmbeddedCheckoutConfiguration = {
@@ -109,7 +98,7 @@ type AdyenEmbeddedCheckoutConfiguration = {
 
 ### AdyenEmbeddedEnvironment
 
-Supported Adyen Web environments for Advanced Flow.
+The Adyen environment to use: `test`, or a regional `live` environment. Part of [`AdyenEmbeddedCheckoutConfiguration`](/docs/reference/checkout/types#adyenembeddedcheckoutconfiguration).
 
 ```ts
 type AdyenEmbeddedEnvironment =
@@ -124,7 +113,7 @@ type AdyenEmbeddedEnvironment =
 
 ### AdyenEmbeddedPaymentMethod
 
-Raw payment method entry returned by Adyen.
+One payment method as Adyen returns it, such as cards (`scheme`) or iDEAL. Listed in [`AdyenEmbeddedPaymentMethodsResponse`](/docs/reference/checkout/types#adyenembeddedpaymentmethodsresponse).
 
 ```ts
 type AdyenEmbeddedPaymentMethod = {
@@ -141,7 +130,7 @@ type AdyenEmbeddedPaymentMethod = {
 
 ### AdyenEmbeddedPaymentMethodsResponse
 
-Payment methods payload returned by Adyen's /paymentMethods endpoint.
+The payment methods Adyen offers for this payment, from its `/paymentMethods` endpoint, including the shopper's stored ones. Part of [`AdyenEmbeddedCheckoutConfiguration`](/docs/reference/checkout/types#adyenembeddedcheckoutconfiguration) and [`AdyenEmbeddedSdkInstance`](/docs/reference/checkout/types#adyenembeddedsdkinstance).
 
 ```ts
 type AdyenEmbeddedPaymentMethodsResponse = {
@@ -156,7 +145,7 @@ type AdyenEmbeddedPaymentMethodsResponse = {
 
 ### AdyenEmbeddedSdkInstance
 
-Initialised Adyen Checkout instance.
+A running Adyen Checkout instance for the `adyen_embedded` gateway. [`API.adyenEmbedded`](/docs/reference/checkout/classes/API#adyenembedded) holds it once Adyen's script has loaded.
 
 ```ts
 type AdyenEmbeddedSdkInstance = {
@@ -179,7 +168,7 @@ type AdyenEmbeddedSdkInstance = {
 
 ### AdyenEmbeddedSdkNamespace
 
-Browser namespace exposed by the Adyen Web script.
+The `AdyenWeb` global that Adyen's script adds to the page. The SDK loads the script and calls its `AdyenCheckout()` to create an [`AdyenEmbeddedSdkInstance`](/docs/reference/checkout/types#adyenembeddedsdkinstance).
 
 ```ts
 type AdyenEmbeddedSdkNamespace = {
@@ -192,6 +181,8 @@ type AdyenEmbeddedSdkNamespace = {
 
 ### APIConstructorParams
 
+Settings for [`new API()`](/docs/reference/checkout/classes/API#constructor) of the checkout client: the [`APIOptions`](/docs/reference/checkout/types#apioptions), plus an optional `initialJson` to start from checkout JSON you already have.
+
 ```ts
 type APIConstructorParams = APIOptions & {
   initialJson?: APIJson;
@@ -199,6 +190,8 @@ type APIConstructorParams = APIOptions & {
 ```
 
 ### APIEventMap
+
+Events of the checkout [`API`](/docs/reference/checkout/classes/API) client by name, with each event's type, such as `item-update`, `shipment-update` or `checkout`. Used by [`API.addEventListener()`](/docs/reference/checkout/classes/API#addeventlistener), [`API.removeEventListener()`](/docs/reference/checkout/classes/API#removeeventlistener) and [`Listener`](/docs/reference/checkout/types#listener).
 
 ```ts
 type APIEventMap = {
@@ -227,6 +220,8 @@ type APIEventMap = {
 ```
 
 ### APIJson
+
+The cart or checkout state as the server returns it: items, totals, the customer, shipments, the billing address, payment options, messages and display settings. [`API.json`](/docs/reference/checkout/classes/API#json) holds the current value, [`API.hydrateJson()`](/docs/reference/checkout/classes/API#hydratejson) replaces it, and `initialJson` in [`APIConstructorParams`](/docs/reference/checkout/types#apiconstructorparams) sets the first one.
 
 ```ts
 type APIJson = {
@@ -275,6 +270,8 @@ type APIJson = {
 
 ### APIOptions
 
+Basic settings of the checkout client: the store domain, the starting state, and an error handler. Part of [`APIConstructorParams`](/docs/reference/checkout/types#apiconstructorparams).
+
 ```ts
 type APIOptions = {
   storeDomain?: string;
@@ -285,6 +282,8 @@ type APIOptions = {
 
 ### ApplePayConfig
 
+The Apple Pay settings of a card gateway: its Apple Pay merchant ID. Found in the `apple_pay` field of a gateway in `payment_gateways` of [`APIJson`](/docs/reference/checkout/types#apijson).
+
 ```ts
 type ApplePayConfig = {
   /** Apple Pay merchant identifier used for this gateway config. */
@@ -293,6 +292,8 @@ type ApplePayConfig = {
 ```
 
 ### BillingAddress
+
+The customer's billing address in the checkout, with its validation result and the regions the form can offer. Found in [`APIJson`](/docs/reference/checkout/types#apijson), and sent with the `billing-address-update` event of [`APIEventMap`](/docs/reference/checkout/types#apieventmap).
 
 ```ts
 type BillingAddress = {
@@ -356,11 +357,7 @@ type BillingAddress = {
 
 ### CardEmbedConfigErrorCode
 
-Why the card-entry shell could not resolve a configuration at all.
-
-A different channel from the codes above: the shell posts one of these to the
-parent at load time and never imports the element bundle, so no tokenization
-is ever attempted. All four are merchant configuration problems.
+Why the card entry form could not load its settings, for example when the store has no card gateway set up. The card entry frame sends it to the page when it loads. No public SDK method uses it.
 
 ```ts
 type CardEmbedConfigErrorCode =
@@ -372,12 +369,7 @@ type CardEmbedConfigErrorCode =
 
 ### CardEmbedTokenizeErrorCode
 
-Why a card tokenization attempt failed.
-
-The vault mint (`POST /tokenize`) answers with a machine context rather than
-shopper text, so the host renders the copy — before the vault, every one of
-these came back as one generic card-number error. The first three are the
-element's own states, raised without ever reaching the mint.
+Why tokenizing a card failed, as a code the page turns into a message for the shopper. No public SDK method uses it. The `<foxy-payment-card-field>` element in Foxy Elements reports it.
 
 ```ts
 type CardEmbedTokenizeErrorCode =
@@ -399,11 +391,15 @@ type CardEmbedTokenizeErrorCode =
 
 ### CardValidationField
 
+The part of a card form that a validation error belongs to: the card number, the expiry date, the security code, or the whole form. No public SDK method uses it.
+
 ```ts
 type CardValidationField = 'cc-number' | 'cc-exp' | 'cc-csc' | 'form';
 ```
 
 ### CartSessionJson
+
+The cart session in [`APIJson`](/docs/reference/checkout/types#apijson): its ID, or `null` when there is no session. [`CartSession`](/docs/reference/checkout/interfaces/CartSession) keeps this ID between page loads.
 
 ```ts
 type CartSessionJson = {
@@ -416,6 +412,8 @@ type CartSessionJson = {
 ```
 
 ### CheckOutPaymentOption
+
+The payment to submit with [`API.checkOut`](/docs/reference/checkout/classes/API#checkout): the gateway, plus what that gateway needs, such as a card token or a Klarna authorization token.
 
 ```ts
 type CheckOutPaymentOption =
@@ -463,11 +461,15 @@ type CheckOutPaymentOption =
 
 ### CountryOption
 
+One country for a select field: its code and its name in the given language. Returned by [`toCountryOptions()`](/docs/reference/checkout/functions/toCountryOptions).
+
 ```ts
 type CountryOption = { value: string; label: string };
 ```
 
 ### Coupon
+
+A coupon applied to the cart: its code, name and amount. Listed in [`Totals`](/docs/reference/checkout/types#totals), and sent with the `coupon-remove` event of [`APIEventMap`](/docs/reference/checkout/types#apieventmap).
 
 ```ts
 type Coupon = {
@@ -490,6 +492,8 @@ type Coupon = {
 
 ### CustomConfig
 
+Any JSON value. It is the type of `custom_config` in [`APIJson`](/docs/reference/checkout/types#apijson), the checkout's custom configuration.
+
 ```ts
 type CustomConfig =
   | string
@@ -501,6 +505,8 @@ type CustomConfig =
 ```
 
 ### Customer
+
+The shopper in the checkout: their name, email, and whether they are a guest or have an account. Found in [`APIJson`](/docs/reference/checkout/types#apijson).
 
 ```ts
 type Customer = {
@@ -521,13 +527,15 @@ type Customer = {
 
 ### CustomFields
 
-Custom fields without the `h:` prefix. For example, if we get `h:name=value`, the object will have `name: "value"`.
+The cart's custom fields without their `h:` prefix: `h:name=value` becomes `name: "value"`. Found in [`APIJson`](/docs/reference/checkout/types#apijson), set with [`API.setCustomFields`](/docs/reference/checkout/classes/API#setcustomfields), and sent with the `custom-fields-update` event of [`APIEventMap`](/docs/reference/checkout/types#apieventmap).
 
 ```ts
 type CustomFields = Record<string, string>;
 ```
 
 ### Display
+
+How the store shows the cart and checkout: hidden and required form fields, hidden product options, tax-inclusive prices, the checkout flow and the registration setting. Found in [`APIJson`](/docs/reference/checkout/types#apijson).
 
 ```ts
 type Display = {
@@ -552,6 +560,8 @@ type Display = {
 
 ### Format
 
+How the store formats money and weights: the locale, the currency and how to show it, the number of decimals, and the weight unit. Found in [`APIJson`](/docs/reference/checkout/types#apijson).
+
 ```ts
 type Format = {
   /**
@@ -572,6 +582,8 @@ type Format = {
 
 ### GiftCard
 
+A gift card applied to the cart: its code, name, amount and balance. Listed in [`Totals`](/docs/reference/checkout/types#totals), and sent with the `gift-card-remove` event of [`APIEventMap`](/docs/reference/checkout/types#apieventmap).
+
 ```ts
 type GiftCard = {
   /** Unique identifier for the gift card. */
@@ -591,6 +603,8 @@ type GiftCard = {
 
 ### GooglePayConfig
 
+The Google Pay settings of a card gateway: its merchant ID, gateway parameters and Google Pay environment. Found in the `google_pay` field of a gateway in `payment_gateways` of [`APIJson`](/docs/reference/checkout/types#apijson).
+
 ```ts
 type GooglePayConfig = {
   /** Google Pay merchant identifier used for this gateway config. */
@@ -608,6 +622,8 @@ type GooglePayConfig = {
 
 ### GooglePaymentsClient
 
+The `PaymentsClient` object from Google Pay's script, with the three methods the SDK calls. No public SDK method uses it.
+
 ```ts
 type GooglePaymentsClient = {
   isReadyToPay: (request: Record<string, unknown>) => Promise<{ result: boolean }>;
@@ -618,6 +634,8 @@ type GooglePaymentsClient = {
 
 ### HydrateJsonOptions
 
+Options of [`API.hydrateJson()`](/docs/reference/checkout/classes/API#hydratejson): the state to set, and whether to fire the `update` event.
+
 ```ts
 type HydrateJsonOptions = {
   state?: "idle" | "busy";
@@ -626,6 +644,8 @@ type HydrateJsonOptions = {
 ```
 
 ### Item
+
+One item in the cart: its name, code, price, quantity, options and subscription details. Listed in [`APIJson`](/docs/reference/checkout/types#apijson), and sent with the `item-update` and `item-remove` events of [`APIEventMap`](/docs/reference/checkout/types#apieventmap).
 
 ```ts
 type Item = {
@@ -700,6 +720,8 @@ type Item = {
 
 ### ItemOption
 
+One option of a cart item, such as a size or a color, with the price and weight it adds. Listed in [`Item`](/docs/reference/checkout/types#item).
+
 ```ts
 type ItemOption = {
   id: number;
@@ -716,7 +738,7 @@ type ItemOption = {
 
 ### KlarnaSdkInstance
 
-Browser namespace exposed by Klarna after their SDK script has loaded.
+The `Klarna` global that Klarna's script adds, with its Payments API. [`API.klarna`](/docs/reference/checkout/classes/API#klarna) holds it once the script has loaded.
 
 ```ts
 type KlarnaSdkInstance = {
@@ -727,6 +749,8 @@ type KlarnaSdkInstance = {
 
 ### Listener
 
+The function type of a checkout [`API`](/docs/reference/checkout/classes/API) event listener for one event name. Used by [`API.addEventListener()`](/docs/reference/checkout/classes/API#addeventlistener) and [`API.removeEventListener()`](/docs/reference/checkout/classes/API#removeeventlistener).
+
 ```ts
 type Listener<TAPIEventMap extends keyof APIEventMap, TAPI> = (
   this: TAPI,
@@ -735,6 +759,8 @@ type Listener<TAPIEventMap extends keyof APIEventMap, TAPI> = (
 ```
 
 ### Message
+
+A message from the server for the shopper, such as an error or a notice, with its level and context. Listed in [`APIJson`](/docs/reference/checkout/types#apijson), and sent with the `messages-add` and `messages-remove` events of [`APIEventMap`](/docs/reference/checkout/types#apieventmap).
 
 ```ts
 type Message = {
@@ -752,13 +778,15 @@ type Message = {
 
 ### NextAction
 
-Follow-up action the client must take before a checkout submission resolves.
+A step the shopper must finish before a checkout submission completes: a [`RequiresActionNextAction`](/docs/reference/checkout/types#requiresactionnextaction) or a [`RedirectNextAction`](/docs/reference/checkout/types#redirectnextaction). Found in `next_action` of [`APIJson`](/docs/reference/checkout/types#apijson).
 
 ```ts
 type NextAction = RequiresActionNextAction | RedirectNextAction;
 ```
 
 ### PaymentGatewayConfig
+
+The settings of one payment gateway the checkout can use. It has one variant per kind of gateway: cards, ACH, redirect gateways, Stripe, PayPal, Klarna and Adyen. Listed in `payment_gateways` of [`APIJson`](/docs/reference/checkout/types#apijson).
 
 ```ts
 type PaymentGatewayConfig =
@@ -774,12 +802,16 @@ type PaymentGatewayConfig =
 
 ### PayPalSdkInstance
 
+The PayPal SDK instance for the `paypal_platform` gateway. [`API.paypal`](/docs/reference/checkout/classes/API#paypal) holds it once PayPal's script has loaded.
+
 ```ts
 type PayPalSdkInstance = SdkInstance<PayPalSdkComponents> &
   UndocumentedPayPalSessionCreators;
 ```
 
 ### RedirectNextAction
+
+A full-page redirect the shopper must follow to finish the payment, for example for a hosted gateway or 3D Secure v1. One kind of [`NextAction`](/docs/reference/checkout/types#nextaction), and sent with the `next-action-redirect` event of [`APIEventMap`](/docs/reference/checkout/types#apieventmap).
 
 ```ts
 type RedirectNextAction = {
@@ -796,6 +828,8 @@ type RedirectNextAction = {
 
 ### RegionOption
 
+One region for a select field: the code to send back to the API, and the message ID of its name. Returned by [`toRegionOptions()`](/docs/reference/checkout/functions/toRegionOptions).
+
 ```ts
 type RegionOption = {
   /** The code exactly as it must be sent back to the API. */
@@ -807,11 +841,15 @@ type RegionOption = {
 
 ### RegionType
 
+What a country calls its regions: state, province, county, canton or prefecture. [`regionLabelMessageId()`](/docs/reference/checkout/functions/regionLabelMessageId) picks the region field's label from it. The customer portal in Foxy Elements also reads it.
+
 ```ts
 type RegionType = "state" | "province" | "county" | "canton" | "prefecture";
 ```
 
 ### RequiresActionNextAction
+
+A step on the page the shopper must finish before the payment resolves: confirming a Stripe payment, a 3D Secure challenge, or a captcha. One kind of [`NextAction`](/docs/reference/checkout/types#nextaction), and sent with the `next-action-required` event of [`APIEventMap`](/docs/reference/checkout/types#apieventmap).
 
 ```ts
 type RequiresActionNextAction = {
@@ -827,6 +865,8 @@ type RequiresActionNextAction = {
 ```
 
 ### SavedPaymentMethod
+
+A saved card the shopper can pay with: its brand, expiry date and gateway, and whether the security code must be entered again. Listed in `saved_payment_methods` of [`APIJson`](/docs/reference/checkout/types#apijson).
 
 ```ts
 type SavedPaymentMethod = {
@@ -855,6 +895,8 @@ type SavedPaymentMethod = {
 
 ### SessionCookieOptions
 
+Cookie settings for keeping the cart session ID in a cookie: the domain, path, lifetime and SameSite mode. Part of [`SessionOptions`](/docs/reference/checkout/types#sessionoptions).
+
 ```ts
 type SessionCookieOptions = {
   domain?: string;
@@ -869,7 +911,7 @@ type SessionCookieOptions = {
 
 ### SessionHost
 
-What `CartSession` needs from the `API` that owns it. Only the SDK creates one.
+What a [`CartSession`](/docs/reference/checkout/interfaces/CartSession) needs from the checkout [`API`](/docs/reference/checkout/classes/API) that owns it. Only the SDK creates a `CartSession`, so you rarely need this type.
 
 ```ts
 type SessionHost = {
@@ -890,6 +932,8 @@ type SessionHost = {
 
 ### SessionOptions
 
+Settings of the cart session: where to keep its ID, under which key, the cookie settings, and whether the first load starts a new session. Passed to [`CartSession.configure()`](/docs/reference/checkout/interfaces/CartSession#configure).
+
 ```ts
 type SessionOptions = {
   /** Default `"local"`. */
@@ -905,13 +949,15 @@ type SessionOptions = {
 
 ### SessionStorageName
 
+A built-in place to keep the cart session ID: `local` or `session` storage, a `cookie`, or `memory`. Part of [`SessionOptions`](/docs/reference/checkout/types#sessionoptions).
+
 ```ts
 type SessionStorageName = "local" | "session" | "cookie" | "memory";
 ```
 
 ### SessionStore
 
-Where `client.session` keeps the session ID. Any method may be async.
+Your own place to keep the cart session ID, with `get`, `set` and `remove` methods that can be async. Use it in [`SessionOptions`](/docs/reference/checkout/types#sessionoptions) instead of a [`SessionStorageName`](/docs/reference/checkout/types#sessionstoragename).
 
 ```ts
 type SessionStore = {
@@ -922,6 +968,8 @@ type SessionStore = {
 ```
 
 ### Shipment
+
+One shipping address in the checkout: the address, its validation result, the chosen shipping service and the options to choose from, and the countries and regions the form can offer. Listed in `shipments` of [`APIJson`](/docs/reference/checkout/types#apijson), and sent with the `shipment-update` event of [`APIEventMap`](/docs/reference/checkout/types#apieventmap).
 
 ```ts
 type Shipment = {
@@ -989,7 +1037,7 @@ type Shipment = {
 
 ### SquareSdkInstance
 
-The initialized Payments instance returned by Square.payments().
+The Square payments instance for Square gateways. It creates the card, ACH, Google Pay and Apple Pay components. [`API.square`](/docs/reference/checkout/classes/API#square) holds it once Square's script has loaded.
 
 ```ts
 type SquareSdkInstance = {
@@ -1009,6 +1057,8 @@ type SquareSdkInstance = {
 ```
 
 ### Store
+
+Public details of the store: its name, domain, logo, URLs, the payment cards it accepts, and whether coupons, gift cards and location-based taxes apply. Found in [`APIJson`](/docs/reference/checkout/types#apijson).
 
 ```ts
 type Store = {
@@ -1039,13 +1089,7 @@ type Store = {
 
 ### StripeConfirmIntentParams
 
-`params` of a `confirm_intent` action raised by `stripe_v2`.
-
-The submit leg creates an unconfirmed PaymentIntent server-side and hands
-back only its client secret — nothing is authorized yet. The client confirms
-it with the mounted Payment Element, then resumes with
-`POST /checkout?action=continue`, which verifies the outcome with Stripe
-server-to-server. There is no client-minted token in this flow.
+The `params` of a `confirm_intent` step from the `stripe_v2` gateway: the client secret of the Stripe PaymentIntent to confirm on the page. Found in a [`RequiresActionNextAction`](/docs/reference/checkout/types#requiresactionnextaction).
 
 ```ts
 type StripeConfirmIntentParams = {
@@ -1055,6 +1099,8 @@ type StripeConfirmIntentParams = {
 ```
 
 ### Tax
+
+One tax on the cart: its name, rate as a percentage, amount, and whether prices include it. Listed in [`Totals`](/docs/reference/checkout/types#totals).
 
 ```ts
 type Tax = {
@@ -1071,6 +1117,8 @@ type Tax = {
 
 ### TemplateSet
 
+The template set the cart uses: its code and ID. Found in [`APIJson`](/docs/reference/checkout/types#apijson).
+
 ```ts
 type TemplateSet = {
   /** Template set code. */
@@ -1081,6 +1129,8 @@ type TemplateSet = {
 ```
 
 ### Totals
+
+The money totals of the cart: items, shipping, taxes, coupons, gift cards and the order total. Found in [`APIJson`](/docs/reference/checkout/types#apijson).
 
 ```ts
 type Totals = {
@@ -1117,6 +1167,8 @@ type Totals = {
 
 ### Transaction
 
+The completed order on a receipt: its ID, status, date and payments. It is `null` in [`APIJson`](/docs/reference/checkout/types#apijson) before the purchase.
+
 ```ts
 type Transaction = {
   /** Unique identifier for the transaction. */
@@ -1146,12 +1198,7 @@ type Transaction = {
 
 ### ValidatedAddress
 
-An address as a validation provider returns it.
-
-Wire-shaped and every field optional, for the same reason `AddressSuggestion`
-is deliberately narrow: a provider that has no opinion about a field omits
-it, and writing an empty string over a shopper's typed value is a data-loss
-bug rather than a no-op.
+An address as an address validation service returns it. Every field is optional. It is the `suggestion` of an [`AddressValidation`](/docs/reference/checkout/types#addressvalidation).
 
 ```ts
 type ValidatedAddress = {

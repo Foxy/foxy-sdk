@@ -7,6 +7,8 @@ description: "@foxy.io/sdk/admin"
 
 ### AllowedFrequenciesOptions
 
+Input of [`getAllowedFrequencies()`](/docs/reference/admin/functions/getAllowedFrequencies): the store's subscription settings in the camelCase form the Admin API returns, and the subscription to check.
+
 ```ts
 type AllowedFrequenciesOptions = {
   settings: { subscriptions: { allowFrequencyModification: FrequencyRule[] } };
@@ -15,6 +17,8 @@ type AllowedFrequenciesOptions = {
 ```
 
 ### APIEventMap
+
+Events of the admin [`API`](/docs/reference/admin/classes/API) client by name. The only event is `tokens`. It fires with new [`Tokens`](/docs/reference/admin/types#tokens) after sign-in or a token refresh. Used by [`API.addEventListener()`](/docs/reference/admin/classes/API#addeventlistener) and [`API.removeEventListener()`](/docs/reference/admin/classes/API#removeeventlistener).
 
 ```ts
 type APIEventMap = {
@@ -25,7 +29,7 @@ type APIEventMap = {
 
 ### APIInit
 
-Constructor parameters of the [API](/docs/reference/admin/classes/API) class.
+Settings for [`new API()`](/docs/reference/admin/classes/API#constructor): the OAuth client ID and secret, the redirect URI for sign-in, and optional overrides for the authorization URL, API base URL, API version, log level and cache.
 
 ```ts
 type APIInit = {
@@ -44,7 +48,7 @@ type APIInit = {
 
 ### Constraints
 
-Merged result of every applicable next date modification rule.
+The allowed range for a subscription's next transaction date, merged from every rule that applies: the earliest and latest date, blocked dates, and allowed days of the week or month. Returned by [`getNextTransactionDateConstraints()`](/docs/reference/admin/functions/getNextTransactionDateConstraints).
 
 ```ts
 type Constraints = {
@@ -58,6 +62,8 @@ type Constraints = {
 
 ### GrantOpts
 
+Input of [`API.getToken()`](/docs/reference/admin/classes/API#gettoken): the OAuth client ID and secret, plus either an authorization code with its redirect URI, or a refresh token.
+
 ```ts
 type GrantOpts = ({ code: string; redirectUri: string } | { refreshToken: string }) & {
   clientSecret: string;
@@ -69,13 +75,15 @@ type GrantOpts = ({ code: string; redirectUri: string } | { refreshToken: string
 
 ### NextDateRules
 
-False disables modification, true lifts all constraints, an array defines custom rules.
+The store's rules for changing a subscription's next transaction date. `false` blocks changes, `true` allows any date, and an array lists custom rules. Passed to [`getNextTransactionDateConstraints()`](/docs/reference/admin/functions/getNextTransactionDateConstraints) and inside [`NextTransactionDateOptions`](/docs/reference/admin/types#nexttransactiondateoptions).
 
 ```ts
 type NextDateRules = boolean | NextDateRule[];
 ```
 
 ### NextTransactionDateOptions
+
+Input of [`isNextTransactionDate()`](/docs/reference/admin/functions/isNextTransactionDate): the date to check, the store's next date rules, and the subscription.
 
 ```ts
 type NextTransactionDateOptions = {
@@ -87,7 +95,7 @@ type NextTransactionDateOptions = {
 
 ### Resource
 
-Constructs a resource record for given graph node and query.
+A typed API resource as a request returns it: its fields, its `_links`, and the `_embedded` resources the query zooms in on. `TGraph` is a resource type from [`Rels`](/docs/reference/admin/types#rels), like `Rels.Customer`, and `TQuery` is the query you sent. [`Response`](/docs/reference/admin/classes/Response) parses to it, and the subscription helpers take it, for example in [`AllowedFrequenciesOptions`](/docs/reference/customer/types#allowedfrequenciesoptions).
 
 ```ts
 type Resource<TGraph extends Graph, TQuery extends Query<TGraph> | undefined = undefined> = Links<TGraph> &
@@ -97,7 +105,7 @@ type Resource<TGraph extends Graph, TQuery extends Query<TGraph> | undefined = u
 
 ### SignInParams
 
-Parameters of [API.signIn](/docs/reference/admin/classes/API#signin).
+Input of [`API.signIn()`](/docs/reference/admin/classes/API#signin): the `state` value that protects the callback, the OAuth scopes to request, and an optional `prompt`.
 
 ```ts
 type SignInParams = {
@@ -111,6 +119,8 @@ type SignInParams = {
 
 ### TokenResponse
 
+The raw OAuth token response from Foxy's token endpoint, with snake_case fields. Returned by [`API.getToken()`](/docs/reference/admin/classes/API#gettoken).
+
 ```ts
 type TokenResponse = {
   refresh_token?: string;
@@ -123,7 +133,7 @@ type TokenResponse = {
 
 ### Tokens
 
-OAuth tokens held by an [API](/docs/reference/admin/classes/API) instance. Plain JSON, so it can be saved as is and passed back to [API.setTokens](/docs/reference/admin/classes/API#settokens).
+The OAuth tokens an admin [`API`](/docs/reference/admin/classes/API) client holds: the access token, refresh token, expiry time and scope. It is plain JSON, so you can save it and restore it later with [`API.setTokens()`](/docs/reference/admin/classes/API#settokens). [`API.confirmSignIn()`](/docs/reference/admin/classes/API#confirmsignin) returns it, and the `tokens` event in [`APIEventMap`](/docs/reference/admin/types#apieventmap) sends new ones.
 
 ```ts
 type Tokens = {

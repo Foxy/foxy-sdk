@@ -7,7 +7,7 @@ description: "@foxy.io/sdk/checkout/add-to-cart"
 
 ### AddToCartDetail
 
-`detail` of the cancelable, bubbling `foxy:add-to-cart` event.
+The `detail` of the `foxy:add-to-cart` event. Add-to-cart links and forms fire this event before they add to the cart. It holds the cart URL, the form fields as name and value pairs, and the session ID. The event bubbles and can be canceled.
 
 ```ts
 type AddToCartDetail = {
