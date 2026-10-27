@@ -3,7 +3,6 @@
   "pages": [
     "classes",
     "functions",
-    "variables",
     "interfaces",
     "type-aliases",
     "namespaces",

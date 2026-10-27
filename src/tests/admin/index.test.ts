@@ -18,8 +18,6 @@ describe('Admin', () => {
       expect(Admin).toHaveProperty('signValue');
       expect(Admin).toHaveProperty('signUrl');
       expect(Admin).toHaveProperty('signFragment');
-      expect(Admin).toHaveProperty('cartExcludes');
-      expect(Admin).toHaveProperty('cartExcludePrefixes');
     });
 
     it('exports createSSOURL', () => {
@@ -45,8 +43,6 @@ describe('Admin', () => {
         'InvalidFrequencyError',
         'ResolutionError',
         'Response',
-        'cartExcludePrefixes',
-        'cartExcludes',
         'createSSOURL',
         'getAllowedFrequencies',
         'getNextTransactionDateConstraints',
