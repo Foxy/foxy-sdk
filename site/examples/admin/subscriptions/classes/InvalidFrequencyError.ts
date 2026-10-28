@@ -1,4 +1,4 @@
-import { getTimeFromFrequency, InvalidFrequencyError } from '@foxy.io/sdk/admin';
+import { getTimeFromFrequency, InvalidFrequencyError } from '@foxy.io/sdk/admin/subscriptions';
 
 try {
   getTimeFromFrequency('every week');

@@ -1,7 +1,8 @@
 // Every snippet shown on the section index pages (content/docs/reference/*/index.mdx). Checked with `npm run examples:check`.
 // CDN imports cannot be typechecked, so those snippets use the same module through its npm subpath.
 import { API as AdminAPI } from '@foxy.io/sdk/admin';
-import { API as CustomerAPI, getAllowedFrequencies } from '@foxy.io/sdk/customer';
+import { API as CustomerAPI } from '@foxy.io/sdk/customer';
+import { getAllowedFrequencies } from '@foxy.io/sdk/customer/subscriptions';
 import { client } from '@foxy.io/sdk/checkout/client';
 import { sideCart } from '@foxy.io/sdk/checkout/side-cart';
 

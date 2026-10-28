@@ -1,4 +1,5 @@
-import { API, getAllowedFrequencies } from '@foxy.io/sdk/customer';
+import { API } from '@foxy.io/sdk/customer';
+import { getAllowedFrequencies } from '@foxy.io/sdk/customer/subscriptions';
 
 const api = new API({ base: new URL('https://example.foxycart.com/s/customer/') });
 await api.signIn({ email: 'customer@example.com', password: 'password' });

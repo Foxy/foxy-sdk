@@ -1,6 +1,6 @@
 ---
 title: "getAllowedFrequencies()"
-description: "@foxy.io/sdk/customer"
+description: "@foxy.io/sdk/customer/subscriptions"
 ---
 
 ```ts
@@ -12,7 +12,8 @@ Returns allowed frequencies for given subscription and customer portal settings.
 ## Example
 
 ```ts
-import { API, getAllowedFrequencies } from '@foxy.io/sdk/customer';
+import { API } from '@foxy.io/sdk/customer';
+import { getAllowedFrequencies } from '@foxy.io/sdk/customer/subscriptions';
 
 const api = new API({ base: new URL('https://example.foxycart.com/s/customer/') });
 await api.signIn({ email: 'customer@example.com', password: 'password' });
@@ -33,7 +34,7 @@ console.log([...getAllowedFrequencies({ settings, subscription })]);
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `opts` | [`AllowedFrequenciesOptions`](/docs/reference/customer/types#allowedfrequenciesoptions) | Subscription and settings. |
+| `opts` | [`AllowedFrequenciesOptions`](/docs/reference/customer/subscriptions/types#allowedfrequenciesoptions) | Subscription and settings. |
 
 ## Returns
 

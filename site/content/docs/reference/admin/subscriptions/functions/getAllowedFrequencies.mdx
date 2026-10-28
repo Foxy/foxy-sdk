@@ -1,6 +1,6 @@
 ---
 title: "getAllowedFrequencies()"
-description: "@foxy.io/sdk/admin"
+description: "@foxy.io/sdk/admin/subscriptions"
 ---
 
 ```ts
@@ -12,7 +12,7 @@ Returns allowed frequencies for given subscription and customer portal settings.
 ## Example
 
 ```ts
-import { getAllowedFrequencies } from '@foxy.io/sdk/admin';
+import { getAllowedFrequencies } from '@foxy.io/sdk/admin/subscriptions';
 
 const settings = {
   subscriptions: {
@@ -31,7 +31,7 @@ console.log(frequencies); // ['1m', '3m', '1y']
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `opts` | [`AllowedFrequenciesOptions`](/docs/reference/admin/types#allowedfrequenciesoptions) | Subscription and settings. |
+| `opts` | [`AllowedFrequenciesOptions`](/docs/reference/admin/subscriptions/types#allowedfrequenciesoptions) | Subscription and settings. |
 
 ## Returns
 

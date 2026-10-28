@@ -1,4 +1,4 @@
-import { getAllowedFrequencies } from '@foxy.io/sdk/admin';
+import { getAllowedFrequencies } from '@foxy.io/sdk/admin/subscriptions';
 
 const settings = {
   subscriptions: {

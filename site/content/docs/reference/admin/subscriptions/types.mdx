@@ -1,0 +1,51 @@
+---
+title: "Types"
+description: "@foxy.io/sdk/admin/subscriptions"
+---
+
+## Type aliases
+
+### AllowedFrequenciesOptions
+
+Input of [`getAllowedFrequencies()`](/docs/reference/admin/subscriptions/functions/getAllowedFrequencies): the store's subscription settings in the camelCase form the Admin API returns, and the subscription to check.
+
+```ts
+type AllowedFrequenciesOptions = {
+  settings: { subscriptions: { allowFrequencyModification: FrequencyRule[] } };
+  subscription: RuleSubject;
+};
+```
+
+### Constraints
+
+The allowed range for a subscription's next transaction date, merged from every rule that applies: the earliest and latest date, blocked dates, and allowed days of the week or month. Returned by [`getNextTransactionDateConstraints()`](/docs/reference/admin/subscriptions/functions/getNextTransactionDateConstraints).
+
+```ts
+type Constraints = {
+  min?: string;
+  max?: string;
+  disallowedDates?: string[];
+  allowedDaysOfWeek?: number[];
+  allowedDaysOfMonth?: number[];
+};
+```
+
+### NextDateRules
+
+The store's rules for changing a subscription's next transaction date. `false` blocks changes, `true` allows any date, and an array lists custom rules. Passed to [`getNextTransactionDateConstraints()`](/docs/reference/admin/subscriptions/functions/getNextTransactionDateConstraints) and inside [`NextTransactionDateOptions`](/docs/reference/admin/subscriptions/types#nexttransactiondateoptions).
+
+```ts
+type NextDateRules = boolean | NextDateRule[];
+```
+
+### NextTransactionDateOptions
+
+Input of [`isNextTransactionDate()`](/docs/reference/admin/subscriptions/functions/isNextTransactionDate): the date to check, the store's next date rules, and the subscription.
+
+```ts
+type NextTransactionDateOptions = {
+  value: string;
+  settings: { subscriptions: { allowNextDateModification: NextDateRules } };
+  subscription: RuleSubject;
+};
+```

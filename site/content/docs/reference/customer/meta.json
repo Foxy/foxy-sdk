@@ -2,8 +2,8 @@
   "title": "Customer API",
   "pages": [
     "classes",
-    "functions",
     "types",
+    "subscriptions",
     "..."
   ]
 }

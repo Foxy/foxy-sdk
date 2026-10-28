@@ -46,7 +46,7 @@ describe('public entries', () => {
   it('come from package.json exports', () => {
     expect(entryPoints().sort()).toEqual(
       [
-        'admin/index', 'admin/signing', 'customer/index', 'checkout/index',
+        'admin/index', 'admin/signing', 'admin/subscriptions', 'customer/index', 'customer/subscriptions', 'checkout/index',
         'checkout/client', 'checkout/loader', 'checkout/side-cart', 'checkout/add-to-cart',
       ].map(name => `../src/${name}.ts`).sort(),
     );
@@ -54,14 +54,14 @@ describe('public entries', () => {
 
   it('list the subentries of each section', () => {
     expect(subentries('checkout').sort()).toEqual(['add-to-cart', 'client', 'loader', 'side-cart']);
-    expect(subentries('admin')).toEqual(['signing']);
-    expect(subentries('customer')).toEqual([]);
+    expect(subentries('admin').sort()).toEqual(['signing', 'subscriptions']);
+    expect(subentries('customer')).toEqual(['subscriptions']);
   });
 });
 
 describe('reference completeness', () => {
 
-  it('finds every public export of the 8 entries on a page', () => {
+  it('finds every public export of the 10 entries on a page', () => {
     expect(findMissing(listPublicExports(), dir)).toEqual([]);
   });
 
@@ -89,7 +89,7 @@ describe('reference completeness', () => {
     const keys = [...exports.keys()];
     expect(keys).not.toContain('./internal/side-cart/protocol');
     expect(keys).not.toContain('./internal/core');
-    expect(keys).toHaveLength(8);
+    expect(keys).toHaveLength(10);
     expect(exports.get('./admin')!.map((e: { name: string }) => e.name)).toContain('Rels');
   });
 });

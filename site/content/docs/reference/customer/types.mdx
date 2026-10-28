@@ -5,17 +5,6 @@ description: "@foxy.io/sdk/customer"
 
 ## Type aliases
 
-### AllowedFrequenciesOptions
-
-Input of [`getAllowedFrequencies()`](/docs/reference/customer/functions/getAllowedFrequencies): the customer portal settings in the snake_case form the Customer API returns, and the subscription to check.
-
-```ts
-type AllowedFrequenciesOptions = {
-  settings: { subscriptions: { allow_frequency_modification: Rules } };
-  subscription: Omit<Resource<Subscription>, '_links' | '_embedded'>;
-};
-```
-
 ### APIInit
 
 Settings for the customer [`API`](/docs/reference/customer/classes/API) constructor: the base URL of the store's Customer API, and optional storage for the session, a cache, a [`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Window/fetch) function and a log level.
@@ -51,26 +40,6 @@ type APIInit = {
    * This is where the tree traversal begins. We also use this URL as a base for relative paths.
    */
   base: URL;
-};
-```
-
-### NextDateRules
-
-The customer portal's rules for changing a subscription's next transaction date. `false` blocks changes, `true` allows any date, and an array lists custom rules. Passed to [`getNextTransactionDateConstraints()`](/docs/reference/customer/functions/getNextTransactionDateConstraints) and inside [`NextTransactionDateOptions`](/docs/reference/customer/types#nexttransactiondateoptions).
-
-```ts
-type NextDateRules = Resource<CustomerPortalSettings>['subscriptions']['allow_next_date_modification'];
-```
-
-### NextTransactionDateOptions
-
-Input of [`isNextTransactionDate()`](/docs/reference/customer/functions/isNextTransactionDate): the date to check, the portal's next date rules, and the subscription.
-
-```ts
-type NextTransactionDateOptions = {
-  value: string;
-  settings: { subscriptions: { allow_next_date_modification: Config } };
-  subscription: Omit<Resource<Subscription>, '_links' | '_embedded'>;
 };
 ```
 
@@ -161,14 +130,6 @@ type PaymentCardEmbedConfig = Partial<{
   /** Locale to use with Stripe or Square. Has no effect on the default UI. */
   lang: string;
 }>;
-```
-
-### SubscriptionData
-
-A customer's subscription without its `_links` and `_embedded` parts. [`getNextTransactionDateConstraints()`](/docs/reference/customer/functions/getNextTransactionDateConstraints) takes it.
-
-```ts
-type SubscriptionData = Omit<Resource<Subscription>, '_links' | '_embedded'>;
 ```
 
 ## Interfaces

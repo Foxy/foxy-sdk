@@ -10,30 +10,14 @@ describe('Customer', () => {
       expect(Customer).toHaveProperty('PaymentCardEmbed');
     });
 
-    it('exports the gating helpers', () => {
-      expect(Customer).toHaveProperty('getAllowedFrequencies');
-      expect(Customer).toHaveProperty('getNextTransactionDateConstraints');
-      expect(Customer).toHaveProperty('isNextTransactionDate');
-      expect(Customer).toHaveProperty('getTimeFromFrequency');
-    });
-
-    it('exports the error getTimeFromFrequency throws', () => {
-      expect(() => Customer.getTimeFromFrequency('3x')).toThrow(Customer.InvalidFrequencyError);
-    });
-
     it('exports exactly the documented surface and nothing more', () => {
       expect(Object.keys(Customer).sort()).toStrictEqual([
         'API',
         'AuthError',
-        'InvalidFrequencyError',
         'PaymentCardEmbed',
         'ResolutionError',
         'Response',
-        'getAllowedFrequencies',
-        'getNextTransactionDateConstraints',
         'getResourceId',
-        'getTimeFromFrequency',
-        'isNextTransactionDate',
       ]);
     });
   });

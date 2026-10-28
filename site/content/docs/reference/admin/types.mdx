@@ -5,17 +5,6 @@ description: "@foxy.io/sdk/admin"
 
 ## Type aliases
 
-### AllowedFrequenciesOptions
-
-Input of [`getAllowedFrequencies()`](/docs/reference/admin/functions/getAllowedFrequencies): the store's subscription settings in the camelCase form the Admin API returns, and the subscription to check.
-
-```ts
-type AllowedFrequenciesOptions = {
-  settings: { subscriptions: { allowFrequencyModification: FrequencyRule[] } };
-  subscription: RuleSubject;
-};
-```
-
 ### APIEventMap
 
 Events of the admin [`API`](/docs/reference/admin/classes/API) client by name. The only event is `tokens`. It fires with new [`Tokens`](/docs/reference/admin/types#tokens) after sign-in or a token refresh. Used by [`API.addEventListener()`](/docs/reference/admin/classes/API#addeventlistener) and [`API.removeEventListener()`](/docs/reference/admin/classes/API#removeeventlistener).
@@ -46,20 +35,6 @@ type APIInit = {
 };
 ```
 
-### Constraints
-
-The allowed range for a subscription's next transaction date, merged from every rule that applies: the earliest and latest date, blocked dates, and allowed days of the week or month. Returned by [`getNextTransactionDateConstraints()`](/docs/reference/admin/functions/getNextTransactionDateConstraints).
-
-```ts
-type Constraints = {
-  min?: string;
-  max?: string;
-  disallowedDates?: string[];
-  allowedDaysOfWeek?: number[];
-  allowedDaysOfMonth?: number[];
-};
-```
-
 ### GrantOpts
 
 Input of [`API.getToken()`](/docs/reference/admin/classes/API#gettoken): the OAuth client ID and secret, plus either an authorization code with its redirect URI, or a refresh token.
@@ -73,29 +48,9 @@ type GrantOpts = ({ code: string; redirectUri: string } | { refreshToken: string
 };
 ```
 
-### NextDateRules
-
-The store's rules for changing a subscription's next transaction date. `false` blocks changes, `true` allows any date, and an array lists custom rules. Passed to [`getNextTransactionDateConstraints()`](/docs/reference/admin/functions/getNextTransactionDateConstraints) and inside [`NextTransactionDateOptions`](/docs/reference/admin/types#nexttransactiondateoptions).
-
-```ts
-type NextDateRules = boolean | NextDateRule[];
-```
-
-### NextTransactionDateOptions
-
-Input of [`isNextTransactionDate()`](/docs/reference/admin/functions/isNextTransactionDate): the date to check, the store's next date rules, and the subscription.
-
-```ts
-type NextTransactionDateOptions = {
-  value: string;
-  settings: { subscriptions: { allowNextDateModification: NextDateRules } };
-  subscription: RuleSubject;
-};
-```
-
 ### Resource
 
-A typed API resource as a request returns it: its fields, its `_links`, and the `_embedded` resources the query zooms in on. `TGraph` is a resource type from [`Rels`](/docs/reference/admin/types#rels), like `Rels.Customer`, and `TQuery` is the query you sent. [`Response`](/docs/reference/admin/classes/Response) parses to it, and the subscription helpers take it, for example in [`AllowedFrequenciesOptions`](/docs/reference/customer/types#allowedfrequenciesoptions).
+A typed API resource as a request returns it: its fields, its `_links`, and the `_embedded` resources the query zooms in on. `TGraph` is a resource type from [`Rels`](/docs/reference/admin/types#rels), like `Rels.Customer`, and `TQuery` is the query you sent. [`Response`](/docs/reference/admin/classes/Response) parses to it, and the subscription helpers take it, for example in [`AllowedFrequenciesOptions`](/docs/reference/customer/subscriptions/types#allowedfrequenciesoptions).
 
 ```ts
 type Resource<TGraph extends Graph, TQuery extends Query<TGraph> | undefined = undefined> = Links<TGraph> &

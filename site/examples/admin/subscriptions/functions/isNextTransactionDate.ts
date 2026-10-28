@@ -1,4 +1,4 @@
-import { isNextTransactionDate } from '@foxy.io/sdk/admin';
+import { isNextTransactionDate } from '@foxy.io/sdk/admin/subscriptions';
 
 const settings = {
   subscriptions: {

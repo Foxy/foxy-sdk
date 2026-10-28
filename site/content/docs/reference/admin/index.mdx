@@ -43,7 +43,7 @@ api.setTokens(tokens);
 - [`SignInParams`](/docs/reference/admin/types#signinparams) and [`Tokens`](/docs/reference/admin/types#tokens): sign-in input and token shape.
 - [`Rels`](/docs/reference/admin/types#rels): types for every resource.
 - [`@foxy.io/sdk/admin/signing`](/docs/reference/admin/signing): sign cart links and forms.
-
+- [`@foxy.io/sdk/admin/subscriptions`](/docs/reference/admin/subscriptions): subscription frequency and next date rules.
 
 ## Namespaces
 
@@ -53,7 +53,6 @@ api.setTokens(tokens);
 
 - [API](/docs/reference/admin/classes/API)
 - [AuthError](/docs/reference/admin/classes/AuthError)
-- [InvalidFrequencyError](/docs/reference/admin/classes/InvalidFrequencyError)
 - [ResolutionError](/docs/reference/admin/classes/ResolutionError)
 - [Response](/docs/reference/admin/classes/Response)
 
@@ -64,13 +63,9 @@ api.setTokens(tokens);
 
 ## Type Aliases
 
-- [AllowedFrequenciesOptions](/docs/reference/admin/types#allowedfrequenciesoptions)
 - [APIEventMap](/docs/reference/admin/types#apieventmap)
 - [APIInit](/docs/reference/admin/types#apiinit)
-- [Constraints](/docs/reference/admin/types#constraints)
 - [GrantOpts](/docs/reference/admin/types#grantopts)
-- [NextDateRules](/docs/reference/admin/types#nextdaterules)
-- [NextTransactionDateOptions](/docs/reference/admin/types#nexttransactiondateoptions)
 - [Resource](/docs/reference/admin/types#resource)
 - [SignInParams](/docs/reference/admin/types#signinparams)
 - [TokenResponse](/docs/reference/admin/types#tokenresponse)
@@ -79,9 +74,5 @@ api.setTokens(tokens);
 ## Functions
 
 - [createSSOURL](/docs/reference/admin/functions/createSSOURL)
-- [getAllowedFrequencies](/docs/reference/admin/functions/getAllowedFrequencies)
-- [getNextTransactionDateConstraints](/docs/reference/admin/functions/getNextTransactionDateConstraints)
 - [getResourceId](/docs/reference/admin/functions/getResourceId)
-- [getTimeFromFrequency](/docs/reference/admin/functions/getTimeFromFrequency)
-- [isNextTransactionDate](/docs/reference/admin/functions/isNextTransactionDate)
 - [verifyWebhookSignature](/docs/reference/admin/functions/verifyWebhookSignature)

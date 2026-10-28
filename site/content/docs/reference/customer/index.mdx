@@ -10,7 +10,8 @@ npm i @foxy.io/sdk@2
 ```
 
 ```ts
-import { API, getAllowedFrequencies } from '@foxy.io/sdk/customer';
+import { API } from '@foxy.io/sdk/customer';
+import { getAllowedFrequencies } from '@foxy.io/sdk/customer/subscriptions';
 ```
 
 ## Example
@@ -29,9 +30,9 @@ const frequencies = [...getAllowedFrequencies({ settings, subscription })];
 ## Learn more
 
 - [`API`](/docs/reference/customer/classes/API): the client class.
-- [`getAllowedFrequencies`](/docs/reference/customer/functions/getAllowedFrequencies): portal rules for subscription frequencies.
+- [`getAllowedFrequencies`](/docs/reference/customer/subscriptions/functions/getAllowedFrequencies): portal rules for subscription frequencies.
 - [`Rels`](/docs/reference/customer/types#rels): types for every resource.
-
+- [`@foxy.io/sdk/customer/subscriptions`](/docs/reference/customer/subscriptions): subscription frequency and next date rules.
 
 ## Namespaces
 
@@ -52,18 +53,10 @@ const frequencies = [...getAllowedFrequencies({ settings, subscription })];
 
 ## Type Aliases
 
-- [AllowedFrequenciesOptions](/docs/reference/customer/types#allowedfrequenciesoptions)
 - [APIInit](/docs/reference/customer/types#apiinit)
-- [NextDateRules](/docs/reference/customer/types#nextdaterules)
-- [NextTransactionDateOptions](/docs/reference/customer/types#nexttransactiondateoptions)
 - [PaymentCardEmbedConfig](/docs/reference/customer/types#paymentcardembedconfig)
-- [SubscriptionData](/docs/reference/customer/types#subscriptiondata)
 
 ## Functions
-
-- [getAllowedFrequencies](/docs/reference/customer/functions/getAllowedFrequencies)
-- [getNextTransactionDateConstraints](/docs/reference/customer/functions/getNextTransactionDateConstraints)
-- [isNextTransactionDate](/docs/reference/customer/functions/isNextTransactionDate)
 
 ## References
 
@@ -73,27 +66,9 @@ Re-exports [AuthError](/docs/reference/admin/classes/AuthError)
 
 ***
 
-### Constraints
-
-Re-exports [Constraints](/docs/reference/admin/types#constraints)
-
-***
-
 ### getResourceId
 
 Re-exports [getResourceId](/docs/reference/admin/functions/getResourceId)
-
-***
-
-### getTimeFromFrequency
-
-Re-exports [getTimeFromFrequency](/docs/reference/admin/functions/getTimeFromFrequency)
-
-***
-
-### InvalidFrequencyError
-
-Re-exports [InvalidFrequencyError](/docs/reference/admin/classes/InvalidFrequencyError)
 
 ***
 

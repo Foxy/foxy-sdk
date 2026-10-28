@@ -21,27 +21,14 @@ describe('Admin', () => {
       expect(Admin).toHaveProperty('verifyWebhookSignature');
     });
 
-    it('exports the gating helpers', () => {
-      expect(Admin).toHaveProperty('getAllowedFrequencies');
-      expect(Admin).toHaveProperty('getNextTransactionDateConstraints');
-      expect(Admin).toHaveProperty('getTimeFromFrequency');
-      expect(Admin).toHaveProperty('InvalidFrequencyError');
-      expect(Admin).toHaveProperty('isNextTransactionDate');
-    });
-
     it('exports exactly the documented surface and nothing more', () => {
       expect(Object.keys(Admin).sort()).toStrictEqual([
         'API',
         'AuthError',
-        'InvalidFrequencyError',
         'ResolutionError',
         'Response',
         'createSSOURL',
-        'getAllowedFrequencies',
-        'getNextTransactionDateConstraints',
         'getResourceId',
-        'getTimeFromFrequency',
-        'isNextTransactionDate',
         'verifyWebhookSignature',
       ]);
     });

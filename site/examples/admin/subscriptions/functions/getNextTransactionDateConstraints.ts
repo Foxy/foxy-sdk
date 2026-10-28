@@ -1,5 +1,5 @@
-import type { NextDateRules } from '@foxy.io/sdk/admin';
-import { getNextTransactionDateConstraints } from '@foxy.io/sdk/admin';
+import type { NextDateRules } from '@foxy.io/sdk/admin/subscriptions';
+import { getNextTransactionDateConstraints } from '@foxy.io/sdk/admin/subscriptions';
 
 // Rules come from the store settings. A rule applies when its `jsonataQuery` matches.
 const rules: NextDateRules = [

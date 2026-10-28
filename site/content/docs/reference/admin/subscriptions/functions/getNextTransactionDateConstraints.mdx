@@ -1,6 +1,6 @@
 ---
 title: "getNextTransactionDateConstraints()"
-description: "@foxy.io/sdk/admin"
+description: "@foxy.io/sdk/admin/subscriptions"
 ---
 
 ```ts
@@ -13,8 +13,8 @@ the given subscription and merges them together.
 ## Example
 
 ```ts
-import type { NextDateRules } from '@foxy.io/sdk/admin';
-import { getNextTransactionDateConstraints } from '@foxy.io/sdk/admin';
+import type { NextDateRules } from '@foxy.io/sdk/admin/subscriptions';
+import { getNextTransactionDateConstraints } from '@foxy.io/sdk/admin/subscriptions';
 
 // Rules come from the store settings. A rule applies when its `jsonataQuery` matches.
 const rules: NextDateRules = [
@@ -30,11 +30,11 @@ console.log(constraints); // { min: '1w', max: '3m', allowedDaysOfWeek: [1, 3] }
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `data` | `unknown` | Subscription to generate constraints for. |
-| `rules` | [`NextDateRules`](/docs/reference/admin/types#nextdaterules) | Next date modification config from the customer portal settings. |
+| `rules` | [`NextDateRules`](/docs/reference/admin/subscriptions/types#nextdaterules) | Next date modification config from the customer portal settings. |
 
 ## Returns
 
-`boolean` \| [`Constraints`](/docs/reference/admin/types#constraints)
+`boolean` \| [`Constraints`](/docs/reference/admin/subscriptions/types#constraints)
 
 Returns true if all modifications are allowed, false if next date can't
 be changed by the customer, object with constraints in any other case.

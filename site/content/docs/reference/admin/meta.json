@@ -5,6 +5,7 @@
     "functions",
     "types",
     "signing",
+    "subscriptions",
     "..."
   ]
 }

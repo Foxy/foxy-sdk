@@ -1,0 +1,19 @@
+import * as Subscriptions from '../../customer/subscriptions.js';
+
+describe('Customer', () => {
+  describe('subscriptions', () => {
+    it('exports exactly the subscription rules', () => {
+      expect(Object.keys(Subscriptions).sort()).toStrictEqual([
+        'InvalidFrequencyError',
+        'getAllowedFrequencies',
+        'getNextTransactionDateConstraints',
+        'getTimeFromFrequency',
+        'isNextTransactionDate',
+      ]);
+    });
+
+    it('exports the error getTimeFromFrequency throws', () => {
+      expect(() => Subscriptions.getTimeFromFrequency('3x')).toThrow(Subscriptions.InvalidFrequencyError);
+    });
+  });
+});

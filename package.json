@@ -12,6 +12,10 @@
       "types": "./dist/npm/admin/signing.d.ts",
       "import": "./dist/npm/admin/signing.js"
     },
+    "./admin/subscriptions": {
+      "types": "./dist/npm/admin/subscriptions.d.ts",
+      "import": "./dist/npm/admin/subscriptions.js"
+    },
     "./checkout": {
       "types": "./dist/npm/checkout.d.ts",
       "import": "./dist/npm/checkout.js"
@@ -43,6 +47,10 @@
     "./customer": {
       "types": "./dist/npm/customer.d.ts",
       "import": "./dist/npm/customer.js"
+    },
+    "./customer/subscriptions": {
+      "types": "./dist/npm/customer/subscriptions.d.ts",
+      "import": "./dist/npm/customer/subscriptions.js"
     }
   },
   "scripts": {

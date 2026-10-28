@@ -17,6 +17,7 @@ const builtins = new Set([
 const entryMap = {
   admin: resolve(__dirname, "src/admin/index.ts"),
   "admin/signing": resolve(__dirname, "src/admin/signing.ts"),
+  "admin/subscriptions": resolve(__dirname, "src/admin/subscriptions.ts"),
   checkout: resolve(__dirname, "src/checkout/index.ts"),
   "checkout/client": resolve(__dirname, "src/checkout/client.ts"),
   "checkout/loader": resolve(__dirname, "src/checkout/loader.ts"),
@@ -25,6 +26,7 @@ const entryMap = {
   "checkout/add-to-cart": resolve(__dirname, "src/checkout/add-to-cart.ts"),
   "internal/core": resolve(__dirname, "src/core/index.ts"),
   customer: resolve(__dirname, "src/customer/index.ts"),
+  "customer/subscriptions": resolve(__dirname, "src/customer/subscriptions.ts"),
 };
 
 function isExternal(id: string): boolean {

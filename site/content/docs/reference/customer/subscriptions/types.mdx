@@ -1,0 +1,45 @@
+---
+title: "Types"
+description: "@foxy.io/sdk/customer/subscriptions"
+---
+
+## Type aliases
+
+### AllowedFrequenciesOptions
+
+Input of [`getAllowedFrequencies()`](/docs/reference/customer/subscriptions/functions/getAllowedFrequencies): the customer portal settings in the snake_case form the Customer API returns, and the subscription to check.
+
+```ts
+type AllowedFrequenciesOptions = {
+  settings: { subscriptions: { allow_frequency_modification: Rules } };
+  subscription: Omit<Resource<Subscription>, '_links' | '_embedded'>;
+};
+```
+
+### NextDateRules
+
+The customer portal's rules for changing a subscription's next transaction date. `false` blocks changes, `true` allows any date, and an array lists custom rules. Passed to [`getNextTransactionDateConstraints()`](/docs/reference/customer/subscriptions/functions/getNextTransactionDateConstraints) and inside [`NextTransactionDateOptions`](/docs/reference/customer/subscriptions/types#nexttransactiondateoptions).
+
+```ts
+type NextDateRules = Resource<CustomerPortalSettings>['subscriptions']['allow_next_date_modification'];
+```
+
+### NextTransactionDateOptions
+
+Input of [`isNextTransactionDate()`](/docs/reference/customer/subscriptions/functions/isNextTransactionDate): the date to check, the portal's next date rules, and the subscription.
+
+```ts
+type NextTransactionDateOptions = {
+  value: string;
+  settings: { subscriptions: { allow_next_date_modification: Config } };
+  subscription: Omit<Resource<Subscription>, '_links' | '_embedded'>;
+};
+```
+
+### SubscriptionData
+
+A customer's subscription without its `_links` and `_embedded` parts. [`getNextTransactionDateConstraints()`](/docs/reference/customer/subscriptions/functions/getNextTransactionDateConstraints) takes it.
+
+```ts
+type SubscriptionData = Omit<Resource<Subscription>, '_links' | '_embedded'>;
+```

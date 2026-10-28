@@ -9,12 +9,14 @@ describe('package.json', () => {
     expect(Object.keys(pkg.exports).sort()).toStrictEqual([
       './admin',
       './admin/signing',
+      './admin/subscriptions',
       './checkout',
       './checkout/add-to-cart',
       './checkout/client',
       './checkout/loader',
       './checkout/side-cart',
       './customer',
+      './customer/subscriptions',
       './internal/core',
       './internal/side-cart/protocol',
     ]);

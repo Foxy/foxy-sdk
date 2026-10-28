@@ -1,6 +1,6 @@
 ---
 title: "InvalidFrequencyError"
-description: "@foxy.io/sdk/admin"
+description: "@foxy.io/sdk/admin/subscriptions"
 ---
 
 Instances of this error are thrown by `getTimeFromFrequency` when
@@ -9,7 +9,7 @@ provided with unsupported frequency.
 ## Example
 
 ```ts
-import { getTimeFromFrequency, InvalidFrequencyError } from '@foxy.io/sdk/admin';
+import { getTimeFromFrequency, InvalidFrequencyError } from '@foxy.io/sdk/admin/subscriptions';
 
 try {
   getTimeFromFrequency('every week');
@@ -45,4 +45,3 @@ new InvalidFrequencyError(frequency): InvalidFrequencyError;
 #### Returns
 
 `InvalidFrequencyError`
-

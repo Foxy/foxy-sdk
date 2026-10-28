@@ -1,0 +1,28 @@
+---
+title: "@foxy.io/sdk/admin/subscriptions"
+description: "@foxy.io/sdk/admin/subscriptions"
+---
+
+Subscription rules for the Admin API: which frequencies a subscription can switch to, and which next transaction dates are allowed. They read the store's settings in the camelCase form the Admin API returns.
+
+```ts
+import { getAllowedFrequencies } from '@foxy.io/sdk/admin/subscriptions';
+```
+
+## Functions
+
+- [getAllowedFrequencies](/docs/reference/admin/subscriptions/functions/getAllowedFrequencies)
+- [getNextTransactionDateConstraints](/docs/reference/admin/subscriptions/functions/getNextTransactionDateConstraints)
+- [getTimeFromFrequency](/docs/reference/admin/subscriptions/functions/getTimeFromFrequency)
+- [isNextTransactionDate](/docs/reference/admin/subscriptions/functions/isNextTransactionDate)
+
+## Classes
+
+- [InvalidFrequencyError](/docs/reference/admin/subscriptions/classes/InvalidFrequencyError)
+
+## Types
+
+- [AllowedFrequenciesOptions](/docs/reference/admin/subscriptions/types#allowedfrequenciesoptions)
+- [Constraints](/docs/reference/admin/subscriptions/types#constraints)
+- [NextDateRules](/docs/reference/admin/subscriptions/types#nextdaterules)
+- [NextTransactionDateOptions](/docs/reference/admin/subscriptions/types#nexttransactiondateoptions)

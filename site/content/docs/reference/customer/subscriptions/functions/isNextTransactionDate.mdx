@@ -1,6 +1,6 @@
 ---
 title: "isNextTransactionDate()"
-description: "@foxy.io/sdk/customer"
+description: "@foxy.io/sdk/customer/subscriptions"
 ---
 
 ```ts
@@ -13,7 +13,8 @@ date for given subscription.
 ## Example
 
 ```ts
-import { API, isNextTransactionDate } from '@foxy.io/sdk/customer';
+import { API } from '@foxy.io/sdk/customer';
+import { isNextTransactionDate } from '@foxy.io/sdk/customer/subscriptions';
 
 const api = new API({ base: new URL('https://example.foxycart.com/s/customer/') });
 await api.signIn({ email: 'customer@example.com', password: 'password' });
@@ -31,7 +32,7 @@ console.log(isNextTransactionDate({ settings, subscription, value: '2030-01-15' 
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `opts` | [`NextTransactionDateOptions`](/docs/reference/customer/types#nexttransactiondateoptions) | Subscription, customer portal settings and value. |
+| `opts` | [`NextTransactionDateOptions`](/docs/reference/customer/subscriptions/types#nexttransactiondateoptions) | Subscription, customer portal settings and value. |
 
 ## Returns
 

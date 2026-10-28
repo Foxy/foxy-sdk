@@ -56,9 +56,11 @@ Entry Points.
 
 `exports` in `package.json`, `entryMap` in `vite.config.ts`, the `include` array
 in the `dts()` plugin call, and `include` in `tsconfig.build.json` are four
-hand-maintained lists covering the same entries — `admin`, `admin/signing`, `checkout`,
+hand-maintained lists covering the same entries — `admin`, `admin/signing`,
+`admin/subscriptions`, `checkout`,
 `checkout/client`, `checkout/loader`, `checkout/side-cart`,
-`checkout/add-to-cart`, `customer`, `internal/core`, `internal/side-cart/protocol`.
+`checkout/add-to-cart`, `customer`, `customer/subscriptions`, `internal/core`,
+`internal/side-cart/protocol`.
 
 `internal/*` subpaths exist only for Foxy's own apps and are outside semver.
 `internal/side-cart/protocol` is built from `src/checkout/side-cart/protocol.ts`
@@ -87,8 +89,8 @@ The two type lists do not fail the same way, and only one of them gates emission
   identical is what makes them checkable by eye.
 
 `src/rules` appears in the last two lists but in neither of the first two — it is
-internal, and `./customer` re-exports `getTimeFromFrequency` and `Constraints`
-from it, so the emitted types need it.
+internal, and `./admin/subscriptions` and `./customer/subscriptions` re-export the
+subscription rules from it, so the emitted types need it.
 
 - `checkout/client.ts` is a **singleton** — `export const client = new API()`. Importing it twice gives the same instance.
 - `checkout/loader.ts` is the browser drop-in. It reads `?store=` from its own `import.meta.url` and falls back to `location.hostname`, then re-exports the same singleton. Anything that must run before first use belongs here, not in `client.ts`.
