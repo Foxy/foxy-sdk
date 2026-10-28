@@ -42,7 +42,10 @@ export function referenceTreePlugin(): LoaderPlugin {
     transformPageTree: {
       file(node, path) {
         const kind = path && kindOf(path);
-        return kind ? { ...node, icon: <KindIcon kind={kind} /> } : node;
+        if (!kind) return node;
+        // the page title keeps its type parameters; the nav shows `Response`, not `Response<TGraph, TQuery>`
+        const name = typeof node.name === 'string' ? node.name.replace(/<.*>$/, '') : node.name;
+        return { ...node, name, icon: <KindIcon kind={kind} /> };
       },
       folder(node) {
         const isKind = (child: PageTree.Node): child is PageTree.Folder =>
