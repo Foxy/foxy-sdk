@@ -43,8 +43,9 @@ export function referenceTreePlugin(): LoaderPlugin {
       file(node, path) {
         const kind = path && kindOf(path);
         if (!kind) return node;
-        // the page title keeps its type parameters; the nav shows `Response`, not `Response<TGraph, TQuery>`
-        const name = typeof node.name === 'string' ? node.name.replace(/<.*>$/, '') : node.name;
+        // the page title keeps its type parameters and `()`; the nav shows `Response`, not
+        // `Response<TGraph, TQuery>`, and `signUrl`, not `signUrl()`: the kind icon already says it
+        const name = typeof node.name === 'string' ? node.name.replace(/<.*>$/, '').replace(/\(\)$/, '') : node.name;
         return { ...node, name, icon: <KindIcon kind={kind} /> };
       },
       folder(node) {
