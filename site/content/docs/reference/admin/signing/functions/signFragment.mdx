@@ -8,7 +8,7 @@ function signFragment(secret, root): Promise<ParentNode>;
 ```
 
 Signs every cart form and cart link within a DOM tree in place. The tree
-can be a live `document`/`Element` (browser) or one built with a DOM
+can be a live [`document`](https://developer.mozilla.org/en-US/docs/Web/API/Document)/[`Element`](https://developer.mozilla.org/en-US/docs/Web/API/Element) (browser) or one built with a DOM
 parser (e.g. jsdom's `new JSDOM(str).window.document` in Node) — this
 function only needs standard DOM interfaces, not a specific environment.
 
@@ -39,10 +39,10 @@ console.log(document.body.innerHTML);
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `secret` | `string` | Store API key (the `webhook_key` field on the store's `fx:store` resource). Only ever call this in a trusted, authenticated context (e.g. a store admin's own dashboard session) — never in code served to or executed by end customers. |
-| `root` | `ParentNode` | the DOM tree to sign. |
+| `root` | [`ParentNode`](https://developer.mozilla.org/en-US/docs/Web/API/Node) | the DOM tree to sign. |
 
 ## Returns
 
-`Promise`\<`ParentNode`\>
+[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<[`ParentNode`](https://developer.mozilla.org/en-US/docs/Web/API/Node)\>
 
 the same tree, mutated in place.

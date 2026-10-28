@@ -12,7 +12,7 @@ Maps ISO 3166-1 alpha-2 country codes — the shape of
 `{ value, label }` options whose names are localized for `locale` and
 sorted by that locale's collation.
 
-Codes are uppercased first: `Intl.DisplayNames#of` matches region codes
+Codes are uppercased first: [`Intl.DisplayNames#of`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DisplayNames/of) matches region codes
 case-sensitively, so lowercase input doesn't throw but silently falls back
 to returning the raw code as the label instead of resolving a country
 name.

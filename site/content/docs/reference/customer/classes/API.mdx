@@ -233,7 +233,7 @@ removing this resource.
 
 #### Returns
 
-`Promise`\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/customer/types#graph), `undefined`\>\>
+[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/customer/types#graph), `undefined`\>\>
 
 Instance of APIResponse representing this resource.
 
@@ -256,13 +256,13 @@ This method implements native [Fetch API](https://developer.mozilla.org/en-US/do
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| ...`args` | \[`input`: `URL` \| `RequestInfo`, `init?`: `RequestInit`\] | Fetch API arguments (url and request parameters). |
+| ...`args` | \[`input`: [`URL`](https://developer.mozilla.org/en-US/docs/Web/API/URL) \| [`RequestInfo`](https://developer.mozilla.org/en-US/docs/Web/API/Request), `init?`: [`RequestInit`](https://developer.mozilla.org/en-US/docs/Web/API/RequestInit)\] | [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) arguments (url and request parameters). |
 
 #### Returns
 
-`Promise`\<`Response`\>
+[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<[`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response)\>
 
-Fetch API response.
+[Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) response.
 
 #### Inherited from
 
@@ -323,7 +323,7 @@ get(): Promise<Response<Graph, undefined>>;
 
 ##### Returns
 
-`Promise`\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/customer/types#graph), `undefined`\>\>
+[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/customer/types#graph), `undefined`\>\>
 
 ##### Inherited from
 
@@ -349,7 +349,7 @@ get<Q>(query): Promise<Response<Graph, Q>>;
 
 ##### Returns
 
-`Promise`\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/customer/types#graph), `Q`\>\>
+[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/customer/types#graph), `Q`\>\>
 
 ##### Inherited from
 
@@ -374,7 +374,7 @@ with provided properties, updating this resource.
 
 #### Returns
 
-`Promise`\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/customer/types#graph), `undefined`\>\>
+[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/customer/types#graph), `undefined`\>\>
 
 Instance of APIResponse representing this resource.
 
@@ -409,7 +409,7 @@ with provided properties, creating a resource or triggering an action.
 
 #### Returns
 
-`Promise`\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/customer/types#graph), `undefined`\>\>
+[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/customer/types#graph), `undefined`\>\>
 
 Instance of APIResponse representing this resource.
 
@@ -444,7 +444,7 @@ with provided properties, replacing the existing resource.
 
 #### Returns
 
-`Promise`\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/customer/types#graph), `undefined`\>\>
+[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/customer/types#graph), `undefined`\>\>
 
 Instance of APIResponse representing this resource.
 
@@ -472,7 +472,7 @@ If such customer exists, they will receive an email from Foxy with further instr
 
 #### Returns
 
-`Promise`\<`void`\>
+[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<`void`\>
 
 ***
 
@@ -493,7 +493,7 @@ Incorrect email and password will trigger `AuthError` with code `UNAUTHORIZED`.
 
 #### Returns
 
-`Promise`\<`void`\>
+[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<`void`\>
 
 ***
 
@@ -507,7 +507,7 @@ Destroys current session and clears local session data.
 
 #### Returns
 
-`Promise`\<`void`\>
+[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<`void`\>
 
 ***
 
@@ -530,4 +530,4 @@ If the provided form data is invalid (e.g. captcha is expired), `AuthError` with
 
 #### Returns
 
-`Promise`\<`void`\>
+[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<`void`\>

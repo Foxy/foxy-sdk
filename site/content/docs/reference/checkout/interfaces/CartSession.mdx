@@ -45,7 +45,7 @@ get id(): string | null;
 configure(options): void;
 ```
 
-Throws a `TypeError` for bad options. Call it before the store domain is set.
+Throws a [`TypeError`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError) for bad options. Call it before the store domain is set.
 
 #### Parameters
 
@@ -78,7 +78,7 @@ fails, nothing changes, so the merchant can retry.
 
 #### Returns
 
-`Promise`\<`void`\>
+[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<`void`\>
 
 ***
 
@@ -102,4 +102,4 @@ the new session exists. The old cart is not reset on the server.
 
 #### Returns
 
-`Promise`\<`void`\>
+[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<`void`\>

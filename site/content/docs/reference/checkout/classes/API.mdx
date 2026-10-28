@@ -154,7 +154,7 @@ get state(): "idle" | "busy";
 addEventListener<K>(type, listener): void;
 ```
 
-The **`addEventListener()`** method of the EventTarget interface sets up a function that will be called whenever the specified event is delivered to the target.
+The **`addEventListener()`** method of the [EventTarget](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget) interface sets up a function that will be called whenever the specified event is delivered to the target.
 
 [MDN Reference](https://developer.mozilla.org/docs/Web/API/EventTarget/addEventListener)
 
@@ -357,7 +357,7 @@ getAddressSuggestions(params): Promise<AddressSuggestion[]>;
 
 #### Returns
 
-`Promise`\<[`AddressSuggestion`](/docs/reference/checkout/types#addresssuggestion)[]\>
+[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<[`AddressSuggestion`](/docs/reference/checkout/types#addresssuggestion)[]\>
 
 ***
 
@@ -376,7 +376,7 @@ hydrateJson(nextJson, options?): Promise<void>;
 
 #### Returns
 
-`Promise`\<`void`\>
+[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<`void`\>
 
 ***
 
@@ -390,7 +390,7 @@ logError(error): void;
 
 | Parameter | Type |
 | ------ | ------ |
-| `error` | `Error` |
+| `error` | [`Error`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error) |
 
 #### Returns
 
@@ -425,7 +425,7 @@ removeCouponCode(params): void;
 removeEventListener<K>(type, listener): void;
 ```
 
-The **`removeEventListener()`** method of the EventTarget interface removes an event listener previously registered with EventTarget.addEventListener() from the target.
+The **`removeEventListener()`** method of the [EventTarget](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget) interface removes an event listener previously registered with [EventTarget.addEventListener()](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener) from the target.
 
 [MDN Reference](https://developer.mozilla.org/docs/Web/API/EventTarget/removeEventListener)
 
@@ -639,7 +639,7 @@ submitAdyenEmbeddedPayment(data): Promise<Record<string, unknown>>;
 
 #### Returns
 
-`Promise`\<`Record`\<`string`, `unknown`\>\>
+[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<`Record`\<`string`, `unknown`\>\>
 
 ***
 
@@ -657,7 +657,7 @@ submitAdyenEmbeddedPaymentDetails(data): Promise<Record<string, unknown>>;
 
 #### Returns
 
-`Promise`\<`Record`\<`string`, `unknown`\>\>
+[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<`Record`\<`string`, `unknown`\>\>
 
 ***
 

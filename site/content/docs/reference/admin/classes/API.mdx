@@ -261,12 +261,12 @@ exchanges the code for tokens, keeps them and dispatches `tokens`.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `callbackUrl` | `string` \| `URL` | URL Foxy redirected the user to. |
+| `callbackUrl` | `string` \| [`URL`](https://developer.mozilla.org/en-US/docs/Web/API/URL) | URL Foxy redirected the user to. |
 | `expectedState` | `string` | The `state` passed to [API.signIn](#signin) for this user. |
 
 #### Returns
 
-`Promise`\<[`Tokens`](/docs/reference/admin/types#tokens)\>
+[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<[`Tokens`](/docs/reference/admin/types#tokens)\>
 
 New tokens.
 
@@ -287,7 +287,7 @@ removing this resource.
 
 #### Returns
 
-`Promise`\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/admin/types#graph), `undefined`\>\>
+[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/admin/types#graph), `undefined`\>\>
 
 Instance of APIResponse representing this resource.
 
@@ -310,13 +310,13 @@ This method implements native [Fetch API](https://developer.mozilla.org/en-US/do
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| ...`args` | \[`input`: `URL` \| `RequestInfo`, `init?`: `RequestInit`\] | Fetch API arguments (url and request parameters). |
+| ...`args` | \[`input`: [`URL`](https://developer.mozilla.org/en-US/docs/Web/API/URL) \| [`RequestInfo`](https://developer.mozilla.org/en-US/docs/Web/API/Request), `init?`: [`RequestInit`](https://developer.mozilla.org/en-US/docs/Web/API/RequestInit)\] | [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) arguments (url and request parameters). |
 
 #### Returns
 
-`Promise`\<`Response`\>
+[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<[`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response)\>
 
-Fetch API response.
+[Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) response.
 
 #### Inherited from
 
@@ -377,7 +377,7 @@ get(): Promise<Response<Graph, undefined>>;
 
 ##### Returns
 
-`Promise`\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/admin/types#graph), `undefined`\>\>
+[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/admin/types#graph), `undefined`\>\>
 
 ##### Inherited from
 
@@ -403,7 +403,7 @@ get<Q>(query): Promise<Response<Graph, Q>>;
 
 ##### Returns
 
-`Promise`\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/admin/types#graph), `Q`\>\>
+[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/admin/types#graph), `Q`\>\>
 
 ##### Inherited from
 
@@ -428,7 +428,7 @@ with provided properties, updating this resource.
 
 #### Returns
 
-`Promise`\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/admin/types#graph), `undefined`\>\>
+[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/admin/types#graph), `undefined`\>\>
 
 Instance of APIResponse representing this resource.
 
@@ -456,7 +456,7 @@ with provided properties, creating a resource or triggering an action.
 
 #### Returns
 
-`Promise`\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/admin/types#graph), `undefined`\>\>
+[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/admin/types#graph), `undefined`\>\>
 
 Instance of APIResponse representing this resource.
 
@@ -484,7 +484,7 @@ with provided properties, replacing the existing resource.
 
 #### Returns
 
-`Promise`\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/admin/types#graph), `undefined`\>\>
+[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/admin/types#graph), `undefined`\>\>
 
 Instance of APIResponse representing this resource.
 
@@ -587,7 +587,7 @@ or a refresh token. See more in our [authentication docs](https://api.foxy.io/do
 
 ##### Returns
 
-`Promise`\<[`TokenResponse`](/docs/reference/admin/types#tokenresponse) \| `null`\>
+[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<[`TokenResponse`](/docs/reference/admin/types#tokenresponse) \| `null`\>
 
 Access token with additional info on success, null on failure.
 
@@ -609,6 +609,6 @@ or a refresh token. See more in our [authentication docs](https://api.foxy.io/do
 
 ##### Returns
 
-`Promise`\<[`TokenResponse`](/docs/reference/admin/types#tokenresponse)\>
+[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<[`TokenResponse`](/docs/reference/admin/types#tokenresponse)\>
 
 Access token with additional info on success, null on failure.

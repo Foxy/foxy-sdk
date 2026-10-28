@@ -39,7 +39,7 @@ get itemCount(): number | null;
 ```
 
 `null` means "not known yet", which is not the same as an empty cart.
-Most-recent-wins: what the iframe reported this session, then the
+Most-recent-wins: what the [iframe](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe) reported this session, then the
 client's own json, then the persisted cache. A delegated mutation never
 refreshes `client.json` -- it forwards to the transport and returns --
 so once the iframe has reported, its number is the only one still being

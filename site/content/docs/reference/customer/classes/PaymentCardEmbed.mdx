@@ -3,7 +3,7 @@ title: "PaymentCardEmbed"
 description: "@foxy.io/sdk/customer"
 ---
 
-A convenience wrapper for the payment card embed iframe. You don't have to use
+A convenience wrapper for the payment card embed [iframe](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe). You don't have to use
 this class to embed the payment card iframe, but it provides a more convenient
 way to interact with the iframe and listen to its events.
 
@@ -113,11 +113,11 @@ it will be unmounted first.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `root` | `Element` | The root element to mount the embed in. |
+| `root` | [`Element`](https://developer.mozilla.org/en-US/docs/Web/API/Element) | The root element to mount the embed in. |
 
 #### Returns
 
-`Promise`\<`void`\>
+[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<`void`\>
 
 A promise that resolves when the embed is mounted.
 
@@ -133,7 +133,7 @@ Requests the tokenization of the card data.
 
 #### Returns
 
-`Promise`\<`string`\>
+[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<`string`\>
 
 A promise that resolves with the tokenized card data.
 

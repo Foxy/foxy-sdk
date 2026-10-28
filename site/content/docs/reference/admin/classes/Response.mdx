@@ -3,8 +3,8 @@ title: "Response<TGraph, TQuery>"
 description: "@foxy.io/sdk/admin"
 ---
 
-Base class representing any response returned by API. Extends the native Response
-object of Fetch API and has all the data of the original response in addition
+Base class representing any response returned by API. Extends the native [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response)
+object of [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) and has all the data of the original response in addition
 to a few custom methods. You shouldn't need to construct instances of this
 class directly unless you're building a custom API client with this SDK.
 
@@ -54,7 +54,7 @@ new Response<TGraph, TQuery>(init): Response<TGraph, TQuery>;
 
 #### Returns
 
-`Response`\<`TGraph`, `TQuery`\>
+[`Response`](/docs/reference/admin/classes/Response)\<`TGraph`, `TQuery`\>
 
 ## Methods
 
@@ -70,7 +70,7 @@ for the most common actions.
 
 #### Returns
 
-`Promise`\<`FollowableResource`\<`TGraph`, `TQuery`\>\>
+[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<`FollowableResource`\<`TGraph`, `TQuery`\>\>
 
 Followable API response.
 
