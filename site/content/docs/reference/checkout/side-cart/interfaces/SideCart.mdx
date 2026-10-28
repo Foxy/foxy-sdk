@@ -24,7 +24,9 @@ bindBadge(sideCart, document.createElement('span'));
 
 ## Extends
 
-- `EventTarget`
+- [`EventTarget`](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget)
+
+It also has every property and method of [`EventTarget`](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget). This page lists only what it adds or changes.
 
 ## Accessors
 
@@ -88,64 +90,6 @@ get open(): boolean;
 
 ## Methods
 
-### addEventListener()
-
-```ts
-addEventListener(
-   type, 
-   callback, 
-   options?
-): void;
-```
-
-The **`addEventListener()`** method of the EventTarget interface sets up a function that will be called whenever the specified event is delivered to the target.
-
-[MDN Reference](https://developer.mozilla.org/docs/Web/API/EventTarget/addEventListener)
-
-#### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `type` | `string` |
-| `callback` | `EventListenerOrEventListenerObject` \| `null` |
-| `options?` | `boolean` \| `AddEventListenerOptions` |
-
-#### Returns
-
-`void`
-
-#### Inherited from
-
-`EventTarget.addEventListener`
-
-***
-
-### dispatchEvent()
-
-```ts
-dispatchEvent(event): boolean;
-```
-
-The **`dispatchEvent()`** method of the EventTarget sends an Event to the object, (synchronously) invoking the affected event listeners in the appropriate order.
-
-[MDN Reference](https://developer.mozilla.org/docs/Web/API/EventTarget/dispatchEvent)
-
-#### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `event` | `Event` |
-
-#### Returns
-
-`boolean`
-
-#### Inherited from
-
-`EventTarget.dispatchEvent`
-
-***
-
 ### hide()
 
 ```ts
@@ -182,38 +126,6 @@ reload(): void;
 
 ***
 
-### removeEventListener()
-
-```ts
-removeEventListener(
-   type, 
-   callback, 
-   options?
-): void;
-```
-
-The **`removeEventListener()`** method of the EventTarget interface removes an event listener previously registered with EventTarget.addEventListener() from the target.
-
-[MDN Reference](https://developer.mozilla.org/docs/Web/API/EventTarget/removeEventListener)
-
-#### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `type` | `string` |
-| `callback` | `EventListenerOrEventListenerObject` \| `null` |
-| `options?` | `boolean` \| `EventListenerOptions` |
-
-#### Returns
-
-`void`
-
-#### Inherited from
-
-`EventTarget.removeEventListener`
-
-***
-
 ### show()
 
 ```ts
@@ -235,3 +147,4 @@ unmount(): void;
 #### Returns
 
 `void`
+

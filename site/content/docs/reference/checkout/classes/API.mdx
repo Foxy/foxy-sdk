@@ -25,7 +25,9 @@ client.applyCouponOrGiftCardCode({ code: 'SPRING10' });
 
 ## Extends
 
-- `EventTarget`
+- [`EventTarget`](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget)
+
+It also has every property and method of [`EventTarget`](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget). This page lists only what it adds or changes.
 
 ## Constructors
 
@@ -44,10 +46,6 @@ new API(params?): API;
 #### Returns
 
 `API`
-
-#### Overrides
-
-`EventTarget.constructor`
 
 ## Properties
 
@@ -177,10 +175,6 @@ The **`addEventListener()`** method of the EventTarget interface sets up a funct
 
 `void`
 
-##### Overrides
-
-`EventTarget.addEventListener`
-
 #### Call Signature
 
 ```ts
@@ -197,10 +191,6 @@ addEventListener(type, listener): void;
 ##### Returns
 
 `void`
-
-##### Overrides
-
-`EventTarget.addEventListener`
 
 ***
 
@@ -351,32 +341,6 @@ completes or reopens the transaction.
 
 ***
 
-### dispatchEvent()
-
-```ts
-dispatchEvent(event): boolean;
-```
-
-The **`dispatchEvent()`** method of the EventTarget sends an Event to the object, (synchronously) invoking the affected event listeners in the appropriate order.
-
-[MDN Reference](https://developer.mozilla.org/docs/Web/API/EventTarget/dispatchEvent)
-
-#### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `event` | `Event` |
-
-#### Returns
-
-`boolean`
-
-#### Inherited from
-
-`EventTarget.dispatchEvent`
-
-***
-
 ### getAddressSuggestions()
 
 ```ts
@@ -482,10 +446,6 @@ The **`removeEventListener()`** method of the EventTarget interface removes an e
 
 `void`
 
-##### Overrides
-
-`EventTarget.removeEventListener`
-
 #### Call Signature
 
 ```ts
@@ -502,10 +462,6 @@ removeEventListener(type, listener): void;
 ##### Returns
 
 `void`
-
-##### Overrides
-
-`EventTarget.removeEventListener`
 
 ***
 
@@ -756,3 +712,4 @@ updateShipment(params): void;
 #### Returns
 
 `void`
+

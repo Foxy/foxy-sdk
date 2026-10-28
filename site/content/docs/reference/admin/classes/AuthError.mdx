@@ -30,7 +30,9 @@ try {
 
 ## Extends
 
-- `Error`
+- [`Error`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)
+
+It also has every property and method of [`Error`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error). This page lists only what it adds or changes.
 
 ## Constructors
 
@@ -50,23 +52,7 @@ new AuthError(params): AuthError;
 
 `AuthError`
 
-#### Overrides
-
-`Error.constructor`
-
 ## Properties
-
-### cause?
-
-```ts
-cause?: unknown;
-```
-
-#### Inherited from
-
-`Error.cause`
-
-***
 
 ### code
 
@@ -78,30 +64,6 @@ Error code (see static constants on this class for possible values).
 
 ***
 
-### message
-
-```ts
-message: string;
-```
-
-#### Inherited from
-
-`Error.message`
-
-***
-
-### name
-
-```ts
-name: string;
-```
-
-#### Inherited from
-
-`Error.name`
-
-***
-
 ### originalError?
 
 ```ts
@@ -109,18 +71,6 @@ readonly originalError?: unknown;
 ```
 
 Exception that triggered this error, if present.
-
-***
-
-### stack?
-
-```ts
-stack?: string;
-```
-
-#### Inherited from
-
-`Error.stack`
 
 ***
 
@@ -191,3 +141,4 @@ readonly static UNKNOWN: "UNKNOWN" = 'UNKNOWN';
 ```
 
 Any other or internal error that interrupted authentication.
+

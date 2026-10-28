@@ -30,7 +30,9 @@ try {
 
 ## Extends
 
-- `Error`
+- [`Error`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)
+
+It also has every property and method of [`Error`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error). This page lists only what it adds or changes.
 
 ## Constructors
 
@@ -50,47 +52,7 @@ new ResolutionError(response): ResolutionError;
 
 `ResolutionError`
 
-#### Overrides
-
-`Error.constructor`
-
 ## Properties
-
-### cause?
-
-```ts
-cause?: unknown;
-```
-
-#### Inherited from
-
-`Error.cause`
-
-***
-
-### message
-
-```ts
-message: string;
-```
-
-#### Inherited from
-
-`Error.message`
-
-***
-
-### name
-
-```ts
-name: string;
-```
-
-#### Inherited from
-
-`Error.name`
-
-***
 
 ### response
 
@@ -100,14 +62,3 @@ readonly response: Response;
 
 API response object with a non-2XX status code.
 
-***
-
-### stack?
-
-```ts
-stack?: string;
-```
-
-#### Inherited from
-
-`Error.stack`
