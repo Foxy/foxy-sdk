@@ -74,16 +74,13 @@ function stringifyOrder(order: unknown): string {
 export class Node<TGraph extends Graph> {
   static readonly ResolutionError = ResolutionError;
 
-  /**
-   * This SDK's {@link Response} class.
-   *
-   * A getter, not a static field. `Response.ts` imports this module for
-   * `addFollowableLinks`, so the two form a value cycle. A static field is read
-   * during this class's static initialization, which under plain ESM happens
-   * while `Response.ts` is still evaluating whenever `Response.ts` is the entry
-   * point, and the binding is still in its temporal dead zone. A getter defers
-   * the read until the first access, by which time both modules are done.
-   */
+  // A getter, not a static field. `Response.ts` imports this module for
+  // `addFollowableLinks`, so the two form a value cycle. A static field is read
+  // during this class's static initialization, which under plain ESM happens
+  // while `Response.ts` is still evaluating whenever `Response.ts` is the entry
+  // point, and the binding is still in its temporal dead zone. A getter defers
+  // the read until the first access, by which time both modules are done.
+  /** This SDK's {@link Response} class. */
   static get Response(): typeof Response {
     return Response;
   }
