@@ -1,4 +1,4 @@
-import { signFragment } from '@foxy.io/sdk/admin';
+import { signFragment } from '@foxy.io/sdk/admin/signing';
 import { JSDOM } from 'jsdom';
 
 const html = '<form action="https://example.foxycart.com/cart"><input name="code" value="mug"></form>';

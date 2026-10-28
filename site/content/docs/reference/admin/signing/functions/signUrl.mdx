@@ -1,6 +1,6 @@
 ---
 title: "signUrl()"
-description: "@foxy.io/sdk/admin"
+description: "@foxy.io/sdk/admin/signing"
 ---
 
 ```ts
@@ -13,7 +13,7 @@ signed, provided it is a proper URL and there is a code field.
 ## Example
 
 ```ts
-import { signUrl } from '@foxy.io/sdk/admin';
+import { signUrl } from '@foxy.io/sdk/admin/signing';
 
 // The URL must have a `code` field. All query fields are signed.
 const url = await signUrl(

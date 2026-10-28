@@ -52,7 +52,7 @@ export function findInternalLeaks(referenceDir) {
     for (const entry of readdirSync(referenceDir, { withFileTypes: true })) {
       if (!entry.isDirectory()) continue;
       const dirs = [join(referenceDir, entry.name)];
-      if (entry.name === 'checkout') dirs.push(...subentries('checkout').map(sub => join(referenceDir, 'checkout', sub)));
+      dirs.push(...subentries(entry.name).map(sub => join(referenceDir, entry.name, sub)));
       for (const dir of dirs) {
         const page = findPage(dir, name);
         if (!page) continue;

@@ -8,6 +8,7 @@ describe('package.json', () => {
   it('publishes exactly these subpaths and no root entry', () => {
     expect(Object.keys(pkg.exports).sort()).toStrictEqual([
       './admin',
+      './admin/signing',
       './checkout',
       './checkout/add-to-cart',
       './checkout/client',

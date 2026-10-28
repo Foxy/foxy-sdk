@@ -16,6 +16,7 @@ const builtins = new Set([
 
 const entryMap = {
   admin: resolve(__dirname, "src/admin/index.ts"),
+  "admin/signing": resolve(__dirname, "src/admin/signing.ts"),
   checkout: resolve(__dirname, "src/checkout/index.ts"),
   "checkout/client": resolve(__dirname, "src/checkout/client.ts"),
   "checkout/loader": resolve(__dirname, "src/checkout/loader.ts"),

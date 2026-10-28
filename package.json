@@ -8,6 +8,10 @@
       "types": "./dist/npm/admin.d.ts",
       "import": "./dist/npm/admin.js"
     },
+    "./admin/signing": {
+      "types": "./dist/npm/admin/signing.d.ts",
+      "import": "./dist/npm/admin/signing.js"
+    },
     "./checkout": {
       "types": "./dist/npm/checkout.d.ts",
       "import": "./dist/npm/checkout.js"

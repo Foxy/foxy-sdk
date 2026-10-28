@@ -56,7 +56,7 @@ Entry Points.
 
 `exports` in `package.json`, `entryMap` in `vite.config.ts`, the `include` array
 in the `dts()` plugin call, and `include` in `tsconfig.build.json` are four
-hand-maintained lists covering the same entries — `admin`, `checkout`,
+hand-maintained lists covering the same entries — `admin`, `admin/signing`, `checkout`,
 `checkout/client`, `checkout/loader`, `checkout/side-cart`,
 `checkout/add-to-cart`, `customer`, `internal/core`, `internal/side-cart/protocol`.
 

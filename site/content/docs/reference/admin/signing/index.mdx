@@ -1,0 +1,17 @@
+---
+title: "@foxy.io/sdk/admin/signing"
+description: "@foxy.io/sdk/admin/signing"
+---
+
+HMAC signing for cart links and forms, so shoppers cannot change prices or other product fields. The functions need your store secret, so use them on a server only.
+
+```ts
+import { signUrl } from '@foxy.io/sdk/admin/signing';
+```
+
+## Functions
+
+- [signFragment](/docs/reference/admin/signing/functions/signFragment)
+- [signName](/docs/reference/admin/signing/functions/signName)
+- [signUrl](/docs/reference/admin/signing/functions/signUrl)
+- [signValue](/docs/reference/admin/signing/functions/signValue)

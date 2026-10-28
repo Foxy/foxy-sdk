@@ -1,4 +1,4 @@
-import { signName } from '@foxy.io/sdk/admin';
+import { signName } from '@foxy.io/sdk/admin/signing';
 
 // Sign the name of a product input, for example `<input name="price" value="10">`.
 const name = await signName(process.env.FOXY_STORE_SECRET!, 'price', 'mug', '', 10);

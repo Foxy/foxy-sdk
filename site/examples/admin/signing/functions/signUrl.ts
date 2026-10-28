@@ -1,4 +1,4 @@
-import { signUrl } from '@foxy.io/sdk/admin';
+import { signUrl } from '@foxy.io/sdk/admin/signing';
 
 // The URL must have a `code` field. All query fields are signed.
 const url = await signUrl(

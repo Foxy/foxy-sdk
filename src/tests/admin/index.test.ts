@@ -13,13 +13,6 @@ describe('Admin', () => {
       expect(Admin).toHaveProperty('API');
     });
 
-    it('exports the Signer functions', () => {
-      expect(Admin).toHaveProperty('signName');
-      expect(Admin).toHaveProperty('signValue');
-      expect(Admin).toHaveProperty('signUrl');
-      expect(Admin).toHaveProperty('signFragment');
-    });
-
     it('exports createSSOURL', () => {
       expect(Admin).toHaveProperty('createSSOURL');
     });
@@ -49,10 +42,6 @@ describe('Admin', () => {
         'getResourceId',
         'getTimeFromFrequency',
         'isNextTransactionDate',
-        'signFragment',
-        'signName',
-        'signUrl',
-        'signValue',
         'verifyWebhookSignature',
       ]);
     });
