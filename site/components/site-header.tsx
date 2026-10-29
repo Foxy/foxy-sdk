@@ -88,6 +88,8 @@ const slugify = (name: string) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '');
 
+const onHome = (url?: string) => url === docsRoute || url === `${docsRoute}/`;
+
 function Breadcrumbs() {
   const path = useTreePath();
   const { root } = useTreeContext();
@@ -112,15 +114,18 @@ function Breadcrumbs() {
     if (list.length && list[list.length - 1].name === current.name) list.pop();
     return list;
   }, [root, path, current.name]);
-  // nearest ancestor that is not this page
-  const parent = [...items].reverse().find((item) => item.url && item.url !== current.url);
+  const sdk = { name: 'SDK', url: `${docsRoute}/` };
+  // nearest ancestor that is not this page; SDK for top-level pages
+  const parent = [...items, ...(onHome(current.url) ? [] : [sdk])]
+    .reverse()
+    .find((item) => item.url && item.url !== current.url);
 
   return (
     <>
       <nav aria-label="Breadcrumb" className="min-w-0 max-md:hidden">
         <ol className="flex items-center gap-1.5 text-[0.91875rem] text-fd-primary">
           <li className="flex items-center">
-            <Link href={`${docsRoute}/`} aria-label="Docs home" className={`${focus} rounded-sm`}>
+            <a href="https://www.foxy.io/help" aria-label="Foxy home" className={`${focus} rounded-sm`}>
               <svg
                 viewBox="0 0 24 24"
                 fill="none"
@@ -134,9 +139,9 @@ function Breadcrumbs() {
                 <path d="M3 11.5 12 4l9 7.5" />
                 <path d="M5.5 10v9.5h4.5V14h4v5.5h4.5V10" />
               </svg>
-            </Link>
+            </a>
           </li>
-          {items.map((item, i) => (
+          {[sdk, ...items].map((item, i) => (
             <li key={i} className="flex min-w-0 items-center gap-1.5">
               <span aria-hidden className="text-fd-foreground dark:text-fd-muted-foreground">
                 /
