@@ -9,8 +9,8 @@ describe('Core', () => {
       expect(API).toHaveProperty('AuthError', AuthError);
     });
 
-    it('exposes Node via static property', () => {
-      expect(API).toHaveProperty('Node', Node);
+    it('does not expose the internal Node class', () => {
+      expect(API).not.toHaveProperty('Node');
     });
 
     it('does not expose the cross-fetch polyfill statics', () => {

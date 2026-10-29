@@ -47,8 +47,6 @@ export type APIInit = {
 export class API<TGraph extends Graph> extends Node<TGraph> {
   static readonly AuthError = AuthError;
 
-  static readonly Node = Node;
-
   /**
    * Shared {@link Logger} instance.
    * If you extend this class and add logging in your code, use this instead of native console.
