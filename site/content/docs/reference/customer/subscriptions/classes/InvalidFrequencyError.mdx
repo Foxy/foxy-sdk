@@ -1,0 +1,45 @@
+---
+title: "InvalidFrequencyError"
+description: "@foxy.io/sdk/customer/subscriptions"
+---
+
+Instances of this error are thrown by `getTimeFromFrequency` when
+provided with unsupported frequency.
+
+## Example
+
+```ts
+import { getTimeFromFrequency, InvalidFrequencyError } from '@foxy.io/sdk/customer/subscriptions';
+
+try {
+  getTimeFromFrequency('every week');
+} catch (error) {
+  if (error instanceof InvalidFrequencyError) {
+    console.error(error.message); // Invalid frequency "every week".
+  } else {
+    throw error;
+  }
+}
+```
+
+## Extends
+
+- [`Error`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)
+
+It also has every property and method of [`Error`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error). This page lists only what it adds or changes.
+
+## Constructor
+
+```ts
+new InvalidFrequencyError(frequency): InvalidFrequencyError;
+```
+
+### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `frequency` | `string` |
+
+### Returns
+
+`InvalidFrequencyError`

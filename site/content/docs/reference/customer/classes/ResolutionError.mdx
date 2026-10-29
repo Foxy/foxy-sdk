@@ -1,0 +1,61 @@
+---
+title: "ResolutionError"
+description: "@foxy.io/sdk/customer"
+---
+
+This error is thrown when one of the requests for a resource
+in a path returns a non-2XX status code during the URL resolution process.
+If you're implementing a custom resolver, consider using this class
+to indicate resolution errors.
+
+## Example
+
+```ts
+import { API, ResolutionError } from '@foxy.io/sdk/customer';
+
+const api = new API({ base: new URL('https://example.foxycart.com/s/customer/') });
+await api.signIn({ email: 'customer@example.com', password: 'password' });
+
+try {
+  await api.follow('fx:default_payment_method').get();
+} catch (error) {
+  if (error instanceof ResolutionError) {
+    // A resource on the way could not be read, or it has no such link.
+    console.error(error.response.status, error.response.url);
+  } else {
+    throw error;
+  }
+}
+```
+
+## Extends
+
+- [`Error`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)
+
+It also has every property and method of [`Error`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error). This page lists only what it adds or changes.
+
+## Constructor
+
+```ts
+new ResolutionError(response): ResolutionError;
+```
+
+### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `response` | [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response) |
+
+### Returns
+
+`ResolutionError`
+
+## Properties
+
+### response
+
+```ts
+readonly response: Response;
+```
+
+API response object with a non-2XX status code.

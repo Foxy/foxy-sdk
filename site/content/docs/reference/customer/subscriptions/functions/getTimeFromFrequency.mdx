@@ -1,0 +1,41 @@
+---
+title: "getTimeFromFrequency()"
+description: "@foxy.io/sdk/customer/subscriptions"
+---
+
+```ts
+function getTimeFromFrequency(frequency): number;
+```
+
+Gives a rough estimate for a number of milliseconds in the given frequency.
+
+IMPORTANT: this function SHOULD NOT be used to calculate precise dates
+as it doesn't account for leap years, months of variable length, etc. It works
+best for broad estimates and comparing frequencies.
+
+## Example
+
+```ts
+import { getTimeFromFrequency } from '@foxy.io/sdk/customer/subscriptions';
+
+// Returns milliseconds. A month is 31 days and a year is 365 days.
+const week = getTimeFromFrequency('1w'); // 604800000
+const twoMonths = getTimeFromFrequency('2m');
+console.log(week, twoMonths);
+```
+
+## Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `frequency` | `string` | Frequency as positive integer + units (y, m, w, d for years, months, weeks and days respectively). You can use .5m for twice a month. Example: 1m (1 month), 4y (4 years). |
+
+## Returns
+
+`number`
+
+Estimated number of milliseconds in the given frequency.
+
+## Throws
+
+InvalidFrequencyError when provided with unsupported frequency.

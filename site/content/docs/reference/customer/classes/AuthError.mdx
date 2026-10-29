@@ -1,0 +1,140 @@
+---
+title: "AuthError"
+description: "@foxy.io/sdk/customer"
+---
+
+Base error class for all authentication-related errors in
+the APIs that can be used both server and client-side. If you're
+building your own API client with our SDK, you should consider using
+this class for similar purposes.
+
+## Example
+
+```ts
+import { API, AuthError } from '@foxy.io/sdk/customer';
+
+const api = new API({ base: new URL('https://example.foxycart.com/s/customer/') });
+
+try {
+  await api.signIn({ email: 'customer@example.com', password: 'password' });
+} catch (error) {
+  if (error instanceof AuthError && error.code === AuthError.UNAUTHORIZED) {
+    // The email or the password is wrong.
+    console.error('Check your email and password.');
+  } else {
+    throw error;
+  }
+}
+```
+
+## Extends
+
+- [`Error`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)
+
+It also has every property and method of [`Error`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error). This page lists only what it adds or changes.
+
+## Constructor
+
+```ts
+new AuthError(params): AuthError;
+```
+
+### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `params` | `AuthErrorParams` |
+
+### Returns
+
+`AuthError`
+
+## Properties
+
+### code
+
+```ts
+readonly code: AuthErrorCode;
+```
+
+Error code (see static constants on this class for possible values).
+
+***
+
+### originalError?
+
+```ts
+readonly originalError?: unknown;
+```
+
+Exception that triggered this error, if present.
+
+***
+
+### INVALID\_FORM
+
+```ts
+readonly static INVALID_FORM: "INVALID_FORM" = 'INVALID_FORM';
+```
+
+Provided form data is invalid, e.g. email is too long or captcha is expired.
+
+***
+
+### INVALID\_NEW\_PASSWORD
+
+```ts
+readonly static INVALID_NEW_PASSWORD: "INVALID_NEW_PASSWORD" = 'INVALID_NEW_PASSWORD';
+```
+
+Credentials are valid, but the new password provided in response to the `NEW_PASSWORD_REQUIRED` error doesn't meet the security requirements.
+
+***
+
+### NEW\_PASSWORD\_REQUIRED
+
+```ts
+readonly static NEW_PASSWORD_REQUIRED: "NEW_PASSWORD_REQUIRED" = 'NEW_PASSWORD_REQUIRED';
+```
+
+Credentials are valid, but the session can be created only after changing the current password. This usually happens after a server-side password reset has been initiated for security reasons.
+
+***
+
+### TOKEN\_REFRESH\_FAILED
+
+```ts
+readonly static TOKEN_REFRESH_FAILED: "TOKEN_REFRESH_FAILED" = 'TOKEN_REFRESH_FAILED';
+```
+
+OAuth token refresh failed — the refresh token, client ID, or client secret may be invalid, or the token endpoint is unreachable.
+
+***
+
+### UNAUTHORIZED
+
+```ts
+readonly static UNAUTHORIZED: "UNAUTHORIZED" = 'UNAUTHORIZED';
+```
+
+Credentials are invalid. That could mean empty or invalid email or password or otherwise incorrect auth data.
+
+***
+
+### UNAVAILABLE
+
+```ts
+readonly static UNAVAILABLE: "UNAVAILABLE" = 'UNAVAILABLE';
+```
+
+Provided email is already taken. Applies to customer registration only.
+
+***
+
+### UNKNOWN
+
+```ts
+readonly static UNKNOWN: "UNKNOWN" = 'UNKNOWN';
+```
+
+Any other or internal error that interrupted authentication.

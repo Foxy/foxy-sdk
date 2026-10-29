@@ -16,6 +16,20 @@ type AllowedFrequenciesOptions = {
 };
 ```
 
+### Constraints
+
+The allowed range for a subscription's next transaction date, merged from every rule that applies: the earliest and latest date, blocked dates, and allowed days of the week or month. Returned by [`getNextTransactionDateConstraints()`](/docs/reference/customer/subscriptions/functions/getNextTransactionDateConstraints).
+
+```ts
+type Constraints = {
+  min?: string;
+  max?: string;
+  disallowedDates?: string[];
+  allowedDaysOfWeek?: number[];
+  allowedDaysOfMonth?: number[];
+};
+```
+
 ### NextDateRules
 
 The customer portal's rules for changing a subscription's next transaction date. `false` blocks changes, `true` allows any date, and an array lists custom rules. Passed to [`getNextTransactionDateConstraints()`](/docs/reference/customer/subscriptions/functions/getNextTransactionDateConstraints) and inside [`NextTransactionDateOptions`](/docs/reference/customer/subscriptions/types#nexttransactiondateoptions).

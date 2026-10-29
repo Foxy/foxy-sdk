@@ -132,6 +132,16 @@ type PaymentCardEmbedConfig = Partial<{
 }>;
 ```
 
+### Resource
+
+A typed API resource as a request returns it: its fields, its `_links`, and the `_embedded` resources the query zooms in on. `TGraph` is a resource type from [`Rels`](/docs/reference/customer/types#rels), like `Rels.Subscription`, and `TQuery` is the query you sent. [`Response`](/docs/reference/customer/classes/Response) parses to it, and the subscription helpers take it, for example in [`AllowedFrequenciesOptions`](/docs/reference/customer/subscriptions/types#allowedfrequenciesoptions).
+
+```ts
+type Resource<TGraph extends Graph, TQuery extends Query<TGraph> | undefined = undefined> = Links<TGraph> &
+  Props<TGraph, TQuery> &
+  Embeds<TGraph, TQuery>;
+```
+
 ## Interfaces
 
 ### Credentials

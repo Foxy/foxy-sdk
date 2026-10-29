@@ -1,0 +1,73 @@
+---
+title: "Response<TGraph, TQuery>"
+description: "@foxy.io/sdk/customer"
+---
+
+Base class representing any response returned by API. Extends the native [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response)
+object of [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) and has all the data of the original response in addition
+to a few custom methods. You shouldn't need to construct instances of this
+class directly unless you're building a custom API client with this SDK.
+
+## Example
+
+```ts
+import { API } from '@foxy.io/sdk/customer';
+
+const api = new API({ base: new URL('https://example.foxycart.com/s/customer/') });
+await api.signIn({ email: 'customer@example.com', password: 'password' });
+
+// `get()` resolves with a `Response` for any status code. Check `ok` first.
+const response = await api.get();
+if (!response.ok) throw new Error(`Foxy API error ${response.status}`);
+
+// `json()` is typed from the link you followed.
+const customer = await response.json();
+console.log(customer.email);
+```
+
+## Extends
+
+- [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response)
+
+It also has every property and method of [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response). This page lists only what it adds or changes.
+
+## Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| <a id="type-parameter-tgraph"></a> `TGraph` *extends* `Graph` | - |
+| <a id="type-parameter-tquery"></a> `TQuery` *extends* `Query`\<`TGraph`\> \| `undefined` | `undefined` |
+
+## Constructor
+
+```ts
+new Response<TGraph, TQuery>(init): Response<TGraph, TQuery>;
+```
+
+### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `init` | `ResponseInit` & `object` |
+
+### Returns
+
+[`Response`](/docs/reference/customer/classes/Response)\<`TGraph`, `TQuery`\>
+
+## Methods
+
+### json()
+
+```ts
+json(): Promise<FollowableResource<TGraph, TQuery>>;
+```
+
+Gets JSON data from the response body and generates
+a followable response with a number of shortcuts
+for the most common actions.
+
+#### Returns
+
+[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<`FollowableResource`\<`TGraph`, `TQuery`\>\>
+
+Followable API response.
