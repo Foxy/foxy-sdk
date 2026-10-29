@@ -25,10 +25,6 @@ console.log(customer.email, subscriptions.returned_items);
 await api.signOut();
 ```
 
-## Extends
-
-- `API`\<[`Graph`](/docs/reference/customer/types#graph)\>
-
 ## Constructor
 
 ```ts
@@ -45,10 +41,6 @@ new API(params): API;
 
 `API`
 
-### Overrides
-
-`Core.API<Graph>.constructor`
-
 ## Properties
 
 ### base
@@ -59,10 +51,6 @@ readonly base: URL;
 
 Bookmark [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) for this API.
 This is where the tree traversal begins. We also use this URL as a base for relative paths.
-
-#### Inherited from
-
-`Core.API.base`
 
 ***
 
@@ -75,10 +63,6 @@ readonly cache: Storage;
 Resolver cache implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API).
 Every resolved path will be stored here for future use. You can clear this cache by calling `clear()`.
 
-#### Inherited from
-
-`Core.API.cache`
-
 ***
 
 ### console
@@ -89,10 +73,6 @@ readonly console: Logger;
 
 Shared Logger instance.
 If you extend this class and add logging in your code, use this instead of native console.
-
-#### Inherited from
-
-`Core.API.console`
 
 ***
 
@@ -105,10 +85,6 @@ readonly storage: Storage;
 Credentials storage implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API).
 Access tokens and other related info will be stored here. Clearing this storage will log you out.
 
-#### Inherited from
-
-`Core.API.storage`
-
 ***
 
 ### AuthError
@@ -116,10 +92,6 @@ Access tokens and other related info will be stored here. Clearing this storage 
 ```ts
 readonly static AuthError: typeof AuthError;
 ```
-
-#### Inherited from
-
-`Core.API.AuthError`
 
 ***
 
@@ -129,10 +101,6 @@ readonly static AuthError: typeof AuthError;
 readonly static Node: typeof Node;
 ```
 
-#### Inherited from
-
-`Core.API.Node`
-
 ***
 
 ### ResolutionError
@@ -140,10 +108,6 @@ readonly static Node: typeof Node;
 ```ts
 readonly static ResolutionError: typeof ResolutionError;
 ```
-
-#### Inherited from
-
-`Core.API.ResolutionError`
 
 ***
 
@@ -207,10 +171,6 @@ This SDK's [Response](/docs/reference/admin/classes/Response) class.
 
 *typeof* [`Response`](/docs/reference/admin/classes/Response)
 
-#### Inherited from
-
-`Core.API.Response`
-
 ## Methods
 
 ### delete()
@@ -227,10 +187,6 @@ removing this resource.
 [`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/customer/types#graph), `undefined`\>\>
 
 Instance of APIResponse representing this resource.
-
-#### Inherited from
-
-`Core.API.delete`
 
 ***
 
@@ -254,10 +210,6 @@ This method implements native [Fetch API](https://developer.mozilla.org/en-US/do
 [`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<[`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response)\>
 
 [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) response.
-
-#### Inherited from
-
-`Core.API.fetch`
 
 ***
 
@@ -289,10 +241,6 @@ navigate to its location on request.
 
 Instance of APINode representing the resource at curie location.
 
-#### Inherited from
-
-`Core.API.follow`
-
 ***
 
 ### get()
@@ -316,10 +264,6 @@ get(): Promise<Response<Graph, undefined>>;
 
 [`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/customer/types#graph), `undefined`\>\>
 
-##### Inherited from
-
-`Core.API.get`
-
 #### Call Signature
 
 ```ts
@@ -341,10 +285,6 @@ get<Q>(query): Promise<Response<Graph, Q>>;
 ##### Returns
 
 [`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/customer/types#graph), `Q`\>\>
-
-##### Inherited from
-
-`Core.API.get`
 
 ***
 
@@ -368,10 +308,6 @@ with provided properties, updating this resource.
 [`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/customer/types#graph), `undefined`\>\>
 
 Instance of APIResponse representing this resource.
-
-#### Inherited from
-
-`Core.API.patch`
 
 ***
 
@@ -404,10 +340,6 @@ with provided properties, creating a resource or triggering an action.
 
 Instance of APIResponse representing this resource.
 
-#### Inherited from
-
-`Core.API.post`
-
 ***
 
 ### put()
@@ -438,10 +370,6 @@ with provided properties, replacing the existing resource.
 [`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<[`Response`](/docs/reference/admin/classes/Response)\<[`Graph`](/docs/reference/customer/types#graph), `undefined`\>\>
 
 Instance of APIResponse representing this resource.
-
-#### Inherited from
-
-`Core.API.put`
 
 ***
 
