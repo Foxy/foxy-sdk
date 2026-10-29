@@ -546,6 +546,49 @@ describe("checkout/add-to-cart: forms", () => {
     expect(sent).toEqual([["name", "Shirt"], ["session_id", "s-new"]]);
   });
 
+  it.each([
+    ["the form's action", (element: HTMLFormElement) => (element.action = `${ORIGIN}/cart?empty=reset`), null],
+    [
+      "the submitter's formaction",
+      (element: HTMLFormElement) => {
+        const button = document.createElement("button");
+        button.setAttribute("formaction", `${ORIGIN}/cart?empty=reset`);
+        // jsdom has no `formAction`; a browser resolves the attribute like this.
+        Object.defineProperty(button, "formAction", {
+          get: () => new URL(button.getAttribute("formaction") ?? "", location.href).href,
+        });
+        element.append(button);
+      },
+      "button",
+    ],
+  ])("on empty=reset in %s, sends it without empty in the query, then restores it", async (_, setUp, submitterTag) => {
+    const { client } = await load();
+    await seedSession(client, "s-old");
+    vi.mocked(fetch).mockImplementation(async () =>
+      new Response(JSON.stringify({ session: { id: "s-new" } }), { status: 200 }),
+    );
+    const element = form(`${ORIGIN}/cart`, { name: "Shirt" });
+    setUp(element);
+    const submitter = submitterTag ? element.querySelector<HTMLElement>(submitterTag) : null;
+    const owner = submitter ?? element;
+    const attribute = submitter ? "formaction" : "action";
+    const original = owner.getAttribute(attribute);
+    let sentAction = "";
+    let sent: [string, string][] = [];
+    const requestSubmit = vi.spyOn(element, "requestSubmit").mockImplementation((by?: HTMLElement | null) => {
+      submit(element, by ?? null);
+      sentAction = owner.getAttribute(attribute) ?? "";
+      sent = entries(element);
+    });
+
+    submit(element, submitter);
+    await vi.waitFor(() => expect(requestSubmit).toHaveBeenCalled());
+
+    expect(sentAction).toBe(`${ORIGIN}/cart`);
+    expect(sent).toEqual([["name", "Shirt"], ["session_id", "s-new"]]);
+    expect(owner.getAttribute(attribute)).toBe(original);
+  });
+
   it("on empty=reset, sends the form without a session when none arrives within 3 seconds", async () => {
     const { client } = await load();
     await seedSession(client, "s-old");

@@ -108,7 +108,7 @@ function opensNewTab(event: MouseEvent, target: string): boolean {
 }
 
 /**
- * The only DOM write this module makes. A new-tab click cannot be replayed
+ * The only DOM write that holds the session. A new-tab click cannot be replayed
  * after `preventDefault` (a popup blocker stops `window.open` after an
  * await), so the browser's own default action has to read the session from
  * the `href`. The page stays where it is, so the restore always runs.
@@ -283,11 +283,14 @@ function onSubmit(event: SubmitEvent): void {
     void client.session.end().catch(() => undefined);
     if (newTab) return;
     // Same as a link: get the new session first. `onFormData` then adds it
-    // and removes `empty`, so the server does not reset again.
+    // and removes `empty` from the body, and `empty` leaves the action's
+    // query too: the server reads both, and would reset again.
     event.preventDefault();
     void ensureSession().then((id) => {
       if (id === null) skipSession = form;
-      resubmit(form, submitter);
+      const action = new URL(url);
+      action.searchParams.delete("empty");
+      resubmit(form, submitter, id !== null && url.searchParams.has("empty") ? action.href : undefined);
     });
     return;
   }
@@ -304,7 +307,17 @@ function onSubmit(event: SubmitEvent): void {
   void ensureSession().then(() => resubmit(form, submitter));
 }
 
-function resubmit(form: HTMLFormElement, submitter: HTMLElement | null): void {
+/**
+ * `action` replaces the URL the form is sent to, for this submission only:
+ * `requestSubmit()` reads it synchronously, so it is restored before anything
+ * else can see it.
+ */
+function resubmit(form: HTMLFormElement, submitter: HTMLElement | null, action?: string): void {
+  const owner = submitter?.hasAttribute("formaction") ? submitter : form;
+  const attribute = owner === form ? "action" : "formaction";
+  const original = owner.getAttribute(attribute);
+  if (action !== undefined) owner.setAttribute(attribute, action);
+
   resubmitting = form;
   try {
     form.requestSubmit(submitter ?? undefined);
@@ -312,6 +325,10 @@ function resubmit(form: HTMLFormElement, submitter: HTMLElement | null): void {
     resubmitting = null;
     // `formdata` fires inside `requestSubmit()`, so it has seen this by now.
     skipSession = null;
+    if (action !== undefined) {
+      if (original === null) owner.removeAttribute(attribute);
+      else owner.setAttribute(attribute, original);
+    }
   }
 }
 
