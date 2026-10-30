@@ -1,4 +1,4 @@
-import { API, AuthError } from '@foxy.io/sdk/customer';
+import { API, AuthError } from 'https://cdn-js.foxy.io/sdk@2/customer.js';
 
 const api = new API({ base: new URL('https://example.foxycart.com/s/customer/') });
 

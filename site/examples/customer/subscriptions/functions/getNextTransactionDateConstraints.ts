@@ -1,5 +1,5 @@
-import { API } from '@foxy.io/sdk/customer';
-import { getNextTransactionDateConstraints } from '@foxy.io/sdk/customer/subscriptions';
+import { API } from 'https://cdn-js.foxy.io/sdk@2/customer.js';
+import { getNextTransactionDateConstraints } from 'https://cdn-js.foxy.io/sdk@2/customer/subscriptions.js';
 
 const api = new API({ base: new URL('https://example.foxycart.com/s/customer/') });
 await api.signIn({ email: 'customer@example.com', password: 'password' });

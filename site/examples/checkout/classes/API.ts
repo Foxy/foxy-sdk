@@ -1,4 +1,4 @@
-import { client } from '@foxy.io/sdk/checkout/client';
+import { client } from 'https://cdn-js.foxy.io/sdk@2/checkout/client.js';
 
 // The shared client is an API instance. Listen for changes to the cart.
 client.addEventListener('update', () => {

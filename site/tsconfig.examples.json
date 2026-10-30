@@ -8,7 +8,10 @@
     "skipLibCheck": true,
     "noEmit": true,
     "types": ["node"],
-    "paths": { "@foxy.io/sdk/*": ["../src/*"] }
+    "paths": {
+      "@foxy.io/sdk/*": ["../src/*"],
+      "https://cdn-js.foxy.io/sdk@2/*.js": ["../src/*"]
+    }
   },
   "include": ["tests/examples.test-d.ts", "examples/**/*.ts", "../src/vite-env.d.ts"]
 }

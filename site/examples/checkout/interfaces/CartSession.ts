@@ -1,4 +1,4 @@
-import { client } from '@foxy.io/sdk/checkout/client';
+import { client } from 'https://cdn-js.foxy.io/sdk@2/checkout/client.js';
 
 // Keep the session ID in a cookie. Do this before the store domain is set.
 client.session.configure({
