@@ -23,7 +23,6 @@ export type APIInit = {
   level?: number;
   version?: AdminAPIVersion;
   base?: URL; // pathname ending with "/" !!!
-  cache?: Storage;
 };
 
 export type GrantOpts = ({ code: string; redirectUri: string } | { refreshToken: string }) & {
@@ -137,7 +136,6 @@ export class API extends Core.API<Graph> {
 
     super({
       base: params.base ?? API.BASE_URL,
-      cache: params.cache,
       fetch: (...args) => this.#fetch(...args),
       level: params.level,
     });

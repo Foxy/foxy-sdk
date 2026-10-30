@@ -23,7 +23,6 @@ describe('Core', () => {
     it('errors when constructed with incorrect params', () => {
       const incorrectInit = ({
         base: undefined,
-        cache: Number,
         fetch: 123,
         level: 'hi',
         storage: null,
@@ -66,15 +65,8 @@ describe('Core', () => {
       }
     });
 
-    it('uses MemoryStorage for cache by default', () => {
-      const api = new API({ base: new URL('https://example.com/') });
-      expect(api.cache).toBeInstanceOf(MemoryStorage);
-    });
-
-    it('uses custom storage implementation for cache if provided', () => {
-      const cache = new MemoryStorage();
-      const api = new API({ base: new URL('https://example.com/'), cache });
-      expect(api.cache).toBe(cache);
+    it('has no resolver cache', () => {
+      expect(new API({ base: new URL('https://example.com/') })).not.toHaveProperty('cache');
     });
 
     it('uses MemoryStorage for storage by default', () => {

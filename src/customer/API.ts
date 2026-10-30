@@ -93,7 +93,6 @@ export class API extends Core.API<Graph> {
     if (!response.ok) throw new Core.API.AuthError({ code: 'UNKNOWN' });
 
     this.storage.clear();
-    this.cache.clear();
   }
 
   /**
@@ -130,7 +129,6 @@ export class API extends Core.API<Graph> {
       if (expiresAt < now) {
         this.console.info('Session has expired, signing out.');
         this.storage.clear();
-        this.cache.clear();
         session = null;
       } else {
         request.headers.set('Authorization', `Bearer ${session.session_token}`);

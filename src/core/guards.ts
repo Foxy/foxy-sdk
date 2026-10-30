@@ -77,10 +77,9 @@ export function assertStorage(value: unknown, label: string): void {
 export function assertCoreAPIInit(value: unknown): void {
   if (!isRecord(value)) fail('init', 'an object');
 
-  const { base, cache, fetch, level, storage } = value;
+  const { base, fetch, level, storage } = value;
 
   if (!(base instanceof URL)) fail('init.base', 'an instance of URL');
-  if (cache !== undefined) assertStorage(cache, 'init.cache');
   if (storage !== undefined) assertStorage(storage, 'init.storage');
   if (fetch !== undefined && typeof fetch !== 'function') fail('init.fetch', 'a function');
   if (level !== undefined && !Number.isInteger(level)) fail('init.level', 'an integer');
@@ -206,7 +205,7 @@ export function assertBoolean(value: unknown, label: string): void {
 /**
  * Checks the Admin-specific fields of the Admin API constructor params
  * (`clientId`/`clientSecret`/`redirectUri`/`authorizationUrl`/`version`). The shared
- * `base`/`cache`/`level` fields are intentionally left to
+ * `base`/`level` fields are intentionally left to
  * `assertCoreAPIInit`, which `Core.API`'s own constructor already runs —
  * duplicating that check here would just repeat the same validation twice.
  *

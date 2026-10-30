@@ -1,4 +1,4 @@
-import { assertCurie, assertCurieChain, assertQuery, assertStorage } from '../guards.js';
+import { assertCurie, assertCurieChain, assertQuery } from '../guards.js';
 
 import type { Graph } from '../Graph';
 import type { Logger } from '../logger.js';
@@ -24,8 +24,6 @@ export type NodeInit = {
   path: CurieChain;
   /** Custom Fetch API implementation for making authenticated requests. */
   fetch: typeof globalThis.fetch;
-  /** Resolver cache implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API). */
-  cache: Storage;
   /** Shared {@link Logger} instance. */
   console: Logger;
 };
@@ -91,9 +89,6 @@ export class Node<TGraph extends Graph> {
   /** Custom Fetch API implementation for making authenticated requests. */
   protected readonly _fetch: typeof globalThis.fetch;
 
-  /** Resolver cache implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API). */
-  protected readonly _cache: Storage;
-
   /** Path to this resource node as base URL followed by a list of curies. */
   protected readonly _path: CurieChain;
 
@@ -101,7 +96,6 @@ export class Node<TGraph extends Graph> {
     if (typeof init !== 'object' || init === null) throw new TypeError('init must be an object.');
 
     assertCurieChain(init.path);
-    assertStorage(init.cache, 'init.cache');
     if (typeof init.fetch !== 'function') throw new TypeError('init.fetch must be a function.');
     if (typeof init.console !== 'object' || init.console === null) {
       throw new TypeError('init.console must be a logger.');
@@ -109,7 +103,6 @@ export class Node<TGraph extends Graph> {
 
     this._path = init.path;
     this._fetch = init.fetch;
-    this._cache = init.cache;
     this._console = init.console;
   }
 
@@ -218,7 +211,7 @@ export class Node<TGraph extends Graph> {
   follow<C extends keyof GraphLinks<TGraph>>(curie: C): Node<GraphLinks<TGraph>[C]> {
     assertCurie(curie);
 
-    const config = { cache: this._cache, console: this._console, fetch: this._fetch };
+    const config = { console: this._console, fetch: this._fetch };
     const path = this._path.concat(curie as string) as CurieChain;
 
     return new Node<GraphLinks<TGraph>[C]>({ ...config, path });
@@ -238,7 +231,6 @@ export class Node<TGraph extends Graph> {
   protected async _toResponse(response: globalThis.Response): Promise<Response<TGraph>> {
     return new Response({
       body: NULL_BODY_STATUSES.has(response.status) ? null : await response.text(),
-      cache: this._cache,
       console: this._console,
       fetch: this._fetch,
       headers: response.headers,
@@ -259,17 +251,9 @@ export class Node<TGraph extends Graph> {
 
     const [baseURL, curie] = this._path;
     const key = `${baseURL.toString()} > ${curie}`;
-    const config = { cache: this._cache, console: this._console, fetch: this._fetch };
+    const config = { console: this._console, fetch: this._fetch };
 
     this._console.trace(`Trying to resolve ${key}...`);
-    const cachedURL = this._cache.getItem(key);
-
-    if (cachedURL) {
-      this._console.success(`Resolved ${key} to ${cachedURL.toString()} using cache.`);
-      const reducedPath = [new URL(cachedURL), ...this._path.slice(2)] as CurieChain;
-      return new Node({ ...config, path: reducedPath })._resolve();
-    }
-
     const response = await this._fetch(baseURL.toString());
 
     if (response.ok) {
@@ -279,9 +263,7 @@ export class Node<TGraph extends Graph> {
         const url = new URL(json._links[curie].href);
         const reducedPath = [url, ...this._path.slice(2)] as CurieChain;
 
-        this._cache.setItem(key, url.toString());
-        this._console.trace(`Cached ${url.toString()} for ${key}.`);
-        this._console.success(`Resolved ${key} to ${url.toString()} online.`);
+        this._console.success(`Resolved ${key} to ${url.toString()}.`);
 
         return new Node({ ...config, path: reducedPath })._resolve();
       }

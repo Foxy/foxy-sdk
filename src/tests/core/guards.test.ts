@@ -51,7 +51,6 @@ describe('Core', () => {
     it('assertCoreAPIInit accepts every optional member', () => {
       const init = {
         base: new URL('https://example.com/'),
-        cache: new MemoryStorage(),
         fetch: () => Promise.resolve(new Response(null)),
         level: -1,
         storage: new MemoryStorage(),
@@ -61,13 +60,12 @@ describe('Core', () => {
     });
 
     it('assertCoreAPIInit rejects the v1 bad-init fixture', () => {
-      const init = { base: undefined, cache: Number, fetch: 123, level: 'hi', storage: null };
+      const init = { base: undefined, fetch: 123, level: 'hi', storage: null };
       expect(() => assertCoreAPIInit(init)).toThrow(TypeError);
     });
 
-    it('assertCoreAPIInit rejects an invalid cache, storage or fetch on their own', () => {
+    it('assertCoreAPIInit rejects an invalid storage or fetch on their own', () => {
       const base = new URL('https://example.com/');
-      expect(() => assertCoreAPIInit({ base, cache: Number })).toThrow('init.cache must be');
       expect(() => assertCoreAPIInit({ base, storage: null })).toThrow('init.storage must be');
       expect(() => assertCoreAPIInit({ base, fetch: 123 })).toThrow('init.fetch must be');
     });
@@ -171,7 +169,7 @@ describe('Core', () => {
     });
 
     it('assertAdminAPIInit validates the admin-specific constructor params', () => {
-      // base/cache/level are intentionally NOT checked here: they're
+      // base/level are intentionally NOT checked here: they're
       // validated downstream by Core.API's own assertCoreAPIInit inside
       // super(), so Admin's own guard only covers the fields Core doesn't
       // know about (avoids duplicating Core's validation).

@@ -1,7 +1,7 @@
 /**
  * Minimal in-memory implementation of the
  * [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API).
- * Used as the default for `storage` and `cache` on API clients. Replaces the
+ * Used as the default for `storage` on API clients. Replaces the
  * `fake-storage` dependency v1 used for the same purpose.
  *
  * No index signature is declared. `Storage` declares `[name: string]: any`, and

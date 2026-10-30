@@ -7,7 +7,7 @@ description: "@foxy.io/sdk/customer"
 
 ### APIInit
 
-Settings for the customer [`API`](/docs/reference/customer/classes/API) constructor: the base URL of the store's Customer API, and optional storage for the session, a cache, a [`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Window/fetch) function and a log level.
+Settings for the customer [`API`](/docs/reference/customer/classes/API) constructor: the base URL of the store's Customer API, and optional storage for the session, a [`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Window/fetch) function and a log level.
 
 ```ts
 type APIInit = {
@@ -28,12 +28,6 @@ type APIInit = {
    * This function will be called whenever a resource is requested. Defaults to native fetch or a custom implementation of Fetch API for Node.
    */
   fetch?: typeof globalThis.fetch;
-
-  /**
-   * Resolver cache implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API).
-   * Every resolved path will be stored here for future use. Defaults to in-memory storage.
-   */
-  cache?: Storage;
 
   /**
    * Bookmark [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) for this API.

@@ -1,5 +1,4 @@
 import type { Graph } from '../../../core/Graph';
-import { MemoryStorage } from '../../../core/storage.js';
 import { Node } from '../../../core/API/Node.js';
 import type { Query } from '../../../core/Query';
 import { ResolutionError } from '../../../core/API/ResolutionError.js';
@@ -23,10 +22,7 @@ describe('Core', () => {
       });
 
       const console = createLogger({ level: -1, tag: 'test' });
-      const cache = new MemoryStorage();
       const path = [new URL('https://example.com/')] as [URL, ...string[]];
-
-      beforeEach(() => cache.clear());
 
       type TestGETInit<TGraph extends Graph> = {
         label: string;
@@ -38,7 +34,7 @@ describe('Core', () => {
         it(label, async () => {
           const body = { foo: 'bar' };
           const fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify(body)));
-          const node = new Node<TGraph>({ cache, console, fetch, path });
+          const node = new Node<TGraph>({ console, fetch, path });
           const response = query ? await node.get(query) : await node.get();
 
           const [request] = fetch.mock.calls[0] as [Request];
@@ -130,7 +126,7 @@ describe('Core', () => {
         };
 
         const fetch = vi.fn();
-        const node = new Node({ cache, console, fetch, path });
+        const node = new Node({ console, fetch, path });
         const promise = node.get((incorrectQuery as unknown) as Parameters<typeof node.get>[0]);
 
         await expect(promise).rejects.toThrow(TypeError);
@@ -141,7 +137,7 @@ describe('Core', () => {
           const data = { foo: 'bar' };
           const body = JSON.stringify(data);
           const fetch = vi.fn().mockResolvedValue(new Response(body));
-          const response = await new Node({ cache, console, fetch, path })[method](data);
+          const response = await new Node({ console, fetch, path })[method](data);
 
           const [request] = fetch.mock.calls[0] as [Request];
           expect(request.url).toBe(path[0].toString());
@@ -154,7 +150,7 @@ describe('Core', () => {
 
       it('can send DELETE to resolved URL', async () => {
         const fetch = vi.fn().mockResolvedValue(new Response(null));
-        const response = await new Node({ cache, console, fetch, path }).delete();
+        const response = await new Node({ console, fetch, path }).delete();
 
         const [request] = fetch.mock.calls[0] as [Request];
         expect(request.url).toBe(path[0].toString());
@@ -165,7 +161,7 @@ describe('Core', () => {
       it('resolves simple paths', async () => {
         const path = [new URL('https://example.com/')] as [URL, ...string[]];
         const fetch = vi.fn().mockResolvedValue(new Response(null));
-        await new Node({ cache, console, fetch, path }).get();
+        await new Node({ console, fetch, path }).get();
 
         const [request] = fetch.mock.calls[0] as [Request];
         expect(request.url).toBe(path[0].toString());
@@ -182,7 +178,7 @@ describe('Core', () => {
           return new Response(null);
         });
 
-        await new Node({ cache, console, fetch, path }).get();
+        await new Node({ console, fetch, path }).get();
 
         // `_resolve` passes a bare string to fetch while `get` passes a Request.
         // That asymmetry is real behaviour, so the two calls are asserted differently.
@@ -192,7 +188,7 @@ describe('Core', () => {
         expect(request.url).toBe(fooHref);
       });
 
-      it('resolves complex paths from cache', async () => {
+      it('resolves a path again on every request', async () => {
         const path = [new URL('https://example.com/'), 'foo'] as [URL, ...string[]];
         const bookmarkHref = path[0].toString();
         const fooHref = 'https://foo.example.com/and/some/path/';
@@ -203,18 +199,18 @@ describe('Core', () => {
           return new Response(null);
         });
 
-        cache.setItem(`${bookmarkHref} > foo`, fooHref);
-        await new Node({ cache, console, fetch, path }).get();
+        const node = new Node({ console, fetch, path });
+        await node.get();
+        await node.get();
 
-        const [request] = fetch.mock.calls[0] as [Request];
-        expect(request.url).toBe(fooHref);
+        expect(fetch.mock.calls.filter(([info]) => info === bookmarkHref)).toHaveLength(2);
       });
 
       it("throws ResolutionError if link doesn't exist", async () => {
         const path = [new URL('https://example.com/'), 'nope'] as [URL, ...string[]];
         const body = JSON.stringify({ _links: { self: { href: 'https://example.com/' } } });
         const fetch = vi.fn().mockResolvedValue(new Response(body, { status: 200 }));
-        const promise = new Node({ cache, console, fetch, path }).get();
+        const promise = new Node({ console, fetch, path }).get();
 
         await expect(promise).rejects.toThrow(ResolutionError);
       });
@@ -222,14 +218,14 @@ describe('Core', () => {
       it('throws ResolutionError on non-2xx status', async () => {
         const path = [new URL('https://example.com/'), 'foo'] as [URL, ...string[]];
         const fetch = vi.fn().mockResolvedValue(new Response(null, { status: 500 }));
-        const promise = new Node({ cache, console, fetch, path }).get();
+        const promise = new Node({ console, fetch, path }).get();
 
         await expect(promise).rejects.toThrow(ResolutionError);
       });
 
       it('is followable', () => {
         const fetch = vi.fn();
-        const node = new Node<{ links: { foo: never } }>({ cache, console, fetch, path });
+        const node = new Node<{ links: { foo: never } }>({ console, fetch, path });
         const nextNode = node.follow('foo');
 
         expect(nextNode).toBeInstanceOf(Node);
@@ -240,7 +236,7 @@ describe('Core', () => {
 
       it('errors when .follow() is called with a non-string curie', () => {
         const fetch = vi.fn();
-        const node = new Node<{ links: { foo: never } }>({ cache, console, fetch, path });
+        const node = new Node<{ links: { foo: never } }>({ console, fetch, path });
 
         expect(() => node.follow((123 as unknown) as 'foo')).toThrow(TypeError);
       });
@@ -255,7 +251,6 @@ describe('Core', () => {
         );
 
         const node = new Node({
-          cache: new MemoryStorage(),
           console: createLogger({ level: -1, tag: 'test' }),
           fetch,
           path: [new URL('https://example.com/resource')],
@@ -273,7 +268,6 @@ describe('Core', () => {
         const fetch = vi.fn().mockResolvedValue(new Response(null, { status: 204 }));
 
         const node = new Node({
-          cache: new MemoryStorage(),
           console: createLogger({ level: -1, tag: 'test' }),
           fetch,
           path: [new URL('https://example.com/resource')],

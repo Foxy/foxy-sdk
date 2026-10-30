@@ -1,4 +1,3 @@
-import { MemoryStorage } from '../../../core/storage.js';
 import { Response } from '../../../core/API/Response.js';
 import { createLogger } from '../../../core/logger.js';
 
@@ -13,7 +12,6 @@ describe('Core', () => {
       it('extends the global Response class', () => {
         const response = new Response({
           body: null,
-          cache: new MemoryStorage(),
           console: createLogger({ level: -1, tag: 'test' }),
           fetch: () => Promise.resolve(new globalThis.Response(null)),
         });
@@ -25,7 +23,6 @@ describe('Core', () => {
         const data = { baz: 'qux', foo: 'bar' };
         const response = new Response({
           body: JSON.stringify(data),
-          cache: new MemoryStorage(),
           console: createLogger({ level: -1, tag: 'test' }),
           fetch: () => Promise.resolve(new globalThis.Response(null)),
         });
@@ -46,7 +43,6 @@ describe('Core', () => {
 
         const response = new Response({
           body: JSON.stringify(data),
-          cache: new MemoryStorage(),
           console: createLogger({ level: -1, tag: 'test' }),
           fetch: () => Promise.resolve(new globalThis.Response(null)),
         });
@@ -73,7 +69,6 @@ describe('Core', () => {
 
         const response = new Response({
           body: JSON.stringify(data),
-          cache: new MemoryStorage(),
           console: createLogger({ level: -1, tag: 'test' }),
           fetch,
         });

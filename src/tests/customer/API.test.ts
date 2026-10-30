@@ -73,11 +73,9 @@ describe('Customer', () => {
       const api = new CustomerAPI(commonInit);
 
       api.storage.setItem(CustomerAPI.SESSION, JSON.stringify(sampleStoredExpiredSession));
-      api.cache.setItem('https://demo.foxycart.test/s/customer/ > attributes', 'https://demo.foxycart.test/a/');
       await api.fetch(api.base.toString());
 
       expect(api.storage).toHaveLength(0);
-      expect(api.cache).toHaveLength(0);
 
       const request = fetchMock.mock.calls[0][0] as Request;
       expect(request.headers.get('Authorization')).toBeNull();
@@ -215,11 +213,9 @@ describe('Customer', () => {
       const url = new URL('./authenticate', api.base).toString();
 
       api.storage.setItem(CustomerAPI.SESSION, JSON.stringify(sampleStoredSession));
-      api.cache.setItem('https://demo.foxycart.test/s/customer/ > attributes', 'https://demo.foxycart.test/a/');
       await api.signOut();
 
       expect(api.storage).toHaveLength(0);
-      expect(api.cache).toHaveLength(0);
 
       const request = fetchMock.mock.calls[0][0] as Request;
 

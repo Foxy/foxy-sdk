@@ -18,7 +18,7 @@ type APIEventMap = {
 
 ### APIInit
 
-Settings for [`new API()`](/docs/reference/admin/classes/API#constructor): the OAuth client ID and secret, the redirect URI for sign-in, and optional overrides for the authorization URL, API base URL, API version, log level and cache.
+Settings for [`new API()`](/docs/reference/admin/classes/API#constructor): the OAuth client ID and secret, the redirect URI for sign-in, and optional overrides for the authorization URL, API base URL, API version and log level.
 
 ```ts
 type APIInit = {
@@ -31,7 +31,6 @@ type APIInit = {
   level?: number;
   version?: AdminAPIVersion;
   base?: URL;
-  cache?: Storage;
 };
 ```
 

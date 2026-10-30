@@ -28,12 +28,6 @@ export type APIInit = {
   fetch?: typeof globalThis.fetch;
 
   /**
-   * Resolver cache implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API).
-   * Every resolved path will be stored here for future use. Defaults to in-memory storage.
-   */
-  cache?: Storage;
-
-  /**
    * Bookmark [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) for this API.
    * This is where the tree traversal begins. We also use this URL as a base for relative paths.
    */
@@ -60,12 +54,6 @@ export class API<TGraph extends Graph> extends Node<TGraph> {
   readonly storage: Storage;
 
   /**
-   * Resolver cache implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API).
-   * Every resolved path will be stored here for future use. You can clear this cache by calling `clear()`.
-   */
-  readonly cache: Storage;
-
-  /**
    * Bookmark [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) for this API.
    * This is where the tree traversal begins. We also use this URL as a base for relative paths.
    */
@@ -75,7 +63,6 @@ export class API<TGraph extends Graph> extends Node<TGraph> {
     assertCoreAPIInit(init);
 
     super({
-      cache: init.cache ?? new MemoryStorage(),
       console: createLogger({ level: init.level, tag: '@foxy.io/sdk' }),
       fetch: init.fetch ?? ((...args) => globalThis.fetch(...args)),
       path: [init.base],
@@ -83,7 +70,6 @@ export class API<TGraph extends Graph> extends Node<TGraph> {
 
     this.console = this._console;
     this.storage = init.storage ?? new MemoryStorage();
-    this.cache = this._cache;
     this.base = init.base;
   }
 

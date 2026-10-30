@@ -6,7 +6,6 @@ import type { Graph } from '../Graph';
 import type { Logger } from '../logger.js';
 import { Node } from './Node.js';
 import type { Query } from '../Query';
-import { assertStorage } from '../guards.js';
 
 /**
  * The native Response constructor, retyped without its `json()` method.
@@ -31,8 +30,6 @@ const NativeResponse = globalThis.Response as unknown as {
 type Init = ConstructorParameters<typeof globalThis.Response>[1] & {
   /** Custom Fetch API implementation for making authenticated requests. */
   fetch: typeof globalThis.fetch;
-  /** Resolver cache implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API). */
-  cache: Storage;
   /** Shared {@link Logger} instance. */
   console: Logger;
   /** Response body. Streams aren't supported at the moment: https://github.com/github/fetch/issues/746#issuecomment-573701120. */
@@ -46,7 +43,7 @@ type Init = ConstructorParameters<typeof globalThis.Response>[1] & {
  * @returns Enriched JSON including followable links.
  */
 function addFollowableLinks<TGraph extends Graph, TQuery extends Query<TGraph> | undefined>(
-  params: Pick<Init, 'cache' | 'console' | 'fetch'> & { json: Record<string, unknown> }
+  params: Pick<Init, 'console' | 'fetch'> & { json: Record<string, unknown> }
 ): FollowableResource<TGraph, TQuery> {
   const { json, ...nodeInit } = params;
 
@@ -103,19 +100,14 @@ export class Response<
   /** Custom Fetch API implementation for making authenticated requests. */
   protected readonly _fetch: typeof globalThis.fetch;
 
-  /** Resolver cache implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API). */
-  protected readonly _cache: Storage;
-
   constructor(init: Init) {
     if (typeof init !== 'object' || init === null) throw new TypeError('init must be an object.');
 
-    assertStorage(init.cache, 'init.cache');
     if (typeof init.fetch !== 'function') throw new TypeError('init.fetch must be a function.');
     super(init.body, init);
 
     this._console = init.console;
     this._fetch = init.fetch;
-    this._cache = init.cache;
   }
 
   /**
@@ -127,7 +119,7 @@ export class Response<
    */
   async json(): Promise<FollowableResource<TGraph, TQuery>> {
     const json = JSON.parse(await this.text()) as Record<string, unknown>;
-    const config = { cache: this._cache, console: this._console, fetch: this._fetch };
+    const config = { console: this._console, fetch: this._fetch };
     return addFollowableLinks({ json, ...config });
   }
 }
