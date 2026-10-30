@@ -14,34 +14,24 @@ import {
   assertQuery,
   assertSignUpParams,
   assertSSOURLOptions,
-  assertStorage,
+  assertStoredSession,
   assertWebhookSignaturePayload,
 } from '../../core/guards.js';
 
-import { MemoryStorage } from '../../core/storage.js';
-
 describe('Core', () => {
   describe('guards', () => {
-    it('assertStorage accepts a Web Storage implementation', () => {
-      expect(() => assertStorage(new MemoryStorage(), 'storage')).not.toThrow();
-    });
-
-    it('assertStorage rejects partial implementations', () => {
-      const partial = { clear: () => undefined, getItem: () => null, length: 0 };
-      expect(() => assertStorage(partial, 'storage')).toThrow(TypeError);
-      expect(() => assertStorage(null, 'storage')).toThrow(TypeError);
-    });
-
-    it('assertStorage rejects an implementation missing a single method', () => {
-      const missingKey = {
-        clear: () => undefined,
-        getItem: () => null,
-        length: 0,
-        removeItem: () => undefined,
-        setItem: () => undefined,
-      };
-
-      expect(() => assertStorage(missingKey, 'storage')).toThrow(TypeError);
+    it('assertStoredSession accepts a session and rejects a broken one', () => {
+      const session = { date_created: new Date().toISOString(), expires_in: 3600, jwt: 'j', session_token: 't' };
+      expect(() => assertStoredSession(session)).not.toThrow();
+      expect(() => assertStoredSession({ ...session, force_password_reset: true })).not.toThrow();
+      expect(() => assertStoredSession(null)).toThrow('session must be');
+      expect(() => assertStoredSession({ ...session, session_token: '' })).toThrow('session.session_token must be');
+      expect(() => assertStoredSession({ ...session, jwt: 1 })).toThrow('session.jwt must be');
+      expect(() => assertStoredSession({ ...session, expires_in: '3600' })).toThrow('session.expires_in must be');
+      expect(() => assertStoredSession({ ...session, date_created: 'not a date' })).toThrow('session.date_created must be');
+      expect(() => assertStoredSession({ ...session, force_password_reset: 'yes' })).toThrow(
+        'session.force_password_reset must be',
+      );
     });
 
     it('assertCoreAPIInit accepts a bare base URL', () => {
@@ -53,20 +43,18 @@ describe('Core', () => {
         base: new URL('https://example.com/'),
         fetch: () => Promise.resolve(new Response(null)),
         level: -1,
-        storage: new MemoryStorage(),
       };
 
       expect(() => assertCoreAPIInit(init)).not.toThrow();
     });
 
     it('assertCoreAPIInit rejects the v1 bad-init fixture', () => {
-      const init = { base: undefined, fetch: 123, level: 'hi', storage: null };
+      const init = { base: undefined, fetch: 123, level: 'hi' };
       expect(() => assertCoreAPIInit(init)).toThrow(TypeError);
     });
 
-    it('assertCoreAPIInit rejects an invalid storage or fetch on their own', () => {
+    it('assertCoreAPIInit rejects an invalid fetch on its own', () => {
       const base = new URL('https://example.com/');
-      expect(() => assertCoreAPIInit({ base, storage: null })).toThrow('init.storage must be');
       expect(() => assertCoreAPIInit({ base, fetch: 123 })).toThrow('init.fetch must be');
     });
 

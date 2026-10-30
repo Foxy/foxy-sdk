@@ -1,7 +1,6 @@
 import { assertCoreAPIInit } from '../guards.js';
 import { createLogger } from '../logger.js';
 import type { Logger } from '../logger.js';
-import { MemoryStorage } from '../storage.js';
 
 import { AuthError } from './AuthError.js';
 import type { Graph } from '../Graph';
@@ -9,12 +8,6 @@ import { Node } from './Node.js';
 
 /** API constructor parameters. */
 export type APIInit = {
-  /**
-   * Credentials storage implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API).
-   * Access tokens and other related info will be stored here. Defaults to in-memory storage.
-   */
-  storage?: Storage;
-
   /**
    * Numeric log level; methods above this level are no-ops.
    * If omitted, the default level will be used.
@@ -48,12 +41,6 @@ export class API<TGraph extends Graph> extends Node<TGraph> {
   readonly console: Logger;
 
   /**
-   * Credentials storage implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API).
-   * Access tokens and other related info will be stored here. Clearing this storage will log you out.
-   */
-  readonly storage: Storage;
-
-  /**
    * Bookmark [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) for this API.
    * This is where the tree traversal begins. We also use this URL as a base for relative paths.
    */
@@ -69,7 +56,6 @@ export class API<TGraph extends Graph> extends Node<TGraph> {
     });
 
     this.console = this._console;
-    this.storage = init.storage ?? new MemoryStorage();
     this.base = init.base;
   }
 

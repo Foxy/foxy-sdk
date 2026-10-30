@@ -18,8 +18,6 @@ const AUTH_ERROR_CODES: readonly AuthErrorCode[] = [
   'TOKEN_REFRESH_FAILED',
 ];
 
-const STORAGE_METHODS = ['clear', 'getItem', 'key', 'removeItem', 'setItem'] as const;
-
 /**
  * Throws a `TypeError` with a consistent message.
  *
@@ -51,24 +49,6 @@ function checkRequiredString(value: unknown, label: string, maxLength?: number):
 }
 
 /**
- * Checks that a value implements the Web Storage API.
- *
- * @param value Value to check.
- * @param label Name of the value, used in the error message.
- * @throws TypeError when the value is not storage-shaped.
- */
-export function assertStorage(value: unknown, label: string): void {
-  if (!isRecord(value)) fail(label, 'a Web Storage implementation');
-  if (typeof (value as Storage).length !== 'number') fail(label, 'a Web Storage implementation');
-
-  for (const method of STORAGE_METHODS) {
-    if (typeof (value as unknown as Record<string, unknown>)[method] !== 'function') {
-      fail(label, 'a Web Storage implementation');
-    }
-  }
-}
-
-/**
  * Checks the init object of the core API class.
  *
  * @param value Value to check.
@@ -77,10 +57,9 @@ export function assertStorage(value: unknown, label: string): void {
 export function assertCoreAPIInit(value: unknown): void {
   if (!isRecord(value)) fail('init', 'an object');
 
-  const { base, fetch, level, storage } = value;
+  const { base, fetch, level } = value;
 
   if (!(base instanceof URL)) fail('init.base', 'an instance of URL');
-  if (storage !== undefined) assertStorage(storage, 'init.storage');
   if (fetch !== undefined && typeof fetch !== 'function') fail('init.fetch', 'a function');
   if (level !== undefined && !Number.isInteger(level)) fail('init.level', 'an integer');
 }
@@ -266,6 +245,28 @@ export function assertAdminTokens(value: unknown): void {
   checkOptionalString(refreshToken, 'tokens.refreshToken');
   checkOptionalString(scope, 'tokens.scope');
   if (expiresAt !== undefined && !Number.isFinite(expiresAt)) fail('tokens.expiresAt', 'a finite number');
+}
+
+/**
+ * Checks a Customer API session passed to `setSession()`, for example one read back from `localStorage`.
+ *
+ * @param value Value to check.
+ * @throws TypeError when any member is missing or of the wrong type.
+ */
+export function assertStoredSession(value: unknown): void {
+  if (!isRecord(value)) fail('session', 'an object');
+
+  const { date_created, expires_in, force_password_reset, jwt, session_token } = value;
+
+  if (typeof session_token !== 'string' || session_token === '') fail('session.session_token', 'a non-empty string');
+  if (typeof jwt !== 'string') fail('session.jwt', 'a string');
+  if (!Number.isFinite(expires_in)) fail('session.expires_in', 'a finite number');
+  if (typeof date_created !== 'string' || Number.isNaN(Date.parse(date_created))) {
+    fail('session.date_created', 'a date string');
+  }
+  if (force_password_reset !== undefined && typeof force_password_reset !== 'boolean') {
+    fail('session.force_password_reset', 'a boolean');
+  }
 }
 
 /**

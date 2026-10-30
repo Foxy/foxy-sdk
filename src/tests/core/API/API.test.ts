@@ -1,6 +1,5 @@
 import { API } from '../../../core/API/API.js';
 import { AuthError } from '../../../core/API/AuthError.js';
-import { MemoryStorage } from '../../../core/storage.js';
 import { Node } from '../../../core/API/Node.js';
 
 describe('Core', () => {
@@ -25,7 +24,6 @@ describe('Core', () => {
         base: undefined,
         fetch: 123,
         level: 'hi',
-        storage: null,
       } as unknown) as ConstructorParameters<typeof API>[0];
 
       expect(() => new API(incorrectInit)).toThrow(TypeError);
@@ -65,19 +63,10 @@ describe('Core', () => {
       }
     });
 
-    it('has no resolver cache', () => {
-      expect(new API({ base: new URL('https://example.com/') })).not.toHaveProperty('cache');
-    });
-
-    it('uses MemoryStorage for storage by default', () => {
+    it('has no resolver cache and no credentials storage', () => {
       const api = new API({ base: new URL('https://example.com/') });
-      expect(api.storage).toBeInstanceOf(MemoryStorage);
-    });
-
-    it('uses custom storage implementation for storage if provided', () => {
-      const storage = new MemoryStorage();
-      const api = new API({ base: new URL('https://example.com/'), storage });
-      expect(api.storage).toBe(storage);
+      expect(api).not.toHaveProperty('cache');
+      expect(api).not.toHaveProperty('storage');
     });
   });
 });

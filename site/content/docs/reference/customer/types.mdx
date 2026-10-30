@@ -5,18 +5,22 @@ description: "@foxy.io/sdk/customer"
 
 ## Type aliases
 
+### APIEventMap
+
+Events of the customer [`API`](/docs/reference/customer/classes/API) client by name. The only event is `session`. It fires with the new [`StoredSession`](/docs/reference/customer/types#storedsession) after sign-in, after each successful request (which extends the session), and when [`usesTemporaryPassword`](/docs/reference/customer/classes/API#usestemporarypassword) changes. It fires with `null` after sign-out or when the session expires. Used by [`API.addEventListener()`](/docs/reference/customer/classes/API#addeventlistener) and [`API.removeEventListener()`](/docs/reference/customer/classes/API#removeeventlistener).
+
+```ts
+type APIEventMap = {
+  session: CustomEvent<StoredSession | null>;
+};
+```
+
 ### APIInit
 
-Settings for the customer [`API`](/docs/reference/customer/classes/API) constructor: the base URL of the store's Customer API, and optional storage for the session, a [`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Window/fetch) function and a log level.
+Settings for the customer [`API`](/docs/reference/customer/classes/API) constructor: the base URL of the store's Customer API, and an optional [`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Window/fetch) function and a log level.
 
 ```ts
 type APIInit = {
-  /**
-   * Credentials storage implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API).
-   * Access tokens and other related info will be stored here. Defaults to in-memory storage.
-   */
-  storage?: Storage;
-
   /**
    * Numeric log level; methods above this level are no-ops.
    * If omitted, the default level will be used.
@@ -249,7 +253,7 @@ interface SignUpParams {
 
 ### StoredSession
 
-A [`CustomerSession`](/docs/reference/customer/types#customersession) plus the time it was created. After sign-in, the customer [`API`](/docs/reference/customer/classes/API) client keeps it in its `storage` under [`API.SESSION`](/docs/reference/customer/classes/API#session).
+A [`CustomerSession`](/docs/reference/customer/types#customersession) plus the time it was created. After sign-in, the customer [`API`](/docs/reference/customer/classes/API) client keeps it in memory and sends it with the `session` event. Pass a saved one to [`API.setSession()`](/docs/reference/customer/classes/API#setsession).
 
 ```ts
 interface StoredSession extends CustomerSession {

@@ -1,4 +1,4 @@
-import type { Credentials, SignUpParams } from '../../customer/types';
+import type { Credentials, SignUpParams, StoredSession } from '../../customer/types';
 import type { Mock } from 'vitest';
 
 import { API as CoreAPI } from '../../core/index.js';
@@ -39,11 +39,17 @@ const sampleStoredRecentSession = Object.assign({}, sampleSession, {
   date_created: new Date(Date.now() - 5 * 60_000).toISOString(),
 });
 
+function collectSessions(api: CustomerAPI) {
+  const details: (StoredSession | null)[] = [];
+  api.addEventListener('session', evt => details.push(evt.detail));
+  return details;
+}
+
 describe('Customer', () => {
   describe('API', () => {
-    it('exposes storage key for session as static property', () => {
-      expect(CustomerAPI).toHaveProperty('SESSION');
-      expect(typeof CustomerAPI.SESSION).toBe('string');
+    it('has no credentials storage', () => {
+      expect(CustomerAPI).not.toHaveProperty('SESSION');
+      expect(new CustomerAPI(commonInit)).not.toHaveProperty('storage');
     });
 
     it('extends core API class', () => {
@@ -56,7 +62,7 @@ describe('Customer', () => {
       const api = new CustomerAPI(commonInit);
       const url = api.base.toString();
 
-      api.storage.setItem(CustomerAPI.SESSION, JSON.stringify(sampleStoredSession));
+      api.setSession(sampleStoredSession);
       await api.fetch(url);
 
       const request = fetchMock.mock.calls[0][0] as Request;
@@ -67,15 +73,16 @@ describe('Customer', () => {
       expect(request.headers.get('FOXY-API-VERSION')).toBe('1');
     });
 
-    it('automatically clears storage on request once session expires', async () => {
+    it('automatically drops the session on request once it expires', async () => {
       fetchMock.mockResolvedValue(new Response(null));
 
       const api = new CustomerAPI(commonInit);
+      const sessions = collectSessions(api);
 
-      api.storage.setItem(CustomerAPI.SESSION, JSON.stringify(sampleStoredExpiredSession));
+      api.setSession(sampleStoredExpiredSession);
       await api.fetch(api.base.toString());
 
-      expect(api.storage).toHaveLength(0);
+      expect(sessions).toEqual([null]);
 
       const request = fetchMock.mock.calls[0][0] as Request;
       expect(request.headers.get('Authorization')).toBeNull();
@@ -86,11 +93,12 @@ describe('Customer', () => {
 
       const session = { ...sampleStoredRecentSession, expires_in: 60 };
       const api = new CustomerAPI(commonInit);
+      const sessions = collectSessions(api);
 
-      api.storage.setItem(CustomerAPI.SESSION, JSON.stringify(session));
+      api.setSession(session);
       await api.fetch(api.base.toString());
 
-      expect(api.storage).toHaveLength(0);
+      expect(sessions).toEqual([null]);
 
       const request = fetchMock.mock.calls[0][0] as Request;
       expect(request.headers.get('Authorization')).toBeNull();
@@ -100,11 +108,13 @@ describe('Customer', () => {
       fetchMock.mockResolvedValue(new Response(null));
 
       const api = new CustomerAPI(commonInit);
+      const sessions = collectSessions(api);
 
-      api.storage.setItem(CustomerAPI.SESSION, JSON.stringify(sampleStoredRecentSession));
+      api.setSession(sampleStoredRecentSession);
       await api.fetch(api.base.toString());
 
-      expect(api.storage).toHaveLength(1);
+      expect(sessions).toHaveLength(1);
+      expect(sessions[0]).not.toBeNull();
 
       const request = fetchMock.mock.calls[0][0] as Request;
       expect(request.headers.get('Authorization')).toBe(`Bearer ${sampleSession.session_token}`);
@@ -116,12 +126,14 @@ describe('Customer', () => {
       const api = new CustomerAPI(commonInit);
       const before = Date.now();
 
-      api.storage.setItem(CustomerAPI.SESSION, JSON.stringify(sampleStoredRecentSession));
+      const sessions = collectSessions(api);
+
+      api.setSession(sampleStoredRecentSession);
       await api.fetch(api.base.toString());
 
-      const stored = JSON.parse(api.storage.getItem(CustomerAPI.SESSION) as string);
-      expect(new Date(stored.date_created).getTime()).toBeGreaterThanOrEqual(before);
-      expect(stored.session_token).toBe(sampleSession.session_token);
+      expect(sessions).toHaveLength(1);
+      expect(new Date(sessions[0]!.date_created).getTime()).toBeGreaterThanOrEqual(before);
+      expect(sessions[0]!.session_token).toBe(sampleSession.session_token);
     });
 
     it('keeps date_created as-is when an authenticated request fails', async () => {
@@ -129,11 +141,12 @@ describe('Customer', () => {
 
       const api = new CustomerAPI(commonInit);
 
-      api.storage.setItem(CustomerAPI.SESSION, JSON.stringify(sampleStoredRecentSession));
+      const sessions = collectSessions(api);
+
+      api.setSession(sampleStoredRecentSession);
       await api.fetch(api.base.toString());
 
-      const stored = JSON.parse(api.storage.getItem(CustomerAPI.SESSION) as string);
-      expect(stored.date_created).toBe(sampleStoredRecentSession.date_created);
+      expect(sessions).toEqual([]);
     });
 
     it('makes an unauthenticated request when there is no session token', async () => {
@@ -212,10 +225,14 @@ describe('Customer', () => {
       const api = new CustomerAPI(commonInit);
       const url = new URL('./authenticate', api.base).toString();
 
-      api.storage.setItem(CustomerAPI.SESSION, JSON.stringify(sampleStoredSession));
+      const sessions = collectSessions(api);
+
+      api.setSession(sampleStoredSession);
       await api.signOut();
 
-      expect(api.storage).toHaveLength(0);
+      // The DELETE request itself refreshes the session before sign-out clears it.
+      expect(sessions.at(-1)).toBeNull();
+      expect(api.session).toBeNull();
 
       const request = fetchMock.mock.calls[0][0] as Request;
 
@@ -390,16 +407,186 @@ describe('Customer', () => {
       const api = new CustomerAPI(commonInit);
       const credentials = { email: 'test@example.com', password: 'foo' };
 
+      const sessions = collectSessions(api);
+
       expect(api.usesTemporaryPassword).toBe(false);
       await api.signIn(credentials);
       expect(api.usesTemporaryPassword).toBe(true);
 
       api.usesTemporaryPassword = false;
       expect(api.usesTemporaryPassword).toBe(false);
-      expect(JSON.parse(api.storage.getItem(CustomerAPI.SESSION) as string)).toHaveProperty(
-        'force_password_reset',
-        false
+      expect(sessions.at(-1)).toHaveProperty('force_password_reset', false);
+    });
+
+    it('validates the session in .setSession(), accepts null, and does not dispatch session', async () => {
+      fetchMock.mockResolvedValue(new Response(null));
+
+      const api = new CustomerAPI(commonInit);
+      const sessions = collectSessions(api);
+
+      // @ts-expect-error testing invalid input
+      expect(() => api.setSession({ session_token: 1 })).toThrow(TypeError);
+      expect(() => api.setSession(null)).not.toThrow();
+
+      api.setSession(sampleStoredSession);
+      expect(sessions).toEqual([]);
+
+      await api.fetch(api.base.toString());
+      const request = fetchMock.mock.calls[0][0] as Request;
+      expect(request.headers.get('Authorization')).toBe(`Bearer ${sampleSession.session_token}`);
+    });
+
+    it('returns a copy of the current session from the session getter', () => {
+      const api = new CustomerAPI(commonInit);
+      expect(api.session).toBeNull();
+
+      api.setSession(sampleStoredSession);
+      expect(api.session).toEqual(sampleStoredSession);
+
+      api.session!.session_token = 'changed';
+      expect(api.session).toEqual(sampleStoredSession);
+    });
+
+    it('copies the session passed to .setSession()', async () => {
+      fetchMock.mockResolvedValue(new Response(null));
+
+      const api = new CustomerAPI(commonInit);
+      const session = { ...sampleStoredSession };
+
+      api.setSession(session);
+      session.session_token = 'changed';
+      await api.fetch(api.base.toString());
+
+      const request = fetchMock.mock.calls[0][0] as Request;
+      expect(request.headers.get('Authorization')).toBe(`Bearer ${sampleSession.session_token}`);
+    });
+
+    it('dispatches session with a fresh date_created on .signIn()', async () => {
+      fetchMock.mockResolvedValue(new Response(JSON.stringify(sampleSession)));
+
+      const api = new CustomerAPI(commonInit);
+      const sessions = collectSessions(api);
+      const before = Date.now();
+
+      await api.signIn({ email: 'test@example.com', password: 'foo' });
+
+      expect(sessions).toHaveLength(1);
+      expect(sessions[0]).toMatchObject(sampleSession);
+      expect(new Date(sessions[0]!.date_created).getTime()).toBeGreaterThanOrEqual(before);
+    });
+
+    it('dispatches session with a newer date_created after a successful authenticated request', async () => {
+      fetchMock.mockResolvedValue(new Response(null));
+
+      const api = new CustomerAPI(commonInit);
+      const sessions = collectSessions(api);
+
+      api.setSession(sampleStoredRecentSession);
+      await api.fetch(api.base.toString());
+
+      expect(sessions).toHaveLength(1);
+      expect(new Date(sessions[0]!.date_created).getTime()).toBeGreaterThan(
+        new Date(sampleStoredRecentSession.date_created).getTime()
       );
+    });
+
+    it('does not dispatch session after a failed authenticated request', async () => {
+      fetchMock.mockResolvedValue(new Response(null, { status: 500 }));
+
+      const api = new CustomerAPI(commonInit);
+      const sessions = collectSessions(api);
+
+      api.setSession(sampleStoredRecentSession);
+      await api.fetch(api.base.toString());
+
+      expect(sessions).toEqual([]);
+    });
+
+    it('dispatches session when usesTemporaryPassword is set with a session', () => {
+      const api = new CustomerAPI(commonInit);
+      const sessions = collectSessions(api);
+
+      api.setSession(sampleStoredSession);
+      api.usesTemporaryPassword = true;
+
+      expect(sessions).toHaveLength(1);
+      expect(sessions[0]).toHaveProperty('force_password_reset', true);
+      expect(api.usesTemporaryPassword).toBe(true);
+    });
+
+    it('does nothing when usesTemporaryPassword is set without a session', () => {
+      const api = new CustomerAPI(commonInit);
+      const sessions = collectSessions(api);
+
+      api.usesTemporaryPassword = true;
+
+      expect(sessions).toEqual([]);
+      expect(api.usesTemporaryPassword).toBe(false);
+    });
+
+    it('sends no Authorization header after .signOut()', async () => {
+      fetchMock.mockResolvedValue(new Response(null));
+
+      const api = new CustomerAPI(commonInit);
+
+      api.setSession(sampleStoredSession);
+      await api.signOut();
+      await api.fetch(api.base.toString());
+
+      const request = fetchMock.mock.calls[1][0] as Request;
+      expect(request.headers.get('Authorization')).toBeNull();
+    });
+
+    it('does not refresh the session when it was replaced during the request', async () => {
+      let resolve!: (response: Response) => void;
+      fetchMock.mockReturnValueOnce(new Promise<Response>(r => (resolve = r)));
+      fetchMock.mockResolvedValue(new Response(null));
+
+      const api = new CustomerAPI(commonInit);
+      const sessions = collectSessions(api);
+
+      api.setSession(sampleStoredRecentSession);
+      const pending = api.fetch(api.base.toString());
+
+      api.setSession(null);
+      resolve(new Response(null));
+      await pending;
+
+      expect(sessions).toEqual([]);
+
+      await api.fetch(api.base.toString());
+      const request = fetchMock.mock.calls[1][0] as Request;
+      expect(request.headers.get('Authorization')).toBeNull();
+    });
+
+    it('does not let changes to event.detail affect the session', async () => {
+      fetchMock.mockResolvedValue(new Response(null));
+
+      const api = new CustomerAPI(commonInit);
+      api.addEventListener('session', evt => {
+        if (evt.detail) evt.detail.session_token = 'changed';
+      });
+
+      api.setSession(sampleStoredRecentSession);
+      await api.fetch(api.base.toString());
+      await api.fetch(api.base.toString());
+
+      const request = fetchMock.mock.calls[1][0] as Request;
+      expect(request.headers.get('Authorization')).toBe(`Bearer ${sampleSession.session_token}`);
+    });
+
+    it('stops delivering session events after .removeEventListener()', async () => {
+      fetchMock.mockResolvedValue(new Response(null));
+
+      const api = new CustomerAPI(commonInit);
+      const listener = vi.fn();
+
+      api.addEventListener('session', listener);
+      api.removeEventListener('session', listener);
+      api.setSession(sampleStoredRecentSession);
+      await api.fetch(api.base.toString());
+
+      expect(listener).not.toHaveBeenCalled();
     });
   });
 });

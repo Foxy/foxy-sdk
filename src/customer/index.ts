@@ -1,4 +1,5 @@
 export { API } from './API.js';
+export type { APIEventMap } from './API.js';
 export { PaymentCardEmbed } from './PaymentCardEmbed.js';
 export { AuthError, getResourceId, ResolutionError, Response } from '../core/index.js';
 

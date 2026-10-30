@@ -15,16 +15,25 @@ You can use @foxy.io/sdk prior to 1.0.0-beta.15 or a custom API client until you
 
 ```ts
 import { API } from '@foxy.io/sdk/customer';
+import type { StoredSession } from '@foxy.io/sdk/customer';
 
 const api = new API({ base: new URL('https://example.foxycart.com/s/customer/') });
-await api.signIn({ email: 'customer@example.com', password: 'password' });
+
+// The API keeps the session in memory only. Save it to keep the customer signed in after a reload.
+const saved = localStorage.getItem('customer-session');
+if (saved) api.setSession(JSON.parse(saved) as StoredSession);
+
+api.addEventListener('session', event => {
+  if (event.detail) localStorage.setItem('customer-session', JSON.stringify(event.detail));
+  else localStorage.removeItem('customer-session');
+});
+
+if (!api.session) await api.signIn({ email: 'customer@example.com', password: 'password' });
 
 // Read the signed-in customer and their first page of subscriptions.
 const customer = await api.get().then(response => response.json());
 const subscriptions = await api.follow('fx:subscriptions').get().then(response => response.json());
 console.log(customer.email, subscriptions.returned_items);
-
-await api.signOut();
 ```
 
 ## Constructor
@@ -59,13 +68,6 @@ If you extend this class and add logging in your code, use this instead of nativ
 
 ***
 
-### storage <MemberMeta type="Storage" href="https://developer.mozilla.org/en-US/docs/Web/API/Storage" readonly /> [#storage]
-
-Credentials storage implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API).
-Access tokens and other related info will be stored here. Clearing this storage will log you out.
-
-***
-
 ### AuthError <MemberMeta type="typeof AuthError" href="/docs/reference/customer/classes/AuthError" static readonly /> [#autherror]
 
 This SDK's [`AuthError`](/docs/reference/customer/classes/AuthError) class.
@@ -76,13 +78,13 @@ This SDK's [`AuthError`](/docs/reference/customer/classes/AuthError) class.
 
 This SDK's [`ResolutionError`](/docs/reference/customer/classes/ResolutionError) class.
 
-***
-
-### SESSION <MemberMeta type={'"session"'} static readonly /> [#session]
-
-Storage key for session data.
-
 ## Accessors
+
+### session <MemberMeta type="StoredSession | null" href="/docs/reference/customer/types#storedsession" getter /> [#session]
+
+A copy of the current session, or `null` when there is none. Changing the copy does not change the session. Use [`setSession()`](#setsession) for that.
+
+***
 
 ### usesTemporaryPassword <MemberMeta type="boolean" getter setter /> [#usestemporarypassword]
 
@@ -97,6 +99,38 @@ initiated, or if the session was initiated before the introduction of this featu
 This SDK's [Response](/docs/reference/customer/classes/Response) class.
 
 ## Methods
+
+### addEventListener()
+
+```ts
+addEventListener<K>(
+   type, 
+   listener, 
+   options?
+): void;
+```
+
+Listens for API events. The only event is `session`. See [`APIEventMap`](/docs/reference/customer/types#apieventmap) for when it fires. A listener that throws is reported as an uncaught exception, so catch errors inside it. An async listener is not awaited.
+
+#### Type Parameters
+
+| Type Parameter |
+| ------ |
+| <a id="type-parameter-k"></a> `K` *extends* `"session"` |
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `type` | `K` |
+| `listener` | (`event`) => `void` |
+| `options?` | `boolean` \| `AddEventListenerOptions` |
+
+#### Returns
+
+`void`
+
+***
 
 ### delete()
 
@@ -298,6 +332,38 @@ Instance of APIResponse representing this resource.
 
 ***
 
+### removeEventListener()
+
+```ts
+removeEventListener<K>(
+   type, 
+   listener, 
+   options?
+): void;
+```
+
+Removes a listener added with [`addEventListener()`](#addeventlistener). Use the same `type`, `listener` and capture option you used to add it.
+
+#### Type Parameters
+
+| Type Parameter |
+| ------ |
+| <a id="type-parameter-k-1"></a> `K` *extends* `"session"` |
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `type` | `K` |
+| `listener` | (`event`) => `void` |
+| `options?` | `boolean` \| `EventListenerOptions` |
+
+#### Returns
+
+`void`
+
+***
+
 ### sendPasswordResetEmail()
 
 ```ts
@@ -320,13 +386,33 @@ If such customer exists, they will receive an email from Foxy with further instr
 
 ***
 
+### setSession()
+
+```ts
+setSession(session): void;
+```
+
+Replaces the session this instance uses, for example one saved from an earlier `session` event. `null` forgets the session without a request to the server. Throws a [`TypeError`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError) when the session is not valid. Does not dispatch `session`.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `session` | [`StoredSession`](/docs/reference/customer/types#storedsession) \| `null` |
+
+#### Returns
+
+`void`
+
+***
+
 ### signIn()
 
 ```ts
 signIn(credentials): Promise<void>;
 ```
 
-Creates a Customer Portal session for a customer with the given credentials.
+Creates a Customer Portal session for a customer with the given credentials, keeps it in memory and dispatches `session` with it.
 Incorrect email and password will trigger `AuthError` with code `UNAUTHORIZED`.
 
 #### Parameters
@@ -347,7 +433,7 @@ Incorrect email and password will trigger `AuthError` with code `UNAUTHORIZED`.
 signOut(): Promise<void>;
 ```
 
-Destroys current session and clears local session data.
+Ends the session on the server, then forgets it and dispatches `session` with `null`.
 
 #### Returns
 
