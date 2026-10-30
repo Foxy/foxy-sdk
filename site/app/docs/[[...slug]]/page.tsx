@@ -10,6 +10,10 @@ import { getMDXComponents } from '@/components/mdx';
 import type { Metadata } from 'next';
 import { createRelativeLink } from 'fumadocs-ui/mdx';
 
+// Sub-sections that repeat under every member, matched by their anchor
+// (`#returns`, `#returns-2`, ...); the TOC stops at the member name.
+const memberDetail = /^#(parameters|returns|throws|type-parameters|(call|get|set)-signature)(-\d+)?$/;
+
 export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
   const params = await props.params;
   const page = source.getPage(params.slug);
@@ -18,7 +22,9 @@ export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
   const MDX = page.data.body;
   return (
     <DocsPage
-      toc={page.data.toc}
+      toc={page.data.toc.filter(
+        (item) => item.depth <= 3 && !(item.depth === 3 && memberDetail.test(item.url)),
+      )}
       full={page.data.full}
       breadcrumb={{ enabled: false }}
       // Fumadocs' top padding assumes its own nav. 18px puts the title's cap
