@@ -3,6 +3,8 @@ title: "AuthError"
 description: "@foxy.io/sdk/customer"
 ---
 
+import { MemberMeta } from '@/components/member-meta';
+
 Base error class for all authentication-related errors in
 the APIs that can be used both server and client-side. If you're
 building your own API client with our SDK, you should consider using
@@ -51,90 +53,54 @@ new AuthError(params): AuthError;
 
 ## Properties
 
-### code
-
-```ts
-readonly code: AuthErrorCode;
-```
+### code <MemberMeta type="AuthErrorCode" readonly /> [#code]
 
 Error code (see static constants on this class for possible values).
 
 ***
 
-### originalError?
-
-```ts
-readonly originalError?: unknown;
-```
+### originalError? <MemberMeta type="unknown" readonly optional /> [#originalerror]
 
 Exception that triggered this error, if present.
 
 ***
 
-### INVALID\_FORM
-
-```ts
-readonly static INVALID_FORM: "INVALID_FORM" = 'INVALID_FORM';
-```
+### INVALID\_FORM <MemberMeta type={'"INVALID_FORM"'} static readonly /> [#invalid_form]
 
 Provided form data is invalid, e.g. email is too long or captcha is expired.
 
 ***
 
-### INVALID\_NEW\_PASSWORD
-
-```ts
-readonly static INVALID_NEW_PASSWORD: "INVALID_NEW_PASSWORD" = 'INVALID_NEW_PASSWORD';
-```
+### INVALID\_NEW\_PASSWORD <MemberMeta type={'"INVALID_NEW_PASSWORD"'} static readonly /> [#invalid_new_password]
 
 Credentials are valid, but the new password provided in response to the `NEW_PASSWORD_REQUIRED` error doesn't meet the security requirements.
 
 ***
 
-### NEW\_PASSWORD\_REQUIRED
-
-```ts
-readonly static NEW_PASSWORD_REQUIRED: "NEW_PASSWORD_REQUIRED" = 'NEW_PASSWORD_REQUIRED';
-```
+### NEW\_PASSWORD\_REQUIRED <MemberMeta type={'"NEW_PASSWORD_REQUIRED"'} static readonly /> [#new_password_required]
 
 Credentials are valid, but the session can be created only after changing the current password. This usually happens after a server-side password reset has been initiated for security reasons.
 
 ***
 
-### TOKEN\_REFRESH\_FAILED
-
-```ts
-readonly static TOKEN_REFRESH_FAILED: "TOKEN_REFRESH_FAILED" = 'TOKEN_REFRESH_FAILED';
-```
+### TOKEN\_REFRESH\_FAILED <MemberMeta type={'"TOKEN_REFRESH_FAILED"'} static readonly /> [#token_refresh_failed]
 
 OAuth token refresh failed — the refresh token, client ID, or client secret may be invalid, or the token endpoint is unreachable.
 
 ***
 
-### UNAUTHORIZED
-
-```ts
-readonly static UNAUTHORIZED: "UNAUTHORIZED" = 'UNAUTHORIZED';
-```
+### UNAUTHORIZED <MemberMeta type={'"UNAUTHORIZED"'} static readonly /> [#unauthorized]
 
 Credentials are invalid. That could mean empty or invalid email or password or otherwise incorrect auth data.
 
 ***
 
-### UNAVAILABLE
-
-```ts
-readonly static UNAVAILABLE: "UNAVAILABLE" = 'UNAVAILABLE';
-```
+### UNAVAILABLE <MemberMeta type={'"UNAVAILABLE"'} static readonly /> [#unavailable]
 
 Provided email is already taken. Applies to customer registration only.
 
 ***
 
-### UNKNOWN
-
-```ts
-readonly static UNKNOWN: "UNKNOWN" = 'UNKNOWN';
-```
+### UNKNOWN <MemberMeta type={'"UNKNOWN"'} static readonly /> [#unknown]
 
 Any other or internal error that interrupted authentication.

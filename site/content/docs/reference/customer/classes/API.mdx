@@ -3,6 +3,8 @@ title: "API"
 description: "@foxy.io/sdk/customer"
 ---
 
+import { MemberMeta } from '@/components/member-meta';
+
 Customer API for adding custom functionality to websites and web apps with our Customer Portal.
 
 **IMPORTANT**: this client is not compatible with the beta version of Customer API.
@@ -43,129 +45,63 @@ new API(params): API;
 
 ## Properties
 
-### base
-
-```ts
-readonly base: URL;
-```
+### base <MemberMeta type="URL" href="https://developer.mozilla.org/en-US/docs/Web/API/URL" readonly /> [#base]
 
 Bookmark [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) for this API.
 This is where the tree traversal begins. We also use this URL as a base for relative paths.
 
 ***
 
-### cache
-
-```ts
-readonly cache: Storage;
-```
+### cache <MemberMeta type="Storage" href="https://developer.mozilla.org/en-US/docs/Web/API/Storage" readonly /> [#cache]
 
 Resolver cache implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API).
 Every resolved path will be stored here for future use. You can clear this cache by calling `clear()`.
 
 ***
 
-### console
-
-```ts
-readonly console: Logger;
-```
+### console <MemberMeta type="Logger" readonly /> [#console]
 
 Shared Logger instance.
 If you extend this class and add logging in your code, use this instead of native console.
 
 ***
 
-### storage
-
-```ts
-readonly storage: Storage;
-```
+### storage <MemberMeta type="Storage" href="https://developer.mozilla.org/en-US/docs/Web/API/Storage" readonly /> [#storage]
 
 Credentials storage implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API).
 Access tokens and other related info will be stored here. Clearing this storage will log you out.
 
 ***
 
-### AuthError
-
-```ts
-readonly static AuthError: typeof AuthError;
-```
+### AuthError <MemberMeta type="typeof AuthError" href="/docs/reference/customer/classes/AuthError" static readonly /> [#autherror]
 
 This SDK's [`AuthError`](/docs/reference/customer/classes/AuthError) class.
 
 ***
 
-### ResolutionError
-
-```ts
-readonly static ResolutionError: typeof ResolutionError;
-```
+### ResolutionError <MemberMeta type="typeof ResolutionError" href="/docs/reference/customer/classes/ResolutionError" static readonly /> [#resolutionerror]
 
 This SDK's [`ResolutionError`](/docs/reference/customer/classes/ResolutionError) class.
 
 ***
 
-### SESSION
-
-```ts
-readonly static SESSION: "session" = 'session';
-```
+### SESSION <MemberMeta type={'"session"'} static readonly /> [#session]
 
 Storage key for session data.
 
 ## Accessors
 
-### usesTemporaryPassword
-
-#### Get Signature
-
-```ts
-get usesTemporaryPassword(): boolean;
-```
+### usesTemporaryPassword <MemberMeta type="boolean" getter setter /> [#usestemporarypassword]
 
 When logged in with a temporary password, this property getter will return `true`.
 Will return `false` if password reset is not required or if the session has not been
 initiated, or if the session was initiated before the introduction of this feature.
 
-##### Returns
-
-`boolean`
-
-Password reset requirement.
-
-#### Set Signature
-
-```ts
-set usesTemporaryPassword(value): void;
-```
-
-##### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `value` | `boolean` |
-
-##### Returns
-
-`void`
-
 ***
 
-### Response
-
-#### Get Signature
-
-```ts
-get static Response(): typeof Response;
-```
+### Response <MemberMeta type="typeof Response" href="/docs/reference/customer/classes/Response" static getter /> [#response]
 
 This SDK's [Response](/docs/reference/customer/classes/Response) class.
-
-##### Returns
-
-*typeof* [`Response`](/docs/reference/customer/classes/Response)
 
 ## Methods
 

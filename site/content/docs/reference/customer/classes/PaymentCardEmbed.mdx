@@ -3,6 +3,8 @@ title: "PaymentCardEmbed"
 description: "@foxy.io/sdk/customer"
 ---
 
+import { MemberMeta } from '@/components/member-meta';
+
 A convenience wrapper for the payment card embed [iframe](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe). You don't have to use
 this class to embed the payment card iframe, but it provides a more convenient
 way to interact with the iframe and listen to its events.
@@ -48,11 +50,7 @@ new PaymentCardEmbed(__namedParameters): PaymentCardEmbed;
 
 ## Properties
 
-### onsubmit
-
-```ts
-onsubmit: (() => void) | null = null;
-```
+### onsubmit <MemberMeta type="(() => void) | null" /> [#onsubmit]
 
 An event handler that is triggered when Enter is pressed in the card form.
 This feature is not available for template sets configured with the `stripe_connect`

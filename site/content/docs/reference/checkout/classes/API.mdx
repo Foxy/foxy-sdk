@@ -3,6 +3,8 @@ title: "API"
 description: "@foxy.io/sdk/checkout"
 ---
 
+import { MemberMeta } from '@/components/member-meta';
+
 The checkout client. `checkout/client` and `checkout/loader` export one shared
 instance as `client`. The loader also sets its store, from the script's `?store=`
 or else the page's hostname.
@@ -47,100 +49,45 @@ new API(params?): API;
 
 ## Properties
 
-### session
-
-```ts
-readonly session: CartSession;
-```
+### session <MemberMeta type="CartSession" href="/docs/reference/checkout/interfaces/CartSession" readonly /> [#session]
 
 The cart session: where its ID is stored, and how to start or end it.
 
 ## Accessors
 
-### adyenEmbedded
+### adyenEmbedded <MemberMeta type="AdyenEmbeddedSdkInstance | null" href="/docs/reference/checkout/types#adyenembeddedsdkinstance" getter /> [#adyenembedded]
 
-#### Get Signature
-
-```ts
-get adyenEmbedded(): 
-  | AdyenEmbeddedSdkInstance
-  | null;
-```
-
-##### Returns
-
-  \| [`AdyenEmbeddedSdkInstance`](/docs/reference/checkout/types#adyenembeddedsdkinstance)
-  \| `null`
+The Adyen Embedded SDK instance, or `null` when the checkout has no Adyen Embedded gateway or the SDK is not loaded. The client creates it from the JSON you load.
 
 ***
 
-### json
+### json <MemberMeta type="APIJson | null" href="/docs/reference/checkout/types#apijson" getter /> [#json]
 
-#### Get Signature
-
-```ts
-get json(): APIJson | null;
-```
-
-##### Returns
-
-[`APIJson`](/docs/reference/checkout/types#apijson) \| `null`
+The current checkout JSON, or `null` until the first cart load ends or you call [`hydrateJson()`](#hydratejson). The client replaces it after each change. See [`APIJson`](/docs/reference/checkout/types#apijson).
 
 ***
 
-### klarna
+### klarna <MemberMeta type="KlarnaSdkInstance | null" href="/docs/reference/checkout/types#klarnasdkinstance" getter /> [#klarna]
 
-#### Get Signature
-
-```ts
-get klarna(): KlarnaSdkInstance | null;
-```
-
-##### Returns
-
-[`KlarnaSdkInstance`](/docs/reference/checkout/types#klarnasdkinstance) \| `null`
+The Klarna SDK instance, or `null` when the checkout has no Klarna gateway or the SDK is not loaded. The client creates it from the JSON you load.
 
 ***
 
-### paypal
+### paypal <MemberMeta type="PayPalSdkInstance | null" href="/docs/reference/checkout/types#paypalsdkinstance" getter /> [#paypal]
 
-#### Get Signature
-
-```ts
-get paypal(): PayPalSdkInstance | null;
-```
-
-##### Returns
-
-[`PayPalSdkInstance`](/docs/reference/checkout/types#paypalsdkinstance) \| `null`
+The PayPal SDK instance, or `null` when the checkout has no PayPal gateway or the SDK is not loaded. The client creates it from the JSON you load.
 
 ***
 
-### square
+### square <MemberMeta type="SquareSdkInstance | null" href="/docs/reference/checkout/types#squaresdkinstance" getter /> [#square]
 
-#### Get Signature
-
-```ts
-get square(): SquareSdkInstance | null;
-```
-
-##### Returns
-
-[`SquareSdkInstance`](/docs/reference/checkout/types#squaresdkinstance) \| `null`
+The Square SDK instance, or `null` when the checkout has no Square gateway or the SDK is not loaded. The client creates it from the JSON you load.
 
 ***
 
-### state
+### state <MemberMeta type={'"idle" | "busy"'} getter /> [#state]
 
-#### Get Signature
-
-```ts
-get state(): "idle" | "busy";
-```
-
-##### Returns
-
-`"idle"` \| `"busy"`
+`"busy"` while the client runs a change, such as a cart update or a checkout. Otherwise `"idle"`. The client fires `update` when it changes.
 
 ## Methods
 
@@ -232,6 +179,8 @@ there is no cart item yet for `item-add`'s detail to describe.
 addMessage(params): number;
 ```
 
+Adds a [`Message`](/docs/reference/checkout/types#message) to `json.messages` on the client only. Returns the index of the new message, or `-1` if there is no checkout JSON or a listener cancels the cancelable `messages-add` event. Sends nothing to the server.
+
 #### Parameters
 
 | Parameter | Type |
@@ -249,6 +198,8 @@ addMessage(params): number;
 ```ts
 applyCouponOrGiftCardCode(params): void;
 ```
+
+Applies a coupon code or a gift card code to the cart. The server decides which one the code is. An empty code adds an error message and sends nothing. Fires the cancelable `coupon-or-gift-card-apply` event first. If a listener cancels it, nothing is sent. When the side cart is mounted, the call goes to the side cart and this client fires no events. If the request fails, the client adds an error [message](/docs/reference/checkout/types#message) to `json.messages` and calls `onError`.
 
 #### Parameters
 
@@ -268,6 +219,8 @@ applyCouponOrGiftCardCode(params): void;
 ```ts
 checkOut(paymentMethod, extra?): void;
 ```
+
+Submits the checkout with the given payment method. Pass `newAccountPassword` to create an account for the customer. Fires the cancelable `checkout` event first. If a listener cancels it, nothing is sent. If the server answers with a next action, the client follows it. If the request fails, the client adds an error [message](/docs/reference/checkout/types#message) to `json.messages` and calls `onError`.
 
 #### Parameters
 
@@ -289,6 +242,8 @@ checkOut(paymentMethod, extra?): void;
 clearCart(reset?): void;
 ```
 
+Removes all items from the cart. With `reset` set to `true`, it also resets the session on the server. Fires the cancelable `cart-clear` event first. If a listener cancels it, nothing is sent. When the side cart is mounted, the call goes to the side cart and this client fires no events. If the request fails, the client adds an error [message](/docs/reference/checkout/types#message) to `json.messages` and calls `onError`.
+
 #### Parameters
 
 | Parameter | Type |
@@ -306,6 +261,8 @@ clearCart(reset?): void;
 ```ts
 clearMessages(): void;
 ```
+
+Removes all messages from `json.messages` on the client only. Sends nothing to the server. A listener can cancel the cancelable `messages-clear` event to keep them.
 
 #### Returns
 
@@ -345,6 +302,8 @@ completes or reopens the transaction.
 getAddressSuggestions(params): Promise<AddressSuggestion[]>;
 ```
 
+Looks up address suggestions for a postal code and a country code. Returns an empty list when the postal code is too short or the country is empty. Rejects when the request fails.
+
 #### Parameters
 
 | Parameter | Type |
@@ -365,6 +324,8 @@ getAddressSuggestions(params): Promise<AddressSuggestion[]>;
 hydrateJson(nextJson, options?): Promise<void>;
 ```
 
+Loads checkout JSON you already have, such as the JSON of a hosted checkout page, instead of fetching it. It sets the store domain from `store.domain` when present and loads the SDK of each payment gateway in the JSON. After this call the client does not run its first cart load. Set `emitUpdate` to `false` to skip the `update` event.
+
 #### Parameters
 
 | Parameter | Type |
@@ -384,6 +345,8 @@ hydrateJson(nextJson, options?): Promise<void>;
 logError(error): void;
 ```
 
+Sends the message of an error to the store's error log. Also prints the error to the console when `json.debug` is on. If the request fails, the client calls `onError`.
+
 #### Parameters
 
 | Parameter | Type |
@@ -401,6 +364,8 @@ logError(error): void;
 ```ts
 removeCouponCode(params): void;
 ```
+
+Removes a coupon from the cart by its ID. An unknown ID adds an error message and sends nothing. Fires the cancelable `coupon-remove` event first. If a listener cancels it, nothing is sent. When the side cart is mounted, the call goes to the side cart and this client fires no events. If the request fails, the client adds an error [message](/docs/reference/checkout/types#message) to `json.messages` and calls `onError`.
 
 #### Parameters
 
@@ -469,6 +434,8 @@ removeEventListener(type, listener): void;
 removeGiftCardCode(params): void;
 ```
 
+Removes a gift card from the cart by its ID. An unknown ID adds an error message and sends nothing. Fires the cancelable `gift-card-remove` event first. If a listener cancels it, nothing is sent. When the side cart is mounted, the call goes to the side cart and this client fires no events. If the request fails, the client adds an error [message](/docs/reference/checkout/types#message) to `json.messages` and calls `onError`.
+
 #### Parameters
 
 | Parameter | Type |
@@ -488,6 +455,8 @@ removeGiftCardCode(params): void;
 removeItem(...params): void;
 ```
 
+Removes one or more items from the cart by their IDs. If an ID is not in the cart, it adds an error message and sends nothing. Fires the cancelable `item-remove` event first. If a listener cancels it, nothing is sent. When the side cart is mounted, the call goes to the side cart and this client fires no events. If the request fails, the client adds an error [message](/docs/reference/checkout/types#message) to `json.messages` and calls `onError`.
+
 #### Parameters
 
 | Parameter | Type |
@@ -505,6 +474,8 @@ removeItem(...params): void;
 ```ts
 removeMessage(index): void;
 ```
+
+Removes the message at the given index from `json.messages` on the client only. An index out of range adds an error message. A listener can cancel the cancelable `messages-remove` event to keep it.
 
 #### Parameters
 
@@ -524,6 +495,8 @@ removeMessage(index): void;
 requestTemporaryPassword(email?): void;
 ```
 
+Asks the server to email a temporary password to the customer. Uses the given email, or else the email of the customer in `json`. An invalid email adds an error message and sends nothing. Fires the cancelable `temporary-password-request` event first. If a listener cancels it, nothing is sent. If the request fails, the client adds an error [message](/docs/reference/checkout/types#message) to `json.messages` and calls `onError`.
+
 #### Parameters
 
 | Parameter | Type |
@@ -542,6 +515,8 @@ requestTemporaryPassword(email?): void;
 setCustomFields(fields): void;
 ```
 
+Saves custom fields for the checkout. It checks the fields first and adds an error message for each invalid one. Fires the cancelable `custom-fields-update` event first. If a listener cancels it, nothing is sent. If the request fails, the client adds an error [message](/docs/reference/checkout/types#message) to `json.messages` and calls `onError`.
+
 #### Parameters
 
 | Parameter | Type |
@@ -559,6 +534,8 @@ setCustomFields(fields): void;
 ```ts
 setEmail(email, mode?): void;
 ```
+
+Sets the customer email of the checkout. Pass `mode` to say whether the customer checks out as a guest or with an account. An invalid email adds an error message and sends nothing. Fires the cancelable `email-update` event first. If a listener cancels it, nothing is sent. If the request fails, the client adds an error [message](/docs/reference/checkout/types#message) to `json.messages` and calls `onError`.
 
 #### Parameters
 
@@ -579,6 +556,8 @@ setEmail(email, mode?): void;
 setStoreDomain(storeDomain): void;
 ```
 
+Sets the store this client works with. Pass a full domain such as `example.foxycart.com` or a Foxy subdomain. Throws if the value is empty. When the store changes, the client forgets the old session and cart, and loads the cart of the new store.
+
 #### Parameters
 
 | Parameter | Type |
@@ -596,6 +575,8 @@ setStoreDomain(storeDomain): void;
 ```ts
 signIn(params): void;
 ```
+
+Signs a customer in with their email and password. An invalid email or an empty password adds an error message and sends nothing. Fires the cancelable `sign-in` event first. If a listener cancels it, nothing is sent. If the request fails, the client adds an error [message](/docs/reference/checkout/types#message) to `json.messages` and calls `onError`.
 
 #### Parameters
 
@@ -617,6 +598,8 @@ signIn(params): void;
 signOut(): void;
 ```
 
+Signs the current customer out of the checkout. Fires the cancelable `sign-out` event first. If a listener cancels it, nothing is sent. If the request fails, the client adds an error [message](/docs/reference/checkout/types#message) to `json.messages` and calls `onError`.
+
 #### Returns
 
 `void`
@@ -628,6 +611,8 @@ signOut(): void;
 ```ts
 submitAdyenEmbeddedPayment(data): Promise<Record<string, unknown>>;
 ```
+
+Sends the payment data from the Adyen Embedded SDK to the store. Returns the JSON the store answers with. Rejects when the request fails.
 
 #### Parameters
 
@@ -647,6 +632,8 @@ submitAdyenEmbeddedPayment(data): Promise<Record<string, unknown>>;
 submitAdyenEmbeddedPaymentDetails(data): Promise<Record<string, unknown>>;
 ```
 
+Sends the additional payment details from the Adyen Embedded SDK to the store, for example after a 3-D Secure step. Returns the JSON the store answers with. Rejects when the request fails.
+
 #### Parameters
 
 | Parameter | Type |
@@ -664,6 +651,8 @@ submitAdyenEmbeddedPaymentDetails(data): Promise<Record<string, unknown>>;
 ```ts
 updateBillingAddress(params): void;
 ```
+
+Updates the billing address, or turns the separate billing address on or off. Only the fields you pass change. It checks them first and adds an error message for each invalid one. Fires the cancelable `billing-address-update` event first. If a listener cancels it, nothing is sent. If the request fails, the client adds an error [message](/docs/reference/checkout/types#message) to `json.messages` and calls `onError`.
 
 #### Parameters
 
@@ -683,6 +672,8 @@ updateBillingAddress(params): void;
 updateItemQuantity(...params): void;
 ```
 
+Sets the quantity of one or more items by their IDs. A quantity of `0` removes the item. If an ID is not in the cart, it adds an error message and sends nothing. Fires the cancelable `item-update` event first. If a listener cancels it, nothing is sent. When the side cart is mounted, the call goes to the side cart and this client fires no events. If the request fails, the client adds an error [message](/docs/reference/checkout/types#message) to `json.messages` and calls `onError`.
+
 #### Parameters
 
 | Parameter | Type |
@@ -700,6 +691,8 @@ updateItemQuantity(...params): void;
 ```ts
 updateShipment(params): void;
 ```
+
+Updates the address or the shipping service of a shipment. Only the fields you pass change. Use `index` to choose the shipment, the first one by default. It checks the fields first and adds an error message for each invalid one. Fires the cancelable `shipment-update` event first. If a listener cancels it, nothing is sent. If the request fails, the client adds an error [message](/docs/reference/checkout/types#message) to `json.messages` and calls `onError`.
 
 #### Parameters
 

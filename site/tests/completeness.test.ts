@@ -5,7 +5,7 @@ import remarkFrontmatter from 'remark-frontmatter';
 import remarkGfm from 'remark-gfm';
 import { describe, expect, it } from 'vitest';
 
-import { findInternalLeaks, findMissing } from '../scripts/check-completeness.mjs';
+import { findInternalLeaks, findMissing, findUndescribed } from '../scripts/check-completeness.mjs';
 import { entryPoints, listInternalMembers, listPublicExports, subentries } from '../scripts/exports.mjs';
 
 const dir = 'content/docs/reference';
@@ -75,6 +75,10 @@ describe('reference completeness', () => {
     const exports = listPublicExports();
     exports.get('./admin')!.find((e: { name: string }) => e.name === 'API')!.members.push('notAMember');
     expect(findMissing(exports, dir)).toContain('./admin API.notAMember');
+  });
+
+  it('describes every class and interface member', () => {
+    expect(findUndescribed(dir)).toEqual([]);
   });
 
   it('shows no @internal member', () => {

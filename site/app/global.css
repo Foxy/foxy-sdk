@@ -93,3 +93,14 @@ h6 {
 .prose a:hover {
   color: var(--foxy-accent-hover);
 }
+
+/* Class member headings (MemberMeta): closer to the separators around them and to their text. */
+.prose :where(hr):has(+ .member-heading) {
+  margin-block: 1.75rem;
+}
+.prose :where(hr) + .member-heading {
+  margin-top: 0;
+}
+.prose .member-heading + * {
+  margin-top: 0.75rem;
+}

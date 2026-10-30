@@ -19,9 +19,12 @@ function findPage(entryDir, name) {
   return null;
 }
 
-/** Names of the `###` headings of a page, without `()` and escapes. */
+/** A `###` heading's text without escapes, `<MemberMeta />` and `[#id]`. */
+const headingText = text => unescape(text.replace(/ <MemberMeta .*\/>/, '').replace(/ \[#[^\]]+\]$/, ''));
+
+/** Names of the `###` headings of a page, without `()`, escapes, `<MemberMeta />` and `[#id]`. */
 function headings(page) {
-  return [...readFileSync(page, 'utf8').matchAll(/^### (.+)$/gm)].map(([, text]) => unescape(text).replace(/(\(\))?\??$/, ''));
+  return [...readFileSync(page, 'utf8').matchAll(/^### (.+)$/gm)].map(([, text]) => headingText(text).replace(/(\(\))?\??$/, ''));
 }
 
 /** Ids like `./admin API.signIn` of exports and class members that have no page or `### ` heading. */
@@ -64,11 +67,41 @@ export function findInternalLeaks(referenceDir) {
   return leaks;
 }
 
+/** Files under `dir`, recursively. */
+const walk = dir =>
+  readdirSync(dir, { withFileTypes: true }).flatMap(e => (e.isDirectory() ? walk(join(dir, e.name)) : [join(dir, e.name)]));
+
+/**
+ * Ids like `checkout/classes/API.mdx signIn` of class and interface members with no description:
+ * no text in the member's block outside code and its Parameters, Returns or similar sub-sections.
+ */
+export function findUndescribed(referenceDir) {
+  const undescribed = [];
+  for (const page of walk(referenceDir).filter(f => /\/(classes|interfaces)\/[^/]+\.mdx$/.test(f))) {
+    const text = readFileSync(page, 'utf8').replace(/```[\s\S]*?```/g, '');
+    for (const [, section] of text.matchAll(/^## (?:Properties|Accessors|Methods)\n([\s\S]*?)(?=^## |(?![\s\S]))/gm)) {
+      for (const block of section.split(/^(?=### )/m).filter(b => b.startsWith('### '))) {
+        const [heading, ...lines] = block.split('\n');
+        let sub = '';
+        const described = lines.some(line => {
+          if (line.startsWith('#')) return (sub = line.replace(/^#+ /, '')), false;
+          const prose = line.trim() && !line.startsWith('|') && line.trim() !== '***';
+          return prose && (!sub || /Signature$/.test(sub));
+        });
+        if (!described) undescribed.push(`${page.slice(referenceDir.length + 1)} ${headingText(heading.slice(4))}`);
+      }
+    }
+  }
+  return undescribed;
+}
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const referenceDir = join(siteDir, 'content/docs/reference');
   const missing = findMissing(listPublicExports(), referenceDir);
   const leaks = findInternalLeaks(referenceDir);
+  const undescribed = findUndescribed(referenceDir);
   if (missing.length) console.error(`Public exports with no page:\n${missing.map(id => `  ${id}`).join('\n')}`);
   if (leaks.length) console.error(`@internal members on a page:\n${leaks.map(id => `  ${id}`).join('\n')}`);
-  process.exit(missing.length || leaks.length ? 1 : 0);
+  if (undescribed.length) console.error(`Members with no description:\n${undescribed.map(id => `  ${id}`).join('\n')}`);
+  process.exit(missing.length || leaks.length || undescribed.length ? 1 : 0);
 }

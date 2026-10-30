@@ -3,6 +3,8 @@ title: "CartSession"
 description: "@foxy.io/sdk/checkout"
 ---
 
+import { MemberMeta } from '@/components/member-meta';
+
 The cart session of one `API` instance: `client.session`.
 
 Every change runs in one queue, one at a time, so a double click or a
@@ -25,17 +27,9 @@ await client.session.end({ reset: true });
 
 ## Accessors
 
-### id
+### id <MemberMeta type="string | null" getter /> [#id]
 
-#### Get Signature
-
-```ts
-get id(): string | null;
-```
-
-##### Returns
-
-`string` \| `null`
+The ID of the current cart session, or `null` when there is no session yet.
 
 ## Methods
 

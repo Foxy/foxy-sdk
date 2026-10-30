@@ -3,6 +3,8 @@ title: "API"
 description: "@foxy.io/sdk/admin"
 ---
 
+import { MemberMeta } from '@/components/member-meta';
+
 JS SDK for building admin integrations with [Foxy Hypermedia API](https://api.foxy.io/docs). Hypermedia API is designed to give you complete control over all aspects of your Foxy accounts, whether working with a single store or automating the provisioning of thousands. Anything you can do within the Foxy administration, you can also do through the API. This means that you can embed Foxy into any application (CMS, LMS, CRM, etc.) and expose as much or as little of Foxy's functionality as desired.
 
 ## Example
@@ -41,123 +43,79 @@ new API(params): API;
 
 ## Properties
 
-### base
-
-```ts
-readonly base: URL;
-```
+### base <MemberMeta type="URL" href="https://developer.mozilla.org/en-US/docs/Web/API/URL" readonly /> [#base]
 
 Bookmark [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) for this API.
 This is where the tree traversal begins. We also use this URL as a base for relative paths.
 
 ***
 
-### cache
-
-```ts
-readonly cache: Storage;
-```
+### cache <MemberMeta type="Storage" href="https://developer.mozilla.org/en-US/docs/Web/API/Storage" readonly /> [#cache]
 
 Resolver cache implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API).
 Every resolved path will be stored here for future use. You can clear this cache by calling `clear()`.
 
 ***
 
-### console
-
-```ts
-readonly console: Logger;
-```
+### console <MemberMeta type="Logger" readonly /> [#console]
 
 Shared Logger instance.
 If you extend this class and add logging in your code, use this instead of native console.
 
 ***
 
-### storage
-
-```ts
-readonly storage: Storage;
-```
+### storage <MemberMeta type="Storage" href="https://developer.mozilla.org/en-US/docs/Web/API/Storage" readonly /> [#storage]
 
 Credentials storage implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API).
 Access tokens and other related info will be stored here. Clearing this storage will log you out.
 
 ***
 
-### version
+### version <MemberMeta type={'"1"'} readonly /> [#version]
 
-```ts
-readonly version: "1";
-```
+The API version this instance sends in the `FOXY-API-VERSION` header of each request. It comes from the `version` option and defaults to [`API.VERSION`](#version-1).
 
 ***
 
-### AuthError
-
-```ts
-readonly static AuthError: typeof AuthError;
-```
+### AuthError <MemberMeta type="typeof AuthError" href="/docs/reference/admin/classes/AuthError" static readonly /> [#autherror]
 
 This SDK's [`AuthError`](/docs/reference/admin/classes/AuthError) class.
 
 ***
 
-### AUTHORIZATION\_URL
+### AUTHORIZATION\_URL <MemberMeta type="URL" href="https://developer.mozilla.org/en-US/docs/Web/API/URL" static readonly /> [#authorization_url]
 
-```ts
-readonly static AUTHORIZATION_URL: URL;
-```
+The default OAuth authorization endpoint, `https://auth.foxy.io/authorize`. [`signIn()`](#signin) uses it when you do not set `authorizationUrl`.
 
 ***
 
-### BASE\_URL
+### BASE\_URL <MemberMeta type="URL" href="https://developer.mozilla.org/en-US/docs/Web/API/URL" static readonly /> [#base_url]
 
-```ts
-readonly static BASE_URL: URL;
-```
+The default base URL of the Foxy Hypermedia API, `https://api.foxy.io/`. The API uses it when you do not set `base`.
 
 ***
 
-### REFRESH\_THRESHOLD
+### REFRESH\_THRESHOLD <MemberMeta type="number" static readonly /> [#refresh_threshold]
 
-```ts
-readonly static REFRESH_THRESHOLD: number;
-```
+The time in milliseconds before an access token expires when the API starts to refresh it. The value is 5 minutes. A request sent inside this window refreshes the token first, if a refresh token is available.
 
 ***
 
-### ResolutionError
-
-```ts
-readonly static ResolutionError: typeof ResolutionError;
-```
+### ResolutionError <MemberMeta type="typeof ResolutionError" href="/docs/reference/admin/classes/ResolutionError" static readonly /> [#resolutionerror]
 
 This SDK's [`ResolutionError`](/docs/reference/admin/classes/ResolutionError) class.
 
 ***
 
-### VERSION
+### VERSION <MemberMeta type={'"1"'} static readonly /> [#version-1]
 
-```ts
-readonly static VERSION: "1" = '1';
-```
+The default API version, `"1"`. The API sends it in the `FOXY-API-VERSION` header when you do not set `version`.
 
 ## Accessors
 
-### Response
-
-#### Get Signature
-
-```ts
-get static Response(): typeof Response;
-```
+### Response <MemberMeta type="typeof Response" href="/docs/reference/admin/classes/Response" static getter /> [#response]
 
 This SDK's [Response](/docs/reference/admin/classes/Response) class.
-
-##### Returns
-
-*typeof* [`Response`](/docs/reference/admin/classes/Response)
 
 ## Methods
 
@@ -418,6 +376,8 @@ removeEventListener<K>(
    options?
 ): void;
 ```
+
+Removes a listener added with [`addEventListener()`](#addeventlistener). Use the same `type`, `listener` and capture option you used to add it.
 
 #### Type Parameters
 

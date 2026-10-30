@@ -3,6 +3,8 @@ title: "SideCart"
 description: "@foxy.io/sdk/checkout/side-cart"
 ---
 
+import { MemberMeta } from '@/components/member-meta';
+
 ## Example
 
 ```ts
@@ -30,13 +32,7 @@ It also has every property and method of [`EventTarget`](https://developer.mozil
 
 ## Accessors
 
-### itemCount
-
-#### Get Signature
-
-```ts
-get itemCount(): number | null;
-```
+### itemCount <MemberMeta type="number | null" getter /> [#itemcount]
 
 `null` means "not known yet", which is not the same as an empty cart.
 Most-recent-wins: what the [iframe](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe) reported this session, then the
@@ -52,41 +48,19 @@ middle tier has to use the same rule or the badge would read 1 until the
 frame connects and then silently jump to 3. `Math.max(0, ...)` clamps a
 negative quantity to 0 rather than letting it subtract from the total.
 
-##### Returns
-
-`number` \| `null`
-
 ***
 
-### itemCountUnavailable
-
-#### Get Signature
-
-```ts
-get itemCountUnavailable(): boolean;
-```
+### itemCountUnavailable <MemberMeta type="boolean" getter /> [#itemcountunavailable]
 
 `true` when the count could not load (the first cart load failed, or no
 store domain was ever set) and no count is known. A count that arrives
 later makes it `false` again.
 
-##### Returns
-
-`boolean`
-
 ***
 
-### open
+### open <MemberMeta type="boolean" getter /> [#open]
 
-#### Get Signature
-
-```ts
-get open(): boolean;
-```
-
-##### Returns
-
-`boolean`
+`true` while the drawer is open. It becomes `true` when you call [`show()`](#show) and `false` when you call [`hide()`](#hide), before the close animation ends.
 
 ## Methods
 
@@ -95,6 +69,8 @@ get open(): boolean;
 ```ts
 hide(): void;
 ```
+
+Closes the drawer. The drawer plays its close animation first, then hides. Fires `close`. Does nothing if the drawer is not open.
 
 #### Returns
 
@@ -108,6 +84,8 @@ hide(): void;
 mount(): void;
 ```
 
+Adds the cart [iframe](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe) to the page, hidden, and starts loading the cart in it. Does nothing if it is already mounted. Throws if the store is not known. Set it with the `store` query of the import URL or on the client.
+
 #### Returns
 
 `void`
@@ -119,6 +97,8 @@ mount(): void;
 ```ts
 reload(): void;
 ```
+
+Removes the iframe and adds a new one, so the drawer shows the current cart. If the drawer was open, it opens again.
 
 #### Returns
 
@@ -132,6 +112,8 @@ reload(): void;
 show(): void;
 ```
 
+Opens the drawer. It mounts the iframe first if needed, and fires `open`. The page behind the drawer becomes inert until the drawer closes. If the cart does not answer in time, the drawer closes again and the client reports an error.
+
 #### Returns
 
 `void`
@@ -143,6 +125,8 @@ show(): void;
 ```ts
 unmount(): void;
 ```
+
+Closes the drawer and removes the iframe from the page. Pending cart changes that wait for the iframe fail. Calling `mount()` or `show()` later adds a new iframe.
 
 #### Returns
 

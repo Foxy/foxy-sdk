@@ -3,6 +3,8 @@ title: "ResolutionError"
 description: "@foxy.io/sdk/customer"
 ---
 
+import { MemberMeta } from '@/components/member-meta';
+
 This error is thrown when one of the requests for a resource
 in a path returns a non-2XX status code during the URL resolution process.
 If you're implementing a custom resolver, consider using this class
@@ -52,10 +54,6 @@ new ResolutionError(response): ResolutionError;
 
 ## Properties
 
-### response
-
-```ts
-readonly response: Response;
-```
+### response <MemberMeta type="Response" href="https://developer.mozilla.org/en-US/docs/Web/API/Response" readonly /> [#response]
 
 API response object with a non-2XX status code.
