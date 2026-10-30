@@ -24,7 +24,8 @@ export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
       // Fumadocs' top padding assumes its own nav. 18px puts the title's cap
       // height level with the first sidebar and TOC lines, which sit 24px down.
       className="md:pt-[18px] xl:pt-[18px]"
-      tableOfContent={{ container: { className: 'pt-6' } }}
+      tableOfContent={{ style: 'block', container: { className: 'pt-6' } }}
+      tableOfContentPopover={{ style: 'block' }}
     >
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription className="mb-0">{page.data.description}</DocsDescription>
