@@ -31,8 +31,8 @@
     "backend.d.ts"
   ],
   "scripts": {
-    "test": "NODE_OPTIONS=--no-experimental-fetch jest",
-    "test:watch": "NODE_OPTIONS=--no-experimental-fetch jest --watch",
+    "test": "jest",
+    "test:watch": "jest --watch",
     "lint": "npm run lint:eslint && npm run lint:prettier",
     "lint:eslint": "eslint --ext .ts,.html . --ignore-path .gitignore",
     "lint:prettier": "prettier \"**/*.ts\" --check --ignore-path .gitignore",
@@ -98,7 +98,7 @@
     "webpack-node-externals": "^2.5.2"
   },
   "engines": {
-    "node": ">=10 <=20"
+    "node": ">=10 <=26"
   },
   "eslintConfig": {
     "extends": [
