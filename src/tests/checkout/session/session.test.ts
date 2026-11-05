@@ -472,6 +472,75 @@ describe("client.session.configure after the first load", () => {
   });
 });
 
+describe("client.session.configure before the first load, with a session in the default store", () => {
+  it("moves the session into the configured store and empties the default store", async () => {
+    localStorage.setItem(KEY, "s-1");
+    vi.mocked(fetch).mockImplementation(async () => respond(cart("s-1")));
+    const store = spyStore();
+
+    const api = await boot((a) => a.session.configure({ storage: store }));
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(sessionIdOf(0)).toBe("s-1");
+    expect(api.session.id).toBe("s-1");
+    expect(store.value).toBe("s-1");
+    expect(localStorage.getItem(KEY)).toBeNull();
+  });
+
+  it("keeps the configured store's session and empties the default store", async () => {
+    localStorage.setItem(KEY, "s-1");
+    vi.mocked(fetch).mockImplementation(async () => respond(cart("s-2")));
+    const store = spyStore("s-2");
+
+    const api = await boot((a) => a.session.configure({ storage: store }));
+
+    expect(sessionIdOf(0)).toBe("s-2");
+    expect(api.session.id).toBe("s-2");
+    expect(localStorage.getItem(KEY)).toBeNull();
+  });
+
+  it("moves the session to a custom key in localStorage", async () => {
+    localStorage.setItem(KEY, "s-1");
+    vi.mocked(fetch).mockImplementation(async () => respond(cart("s-1")));
+
+    await boot((a) => a.session.configure({ key: "fc_sid" }));
+
+    expect(sessionIdOf(0)).toBe("s-1");
+    expect(localStorage.getItem("fc_sid")).toBe("s-1");
+    expect(localStorage.getItem(KEY)).toBeNull();
+  });
+
+  it("leaves the default store alone when it is the configured store", async () => {
+    localStorage.setItem(KEY, "s-1");
+    vi.mocked(fetch).mockImplementation(async () => respond(cart("s-1")));
+    const getItem = vi.spyOn(Storage.prototype, "getItem");
+    const removeItem = vi.spyOn(Storage.prototype, "removeItem");
+
+    await boot((a) => a.session.configure({ storage: "local", key: KEY }));
+
+    expect(getItem).toHaveBeenCalledTimes(1);
+    expect(removeItem).not.toHaveBeenCalled();
+    expect(localStorage.getItem(KEY)).toBe("s-1");
+  });
+
+  it("keeps the default store's session when the configured store cannot save it", async () => {
+    localStorage.setItem(KEY, "s-1");
+    vi.mocked(fetch).mockImplementation(async () => respond(cart("s-1")));
+    const store = spyStore();
+    vi.mocked(store.set).mockImplementation(() => {
+      throw new Error("backend down");
+    });
+    const onError = vi.fn();
+
+    const api = await boot((a) => a.session.configure({ storage: store }), onError);
+
+    expect(sessionIdOf(0)).toBe("s-1");
+    expect(api.session.id).toBe("s-1");
+    expect(localStorage.getItem(KEY)).toBe("s-1");
+    expect(onError).toHaveBeenCalledWith(expect.objectContaining({ message: "backend down" }));
+  });
+});
+
 describe("responses from an old session", () => {
   function later(json: APIJson, ms = 5): Promise<Response> {
     return new Promise((resolve) => setTimeout(() => resolve(respond(json)), ms));
