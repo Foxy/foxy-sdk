@@ -153,7 +153,7 @@ export class CartSession {
   boot(): Promise<void> {
     return this.#enqueue(async () => {
       this.#managed = true;
-      const id = await this.#read();
+      const id = await this.#adoptDefault(await this.#read());
 
       if (id !== null) {
         this.#id = id;
@@ -298,6 +298,38 @@ export class CartSession {
     }
 
     return (this.#store = createStore(storage, resolvedKey, cookie));
+  }
+
+  /**
+   * A page configured before its first load never saw the default store, so
+   * a returning visitor's session there would be lost and left behind. Moves
+   * it into the configured store, unless that store has its own. The default
+   * store is emptied only once the session is safe elsewhere.
+   */
+  async #adoptDefault(id: string | null): Promise<string | null> {
+    const { storage = "local", key } = this.#options;
+    const origin = this.#host.storeOrigin();
+    if (origin === null) return id;
+
+    const defaultKey = defaultSessionKey(origin);
+    if (storage === "local" && (key ?? defaultKey) === defaultKey) return id;
+
+    const defaultStore = createStore("local", defaultKey);
+    const stored = defaultStore.get();
+    if (stored === null) return id;
+
+    if (id === null && isSessionId(stored)) {
+      try {
+        await this.#currentStore().set(stored);
+      } catch (error) {
+        this.#host.onError(toError(error));
+        return stored;
+      }
+      id = stored;
+    }
+
+    defaultStore.remove();
+    return id;
   }
 
   async #read(): Promise<string | null> {

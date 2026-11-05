@@ -152,6 +152,14 @@ If `configure()` runs after the first request, the session moves to the new
 store and the old store is emptied. One extra session may then exist on the
 server.
 
+Switching a live site away from the default store keeps returning visitors'
+carts: on the first load, a session found under the default
+`localStorage` key moves to your store, unless your store already holds one.
+The default key is then emptied. Only the default store is checked, so a move
+between two other stores starts new sessions. Use the same `configure()` on
+every page: a page with the default settings next to one with your own starts
+a new cart each time the visitor moves between them.
+
 With the default key, each store gets its own key. A `key` you set, or your
 own store, holds one session, so use it with one store per page.
 
