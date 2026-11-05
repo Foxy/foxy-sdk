@@ -5,9 +5,11 @@ import { API as CustomerAPI } from '@foxy.io/sdk/customer';
 import { getAllowedFrequencies } from '@foxy.io/sdk/customer/subscriptions';
 import { client } from '@foxy.io/sdk/checkout/client';
 import { sideCart } from '@foxy.io/sdk/checkout/side-cart';
+import type { AddToCartDetail } from '@foxy.io/sdk/checkout/add-to-cart';
 
 declare function save(tokens: unknown): void;
 declare const callbackUrl: string;
+declare function openMyCart(): void;
 declare const savedState: string;
 declare const settings: Parameters<typeof getAllowedFrequencies>[0]['settings'];
 declare const subscription: Parameters<typeof getAllowedFrequencies>[0]['subscription'];
@@ -50,4 +52,13 @@ export function checkout() {
   sideCart.show();
   sideCart.hide();
   sideCart.addEventListener('itemcountchange', () => console.log(sideCart.itemCount));
+}
+
+export function addToCart() {
+  document.addEventListener('foxy:add-to-cart', event => {
+    const { params } = (event as CustomEvent<AddToCartDetail>).detail;
+    event.preventDefault();
+    client.addItem(params);
+    openMyCart();
+  });
 }

@@ -3,6 +3,65 @@ title: "@foxy.io/sdk/checkout/add-to-cart"
 description: "@foxy.io/sdk/checkout/add-to-cart"
 ---
 
+Makes your add-to-cart links and forms use the shopper's cart session and the side cart. The module exports only a type. Importing it is what turns it on: it adds click and submit listeners to `document`. Pages that do not import it are left alone.
+
+From the CDN, the store domain goes in the `store` parameter:
+
+```html
+<script type="module" src="https://cdn-js.foxy.io/sdk@2/checkout/add-to-cart.js?store=example.foxycart.com"></script>
+```
+
+From npm, import it for its side effect and set the store on the shared [`client`](/docs/reference/checkout/client):
+
+```ts
+import '@foxy.io/sdk/checkout/add-to-cart';
+import { client } from '@foxy.io/sdk/checkout/client';
+
+client.setStoreDomain('example.foxycart.com');
+```
+
+## What it handles
+
+Links and forms that point at `/cart` on the store's domain, like these:
+
+```html
+<a href="https://example.foxycart.com/cart?name=Mug&price=15">Add to cart</a>
+
+<form action="https://example.foxycart.com/cart" method="post">
+  <input type="hidden" name="name" value="Mug">
+  <input type="hidden" name="price" value="15">
+  <button>Add to cart</button>
+</form>
+```
+
+For a form, the URL is the `action`, or the `formaction` of the button that submits it. Other links and forms are left alone. So are clicks and submits that your own code already canceled with `preventDefault()`.
+
+## What happens on click
+
+1. It fires `foxy:add-to-cart` on the link or form. The event bubbles, and its `detail` is an [`AddToCartDetail`](#addtocartdetail). Cancel it to handle the item yourself. Nothing else then happens.
+2. If the page has a [side cart](/docs/reference/checkout/side-cart) and the link or form opens in the same tab, the item goes into the side cart and the drawer opens. Links with `cart=checkout` or `redirect` still go to their page.
+3. Otherwise the browser goes to the cart, with the shopper's `session_id` added, so the item lands in the same cart. If there is no session yet, it waits a short time for one, then goes without it.
+4. A link that opens in a new tab (middle click, a modifier key, or a `target`) opens as usual, with `session_id` added. Links with a `ping` attribute open without it.
+5. With `empty=reset`, it ends the current session and starts a new one before it goes to the cart.
+
+Links and forms that already have a `session_id` are sent as they are.
+
+## Example
+
+Show the item in your own cart UI instead of the cart page.
+
+```ts
+import type { AddToCartDetail } from 'https://cdn-js.foxy.io/sdk@2/checkout/add-to-cart.js';
+import { client } from 'https://cdn-js.foxy.io/sdk@2/checkout/loader.js?store=example.foxycart.com';
+
+document.addEventListener('foxy:add-to-cart', event => {
+  const { params } = (event as CustomEvent<AddToCartDetail>).detail;
+  event.preventDefault();
+  client.addItem(params);
+  openMyCart();
+});
+```
+
 ## Type aliases
 
 ### AddToCartDetail
