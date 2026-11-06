@@ -1,8 +1,790 @@
 ---
 title: "Client"
 description: "@foxy.io/sdk/checkout/client"
+documents: API, CartSession
 ---
+
+import { MemberMeta } from '@/components/member-meta';
+
+The shared checkout [`client`](#client). Every import of `checkout/client` or `checkout/loader` gets this same instance. The [loader](/docs/reference/checkout/loader) also sets its store, from the script's `?store=` or else the page's hostname.
+
+Its type is [`API`](/docs/reference/checkout/types#api). It fires a non-cancelable `update` event whenever the resolved checkout state changes.
+
+## Example
+
+```ts
+import { client } from 'https://cdn-js.foxy.io/sdk@2/checkout/client.js';
+
+// Keep the session ID in a cookie. Do this before the store domain is set.
+client.session.configure({
+  storage: 'cookie',
+  cookie: { maxAge: 60 * 60 * 24 * 30, sameSite: 'Lax' },
+});
+
+client.setStoreDomain('example.foxycart.com');
+
+// Listen for changes to the cart.
+client.addEventListener('update', () => {
+  console.log(client.state, client.json?.items.length ?? 0);
+});
+
+// Add a product with a quantity and a custom option.
+client.addItem([
+  ['name', 'Mug'],
+  ['price', '15'],
+  ['quantity', '2'],
+  ['color', 'Blue'],
+]);
+
+// Apply a coupon code from your own input.
+client.applyCouponOrGiftCardCode({ code: 'SPRING10' });
+
+// Later, when the shopper signs out, forget the session and reset the cart.
+await client.session.end({ reset: true });
+```
+
+## Extends
+
+- [`EventTarget`](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget)
+
+It also has every property and method of [`EventTarget`](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget). This page lists only what it adds or changes.
+
+## Properties
+
+### session <MemberMeta type="CartSession" href="/docs/reference/checkout/types#cartsession" readonly /> [#session]
+
+The cart session: where its ID is stored, and how to start or end it. Every change runs in one queue, one at a time, so a double click or a `start()` during the first load cannot make two sessions. Its accessor and methods are under [Session accessors](#session-accessors) and [Session methods](#session-methods).
+
+## Accessors
+
+### adyenEmbedded <MemberMeta type="AdyenEmbeddedSdkInstance | null" href="/docs/reference/checkout/types#adyenembeddedsdkinstance" getter /> [#adyenembedded]
+
+The Adyen Embedded SDK instance, or `null` when the checkout has no Adyen Embedded gateway or the SDK is not loaded. The client creates it from the JSON you load.
+
+***
+
+### json <MemberMeta type="APIJson | null" href="/docs/reference/checkout/types#apijson" getter /> [#json]
+
+The current checkout JSON, or `null` until the first cart load ends or you call [`hydrateJson()`](#hydratejson). The client replaces it after each change. See [`APIJson`](/docs/reference/checkout/types#apijson).
+
+***
+
+### klarna <MemberMeta type="KlarnaSdkInstance | null" href="/docs/reference/checkout/types#klarnasdkinstance" getter /> [#klarna]
+
+The Klarna SDK instance, or `null` when the checkout has no Klarna gateway or the SDK is not loaded. The client creates it from the JSON you load.
+
+***
+
+### paypal <MemberMeta type="PayPalSdkInstance | null" href="/docs/reference/checkout/types#paypalsdkinstance" getter /> [#paypal]
+
+The PayPal SDK instance, or `null` when the checkout has no PayPal gateway or the SDK is not loaded. The client creates it from the JSON you load.
+
+***
+
+### square <MemberMeta type="SquareSdkInstance | null" href="/docs/reference/checkout/types#squaresdkinstance" getter /> [#square]
+
+The Square SDK instance, or `null` when the checkout has no Square gateway or the SDK is not loaded. The client creates it from the JSON you load.
+
+***
+
+### state <MemberMeta type={'"idle" | "busy"'} getter /> [#state]
+
+`"busy"` while the client runs a change, such as a cart update or a checkout. Otherwise `"idle"`. The client fires `update` when it changes.
+
+## Methods
+
+### addEventListener()
+
+#### Call Signature
+
+```ts
+addEventListener<K>(type, listener): void;
+```
+
+The **`addEventListener()`** method of the [EventTarget](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget) interface sets up a function that will be called whenever the specified event is delivered to the target.
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/EventTarget/addEventListener)
+
+##### Type Parameters
+
+| Type Parameter |
+| ------ |
+| <a id="type-parameter-k"></a> `K` *extends* keyof [`APIEventMap`](/docs/reference/checkout/types#apieventmap) |
+
+##### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `type` | `K` |
+| `listener` | [`Listener`](/docs/reference/checkout/types#listener)\<`K`, `API`\> |
+
+##### Returns
+
+`void`
+
+#### Call Signature
+
+```ts
+addEventListener(type, listener): void;
+```
+
+##### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `type` | `string` |
+| `listener` | `EventListenerOrEventListenerObject` |
+
+##### Returns
+
+`void`
+
+***
+
+### addItem()
+
+```ts
+addItem(params): void;
+```
+
+Adds items the way an add-to-cart link or form does. `params` is the
+link's query or the form's fields, in order. Repeated names and
+HMAC-signed names (`name||hash`) go to the server untouched: the server
+validates them, so this does not. `empty=reset` may be one of the pairs --
+the server resets the session and then adds, in one request, which two
+separate mutations could not guarantee (POSTs are queued, but a change sent
+between the two could still land in the gap).
+
+`session_id` and `output` are set by `postJson` and win over any pair with
+the same name: the document that runs this owns the session.
+
+Unlike its siblings, this dispatches no cancelable `item-add` event: the
+caller already decided. `checkout/add-to-cart`'s own cancelable event is
+`foxy:add-to-cart`, dispatched before this runs, and on a store page
+there is no cart item yet for `item-add`'s detail to describe.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `params` | \[`string`, `string`\][] |
+
+#### Returns
+
+`void`
+
+***
+
+### addMessage()
+
+```ts
+addMessage(params): number;
+```
+
+Adds a [`Message`](/docs/reference/checkout/types#message) to `json.messages` on the client only. Returns the index of the new message, or `-1` if there is no checkout JSON or a listener cancels the cancelable `messages-add` event. Sends nothing to the server.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `params` | [`Message`](/docs/reference/checkout/types#message) |
+
+#### Returns
+
+`number`
+
+***
+
+### applyCouponOrGiftCardCode()
+
+```ts
+applyCouponOrGiftCardCode(params): void;
+```
+
+Applies a coupon code or a gift card code to the cart. The server decides which one the code is. An empty code adds an error message and sends nothing. Fires the cancelable `coupon-or-gift-card-apply` event first. If a listener cancels it, nothing is sent. When the side cart is mounted, the call goes to the side cart and this client fires no events. If the request fails, the client adds an error [message](/docs/reference/checkout/types#message) to `json.messages` and calls `onError`.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `params` | \{ `code`: `string`; \} |
+| `params.code` | `string` |
+
+#### Returns
+
+`void`
+
+***
+
+### checkOut()
+
+```ts
+checkOut(paymentMethod, extra?): void;
+```
+
+Submits the checkout with the given payment method. Pass `newAccountPassword` to create an account for the customer. Fires the cancelable `checkout` event first. If a listener cancels it, nothing is sent. If the server answers with a next action, the client follows it. If the request fails, the client adds an error [message](/docs/reference/checkout/types#message) to `json.messages` and calls `onError`.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `paymentMethod` | [`CheckOutPaymentOption`](/docs/reference/checkout/types#checkoutpaymentoption) |
+| `extra?` | \{ `newAccountPassword?`: `string`; \} |
+| `extra.newAccountPassword?` | `string` |
+
+#### Returns
+
+`void`
+
+***
+
+### clearCart()
+
+```ts
+clearCart(reset?): void;
+```
+
+Removes all items from the cart. With `reset` set to `true`, it also resets the session on the server. Fires the cancelable `cart-clear` event first. If a listener cancels it, nothing is sent. When the side cart is mounted, the call goes to the side cart and this client fires no events. If the request fails, the client adds an error [message](/docs/reference/checkout/types#message) to `json.messages` and calls `onError`.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `reset?` | `boolean` |
+
+#### Returns
+
+`void`
+
+***
+
+### clearMessages()
+
+```ts
+clearMessages(): void;
+```
+
+Removes all messages from `json.messages` on the client only. Sends nothing to the server. A listener can cancel the cancelable `messages-clear` event to keep them.
+
+#### Returns
+
+`void`
+
+***
+
+### continueCheckOut()
+
+```ts
+continueCheckOut(params): void;
+```
+
+Resume a submission that came back with a `requires_action` next action,
+once the client-side step it asked for has been completed.
+
+The resume token is the only thing sent: the outcome of the step is never
+taken from the client — the server re-reads it from the gateway before it
+completes or reopens the transaction.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `params` | \{ `resumeToken`: `string`; \} |
+| `params.resumeToken` | `string` |
+
+#### Returns
+
+`void`
+
+***
+
+### getAddressSuggestions()
+
+```ts
+getAddressSuggestions(params): Promise<AddressSuggestion[]>;
+```
+
+Looks up address suggestions for a postal code and a country code. Returns an empty list when the postal code is too short or the country is empty. Rejects when the request fails.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `params` | \{ `country`: `string`; `postalCode`: `string`; \} |
+| `params.country` | `string` |
+| `params.postalCode` | `string` |
+
+#### Returns
+
+[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<[`AddressSuggestion`](/docs/reference/checkout/types#addresssuggestion)[]\>
+
+***
+
+### hydrateJson()
+
+```ts
+hydrateJson(nextJson, options?): Promise<void>;
+```
+
+Loads checkout JSON you already have, such as the JSON of a hosted checkout page, instead of fetching it. It sets the store domain from `store.domain` when present and loads the SDK of each payment gateway in the JSON. After this call the client does not run its first cart load. Set `emitUpdate` to `false` to skip the `update` event.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `nextJson` | [`APIJson`](/docs/reference/checkout/types#apijson) |
+| `options?` | [`HydrateJsonOptions`](/docs/reference/checkout/types#hydratejsonoptions) |
+
+#### Returns
+
+[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<`void`\>
+
+***
+
+### logError()
+
+```ts
+logError(error): void;
+```
+
+Sends the message of an error to the store's error log. Also prints the error to the console when `json.debug` is on. If the request fails, the client calls `onError`.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `error` | [`Error`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error) |
+
+#### Returns
+
+`void`
+
+***
+
+### removeCouponCode()
+
+```ts
+removeCouponCode(params): void;
+```
+
+Removes a coupon from the cart by its ID. An unknown ID adds an error message and sends nothing. Fires the cancelable `coupon-remove` event first. If a listener cancels it, nothing is sent. When the side cart is mounted, the call goes to the side cart and this client fires no events. If the request fails, the client adds an error [message](/docs/reference/checkout/types#message) to `json.messages` and calls `onError`.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `params` | \{ `couponId`: `number`; \} |
+| `params.couponId` | `number` |
+
+#### Returns
+
+`void`
+
+***
+
+### removeEventListener()
+
+#### Call Signature
+
+```ts
+removeEventListener<K>(type, listener): void;
+```
+
+The **`removeEventListener()`** method of the [EventTarget](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget) interface removes an event listener previously registered with [EventTarget.addEventListener()](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener) from the target.
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/EventTarget/removeEventListener)
+
+##### Type Parameters
+
+| Type Parameter |
+| ------ |
+| <a id="type-parameter-k-1"></a> `K` *extends* keyof [`APIEventMap`](/docs/reference/checkout/types#apieventmap) |
+
+##### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `type` | `K` |
+| `listener` | [`Listener`](/docs/reference/checkout/types#listener)\<`K`, `API`\> |
+
+##### Returns
+
+`void`
+
+#### Call Signature
+
+```ts
+removeEventListener(type, listener): void;
+```
+
+##### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `type` | `string` |
+| `listener` | `EventListenerOrEventListenerObject` |
+
+##### Returns
+
+`void`
+
+***
+
+### removeGiftCardCode()
+
+```ts
+removeGiftCardCode(params): void;
+```
+
+Removes a gift card from the cart by its ID. An unknown ID adds an error message and sends nothing. Fires the cancelable `gift-card-remove` event first. If a listener cancels it, nothing is sent. When the side cart is mounted, the call goes to the side cart and this client fires no events. If the request fails, the client adds an error [message](/docs/reference/checkout/types#message) to `json.messages` and calls `onError`.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `params` | \{ `giftCardId`: `number`; \} |
+| `params.giftCardId` | `number` |
+
+#### Returns
+
+`void`
+
+***
+
+### removeItem()
+
+```ts
+removeItem(...params): void;
+```
+
+Removes one or more items from the cart by their IDs. If an ID is not in the cart, it adds an error message and sends nothing. Fires the cancelable `item-remove` event first. If a listener cancels it, nothing is sent. When the side cart is mounted, the call goes to the side cart and this client fires no events. If the request fails, the client adds an error [message](/docs/reference/checkout/types#message) to `json.messages` and calls `onError`.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| ...`params` | `object`[] |
+
+#### Returns
+
+`void`
+
+***
+
+### removeMessage()
+
+```ts
+removeMessage(index): void;
+```
+
+Removes the message at the given index from `json.messages` on the client only. An index out of range adds an error message. A listener can cancel the cancelable `messages-remove` event to keep it.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `index` | `number` |
+
+#### Returns
+
+`void`
+
+***
+
+### requestTemporaryPassword()
+
+```ts
+requestTemporaryPassword(email?): void;
+```
+
+Asks the server to email a temporary password to the customer. Uses the given email, or else the email of the customer in `json`. An invalid email adds an error message and sends nothing. Fires the cancelable `temporary-password-request` event first. If a listener cancels it, nothing is sent. If the request fails, the client adds an error [message](/docs/reference/checkout/types#message) to `json.messages` and calls `onError`.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `email?` | `string` |
+
+#### Returns
+
+`void`
+
+***
+
+### setCustomFields()
+
+```ts
+setCustomFields(fields): void;
+```
+
+Saves custom fields for the checkout. It checks the fields first and adds an error message for each invalid one. Fires the cancelable `custom-fields-update` event first. If a listener cancels it, nothing is sent. If the request fails, the client adds an error [message](/docs/reference/checkout/types#message) to `json.messages` and calls `onError`.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `fields` | [`CustomFields`](/docs/reference/checkout/types#customfields) |
+
+#### Returns
+
+`void`
+
+***
+
+### setEmail()
+
+```ts
+setEmail(email, mode?): void;
+```
+
+Sets the customer email of the checkout. Pass `mode` to say whether the customer checks out as a guest or with an account. An invalid email adds an error message and sends nothing. Fires the cancelable `email-update` event first. If a listener cancels it, nothing is sent. If the request fails, the client adds an error [message](/docs/reference/checkout/types#message) to `json.messages` and calls `onError`.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `email` | `string` |
+| `mode?` | `"guest"` \| `"registered"` |
+
+#### Returns
+
+`void`
+
+***
+
+### setStoreDomain()
+
+```ts
+setStoreDomain(storeDomain): void;
+```
+
+Sets the store this client works with. Pass a full domain such as `example.foxycart.com` or a Foxy subdomain. Throws if the value is empty. When the store changes, the client forgets the old session and cart, and loads the cart of the new store.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `storeDomain` | `string` |
+
+#### Returns
+
+`void`
+
+***
+
+### signIn()
+
+```ts
+signIn(params): void;
+```
+
+Signs a customer in with their email and password. An invalid email or an empty password adds an error message and sends nothing. Fires the cancelable `sign-in` event first. If a listener cancels it, nothing is sent. If the request fails, the client adds an error [message](/docs/reference/checkout/types#message) to `json.messages` and calls `onError`.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `params` | \{ `email`: `string`; `password`: `string`; \} |
+| `params.email` | `string` |
+| `params.password` | `string` |
+
+#### Returns
+
+`void`
+
+***
+
+### signOut()
+
+```ts
+signOut(): void;
+```
+
+Signs the current customer out of the checkout. Fires the cancelable `sign-out` event first. If a listener cancels it, nothing is sent. If the request fails, the client adds an error [message](/docs/reference/checkout/types#message) to `json.messages` and calls `onError`.
+
+#### Returns
+
+`void`
+
+***
+
+### submitAdyenEmbeddedPayment()
+
+```ts
+submitAdyenEmbeddedPayment(data): Promise<Record<string, unknown>>;
+```
+
+Sends the payment data from the Adyen Embedded SDK to the store. Returns the JSON the store answers with. Rejects when the request fails.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `data` | `Record`\<`string`, `unknown`\> |
+
+#### Returns
+
+[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<`Record`\<`string`, `unknown`\>\>
+
+***
+
+### submitAdyenEmbeddedPaymentDetails()
+
+```ts
+submitAdyenEmbeddedPaymentDetails(data): Promise<Record<string, unknown>>;
+```
+
+Sends the additional payment details from the Adyen Embedded SDK to the store, for example after a 3-D Secure step. Returns the JSON the store answers with. Rejects when the request fails.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `data` | `Record`\<`string`, `unknown`\> |
+
+#### Returns
+
+[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<`Record`\<`string`, `unknown`\>\>
+
+***
+
+### updateBillingAddress()
+
+```ts
+updateBillingAddress(params): void;
+```
+
+Updates the billing address, or turns the separate billing address on or off. Only the fields you pass change. It checks them first and adds an error message for each invalid one. Fires the cancelable `billing-address-update` event first. If a listener cancels it, nothing is sent. If the request fails, the client adds an error [message](/docs/reference/checkout/types#message) to `json.messages` and calls `onError`.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `params` | `Partial`\<\{ `address1`: `string`; `address2`: `string`; `city`: `string`; `company`: `string`; `country`: `string`; `first_name`: `string`; `last_name`: `string`; `phone`: `string`; `postal_code`: `string`; `region`: `string`; `use_separate_billing_address`: `boolean`; \}\> |
+
+#### Returns
+
+`void`
+
+***
+
+### updateItemQuantity()
+
+```ts
+updateItemQuantity(...params): void;
+```
+
+Sets the quantity of one or more items by their IDs. A quantity of `0` removes the item. If an ID is not in the cart, it adds an error message and sends nothing. Fires the cancelable `item-update` event first. If a listener cancels it, nothing is sent. When the side cart is mounted, the call goes to the side cart and this client fires no events. If the request fails, the client adds an error [message](/docs/reference/checkout/types#message) to `json.messages` and calls `onError`.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| ...`params` | `object`[] |
+
+#### Returns
+
+`void`
+
+***
+
+### updateShipment()
+
+```ts
+updateShipment(params): void;
+```
+
+Updates the address or the shipping service of a shipment. Only the fields you pass change. Use `index` to choose the shipment, the first one by default. It checks the fields first and adds an error message for each invalid one. Fires the cancelable `shipment-update` event first. If a listener cancels it, nothing is sent. If the request fails, the client adds an error [message](/docs/reference/checkout/types#message) to `json.messages` and calls `onError`.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `params` | `Partial`\<\{ `address1`: `string`; `address2`: `string`; `city`: `string`; `company`: `string`; `country`: `string`; `first_name`: `string`; `index`: `number`; `last_name`: `string`; `phone`: `string`; `postal_code`: `string`; `region`: `string`; `shipping_service_id`: `number` \| `null`; \}\> |
+
+#### Returns
+
+`void`
+
+## Session accessors
+
+### session.id <MemberMeta type="string | null" getter /> [#session-id]
+
+The ID of the current cart session, or `null` when there is no session yet.
+
+## Session methods
+
+### session.configure() [#session-configure]
+
+```ts
+configure(options): void;
+```
+
+Throws a [`TypeError`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError) for bad options. Call it before the store domain is set.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options` | [`SessionOptions`](/docs/reference/checkout/types#sessionoptions) |
+
+#### Returns
+
+`void`
+
+***
+
+### session.end() [#session-end]
+
+```ts
+end(options?): Promise<void>;
+```
+
+Forgets the session locally: the store, `client.json`, and a mounted
+sidecart. With `reset`, first resets the cart on the server; if that
+fails, nothing changes, so the merchant can retry.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `options?` | \{ `reset?`: `boolean`; \} |
+| `options.reset?` | `boolean` |
+
+#### Returns
+
+[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<`void`\>
+
+***
+
+### session.start() [#session-start]
+
+```ts
+start(id?): Promise<void>;
+```
+
+With an `id`: adopts it. The ID is stored first, because the merchant
+owns it, so it stays stored even if its cart then fails to load.
+
+Without: creates a new, empty session. The old ID is replaced only once
+the new session exists. The old cart is not reset on the server.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `id?` | `string` |
+
+#### Returns
+
+[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<`void`\>
 
 ## Variables
 
-- [client](/docs/reference/checkout/client/variables/client)
+### client [#client]
+
+```ts
+const client: API;
+```
+
+The shared checkout client. Its properties and methods are listed above.

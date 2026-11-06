@@ -77,6 +77,14 @@ describe('reference completeness', () => {
     expect(findMissing(exports, dir)).toContain('./admin API.notAMember');
   });
 
+  it('checks the members of a class documented on another page', () => {
+    const exports = listPublicExports();
+    for (const name of ['API', 'CartSession']) {
+      exports.get('./checkout')!.find((e: { name: string }) => e.name === name)!.members.push('notAMember');
+    }
+    expect(findMissing(exports, dir)).toEqual(expect.arrayContaining(['./checkout API.notAMember', './checkout CartSession.notAMember']));
+  });
+
   it('describes every class and interface member', () => {
     expect(findUndescribed(dir)).toEqual([]);
   });

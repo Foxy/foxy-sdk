@@ -35,7 +35,7 @@ type AchHostedFieldsTokenizeErrorCode =
 
 ### AddressSuggestion
 
-One city and region that match a postal code, so a form can fill those fields for the shopper. Returned by [`API.getAddressSuggestions()`](/docs/reference/checkout/classes/API#getaddresssuggestions).
+One city and region that match a postal code, so a form can fill those fields for the shopper. Returned by [`client.getAddressSuggestions()`](/docs/reference/checkout/client#getaddresssuggestions).
 
 ```ts
 type AddressSuggestion = {
@@ -145,7 +145,7 @@ type AdyenEmbeddedPaymentMethodsResponse = {
 
 ### AdyenEmbeddedSdkInstance
 
-A running Adyen Checkout instance for the `adyen_embedded` gateway. [`API.adyenEmbedded`](/docs/reference/checkout/classes/API#adyenembedded) holds it once Adyen's script has loaded.
+A running Adyen Checkout instance for the `adyen_embedded` gateway. [`client.adyenEmbedded`](/docs/reference/checkout/client#adyenembedded) holds it once Adyen's script has loaded.
 
 ```ts
 type AdyenEmbeddedSdkInstance = {
@@ -179,9 +179,17 @@ type AdyenEmbeddedSdkNamespace = {
 };
 ```
 
+### API
+
+The class of [`client`](/docs/reference/checkout/client#client), the shared checkout client. Its properties and methods are on the [Client](/docs/reference/checkout/client) page. Use the shared `client` rather than creating another instance.
+
+```ts
+new API(params?: APIConstructorParams): API;
+```
+
 ### APIConstructorParams
 
-Settings for [`new API()`](/docs/reference/checkout/classes/API#constructor) of the checkout client: the [`APIOptions`](/docs/reference/checkout/types#apioptions), plus an optional `initialJson` to start from checkout JSON you already have.
+Settings for [`new API()`](/docs/reference/checkout/types#api) of the checkout client: the [`APIOptions`](/docs/reference/checkout/types#apioptions), plus an optional `initialJson` to start from checkout JSON you already have.
 
 ```ts
 type APIConstructorParams = APIOptions & {
@@ -191,7 +199,7 @@ type APIConstructorParams = APIOptions & {
 
 ### APIEventMap
 
-Events of the checkout [`API`](/docs/reference/checkout/classes/API) client by name, with each event's type, such as `item-update`, `shipment-update` or `checkout`. Used by [`API.addEventListener()`](/docs/reference/checkout/classes/API#addeventlistener), [`API.removeEventListener()`](/docs/reference/checkout/classes/API#removeeventlistener) and [`Listener`](/docs/reference/checkout/types#listener).
+Events of the checkout [`API`](/docs/reference/checkout/types#api) client by name, with each event's type, such as `item-update`, `shipment-update` or `checkout`. Used by [`client.addEventListener()`](/docs/reference/checkout/client#addeventlistener), [`client.removeEventListener()`](/docs/reference/checkout/client#removeeventlistener) and [`Listener`](/docs/reference/checkout/types#listener).
 
 ```ts
 type APIEventMap = {
@@ -221,7 +229,7 @@ type APIEventMap = {
 
 ### APIJson
 
-The cart or checkout state as the server returns it: items, totals, the customer, shipments, the billing address, payment options, messages and display settings. [`API.json`](/docs/reference/checkout/classes/API#json) holds the current value, [`API.hydrateJson()`](/docs/reference/checkout/classes/API#hydratejson) replaces it, and `initialJson` in [`APIConstructorParams`](/docs/reference/checkout/types#apiconstructorparams) sets the first one.
+The cart or checkout state as the server returns it: items, totals, the customer, shipments, the billing address, payment options, messages and display settings. [`client.json`](/docs/reference/checkout/client#json) holds the current value, [`client.hydrateJson()`](/docs/reference/checkout/client#hydratejson) replaces it, and `initialJson` in [`APIConstructorParams`](/docs/reference/checkout/types#apiconstructorparams) sets the first one.
 
 ```ts
 type APIJson = {
@@ -397,9 +405,13 @@ The part of a card form that a validation error belongs to: the card number, the
 type CardValidationField = 'cc-number' | 'cc-exp' | 'cc-csc' | 'form';
 ```
 
+### CartSession
+
+The type of [`client.session`](/docs/reference/checkout/client#session), the cart session of the shared client. `checkout` exports it as a type only, so you can annotate with it but not create one. Its accessor and methods are on the [Client](/docs/reference/checkout/client#session-accessors) page.
+
 ### CartSessionJson
 
-The cart session in [`APIJson`](/docs/reference/checkout/types#apijson): its ID, or `null` when there is no session. [`CartSession`](/docs/reference/checkout/interfaces/CartSession) keeps this ID between page loads.
+The cart session in [`APIJson`](/docs/reference/checkout/types#apijson): its ID, or `null` when there is no session. [`CartSession`](/docs/reference/checkout/types#cartsession) keeps this ID between page loads.
 
 ```ts
 type CartSessionJson = {
@@ -413,7 +425,7 @@ type CartSessionJson = {
 
 ### CheckOutPaymentOption
 
-The payment to submit with [`API.checkOut`](/docs/reference/checkout/classes/API#checkout): the gateway, plus what that gateway needs, such as a card token or a Klarna authorization token.
+The payment to submit with [`client.checkOut`](/docs/reference/checkout/client#checkout): the gateway, plus what that gateway needs, such as a card token or a Klarna authorization token.
 
 ```ts
 type CheckOutPaymentOption =
@@ -527,7 +539,7 @@ type Customer = {
 
 ### CustomFields
 
-The cart's custom fields without their `h:` prefix: `h:name=value` becomes `name: "value"`. Found in [`APIJson`](/docs/reference/checkout/types#apijson), set with [`API.setCustomFields`](/docs/reference/checkout/classes/API#setcustomfields), and sent with the `custom-fields-update` event of [`APIEventMap`](/docs/reference/checkout/types#apieventmap).
+The cart's custom fields without their `h:` prefix: `h:name=value` becomes `name: "value"`. Found in [`APIJson`](/docs/reference/checkout/types#apijson), set with [`client.setCustomFields`](/docs/reference/checkout/client#setcustomfields), and sent with the `custom-fields-update` event of [`APIEventMap`](/docs/reference/checkout/types#apieventmap).
 
 ```ts
 type CustomFields = Record<string, string>;
@@ -634,7 +646,7 @@ type GooglePaymentsClient = {
 
 ### HydrateJsonOptions
 
-Options of [`API.hydrateJson()`](/docs/reference/checkout/classes/API#hydratejson): the state to set, and whether to fire the `update` event.
+Options of [`client.hydrateJson()`](/docs/reference/checkout/client#hydratejson): the state to set, and whether to fire the `update` event.
 
 ```ts
 type HydrateJsonOptions = {
@@ -738,7 +750,7 @@ type ItemOption = {
 
 ### KlarnaSdkInstance
 
-The `Klarna` global that Klarna's script adds, with its Payments API. [`API.klarna`](/docs/reference/checkout/classes/API#klarna) holds it once the script has loaded.
+The `Klarna` global that Klarna's script adds, with its Payments API. [`client.klarna`](/docs/reference/checkout/client#klarna) holds it once the script has loaded.
 
 ```ts
 type KlarnaSdkInstance = {
@@ -749,7 +761,7 @@ type KlarnaSdkInstance = {
 
 ### Listener
 
-The function type of a checkout [`API`](/docs/reference/checkout/classes/API) event listener for one event name. Used by [`API.addEventListener()`](/docs/reference/checkout/classes/API#addeventlistener) and [`API.removeEventListener()`](/docs/reference/checkout/classes/API#removeeventlistener).
+The function type of a checkout [`API`](/docs/reference/checkout/types#api) event listener for one event name. Used by [`client.addEventListener()`](/docs/reference/checkout/client#addeventlistener) and [`client.removeEventListener()`](/docs/reference/checkout/client#removeeventlistener).
 
 ```ts
 type Listener<TAPIEventMap extends keyof APIEventMap, TAPI> = (
@@ -802,7 +814,7 @@ type PaymentGatewayConfig =
 
 ### PayPalSdkInstance
 
-The PayPal SDK instance for the `paypal_platform` gateway. [`API.paypal`](/docs/reference/checkout/classes/API#paypal) holds it once PayPal's script has loaded.
+The PayPal SDK instance for the `paypal_platform` gateway. [`client.paypal`](/docs/reference/checkout/client#paypal) holds it once PayPal's script has loaded.
 
 ```ts
 type PayPalSdkInstance = SdkInstance<PayPalSdkComponents> &
@@ -911,7 +923,7 @@ type SessionCookieOptions = {
 
 ### SessionHost
 
-What a [`CartSession`](/docs/reference/checkout/interfaces/CartSession) needs from the checkout [`API`](/docs/reference/checkout/classes/API) that owns it. Only the SDK creates a `CartSession`, so you rarely need this type.
+What a [`CartSession`](/docs/reference/checkout/types#cartsession) needs from the checkout [`API`](/docs/reference/checkout/types#api) that owns it. Only the SDK creates a `CartSession`, so you rarely need this type.
 
 ```ts
 type SessionHost = {
@@ -932,7 +944,7 @@ type SessionHost = {
 
 ### SessionOptions
 
-Settings of the cart session: where to keep its ID, under which key, the cookie settings, and whether the first load starts a new session. Passed to [`CartSession.configure()`](/docs/reference/checkout/interfaces/CartSession#configure).
+Settings of the cart session: where to keep its ID, under which key, the cookie settings, and whether the first load starts a new session. Passed to [`client.session.configure()`](/docs/reference/checkout/client#session-configure).
 
 ```ts
 type SessionOptions = {
@@ -1037,7 +1049,7 @@ type Shipment = {
 
 ### SquareSdkInstance
 
-The Square payments instance for Square gateways. It creates the card, ACH, Google Pay and Apple Pay components. [`API.square`](/docs/reference/checkout/classes/API#square) holds it once Square's script has loaded.
+The Square payments instance for Square gateways. It creates the card, ACH, Google Pay and Apple Pay components. [`client.square`](/docs/reference/checkout/client#square) holds it once Square's script has loaded.
 
 ```ts
 type SquareSdkInstance = {
