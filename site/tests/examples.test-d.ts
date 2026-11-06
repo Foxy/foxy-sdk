@@ -91,3 +91,24 @@ export async function clientPage() {
   // Later, when the shopper signs out, forget the session and reset the cart.
   await client.session.end({ reset: true });
 }
+
+export function sideCartPage() {
+  // Open the drawer from your own cart button.
+  document.querySelector('#cart-button')?.addEventListener('click', () => {
+    sideCart.show();
+  });
+
+  // Close it when the shopper presses Escape.
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') sideCart.hide();
+  });
+
+  // Keep a cart badge in sync with the side cart.
+  const badge = document.querySelector('#cart-badge');
+  const updateBadge = () => {
+    if (badge) badge.textContent = String(sideCart.itemCount ?? 0);
+  };
+
+  sideCart.addEventListener('itemcountchange', updateBadge);
+  updateBadge();
+}
