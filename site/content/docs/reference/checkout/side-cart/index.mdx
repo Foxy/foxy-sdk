@@ -3,6 +3,23 @@ title: "@foxy.io/sdk/checkout/side-cart"
 description: "@foxy.io/sdk/checkout/side-cart"
 ---
 
+A cart drawer over your page. It shows the store's cart in an iframe. The module exports [`sideCart`](/docs/reference/checkout/side-cart/variables/sideCart). Importing it also changes how the shared [`client`](/docs/reference/checkout/client) works on your page.
+
+From the CDN, the store domain goes in the `store` parameter. It is not needed when [`loader`](/docs/reference/checkout/loader) already set the store.
+
+```js
+import { sideCart } from 'https://cdn-js.foxy.io/sdk@2/checkout/side-cart.js?store=example.foxycart.com';
+```
+
+## What importing it does
+
+1. If the client has no store yet, it sets the one from its `store` parameter. The client then loads the shopper's cart and session.
+2. The client sends cart changes to the drawer instead of to the store. This applies to `addItem()`, `updateItemQuantity()`, `removeItem()`, `clearCart()`, `applyCouponOrGiftCardCode()`, `removeCouponCode()` and `removeGiftCardCode()`. On your page, these calls do not fire the client's cancelable events, like `item-update` and `cart-clear`. The drawer's own page fires them.
+3. [Add-to-cart](/docs/reference/checkout/add-to-cart) links and forms put items in the drawer and open it, instead of going to the cart page.
+4. If no store is set by the time the page's `load` event fires, it logs a warning to the console, and `sideCart.itemCountUnavailable` becomes `true`.
+
+The iframe is not created on import. `sideCart.mount()` or the first `sideCart.show()` creates it.
+
 ## Interfaces
 
 - [SideCart](/docs/reference/checkout/side-cart/interfaces/SideCart)
