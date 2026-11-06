@@ -37,9 +37,9 @@ export type {
   CardEmbedTokenizeErrorCode,
 } from "./types";
 
-export type { APIConstructorParams, APIOptions, CheckOutPaymentOption, HydrateJsonOptions } from "./API";
+export type { APIOptions, CheckOutPaymentOption, HydrateJsonOptions } from "./API";
 export type { Listener } from "./types/Listener";
-export type { CartSession, SessionHost, SessionOptions } from "./session/Session";
+export type { CartSession, SessionOptions } from "./session/Session";
 export type {
   SessionCookieOptions,
   SessionStorageName,
@@ -59,7 +59,8 @@ export type {
   SquareSdkInstance,
 } from "./types";
 
-export { API } from "./API";
+export type { API } from "./API";
+export { client } from "./client";
 export { toCountryOptions } from "./countryOptions";
 export type { CountryOption } from "./countryOptions";
 export { loadRegionMessages, regionLabelMessageId, toRegionOptions } from "./regionOptions";

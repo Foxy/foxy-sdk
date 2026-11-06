@@ -5,7 +5,6 @@
 import * as Checkout from '../../checkout';
 
 import type {
-  APIConstructorParams,
   CartSession,
   CheckOutPaymentOption,
   HydrateJsonOptions,
@@ -21,8 +20,9 @@ import type { SideCart } from '../../checkout/side-cart';
 import { API as HttpCheckoutAPI } from '../../checkout/API';
 
 describe('Checkout', () => {
-  it('exports concrete API class as API', () => {
-    expect(Checkout).toHaveProperty('API', HttpCheckoutAPI);
+  it('exports the shared client, and API only as a type', () => {
+    expect(Checkout.client).toBeInstanceOf(HttpCheckoutAPI);
+    expect(Checkout).not.toHaveProperty('API');
   });
 
   it('does not export MockCheckoutAPI', () => {
@@ -38,7 +38,7 @@ describe('Checkout', () => {
   // moment someone runs `rm -rf dist`; this runs on every `vitest run`.
   it('exports exactly the intended set of value bindings, nothing more', () => {
     expect(Object.keys(Checkout).sort()).toEqual([
-      'API',
+      'client',
       'loadRegionMessages',
       'regionLabelMessageId',
       'toCountryOptions',
@@ -58,7 +58,7 @@ describe('Checkout', () => {
 
   it('exports the types its public methods use', () => {
     // The real assertion is the typecheck: it fails if a type is not exported.
-    const types: [APIConstructorParams?, CheckOutPaymentOption?, HydrateJsonOptions?, Listener<'update', unknown>?, SquareSdkInstance?] = [];
+    const types: [CheckOutPaymentOption?, HydrateJsonOptions?, Listener<'update', unknown>?, SquareSdkInstance?] = [];
     const sideCart: SideCart | null = null;
     expect([types, sideCart]).toHaveLength(2);
   });

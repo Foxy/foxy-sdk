@@ -442,7 +442,7 @@ export type APIConstructorParams = APIOptions & {
 };
 
 /**
- * The checkout client. `checkout/client` and `checkout/loader` export one shared
+ * The checkout client. `checkout` and `checkout/loader` export one shared
  * instance as `client`. The loader also sets its store, from the script's `?store=`
  * or else the page's hostname.
  *

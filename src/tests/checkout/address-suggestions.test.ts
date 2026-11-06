@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { APIJson } from "../../checkout/types";
 
-import { API } from "../../checkout";
+import { API } from "../../checkout/API";
 import { MIN_POSTAL_CODE_LOOKUP_LENGTH } from "../../checkout/API";
 
 function createApiJson(): APIJson {

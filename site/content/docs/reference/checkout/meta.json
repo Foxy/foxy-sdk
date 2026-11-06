@@ -1,10 +1,10 @@
 {
   "title": "Checkout API",
   "pages": [
+    "variables",
     "functions",
     "types",
     "loader",
-    "client",
     "side-cart",
     "add-to-cart",
     "..."

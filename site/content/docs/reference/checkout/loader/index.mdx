@@ -3,7 +3,7 @@ title: "Loader"
 description: "@foxy.io/sdk/checkout/loader"
 ---
 
-Sets the store on the shared [`client`](/docs/reference/checkout/client) and gives it to you, in one import. Use it from the CDN: its `store` parameter replaces a `setStoreDomain()` call.
+Sets the store on the shared [`client`](/docs/reference/checkout/variables/client) and gives it to you, in one import. Use it from the CDN: its `store` parameter replaces a `setStoreDomain()` call.
 
 ```js
 import { client } from 'https://cdn-js.foxy.io/sdk@2/checkout/loader.js?store=example.foxycart.com';
@@ -13,12 +13,12 @@ import { client } from 'https://cdn-js.foxy.io/sdk@2/checkout/loader.js?store=ex
 
 1. It reads the store domain from its own `store` URL parameter. Without one, it uses the page's hostname. That fallback is for pages on the store's own domain, like its cart and checkout pages. On your own site, always pass `store`.
 2. It calls `client.setStoreDomain()` with that domain. The client then loads the shopper's cart and session.
-3. It re-exports `client`. This is the same instance that `checkout/client` exports.
+3. It re-exports `client`. This is the same instance that `checkout` exports.
 
-From npm there is no URL for the `store` parameter, so the loader always uses the page's hostname. Import `checkout/client` and call `setStoreDomain()` instead.
+From npm there is no URL for the `store` parameter, so the loader always uses the page's hostname. Import `client` from `checkout` and call `setStoreDomain()` instead.
 
 ## References
 
 ### client
 
-Re-exports [client](/docs/reference/checkout/client#client)
+Re-exports [client](/docs/reference/checkout/variables/client)

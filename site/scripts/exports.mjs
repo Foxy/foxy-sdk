@@ -18,12 +18,12 @@ export function entryPoints() {
     });
 }
 
-/** Subpath keys of the public entries, like `admin` or `checkout/client`. */
+/** Subpath keys of the public entries, like `admin` or `checkout/loader`. */
 export function entryKeys() {
   return entryPoints().map(path => path.replace(/^\.\.\/src\//, '').replace(/(\/index)?\.ts$/, ''));
 }
 
-/** Names of the sub-entries of a section, like `client` for `checkout`. */
+/** Names of the sub-entries of a section, like `loader` for `checkout`. */
 export function subentries(section) {
   return entryKeys()
     .filter(key => key.startsWith(`${section}/`))

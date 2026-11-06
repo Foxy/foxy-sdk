@@ -12,7 +12,6 @@ describe('package.json', () => {
       './admin/subscriptions',
       './checkout',
       './checkout/add-to-cart',
-      './checkout/client',
       './checkout/loader',
       './checkout/side-cart',
       './customer',
