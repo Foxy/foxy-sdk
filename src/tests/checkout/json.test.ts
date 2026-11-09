@@ -1,6 +1,8 @@
 import type { APIJson } from "../../checkout/types";
 
+import { API } from "../../checkout/API";
 import { cloneApiJson, toMutable } from "../../checkout/utils/json";
+import { createApiJson } from "./fixtures/apiJson";
 
 // Both helpers are thin wrappers around structuredClone. The tests below pin
 // the two properties the rest of the SDK relies on: the copy is deep (so a
@@ -64,5 +66,14 @@ describe("Checkout JSON helpers", () => {
 
   it("throws on values structuredClone cannot copy", () => {
     expect(() => toMutable({ onDone: () => undefined })).toThrow();
+  });
+
+  it("keeps theme through hydrateJson", async () => {
+    const theme = { button_color: "#FF0000", border_width: 2 };
+    const api = new API({ storeDomain: "store.test" });
+
+    await api.hydrateJson({ ...createApiJson(), theme }, { state: "idle" });
+
+    expect(api.json?.theme).toEqual(theme);
   });
 });

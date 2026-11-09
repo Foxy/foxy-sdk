@@ -11,6 +11,7 @@ export type { BillingAddress } from "./BillingAddress";
 export type { Store } from "./Store";
 export type { Message } from "./Message";
 export type { Format } from "./Format";
+export type { CheckoutTheme } from "./CheckoutTheme";
 export type { Display } from "./Display";
 export type { APIJson } from "./APIJson";
 export type { APIEventMap } from "./APIEventMap";

@@ -17,6 +17,7 @@ export type {
   Store,
   Message,
   Format,
+  CheckoutTheme,
   Display,
   APIJson,
   APIEventMap,

@@ -1,4 +1,5 @@
 import type { BillingAddress } from "./BillingAddress";
+import type { CheckoutTheme } from "./CheckoutTheme";
 import type { CustomConfig } from "./CustomConfig";
 import type { CustomFields } from "./CustomFields";
 import type { Customer } from "./Customer";
@@ -47,6 +48,8 @@ export type APIJson = {
   format: Format;
   /** Display and UI configuration options. */
   display: Display;
+  /** Colors, borders and font for this checkout. Missing or null = default theme. */
+  theme?: CheckoutTheme | null;
   /** Custom configuration options for this checkout. */
   custom_config: CustomConfig;
   /** Saved payment methods available for this order. */
