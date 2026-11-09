@@ -191,6 +191,19 @@ type AdyenEmbeddedSdkNamespace = {
 };
 ```
 
+### AdyenEmbeddedThreeDsChallengeParams
+
+The `params` of a `three_ds_challenge` step from the `adyen_embedded` gateway: the parts of Adyen's payment response that the Drop-in needs to run the step. The Drop-in's `onAdditionalDetails` state data then goes back as `sdkResult` in [`client.continueCheckOut()`](/docs/reference/checkout/variables/client#continuecheckout). Found in a [`RequiresActionNextAction`](/docs/reference/checkout/types#requiresactionnextaction).
+
+```ts
+type AdyenEmbeddedThreeDsChallengeParams = {
+  /** Adyen's `resultCode`, such as `IdentifyShopper` or `ChallengeShopper`. */
+  resultCode: string;
+  /** Adyen's `action` object, passed to the Drop-in as is. */
+  action: Record<string, unknown>;
+};
+```
+
 ### API
 
 The type of [`client`](/docs/reference/checkout/variables/client), the shared checkout client. `checkout` exports it as a type only, so you can annotate with it but not create a second client. Its properties and methods are on the [`client`](/docs/reference/checkout/variables/client) page.
@@ -204,7 +217,7 @@ type APIEventMap = {
   'billing-address-update': CustomEvent<BillingAddress>;
   'cart-clear': Event;
   'checkout': Event;
-  'checkout-continue': CustomEvent<{ resumeToken: string }>;
+  'checkout-continue': CustomEvent<{ resumeToken: string; sdkResult?: Record<string, unknown> }>;
   'coupon-or-gift-card-apply': CustomEvent<{ code: string }>;
   'coupon-remove': CustomEvent<{ coupon: Coupon }>;
   'custom-fields-update': CustomEvent<CustomFields>;
@@ -427,7 +440,13 @@ The payment to submit with [`client.checkOut`](/docs/reference/checkout/variable
 
 ```ts
 type CheckOutPaymentOption =
-  | { gateway: "adyen_embedded" }
+  | {
+      gateway: "adyen_embedded";
+      /** JSON of `{ data }`, where `data` is the Adyen Drop-in's `state.data` from `onSubmit`. */
+      payment_method_data: string;
+      /** The Drop-in's payment method type, such as `scheme` or `ideal`. */
+      adyen_embedded_payment_method?: string;
+    }
   | {
       gateway: "klarna";
       authorization_token: string;

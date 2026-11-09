@@ -33,6 +33,19 @@ export type StripeConfirmIntentParams = {
   client_secret: string;
 };
 
+/**
+ * `params` of a `three_ds_challenge` action raised by `adyen_embedded`: the
+ * fields of Adyen's `/payments` response that the Drop-in needs to run the
+ * action. The Drop-in's `onAdditionalDetails` state data then goes back as
+ * `sdkResult` in `continueCheckOut`.
+ */
+export type AdyenEmbeddedThreeDsChallengeParams = {
+  /** Adyen's `resultCode`, such as `IdentifyShopper` or `ChallengeShopper`. */
+  resultCode: string;
+  /** Adyen's `action` object, passed to the Drop-in as is. */
+  action: Record<string, unknown>;
+};
+
 export type RedirectNextAction = {
   /** Full-page, offsite redirect required to complete the checkout (hosted / BNPL gateways, 3DS v1). */
   type: "redirect";

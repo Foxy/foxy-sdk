@@ -24,6 +24,7 @@ export type {
   RedirectNextAction,
   RequiresActionNextAction,
   StripeConfirmIntentParams,
+  AdyenEmbeddedThreeDsChallengeParams,
   CustomFields,
   CustomConfig,
   ApplePayConfig,

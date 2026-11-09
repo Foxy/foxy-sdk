@@ -387,7 +387,13 @@ async function resolveIncomingApiState(
 }
 
 export type CheckOutPaymentOption =
-  | { gateway: "adyen_embedded" }
+  | {
+      gateway: "adyen_embedded";
+      /** JSON of `{ data }`, where `data` is the Adyen Drop-in's `state.data` from `onSubmit`. */
+      payment_method_data: string;
+      /** The Drop-in's payment method type, such as `scheme` or `ideal`. */
+      adyen_embedded_payment_method?: string;
+    }
   | {
       gateway: "klarna";
       authorization_token: string;
@@ -1536,58 +1542,6 @@ export class API extends EventTarget {
     });
   };
 
-  async submitAdyenEmbeddedPayment(
-    data: Record<string, unknown>,
-  ): Promise<Record<string, unknown>> {
-    this.assertStoreDomain();
-
-    const response = await fetch(
-      this.resolveUrl("/helpers", {
-        action: "submit_adyen_embedded_payment",
-      }),
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ data }),
-      },
-    );
-
-    if (!response.ok) {
-      throw this.createRequestError(
-        response.status,
-        "Adyen payment submission failed.",
-      );
-    }
-
-    return (await response.json()) as Record<string, unknown>;
-  }
-
-  async submitAdyenEmbeddedPaymentDetails(
-    data: Record<string, unknown>,
-  ): Promise<Record<string, unknown>> {
-    this.assertStoreDomain();
-
-    const response = await fetch(
-      this.resolveUrl("/helpers", {
-        action: "submit_adyen_embedded_payment_details",
-      }),
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ data }),
-      },
-    );
-
-    if (!response.ok) {
-      throw this.createRequestError(
-        response.status,
-        "Adyen payment details submission failed.",
-      );
-    }
-
-    return (await response.json()) as Record<string, unknown>;
-  }
-
   async getAddressSuggestions(params: {
     postalCode: string;
     country: string;
@@ -1715,11 +1669,12 @@ export class API extends EventTarget {
    * Resume a submission that came back with a `requires_action` next action,
    * once the client-side step it asked for has been completed.
    *
-   * The resume token is the only thing sent: the outcome of the step is never
-   * taken from the client — the server re-reads it from the gateway before it
-   * completes or reopens the transaction.
+   * `sdkResult` is what the gateway's SDK handed back from that step, for a
+   * gateway whose server call needs it, such as Adyen's `onAdditionalDetails`
+   * state data. It is passed on, never trusted: the server asks the gateway for
+   * the outcome before it completes or reopens the transaction.
    */
-  continueCheckOut = (params: { resumeToken: string }): void => {
+  continueCheckOut = (params: { resumeToken: string; sdkResult?: Record<string, unknown> }): void => {
     this.assertStoreDomain();
 
     if (!this.dispatchCancelable("checkout-continue", params)) {
@@ -1730,6 +1685,7 @@ export class API extends EventTarget {
       const nextJson = await this.postJson("/checkout", {
         action: "continue",
         resume_token: params.resumeToken,
+        ...(params.sdkResult ? { sdk_result: JSON.stringify(params.sdkResult) } : {}),
       });
       await this.replaceJson(nextJson);
       this.#handleNextAction(nextJson);

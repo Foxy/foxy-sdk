@@ -20,6 +20,7 @@ export type {
   RedirectNextAction,
   RequiresActionNextAction,
   StripeConfirmIntentParams,
+  AdyenEmbeddedThreeDsChallengeParams,
 } from "./NextAction";
 export type {
   AdyenEmbeddedAmount,

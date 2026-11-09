@@ -285,16 +285,18 @@ continueCheckOut(params): void;
 Resume a submission that came back with a `requires_action` next action,
 once the client-side step it asked for has been completed.
 
-The resume token is the only thing sent: the outcome of the step is never
-taken from the client — the server re-reads it from the gateway before it
-completes or reopens the transaction.
+`sdkResult` is what the gateway's SDK handed back from that step, for a
+gateway whose server call needs it, such as Adyen's `onAdditionalDetails`
+state data. It is passed on, never trusted: the server asks the gateway for
+the outcome before it completes or reopens the transaction.
 
 #### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `params` | \{ `resumeToken`: `string`; \} |
+| `params` | \{ `resumeToken`: `string`; `sdkResult?`: `Record`\<`string`, `unknown`\>; \} |
 | `params.resumeToken` | `string` |
+| `params.sdkResult?` | `Record`\<`string`, `unknown`\> |
 
 #### Returns
 
@@ -609,46 +611,6 @@ Signs the current customer out of the checkout. Fires the cancelable `sign-out` 
 #### Returns
 
 `void`
-
-***
-
-### submitAdyenEmbeddedPayment()
-
-```ts
-submitAdyenEmbeddedPayment(data): Promise<Record<string, unknown>>;
-```
-
-Sends the payment data from the Adyen Embedded SDK to the store. Returns the JSON the store answers with. Rejects when the request fails.
-
-#### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `data` | `Record`\<`string`, `unknown`\> |
-
-#### Returns
-
-[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<`Record`\<`string`, `unknown`\>\>
-
-***
-
-### submitAdyenEmbeddedPaymentDetails()
-
-```ts
-submitAdyenEmbeddedPaymentDetails(data): Promise<Record<string, unknown>>;
-```
-
-Sends the additional payment details from the Adyen Embedded SDK to the store, for example after a 3-D Secure step. Returns the JSON the store answers with. Rejects when the request fails.
-
-#### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `data` | `Record`\<`string`, `unknown`\> |
-
-#### Returns
-
-[`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<`Record`\<`string`, `unknown`\>\>
 
 ***
 

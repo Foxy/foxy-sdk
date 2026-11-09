@@ -294,4 +294,27 @@ describe("next action handling", () => {
     // it from the gateway
     expect(body.has("sdk_result")).toBe(false);
   });
+
+  it("posts sdkResult as JSON in sdk_result when one is given", async () => {
+    const json = createApiJson();
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify(json), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+
+    const api = new API({ initialJson: json, storeDomain: "store.test" });
+    const sdkResult = { details: { threeDSResult: "eyJ0cmFuc1N0YXR1cyI6IlkifQ==" } };
+
+    api.continueCheckOut({ resumeToken: "resume-token-abc", sdkResult });
+
+    await vi.waitFor(() => {
+      expect(api.state).toBe("idle");
+    });
+
+    const body = fetchSpy.mock.calls[0][1]?.body as URLSearchParams;
+    expect(body.get("resume_token")).toBe("resume-token-abc");
+    expect(JSON.parse(body.get("sdk_result") ?? "null")).toEqual(sdkResult);
+  });
 });
