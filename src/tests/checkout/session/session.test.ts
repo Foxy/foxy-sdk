@@ -234,7 +234,7 @@ describe("client.session.configure", () => {
 });
 
 function fakeTransport() {
-  return { invoke: vi.fn().mockResolvedValue(undefined), show: vi.fn(), sessionChanged: vi.fn() };
+  return { invoke: vi.fn().mockResolvedValue(undefined), show: vi.fn(), active: () => true, sessionChanged: vi.fn() };
 }
 
 describe("client.session.start", () => {
@@ -343,7 +343,7 @@ describe("client.session.end", () => {
     localStorage.setItem(KEY, "s-1");
     vi.mocked(fetch).mockImplementation(async () => respond(cart("s-1")));
     const api = await boot();
-    internalsOf(api).setSideCartTransport({ invoke: vi.fn().mockResolvedValue(undefined), show: vi.fn() });
+    internalsOf(api).setSideCartTransport({ invoke: vi.fn().mockResolvedValue(undefined), show: vi.fn(), active: () => true });
 
     await expect(api.session.end()).resolves.toBeUndefined();
     expect(api.session.id).toBeNull();
@@ -964,7 +964,7 @@ describe("cart changes sent before the first load", () => {
 });
 
 describe("first cart load failure", () => {
-  const transport = () => ({ invoke: vi.fn(), show: vi.fn(), loadFailed: vi.fn() });
+  const transport = () => ({ invoke: vi.fn(), show: vi.fn(), active: () => true, loadFailed: vi.fn() });
 
   async function bootWith(t: ReturnType<typeof transport>): Promise<void> {
     const api = new API();

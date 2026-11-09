@@ -11,7 +11,7 @@ describe("checkout/API sidecart transport", () => {
     const invoke = vi.fn().mockResolvedValue(undefined);
     const api = new API({ storeDomain: "demo.foxycart.test" });
 
-    internalsOf(api).setSideCartTransport({ invoke, show: vi.fn(), sessionChanged: vi.fn() });
+    internalsOf(api).setSideCartTransport({ invoke, show: vi.fn(), active: () => true, sessionChanged: vi.fn() });
     api.updateItemQuantity({ id: 9, quantity: 2 });
 
     expect(invoke).toHaveBeenCalledWith("updateItemQuantity", [{ id: 9, quantity: 2 }]);
@@ -26,7 +26,7 @@ describe("checkout/API sidecart transport", () => {
     const invoke = vi.fn().mockResolvedValue(undefined);
     const api = new API({ storeDomain: "demo.foxycart.test" });
 
-    internalsOf(api).setSideCartTransport({ invoke, show: vi.fn(), sessionChanged: vi.fn() });
+    internalsOf(api).setSideCartTransport({ invoke, show: vi.fn(), active: () => true, sessionChanged: vi.fn() });
     expect(api.json).toBeNull();
     api.clearCart();
 
@@ -37,7 +37,7 @@ describe("checkout/API sidecart transport", () => {
     const invoke = vi.fn().mockResolvedValue(undefined);
     const api = new API({ storeDomain: "demo.foxycart.test" });
 
-    internalsOf(api).setSideCartTransport({ invoke, show: vi.fn(), sessionChanged: vi.fn() });
+    internalsOf(api).setSideCartTransport({ invoke, show: vi.fn(), active: () => true, sessionChanged: vi.fn() });
     internalsOf(api).setSideCartTransport(null);
     api.clearCart();
 
@@ -73,7 +73,7 @@ describe("checkout/API sidecart transport", () => {
     const onError = vi.fn();
     const api = new API({ storeDomain: "demo.foxycart.test", onError });
 
-    internalsOf(api).setSideCartTransport({ invoke, show: vi.fn(), sessionChanged: vi.fn() });
+    internalsOf(api).setSideCartTransport({ invoke, show: vi.fn(), active: () => true, sessionChanged: vi.fn() });
     expect(api.json).toBeNull();
     api.clearCart();
 

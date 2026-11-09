@@ -32,10 +32,10 @@ client.addItem([
 ]);
 ```
 
-Show the side cart. `store` is required here unless the loader is already on the page.
+Show the cart drawer. The loader turns it on, and handles add-to-cart links and forms.
 
 ```js
-import { sideCart } from 'https://cdn-js.foxy.io/sdk@2/checkout/side-cart.js?store=example.foxycart.com';
+import { sideCart } from 'https://cdn-js.foxy.io/sdk@2/checkout/loader.js?store=example.foxycart.com';
 
 sideCart.show();
 ```
@@ -43,14 +43,14 @@ sideCart.show();
 ## Learn more
 
 - [`client`](/docs/reference/checkout/variables/client): the shared client.
-- [`side-cart`](/docs/reference/checkout/side-cart): the drawer.
-- [`add-to-cart`](/docs/reference/checkout/add-to-cart): links and forms.
-- [`loader`](/docs/reference/checkout/loader): sets the store for the page.
+- [`sideCart`](/docs/reference/checkout/variables/sideCart): the drawer.
+- [`loader`](/docs/reference/checkout/loader): sets the store, and turns on the drawer and add-to-cart links and forms.
 
 
 ## Variables
 
 - [client](/docs/reference/checkout/variables/client)
+- [sideCart](/docs/reference/checkout/variables/sideCart)
 
 ## Type Aliases
 
@@ -58,6 +58,7 @@ sideCart.show();
 - [AchHostedFieldsTokenizeErrorCode](/docs/reference/checkout/types#achhostedfieldstokenizeerrorcode)
 - [AddressSuggestion](/docs/reference/checkout/types#addresssuggestion)
 - [AddressValidation](/docs/reference/checkout/types#addressvalidation)
+- [AddToCartDetail](/docs/reference/checkout/types#addtocartdetail)
 - [AdyenEmbeddedAmount](/docs/reference/checkout/types#adyenembeddedamount)
 - [AdyenEmbeddedCheckoutConfiguration](/docs/reference/checkout/types#adyenembeddedcheckoutconfiguration)
 - [AdyenEmbeddedEnvironment](/docs/reference/checkout/types#adyenembeddedenvironment)
@@ -106,6 +107,7 @@ sideCart.show();
 - [SessionStorageName](/docs/reference/checkout/types#sessionstoragename)
 - [SessionStore](/docs/reference/checkout/types#sessionstore)
 - [Shipment](/docs/reference/checkout/types#shipment)
+- [SideCart](/docs/reference/checkout/types#sidecart)
 - [SquareSdkInstance](/docs/reference/checkout/types#squaresdkinstance)
 - [Store](/docs/reference/checkout/types#store)
 - [StripeConfirmIntentParams](/docs/reference/checkout/types#stripeconfirmintentparams)

@@ -1,32 +1,25 @@
 ---
-title: "Side Cart"
-description: "@foxy.io/sdk/checkout/side-cart"
+title: "sideCart"
+description: "@foxy.io/sdk/checkout"
 documents: SideCart
 ---
 
 import { MemberMeta } from '@/components/member-meta';
 
-A cart drawer over your page. It shows the store's cart in an iframe. The module exports [`sideCart`](#sidecart), whose type is [`SideCart`](#sidecart-type). Importing it also changes how the shared [`client`](/docs/reference/checkout/variables/client) works on your page.
-
-From the CDN, the store domain goes in the `store` parameter. It is not needed when [`loader`](/docs/reference/checkout/loader) already set the store.
-
-```js
-import { sideCart } from 'https://cdn-js.foxy.io/sdk@2/checkout/side-cart.js?store=example.foxycart.com';
+```ts
+const sideCart: SideCart;
 ```
 
-## What importing it does
+The cart drawer. It shows the store's cart in an iframe over your page. Its type is [`SideCart`](/docs/reference/checkout/types#sidecart).
 
-1. If the client has no store yet, it sets the one from its `store` parameter. The client then loads the shopper's cart and session.
-2. The client sends cart changes to the drawer instead of to the store. This applies to `addItem()`, `updateItemQuantity()`, `removeItem()`, `clearCart()`, `applyCouponOrGiftCardCode()`, `removeCouponCode()` and `removeGiftCardCode()`. On your page, these calls do not fire the client's cancelable events, like `item-update` and `cart-clear`. The drawer's own page fires them.
-3. [Add-to-cart](/docs/reference/checkout/add-to-cart) links and forms put items in the drawer and open it, instead of going to the cart page.
-4. If no store is set by the time the page's `load` event fires, it logs a warning to the console, and `sideCart.itemCountUnavailable` becomes `true`.
-
-The iframe is not created on import. `sideCart.mount()` or the first `sideCart.show()` creates it.
+The drawer works once the [loader](/docs/reference/checkout/loader) is on the page: the loader turns it on and sends cart changes to it. The iframe is not created until `sideCart.mount()` or the first `sideCart.show()`.
 
 ## Example
 
 ```ts
-import { sideCart } from 'https://cdn-js.foxy.io/sdk@2/checkout/side-cart.js';
+import { sideCart } from 'https://cdn-js.foxy.io/sdk@2/checkout.js';
+
+// The loader must be on the page: it turns the drawer on.
 
 // Open the drawer from your own cart button.
 document.querySelector('#cart-button')?.addEventListener('click', () => {
@@ -155,19 +148,3 @@ Closes the drawer and removes the iframe from the page. Pending cart changes tha
 #### Returns
 
 `void`
-
-## Variables
-
-### sideCart [#sidecart]
-
-```ts
-const sideCart: SideCart;
-```
-
-The side cart drawer on your page. Its accessors and methods are listed above.
-
-## Interfaces
-
-### SideCart [#sidecart-type]
-
-The type of [`sideCart`](#sidecart). Import it with `import type` to annotate your own code. Its accessors and methods are listed above.

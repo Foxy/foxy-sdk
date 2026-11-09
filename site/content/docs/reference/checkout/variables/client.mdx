@@ -163,7 +163,7 @@ between the two could still land in the gap).
 the same name: the document that runs this owns the session.
 
 Unlike its siblings, this dispatches no cancelable `item-add` event: the
-caller already decided. `checkout/add-to-cart`'s own cancelable event is
+caller already decided. The loader's add-to-cart cancelable event is
 `foxy:add-to-cart`, dispatched before this runs, and on a store page
 there is no cart item yet for `item-add`'s detail to describe.
 

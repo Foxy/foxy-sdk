@@ -1,7 +1,6 @@
-// src/checkout/add-to-cart.ts
 import { client } from "./client";
-import { internalsOf } from "./internal";
-import { adoptScriptStore, resolveHostStoreOrigin } from "./side-cart/origin";
+import { internalsOf, runOnce } from "./internal";
+import { resolveHostStoreOrigin } from "./side-cart/origin";
 
 /** `detail` of the cancelable, bubbling `foxy:add-to-cart` event. */
 export type AddToCartDetail = {
@@ -50,9 +49,11 @@ let resubmitting: HTMLFormElement | null = null;
 /** Set while a reset form is resubmitted without a session, so `onFormData` must not add the old one. */
 let skipSession: HTMLFormElement | null = null;
 
+/** The store whose cart links and forms this module handles, or null when it handles none: no store, the store's own page, or a store whose cart type is `custom`. */
 function storeOrigin(): string | null {
+  if (client.json?.display?.cart_type === "custom") return null;
   try {
-    return resolveHostStoreOrigin(import.meta.url);
+    return resolveHostStoreOrigin();
   } catch {
     return null;
   }
@@ -373,11 +374,18 @@ function onFormData(event: Event): void {
   if (formData.get("empty") === "reset") formData.delete("empty");
 }
 
-// Bubble phase for click and submit: they run after the merchant's own
-// handlers, so `defaultPrevented` means another script already took over.
-// Capture for formdata: it works whether or not the event bubbles.
-document.addEventListener("click", onClick);
-document.addEventListener("auxclick", onClick);
-document.addEventListener("submit", onSubmit);
-document.addEventListener("formdata", onFormData, true);
-adoptScriptStore(import.meta.url);
+/**
+ * Handles the page's add-to-cart links and forms. The loader calls this. Runs
+ * once, even when a page loads the loader twice under two URLs.
+ */
+export function enableAddToCart(): void {
+  runOnce("add-to-cart", () => {
+    // Bubble phase for click and submit: they run after the merchant's own
+    // handlers, so `defaultPrevented` means another script already took over.
+    // Capture for formdata: it works whether or not the event bubbles.
+    document.addEventListener("click", onClick);
+    document.addEventListener("auxclick", onClick);
+    document.addEventListener("submit", onSubmit);
+    document.addEventListener("formdata", onFormData, true);
+  });
+}

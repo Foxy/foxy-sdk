@@ -41,6 +41,7 @@ describe('Checkout', () => {
       'client',
       'loadRegionMessages',
       'regionLabelMessageId',
+      'sideCart',
       'toCountryOptions',
       'toRegionOptions',
     ]);

@@ -60,6 +60,18 @@ type AddressValidation = {
 };
 ```
 
+### AddToCartDetail
+
+The `detail` of the `foxy:add-to-cart` event. The loader fires it on add-to-cart links and forms before they add to the cart. It holds the cart URL, the form fields as name and value pairs, and the session ID. The event bubbles and can be canceled.
+
+```ts
+type AddToCartDetail = {
+  url: URL;
+  params: [string, string][];
+  sessionId: string | null;
+};
+```
+
 ### AdyenEmbeddedAmount
 
 An amount and currency in the form Adyen Checkout takes them. The amount is in minor units, such as cents. Part of [`AdyenEmbeddedCheckoutConfiguration`](/docs/reference/checkout/types#adyenembeddedcheckoutconfiguration).
@@ -1011,6 +1023,10 @@ type Shipment = {
   }[];
 };
 ```
+
+### SideCart
+
+The type of [`sideCart`](/docs/reference/checkout/variables/sideCart), the cart drawer. `checkout` exports it as a type only. Its properties and methods are on the [`sideCart`](/docs/reference/checkout/variables/sideCart) page.
 
 ### SquareSdkInstance
 

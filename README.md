@@ -33,16 +33,17 @@ Subpaths under `@foxy.io/sdk/internal/` are for Foxy's own apps. They are not
 covered by semver and can change in any release. Don't import them.
 
 ```ts
-import { API } from "@foxy.io/sdk/checkout";
+import { client } from "@foxy.io/sdk/checkout";
 ```
 
-The sidecart is a module-level singleton, imported the same way as the checkout
-client. `?store=` is your store's domain and is required: the sidecart frames
-the store over your own site, so it will not guess the store from the page it
-is running on.
+### The loader
+
+On the merchant's site, import the loader with your store's domain. One
+import sets the store, makes add-to-cart links and forms reach the visitor's
+own cart, and turns on the cart drawer. It needs no markup changes.
 
 ```js
-import { sideCart } from "https://cdn-js.foxy.io/sdk@2/checkout/side-cart.js?store=example.foxycart.com";
+import { client, sideCart } from "https://cdn-js.foxy.io/sdk@2/checkout/loader.js?store=example.foxycart.com";
 
 sideCart.show();
 sideCart.hide();
@@ -60,43 +61,32 @@ sideCart.addEventListener("itemcountchange", (event) => {
 });
 ```
 
-`checkout/loader.js` reads the same `?store=` parameter from its own URL and
-sets the domain on the shared client, so a page that already loads it can drop
-the one on the sidecart import:
+`client`'s cart changes then travel into the drawer's iframe, which is the
+document that owns the session. `sideCart` is also exported from
+`checkout`, for code that needs the drawer but does not load the page's
+store, such as a cart button component. The loader still has to be on the page.
 
-```js
-import "https://cdn-js.foxy.io/sdk@2/checkout/loader.js?store=example.foxycart.com";
-import { sideCart } from "https://cdn-js.foxy.io/sdk@2/checkout/side-cart.js";
-```
+The store's cart type setting decides what add-to-cart links and forms do.
+Until the cart loads, the loader uses `default`:
 
-Importing it also makes `client`'s cart mutations travel into the sidecart
-iframe, which is the document that owns the session.
-
-### Add-to-cart links and forms
-
-Import this on the merchant's pages so add-to-cart links and forms reach the
-visitor's own cart. It needs no markup changes.
-
-```js
-import "https://cdn-js.foxy.io/sdk@2/checkout/add-to-cart.js?store=example.foxycart.com";
-```
-
-For every link or form that points at the store's `/cart`:
-
-* With `checkout/side-cart` imported, the item goes into the sidecart and the
-  sidecart opens. Links that go on to checkout (`redirect=/checkout`, or
-  `cart=checkout`) still navigate.
-* Without it, the browser goes to the cart with the visitor's `session_id`.
+* `default`: the item goes into the drawer, and the drawer opens. Links that
+  go on to checkout (`redirect=/checkout`, or `cart=checkout`) still navigate.
+* `fullpage`: the browser goes to the cart with the visitor's `session_id`.
   This keeps the visitor's session on a first click only once the store
   allows the merchant's origin (CORS). Until the store allows it, a first
   click with no session yet starts a new cart instead.
+* `custom`: links and forms are left alone.
+
+In every mode:
+
 * The session id is added when the visitor clicks. It is never written into
   the page, so a copied link never carries it.
 * A click that opens a new tab (a modifier key, the middle button, or a
-  `target` other than `_self`) never uses the sidecart.
+  `target` other than `_self`) never uses the drawer.
 * `empty=reset` starts a new session.
 
-For a custom cart, cancel the `foxy:add-to-cart` event and use the detail:
+For a custom cart on a single page, cancel the `foxy:add-to-cart` event and
+use the detail:
 
 ```js
 document.addEventListener("foxy:add-to-cart", (event) => {
@@ -163,10 +153,8 @@ a new cart each time the visitor moves between them.
 With the default key, each store gets its own key. A `key` you set, or your
 own store, holds one session, so use it with one store per page.
 
-Importing `checkout/side-cart.js?store=...` or `checkout/add-to-cart.js?store=...`
-without the loader also sets the store, if no store is set yet. It then
-loads the session when the current script finishes, the same as the loader.
-With the default `autoStart`, that creates a session for every visitor. Set
+The loader loads the session when the current script finishes. With the
+default `autoStart`, that creates a session for every visitor. Set
 `autoStart: false` to wait for the first cart action.
 
 The store must allow your site's origin on `/cart` (CORS). Stores will allow

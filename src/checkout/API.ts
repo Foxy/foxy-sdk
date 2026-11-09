@@ -73,12 +73,18 @@ export type {
  */
 export type SideCartTransport = {
   invoke(method: SideCartInvokeMethod, params: unknown[]): Promise<void>;
-  /** Opens the drawer. `checkout/add-to-cart` calls it after `addItem`. */
+  /** Opens the drawer. The loader's add-to-cart handling calls it after `addItem`. */
   show(): void;
   /** `client.session` changed: reload with the new ID, or unmount for null. */
   sessionChanged?(sessionId: string | null): void;
   /** The client's first cart load failed (not a later mutation), so a UI can show an error state. */
   loadFailed?(): void;
+  /**
+   * Whether cart changes go to the drawer right now. False on the store's own
+   * pages and for a store whose cart type is not the drawer: the client then
+   * talks to the store itself.
+   */
+  active(): boolean;
 };
 
 /**
@@ -543,7 +549,7 @@ export class API extends EventTarget {
       setSideCartTransport: (transport) => {
         this.#sideCartTransport = transport;
       },
-      sideCartTransport: () => this.#sideCartTransport,
+      sideCartTransport: () => this.#activeSideCartTransport(),
       storeUrl: () => this.#baseUrl ?? null,
       reportSideCartError: (error) => this.#reportSideCartError(error),
       reportSideCartSession: (sessionId) => this.session.observe(sessionId),
@@ -902,8 +908,9 @@ export class API extends EventTarget {
    * would be firing them against a page-load snapshot.
    */
   private delegated(method: SideCartInvokeMethod, params: unknown[]): boolean {
-    if (!this.#sideCartTransport) return false;
-    void this.#sideCartTransport.invoke(method, params).catch((error: unknown) => {
+    const transport = this.#activeSideCartTransport();
+    if (!transport) return false;
+    void transport.invoke(method, params).catch((error: unknown) => {
       this.#reportSideCartError(
         error instanceof Error ? error : new Error(String(error)),
       );
@@ -1019,7 +1026,7 @@ export class API extends EventTarget {
    * the same name: the document that runs this owns the session.
    *
    * Unlike its siblings, this dispatches no cancelable `item-add` event: the
-   * caller already decided. `checkout/add-to-cart`'s own cancelable event is
+   * caller already decided. The loader's add-to-cart cancelable event is
    * `foxy:add-to-cart`, dispatched before this runs, and on a store page
    * there is no cart item yet for `item-add`'s detail to describe.
    */
@@ -1770,6 +1777,11 @@ export class API extends EventTarget {
     form.submit();
   }
 
+  #activeSideCartTransport(): SideCartTransport | null {
+    const transport = this.#sideCartTransport;
+    return transport?.active() ? transport : null;
+  }
+
   /** Tells the merchant why the first load failed. `#booted` makes this run once per instance. */
   #logBootFailure(error: unknown): void {
     const from = this.#baseUrl ? new URL(this.#baseUrl).origin : "the store";
@@ -1779,7 +1791,7 @@ export class API extends EventTarget {
       const page = globalThis.location?.origin ?? "this page";
       console.error(
         `${prefix} the browser blocked the request or the network failed. The usual cause is CORS: the store accepts cart requests only from its own domain and from the origin of its Website setting, and this page is ${page}. To fix it, set the store's Website (Settings → Website) to ${page}, or serve this page from the Website's origin.${
-          this.#sideCartTransport ? " Until then, the cart count loads only after the shopper opens the cart." : ""
+          this.#activeSideCartTransport() ? " Until then, the cart count loads only after the shopper opens the cart." : ""
         }`,
       );
     } else if (error instanceof RequestError) {

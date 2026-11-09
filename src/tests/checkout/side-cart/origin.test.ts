@@ -11,12 +11,14 @@
 // cart-mutation port to a merchant-controlled document, because both of the
 // channel's guards legitimately passed.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { APIJson } from "../../../checkout/types";
 
 async function loadSideCart(storeDomain?: string) {
   vi.resetModules();
   const { client } = await import("../../../checkout/client");
   if (storeDomain) client.setStoreDomain(storeDomain);
   const module = await import("../../../checkout/side-cart");
+  module.enableSideCart();
 
   return { client, sideCart: module.sideCart };
 }
@@ -80,34 +82,69 @@ describe("checkout/side-cart store origin", () => {
   });
 });
 
-describe("adoptScriptStore", () => {
-  it("sets the client's domain from ?store= when none is set", async () => {
+describe("checkout/loader", () => {
+  beforeEach(() => {
+    vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("network disabled in tests"));
+  });
+
+  afterEach(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    vi.restoreAllMocks();
+  });
+
+  it("leaves the drawer off and logs nothing on the store's own page", async () => {
+    vi.resetModules();
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const { client } = await import("../../../checkout/loader");
+    const { internalsOf } = await import("../../../checkout/internal");
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(internalsOf(client).storeUrl()).toBe("https://shop.example.com/");
+    expect(internalsOf(client).sideCartTransport()).toBeNull();
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it("keeps a store that is already set, and turns the drawer on for it", async () => {
     vi.resetModules();
     const { client } = await import("../../../checkout/client");
     const { internalsOf } = await import("../../../checkout/internal");
-    const { adoptScriptStore } = await import("../../../checkout/side-cart/origin");
-
-    adoptScriptStore("https://cdn.test/side-cart.js?store=demo.foxycart.test");
+    client.setStoreDomain("demo.foxycart.test");
+    await import("../../../checkout/loader");
 
     expect(internalsOf(client).storeUrl()).toBe("https://demo.foxycart.test/");
+    expect(internalsOf(client).sideCartTransport()).not.toBeNull();
   });
 
-  it("keeps a domain that is already set", async () => {
+  it("turns the drawer off once the store says its cart type is not the drawer", async () => {
     vi.resetModules();
     const { client } = await import("../../../checkout/client");
     const { internalsOf } = await import("../../../checkout/internal");
-    const { adoptScriptStore } = await import("../../../checkout/side-cart/origin");
-    client.setStoreDomain("first.foxycart.test");
+    client.setStoreDomain("demo.foxycart.test");
+    await import("../../../checkout/loader");
 
-    adoptScriptStore("https://cdn.test/side-cart.js?store=second.foxycart.test");
+    await client.hydrateJson({
+      items: [],
+      messages: [],
+      store: { domain: null },
+      display: { cart_type: "fullpage" },
+    } as unknown as APIJson);
 
-    expect(internalsOf(client).storeUrl()).toBe("https://first.foxycart.test/");
+    expect(internalsOf(client).sideCartTransport()).toBeNull();
   });
+});
 
-  it("does not throw on a bad domain", async () => {
+describe("checkout", () => {
+  it("installs no sidecart and logs nothing when imported alone", async () => {
     vi.resetModules();
-    const { adoptScriptStore } = await import("../../../checkout/side-cart/origin");
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const { client, sideCart } = await import("../../../checkout");
+    const { internalsOf } = await import("../../../checkout/internal");
+    window.dispatchEvent(new Event("load"));
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(() => adoptScriptStore("https://cdn.test/side-cart.js?store=%20")).not.toThrow();
+    expect(sideCart).toBeDefined();
+    expect(internalsOf(client).sideCartTransport()).toBeNull();
+    expect(warn).not.toHaveBeenCalled();
+    vi.restoreAllMocks();
   });
 });

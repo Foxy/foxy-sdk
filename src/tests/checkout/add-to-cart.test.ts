@@ -1,6 +1,7 @@
 /** @vitest-environment jsdom */
 // src/tests/checkout/add-to-cart.test.ts
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { APIJson } from "../../checkout/types";
 
 const ORIGIN = "https://demo.foxycart.test";
 const CART = `${ORIGIN}/cart?name=Shirt&price=10`;
@@ -44,10 +45,10 @@ async function load(options: { sideCart?: boolean } = {}) {
   await vi.waitFor(() => expect(fetch).toHaveBeenCalled());
   await new Promise((resolve) => setTimeout(resolve, 0));
   vi.mocked(fetch).mockClear();
-  const transport = { invoke: vi.fn().mockResolvedValue(undefined), show: vi.fn(), sessionChanged: vi.fn() };
+  const transport = { invoke: vi.fn().mockResolvedValue(undefined), show: vi.fn(), active: () => true, sessionChanged: vi.fn() };
   if (options.sideCart) internalsOf(client).setSideCartTransport(transport);
   const addItem = vi.spyOn(client, "addItem");
-  uninstall = await importCapturingListeners(() => import("../../checkout/add-to-cart"));
+  uninstall = await importCapturingListeners(async () => (await import("../../checkout/add-to-cart")).enableAddToCart());
   return { client, internals: internalsOf(client), transport, addItem };
 }
 
@@ -295,6 +296,25 @@ describe("checkout/add-to-cart: full-page links", () => {
     click(link(`${CART}&empty=true`));
 
     expect(assign).toHaveBeenCalledWith(`${CART}&empty=true&session_id=s-1`);
+  });
+});
+
+describe("checkout/add-to-cart: store cart type", () => {
+  it("leaves links and forms alone for a store whose cart type is custom", async () => {
+    const { client, addItem } = await load({ sideCart: true });
+    await client.hydrateJson({
+      items: [],
+      messages: [],
+      store: { domain: null },
+      display: { cart_type: "custom" },
+    } as unknown as APIJson);
+    await seedSession(client, "s-1");
+
+    const event = click(link(CART));
+
+    expect(wasDefaultPrevented(event)).toBe(false);
+    expect(addItem).not.toHaveBeenCalled();
+    expect(assign).not.toHaveBeenCalled();
   });
 });
 

@@ -23,6 +23,7 @@ async function loadSideCart() {
   await vi.waitFor(() => expect(fetch).toHaveBeenCalled());
   await new Promise((resolve) => setTimeout(resolve, 0));
   const module = await import("../../../checkout/side-cart");
+  module.enableSideCart();
   const { internalsOf } = await import("../../../checkout/internal");
   mounted = module.sideCart;
 
@@ -44,9 +45,13 @@ async function loadSideCartWithoutStoreDomain() {
   const { client } = await import("../../../checkout/client");
   const module = await import("../../../checkout/side-cart");
   const { internalsOf } = await import("../../../checkout/internal");
+  // With no store the transport is inactive, so the client would not return
+  // it. Capture it as it is installed.
+  const install = vi.spyOn(internalsOf(client), "setSideCartTransport");
+  module.enableSideCart();
   mounted = module.sideCart;
 
-  return { client, sideCart: module.sideCart, transport: internalsOf(client).sideCartTransport()! };
+  return { client, sideCart: module.sideCart, transport: install.mock.calls[0][0]! };
 }
 
 function cartJson(quantity: number): APIJson {

@@ -58,8 +58,7 @@ Entry Points.
 in the `dts()` plugin call, and `include` in `tsconfig.build.json` are four
 hand-maintained lists covering the same entries — `admin`, `admin/signing`,
 `admin/subscriptions`, `checkout`,
-`checkout/loader`, `checkout/side-cart`,
-`checkout/add-to-cart`, `customer`, `customer/subscriptions`, `internal/core`,
+`checkout/loader`, `customer`, `customer/subscriptions`, `internal/core`,
 `internal/side-cart/protocol`.
 
 `internal/*` subpaths exist only for Foxy's own apps and are outside semver.
@@ -93,7 +92,9 @@ internal, and `./admin/subscriptions` and `./customer/subscriptions` re-export t
 subscription rules from it, so the emitted types need it.
 
 - `checkout/client.ts` is a **singleton** — `export const client = /*#__PURE__*/ new API()`. It has no subpath: `checkout` re-exports it, and `API` is exported as a type only, so pages never build a second instance. Keep the `PURE` mark, or importing a helper like `toCountryOptions` from `checkout` pulls the whole `API` class into npm bundles.
-- `checkout/loader.ts` is the browser drop-in. It reads `?store=` from its own `import.meta.url` and falls back to `location.hostname`, then re-exports the same singleton. Anything that must run before first use belongs here, not in `client.ts`.
+- `checkout/loader.ts` is the browser drop-in and the only module with side effects. It sets the store from its own `?store=` (or `location.hostname` when no store is set), turns on add-to-cart handling and the drawer (`enableAddToCart`, `enableSideCart`), and re-exports `client` and `sideCart`. Everything else, `checkout` included, must stay inert on import: the store's own pages and the cart page inside the drawer import `checkout`.
+- Only the loader reads `?store=`. Shared chunks have no query string, and `loader.js` and `loader.js?store=...` load as two module copies, so the enable functions run once and a copy without `?store=` never resets a set store.
+- The drawer and add-to-cart follow the store's `display.cart_type` once the checkout json arrives: `default` (or missing) is the drawer, `fullpage` goes to the cart page, `custom` leaves links alone.
 
 ## Region Messages Are Generated
 

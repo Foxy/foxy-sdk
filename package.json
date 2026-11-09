@@ -24,14 +24,6 @@
       "types": "./dist/npm/checkout/loader.d.ts",
       "import": "./dist/npm/checkout/loader.js"
     },
-    "./checkout/side-cart": {
-      "types": "./dist/npm/checkout/side-cart.d.ts",
-      "import": "./dist/npm/checkout/side-cart.js"
-    },
-    "./checkout/add-to-cart": {
-      "types": "./dist/npm/checkout/add-to-cart.d.ts",
-      "import": "./dist/npm/checkout/add-to-cart.js"
-    },
     "./internal/side-cart/protocol": {
       "types": "./dist/npm/internal/side-cart/protocol.d.ts",
       "import": "./dist/npm/internal/side-cart/protocol.js"

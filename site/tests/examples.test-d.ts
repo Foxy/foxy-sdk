@@ -3,9 +3,7 @@
 import { API as AdminAPI } from '@foxy.io/sdk/admin';
 import { API as CustomerAPI } from '@foxy.io/sdk/customer';
 import { getAllowedFrequencies } from '@foxy.io/sdk/customer/subscriptions';
-import { client } from '@foxy.io/sdk/checkout';
-import { sideCart } from '@foxy.io/sdk/checkout/side-cart';
-import type { AddToCartDetail } from '@foxy.io/sdk/checkout/add-to-cart';
+import { client, sideCart, type AddToCartDetail } from '@foxy.io/sdk/checkout';
 
 declare function save(tokens: unknown): void;
 declare const callbackUrl: string;
@@ -61,25 +59,4 @@ export function addToCart() {
     client.addItem(params);
     openMyCart();
   });
-}
-
-export function sideCartPage() {
-  // Open the drawer from your own cart button.
-  document.querySelector('#cart-button')?.addEventListener('click', () => {
-    sideCart.show();
-  });
-
-  // Close it when the shopper presses Escape.
-  document.addEventListener('keydown', event => {
-    if (event.key === 'Escape') sideCart.hide();
-  });
-
-  // Keep a cart badge in sync with the side cart.
-  const badge = document.querySelector('#cart-badge');
-  const updateBadge = () => {
-    if (badge) badge.textContent = String(sideCart.itemCount ?? 0);
-  };
-
-  sideCart.addEventListener('itemcountchange', updateBadge);
-  updateBadge();
 }

@@ -15,4 +15,10 @@ export type Display = {
   checkout_flow: "default" | "subscription_cancellation" | "subscription_modification";
   /** Customer registration requirement. */
   registration: "required" | "optional" | "disabled";
+  /**
+   * How the loader handles add-to-cart links and forms on the merchant's
+   * pages: `default` opens the cart drawer, `fullpage` goes to the cart page,
+   * and `custom` leaves them alone. Missing means `default`.
+   */
+  cart_type?: "default" | "fullpage" | "custom";
 };

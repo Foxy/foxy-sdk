@@ -3,22 +3,87 @@ title: "Loader"
 description: "@foxy.io/sdk/checkout/loader"
 ---
 
-Sets the store on the shared [`client`](/docs/reference/checkout/variables/client) and gives it to you, in one import. Use it from the CDN: its `store` parameter replaces a `setStoreDomain()` call.
+Puts the store's cart on your site in one import. It sets the store on the shared [`client`](/docs/reference/checkout/variables/client), makes your add-to-cart links and forms add to the shopper's cart, and turns on the cart drawer, [`sideCart`](/docs/reference/checkout/variables/sideCart).
 
 ```js
-import { client } from 'https://cdn-js.foxy.io/sdk@2/checkout/loader.js?store=example.foxycart.com';
+import { client, sideCart } from 'https://cdn-js.foxy.io/sdk@2/checkout/loader.js?store=example.foxycart.com';
 ```
 
 ## What importing it does
 
-1. It reads the store domain from its own `store` URL parameter. Without one, it uses the page's hostname. That fallback is for pages on the store's own domain, like its cart and checkout pages. On your own site, always pass `store`.
-2. It calls `client.setStoreDomain()` with that domain. The client then loads the shopper's cart and session.
-3. It re-exports `client`. This is the same instance that `checkout` exports.
+1. It sets the store from its own `store` URL parameter. The client then loads the shopper's cart and session. Without `store`, it uses the page's hostname, but only when no store is set yet. That fallback is for pages on the store's own domain. On your own site, always pass `store`.
+2. It handles the page's add-to-cart links and forms. See below.
+3. It turns on the drawer. The client then sends cart changes to the drawer instead of to the store. This applies to `addItem()`, `updateItemQuantity()`, `removeItem()`, `clearCart()`, `applyCouponOrGiftCardCode()`, `removeCouponCode()` and `removeGiftCardCode()`. On your page, these calls do not fire the client's cancelable events, like `item-update` and `cart-clear`. The drawer's own page fires them.
+4. If no store is set by the time the page's `load` event fires, it logs a warning to the console, and `sideCart.itemCountUnavailable` becomes `true`.
 
-From npm there is no URL for the `store` parameter, so the loader always uses the page's hostname. Import `client` from `checkout` and call `setStoreDomain()` instead.
+It does this once, even when the page loads it twice. On the store's own pages, it only sets the store.
+
+From npm there is no URL for the `store` parameter. Set the store right after the import, in the same script:
+
+```ts
+import { client } from '@foxy.io/sdk/checkout/loader';
+
+client.setStoreDomain('example.foxycart.com');
+```
+
+## The store's cart type
+
+The store's cart type setting decides what add-to-cart does:
+
+- `default`: the item goes into the drawer, and the drawer opens.
+- `fullpage`: the browser goes to the cart page. The client talks to the store, not the drawer.
+- `custom`: links and forms are left alone.
+
+The setting arrives with the shopper's cart. Until then, the loader uses `default`.
+
+## What it handles
+
+Links and forms that point at `/cart` on the store's domain, like these:
+
+```html
+<a href="https://example.foxycart.com/cart?name=Mug&price=15">Add to cart</a>
+
+<form action="https://example.foxycart.com/cart" method="post">
+  <input type="hidden" name="name" value="Mug">
+  <input type="hidden" name="price" value="15">
+  <button>Add to cart</button>
+</form>
+```
+
+For a form, the URL is the `action`, or the `formaction` of the button that submits it. Other links and forms are left alone. So are clicks and submits that your own code already canceled with `preventDefault()`.
+
+## What happens on click
+
+1. It fires `foxy:add-to-cart` on the link or form. The event bubbles, and its `detail` is an [`AddToCartDetail`](/docs/reference/checkout/types#addtocartdetail). Cancel it to handle the item yourself. Nothing else then happens.
+2. With the drawer on, and the link or form opening in the same tab, the item goes into the drawer and the drawer opens. Links with `cart=checkout` or `redirect` still go to their page.
+3. Otherwise the browser goes to the cart, with the shopper's `session_id` added, so the item lands in the same cart. If there is no session yet, it waits a short time for one, then goes without it.
+4. A link that opens in a new tab (middle click, a modifier key, or a `target`) opens as usual, with `session_id` added. Links with a `ping` attribute open without it.
+5. With `empty=reset`, it ends the current session and starts a new one before it goes to the cart.
+
+Links and forms that already have a `session_id` are sent as they are.
+
+## Example
+
+Show the item in your own cart UI instead of the cart page.
+
+```ts
+import type { AddToCartDetail } from 'https://cdn-js.foxy.io/sdk@2/checkout.js';
+import { client } from 'https://cdn-js.foxy.io/sdk@2/checkout/loader.js?store=example.foxycart.com';
+
+document.addEventListener('foxy:add-to-cart', event => {
+  const { params } = (event as CustomEvent<AddToCartDetail>).detail;
+  event.preventDefault();
+  client.addItem(params);
+  openMyCart();
+});
+```
 
 ## References
 
 ### client
 
 Re-exports [client](/docs/reference/checkout/variables/client)
+
+### sideCart
+
+Re-exports [sideCart](/docs/reference/checkout/variables/sideCart)

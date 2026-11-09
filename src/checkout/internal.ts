@@ -29,6 +29,20 @@ export type ClientInternals = {
 
 const registry = new WeakMap<API, ClientInternals>();
 
+const ran = new Set<string>();
+
+/**
+ * Runs `fn` once per page. The loader can load twice under two URLs, such as
+ * `loader.js` and `loader.js?store=...`, and the bundler may inline what only
+ * the loader imports, so a flag there would exist once per copy. This module
+ * is shared by every entry, so the flag here exists once.
+ */
+export function runOnce(key: string, fn: () => void): void {
+  if (ran.has(key)) return;
+  ran.add(key);
+  fn();
+}
+
 export function registerInternals(api: API, internals: ClientInternals): void {
   registry.set(api, internals);
 }

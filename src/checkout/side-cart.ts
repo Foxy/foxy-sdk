@@ -1,16 +1,14 @@
-// src/checkout/side-cart.ts
 import type { FrameToHostMessage, SideCartInvokeMethod } from "./side-cart/protocol";
 import type { SideCartTransport } from "./API";
 import { client } from "./client";
-import { internalsOf } from "./internal";
+import { internalsOf, runOnce } from "./internal";
 import { hashSessionId, readCachedState, writeCachedState } from "./side-cart/session-cache";
-import { adoptScriptStore, resolveHostStoreOrigin } from "./side-cart/origin";
+import { resolveHostStoreOrigin } from "./side-cart/origin";
 import { SideCartHostChannel } from "./side-cart/channel";
 
 const NO_STORE_ORIGIN =
-  "The sidecart does not know which store to load. Import it as " +
-  '"checkout/side-cart.js?store=example.foxycart.com", or set the domain on the ' +
-  'client first (that is what "checkout/loader.js?store=..." does).';
+  "The sidecart does not know which store to load. Import the loader as " +
+  '"checkout/loader.js?store=example.foxycart.com", or set the domain on the client.';
 
 /**
  * Safety net, not the expected path. The frame reports `closed` once its own
@@ -39,6 +37,7 @@ const READY_FALLBACK_MS = 8000;
 
 /** Set by `SideCart`'s static block, which can reach its private hooks. */
 let transportOf: (sideCart: SideCart) => SideCartTransport;
+let warnOnLoadIfNoStore: (sideCart: SideCart) => void;
 
 class SideCart extends EventTarget {
   static {
@@ -47,7 +46,21 @@ class SideCart extends EventTarget {
       show: () => sideCart.show(),
       sessionChanged: (sessionId) => sideCart.#onSessionChanged(sessionId),
       loadFailed: () => sideCart.#onLoadFailed(),
+      active: () => sideCart.#active(),
     });
+
+    warnOnLoadIfNoStore = (sideCart) => {
+      // Nobody may set a store domain until the page's scripts have run, so
+      // the check waits for `load`. A store domain that is this page's own
+      // origin is the store's own page, not a missing store: no warning.
+      const check = (): void => {
+        if (internalsOf(client).storeUrl() !== null) return;
+        console.warn(`[Foxy] ${NO_STORE_ORIGIN} Until then, the cart count can't load.`);
+        sideCart.#onLoadFailed();
+      };
+      if (document.readyState === "complete") setTimeout(check, 0);
+      else window.addEventListener("load", check, { once: true });
+    };
   }
 
   #frame: HTMLIFrameElement | null = null;
@@ -103,15 +116,6 @@ class SideCart extends EventTarget {
 
   constructor() {
     super();
-    // Nobody may set a store domain until the page's scripts have run, so the
-    // check waits for `load`.
-    const checkDomain = (): void => {
-      if (this.#tryOrigin() !== null) return;
-      console.warn(`[Foxy] ${NO_STORE_ORIGIN} Until then, the cart count can't load.`);
-      this.#onLoadFailed();
-    };
-    if (document.readyState === "complete") setTimeout(checkDomain, 0);
-    else window.addEventListener("load", checkDomain, { once: true });
     // The client fetches the cart JSON on a merchant page regardless of the
     // sidecart, so its item count is live the moment it resolves. But `client`
     // fires "update" for any json change -- a coupon, an address edit, a
@@ -123,14 +127,22 @@ class SideCart extends EventTarget {
   }
 
   /**
-   * Resolved on first use rather than at import: a merchant may import this
-   * module before `checkout/loader.js` has set the store domain. See
-   * `resolveHostStoreOrigin` for the rules. Framing the page's own origin
+   * Whether cart changes go to the drawer: there is a store that is not this
+   * page, and the store's cart type is the drawer. Until the checkout json
+   * arrives, the cart type is the default, the drawer.
+   */
+  #active(): boolean {
+    return this.#tryOrigin() !== null && (client.json?.display?.cart_type ?? "default") === "default";
+  }
+
+  /**
+   * Resolved on first use rather than at construction: the store domain can
+   * be set after `sideCart` exists. See `resolveHostStoreOrigin` for the rules. Framing the page's own origin
    * would load the merchant's own 404 at full viewport and then transfer a
    * cart-mutation port to a merchant-controlled document.
    */
   #origin(): string {
-    const origin = resolveHostStoreOrigin(import.meta.url);
+    const origin = resolveHostStoreOrigin();
     if (origin === null) throw new Error(NO_STORE_ORIGIN);
     return origin;
   }
@@ -578,10 +590,19 @@ class SideCart extends EventTarget {
 }
 
 export type { SideCart };
-export const sideCart = new SideCart();
 
-// Importing this module is what makes `client` a sidecart client. The store's
-// own cart and checkout pages never import it, so their client keeps talking
-// to the store directly.
-adoptScriptStore(import.meta.url);
-internalsOf(client).setSideCartTransport(transportOf(sideCart));
+// PURE: a bundle that imports only a helper from `checkout` drops the drawer.
+export const sideCart = /*#__PURE__*/ new SideCart();
+
+/**
+ * Makes `client` a sidecart client. The loader calls this; `checkout` alone
+ * does not, so the store's own pages and the cart page inside the drawer keep
+ * talking to the store. Runs once, even when a page loads the loader twice
+ * under two URLs.
+ */
+export function enableSideCart(): void {
+  runOnce("side-cart", () => {
+    internalsOf(client).setSideCartTransport(transportOf(sideCart));
+    warnOnLoadIfNoStore(sideCart);
+  });
+}
