@@ -11,11 +11,11 @@ From the CDN, the store domain goes in the `store` parameter:
 <script type="module" src="https://cdn-js.foxy.io/sdk@2/checkout/add-to-cart.js?store=example.foxycart.com"></script>
 ```
 
-From npm, import it for its side effect and set the store on the shared [`client`](/docs/reference/checkout/client):
+From npm, import it for its side effect and set the store on the shared [`client`](/docs/reference/checkout/variables/client):
 
 ```ts
 import '@foxy.io/sdk/checkout/add-to-cart';
-import { client } from '@foxy.io/sdk/checkout/client';
+import { client } from '@foxy.io/sdk/checkout';
 
 client.setStoreDomain('example.foxycart.com');
 ```

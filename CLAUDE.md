@@ -58,7 +58,7 @@ Entry Points.
 in the `dts()` plugin call, and `include` in `tsconfig.build.json` are four
 hand-maintained lists covering the same entries — `admin`, `admin/signing`,
 `admin/subscriptions`, `checkout`,
-`checkout/client`, `checkout/loader`, `checkout/side-cart`,
+`checkout/loader`, `checkout/side-cart`,
 `checkout/add-to-cart`, `customer`, `customer/subscriptions`, `internal/core`,
 `internal/side-cart/protocol`.
 
@@ -92,7 +92,7 @@ The two type lists do not fail the same way, and only one of them gates emission
 internal, and `./admin/subscriptions` and `./customer/subscriptions` re-export the
 subscription rules from it, so the emitted types need it.
 
-- `checkout/client.ts` is a **singleton** — `export const client = new API()`. Importing it twice gives the same instance.
+- `checkout/client.ts` is a **singleton** — `export const client = /*#__PURE__*/ new API()`. It has no subpath: `checkout` re-exports it, and `API` is exported as a type only, so pages never build a second instance. Keep the `PURE` mark, or importing a helper like `toCountryOptions` from `checkout` pulls the whole `API` class into npm bundles.
 - `checkout/loader.ts` is the browser drop-in. It reads `?store=` from its own `import.meta.url` and falls back to `location.hostname`, then re-exports the same singleton. Anything that must run before first use belongs here, not in `client.ts`.
 
 ## Region Messages Are Generated

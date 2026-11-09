@@ -1,19 +1,23 @@
 ---
-title: "Client"
-description: "@foxy.io/sdk/checkout/client"
+title: "client"
+description: "@foxy.io/sdk/checkout"
 documents: API, CartSession
 ---
 
 import { MemberMeta } from '@/components/member-meta';
 
-The shared checkout [`client`](#client). Every import of `checkout/client` or `checkout/loader` gets this same instance. The [loader](/docs/reference/checkout/loader) also sets its store, from the script's `?store=` or else the page's hostname.
+```ts
+const client: API;
+```
+
+The shared checkout client. Every import of `checkout` or `checkout/loader` gets this same instance. The loader also sets its store, from the script's `?store=` or else the page's hostname.
 
 Its type is [`API`](/docs/reference/checkout/types#api). It fires a non-cancelable `update` event whenever the resolved checkout state changes.
 
 ## Example
 
 ```ts
-import { client } from 'https://cdn-js.foxy.io/sdk@2/checkout/client.js';
+import { client } from 'https://cdn-js.foxy.io/sdk@2/checkout.js';
 
 // Keep the session ID in a cookie. Do this before the store domain is set.
 client.session.configure({
@@ -778,13 +782,3 @@ the new session exists. The old cart is not reset on the server.
 #### Returns
 
 [`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<`void`\>
-
-## Variables
-
-### client [#client]
-
-```ts
-const client: API;
-```
-
-The shared checkout client. Its properties and methods are listed above.

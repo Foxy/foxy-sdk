@@ -127,14 +127,14 @@ Call `configure()` right after the import, in the same script. The first
 cart request waits until the current script finishes.
 
 If a setting must apply before the first cart request, import
-`checkout/client` instead. This applies to `"memory"`, `autoStart: false`,
+`checkout` instead. This applies to `"memory"`, `autoStart: false`,
 and a store that reads from your backend. Configure first, then set the
 domain.
 
 Your own store has three methods. Each may return a promise:
 
 ```js
-import { client } from "https://cdn-js.foxy.io/sdk@2/checkout/client.js";
+import { client } from "https://cdn-js.foxy.io/sdk@2/checkout.js";
 
 const myStore = {
   get: () => fetch("/my-api/cart-session").then((r) => r.text()),

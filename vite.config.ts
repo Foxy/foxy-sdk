@@ -19,7 +19,6 @@ const entryMap = {
   "admin/signing": resolve(__dirname, "src/admin/signing.ts"),
   "admin/subscriptions": resolve(__dirname, "src/admin/subscriptions.ts"),
   checkout: resolve(__dirname, "src/checkout/index.ts"),
-  "checkout/client": resolve(__dirname, "src/checkout/client.ts"),
   "checkout/loader": resolve(__dirname, "src/checkout/loader.ts"),
   "checkout/side-cart": resolve(__dirname, "src/checkout/side-cart.ts"),
   "internal/side-cart/protocol": resolve(__dirname, "src/checkout/side-cart/protocol.ts"),

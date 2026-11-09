@@ -24,10 +24,6 @@
       "types": "./dist/npm/checkout/loader.d.ts",
       "import": "./dist/npm/checkout/loader.js"
     },
-    "./checkout/client": {
-      "types": "./dist/npm/checkout/client.d.ts",
-      "import": "./dist/npm/checkout/client.js"
-    },
     "./checkout/side-cart": {
       "types": "./dist/npm/checkout/side-cart.d.ts",
       "import": "./dist/npm/checkout/side-cart.js"

@@ -1,5 +1,4 @@
-import { toCountryOptions } from 'https://cdn-js.foxy.io/sdk@2/checkout.js';
-import { client } from 'https://cdn-js.foxy.io/sdk@2/checkout/client.js';
+import { client, toCountryOptions } from 'https://cdn-js.foxy.io/sdk@2/checkout.js';
 
 const shipment = client.json?.shipments[0];
 const select = document.createElement('select');

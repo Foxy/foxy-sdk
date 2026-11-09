@@ -47,13 +47,13 @@ describe('public entries', () => {
     expect(entryPoints().sort()).toEqual(
       [
         'admin/index', 'admin/signing', 'admin/subscriptions', 'customer/index', 'customer/subscriptions', 'checkout/index',
-        'checkout/client', 'checkout/loader', 'checkout/side-cart', 'checkout/add-to-cart',
+        'checkout/loader', 'checkout/side-cart', 'checkout/add-to-cart',
       ].map(name => `../src/${name}.ts`).sort(),
     );
   });
 
   it('list the subentries of each section', () => {
-    expect(subentries('checkout').sort()).toEqual(['add-to-cart', 'client', 'loader', 'side-cart']);
+    expect(subentries('checkout').sort()).toEqual(['add-to-cart', 'loader', 'side-cart']);
     expect(subentries('admin').sort()).toEqual(['signing', 'subscriptions']);
     expect(subentries('customer')).toEqual(['subscriptions']);
   });
@@ -101,7 +101,7 @@ describe('reference completeness', () => {
     const keys = [...exports.keys()];
     expect(keys).not.toContain('./internal/side-cart/protocol');
     expect(keys).not.toContain('./internal/core');
-    expect(keys).toHaveLength(10);
+    expect(keys).toHaveLength(9);
     expect(exports.get('./admin')!.map((e: { name: string }) => e.name)).toContain('Rels');
   });
 });
