@@ -19,10 +19,24 @@ export type CheckoutTheme = {
   error_color?: string | null;
   /** Color of field and card borders. Hex color: `#RRGGBB` or `#RRGGBBAA`. Missing or null = default. */
   border_color?: string | null;
-  /** Width of field and card borders in pixels. Integer from 0 to 4. Missing or null = default. */
-  border_width?: number | null;
-  /** Corner radius of fields, cards and buttons in pixels. Integer from 0 to 24. Missing or null = default. */
-  corner_radius?: number | null;
-  /** Font family for all text: a system font or a Google Font name. Letters, digits and spaces only, 1 to 64 characters. Missing or null = default. */
+  /** Color of success messages and confirmed states. Hex color: `#RRGGBB` or `#RRGGBBAA`. Missing or null = default. */
+  success_color?: string | null;
+  /** Corner radius of fields, cards and buttons. One of `none`, `small`, `medium`, `large`. Default is first listed: `none`. A number is ignored. Missing or null = default. */
+  corner_radius?: "none" | "small" | "medium" | "large" | null;
+  /** Width of field and card borders. One of `none`, `thin`, `medium`, `thick`. Default is first listed: `none`. A number is ignored. Missing or null = default. */
+  border_width?: "none" | "thin" | "medium" | "thick" | null;
+  /** Shape of buttons. One of `match` (use the corner radius), `square`, `pill`. Default is first listed: `match`. Missing or null = default. */
+  button_shape?: "match" | "square" | "pill" | null;
+  /** Letter case of button labels. One of `normal`, `uppercase`. Default is first listed: `normal`. Missing or null = default. */
+  button_text?: "normal" | "uppercase" | null;
+  /** Font weight of button labels. One of `regular`, `medium`, `bold`. Default is first listed: `regular`. Missing or null = default. */
+  button_weight?: "regular" | "medium" | "bold" | null;
+  /** Shadow of cards and panels. One of `none`, `soft`, `medium`, `hard`. Default is first listed: `none`. Missing or null = default. */
+  shadow?: "none" | "soft" | "medium" | "hard" | null;
+  /** Layout of checkout sections. One of `cards` (each section in a card), `plain` (no card around sections). Default is first listed: `cards`. Missing or null = default. */
+  sections?: "cards" | "plain" | null;
+  /** Font family for body text: a system font or a Google Font name. Letters, digits and spaces only, 1 to 64 characters. Missing or null = default. */
   font_family?: string | null;
+  /** Font family for headings. Same format as `font_family`. Missing or null = default. */
+  heading_font_family?: string | null;
 };
