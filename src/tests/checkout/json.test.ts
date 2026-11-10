@@ -71,7 +71,8 @@ describe("Checkout JSON helpers", () => {
   it("keeps theme through hydrateJson", async () => {
     const theme = {
       button_color: "#FF0000",
-      corner_radius: "pill" as never,
+      surface_radius: "large" as const,
+      control_radius: "pill" as const,
       button_shape: "pill" as const,
       sections: "plain" as const,
       heading_font_family: "Lora",

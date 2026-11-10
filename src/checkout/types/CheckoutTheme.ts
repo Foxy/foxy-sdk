@@ -21,11 +21,13 @@ export type CheckoutTheme = {
   border_color?: string | null;
   /** Color of success messages and confirmed states. Hex color: `#RRGGBB` or `#RRGGBBAA`. Missing or null = default. */
   success_color?: string | null;
-  /** Corner radius of fields, cards and buttons. One of `medium`, `none`, `small`, `large`. Default: `medium`. A number is ignored. Missing or null = default. */
-  corner_radius?: "medium" | "none" | "small" | "large" | null;
+  /** Corner radius of cards, sections, dialogs and popovers. One of `medium`, `none`, `small`, `large`. Default: `medium`. Missing or null = default. */
+  surface_radius?: "medium" | "none" | "small" | "large" | null;
+  /** Corner radius of fields, selects, quantity controls and buttons inside a group. One of `medium`, `none`, `small`, `large`, `pill`. Default: `medium`. Missing or null = default. */
+  control_radius?: "medium" | "none" | "small" | "large" | "pill" | null;
   /** Width of field and card borders. One of `thin`, `none`, `medium`, `thick`. Default: `thin`. A number is ignored. Missing or null = default. */
   border_width?: "thin" | "none" | "medium" | "thick" | null;
-  /** Shape of buttons. One of `match` (use the corner radius), `square`, `pill`. Default: `match`. Missing or null = default. */
+  /** Shape of standalone buttons. One of `match` (use the control radius), `square`, `pill`. Default: `match`. Missing or null = default. */
   button_shape?: "match" | "square" | "pill" | null;
   /** Letter case of button labels. One of `normal`, `uppercase`. Default: `normal`. Missing or null = default. */
   button_text?: "normal" | "uppercase" | null;
