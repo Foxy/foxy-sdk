@@ -76,6 +76,7 @@ describe("Checkout JSON helpers", () => {
       button_shape: "pill" as const,
       sections: "plain" as const,
       heading_font_family: "Lora",
+      overrides: { Button: { size: { lg: { hover: { "text-decoration": "underline" } } } } },
     };
     const api = new API({ storeDomain: "store.test" });
 

@@ -41,4 +41,10 @@ export type CheckoutTheme = {
   font_family?: string | null;
   /** Font family for headings. Same format as `font_family`. Missing or null = the system font. */
   heading_font_family?: string | null;
+  /**
+   * Design-system component overrides: component → part → state → CSS property → value,
+   * with `variant` and `size` keys where a component has them. The checkout keeps only
+   * known keys and safe values and ignores the whole object above 16 KB. Missing or null = none.
+   */
+  overrides?: Record<string, unknown> | null;
 };
