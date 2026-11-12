@@ -33,8 +33,15 @@ export type CheckoutTheme = {
   button_text?: "normal" | "uppercase" | null;
   /** Font weight of button labels. One of `medium`, `regular`, `bold`. Default: `medium`. Missing or null = default. */
   button_weight?: "medium" | "regular" | "bold" | null;
-  /** Shadow of cards and panels. One of `none`, `soft`, `medium`, `hard`. Default: `none`. Missing or null = default. */
-  shadow?: "none" | "soft" | "medium" | "hard" | null;
+  /**
+   * Shadow of cards and panels: `"<x>px <y>px <blur>px <spread>px <color>"`, e.g.
+   * `"0px 4px 12px 0px #0000001F"`. Whole numbers; x, y and spread from -40 to 40, blur from
+   * 0 to 80, out-of-range numbers are clamped. Color: `#RRGGBB` or `#RRGGBBAA`. Missing, null or
+   * any other format = no shadow.
+   */
+  surface_shadow?: string | null;
+  /** Shadow of select lists, dialogs, popovers and tooltips. Same format as `surface_shadow`. Missing, null or any other format = no shadow. */
+  popup_shadow?: string | null;
   /** Layout of checkout sections. One of `cards` (each section in a card), `plain` (no card around sections). Default: `cards`. Missing or null = default. */
   sections?: "cards" | "plain" | null;
   /** Font family for body text: a Google Fonts name. Letters, digits and spaces only, 1 to 64 characters. Missing or null = the system font. */
