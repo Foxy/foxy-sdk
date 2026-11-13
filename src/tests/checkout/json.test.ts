@@ -71,9 +71,9 @@ describe("Checkout JSON helpers", () => {
   it("keeps theme through hydrateJson", async () => {
     const theme = {
       button_color: "#FF0000",
-      surface_radius: "large" as const,
-      control_radius: "pill" as const,
-      button_shape: "pill" as const,
+      surface_radius: "1.25rem",
+      control_radius: "pill",
+      button_radius: "0.375rem",
       sections: "plain" as const,
       heading_font_family: "Lora",
       overrides: { Button: { size: { lg: { hover: { "text-decoration": "underline" } } } } },

@@ -21,14 +21,22 @@ export type CheckoutTheme = {
   border_color?: string | null;
   /** Color of success messages and confirmed states. Hex color: `#RRGGBB` or `#RRGGBBAA`. Missing or null = default. */
   success_color?: string | null;
-  /** Corner radius of cards, sections, dialogs and popovers. One of `medium`, `none`, `small`, `large`. Default: `medium`. Missing or null = default. */
-  surface_radius?: "medium" | "none" | "small" | "large" | null;
-  /** Corner radius of fields, selects, quantity controls and buttons inside a group. One of `medium`, `none`, `small`, `large`, `pill`. Default: `medium`. Missing or null = default. */
-  control_radius?: "medium" | "none" | "small" | "large" | "pill" | null;
+  /**
+   * Corner radius of cards, sections and dialogs: `"<n>rem"`, n from 0 to 2 with up to 4 decimals,
+   * clamped. Smaller surfaces (popovers, badges) use half and a quarter of it. Default: `1rem`.
+   * Missing, null or any other format = default.
+   */
+  surface_radius?: string | null;
+  /**
+   * Corner radius of fields, selects, quantity controls and buttons inside a group: `"<n>rem"`, n
+   * from 0 to 1.5 with up to 4 decimals, clamped, or `"pill"`. Default: `0.5rem`. Missing, null or
+   * any other format = default.
+   */
+  control_radius?: string | null;
   /** Width of field and card borders. One of `thin`, `none`, `medium`, `thick`. Default: `thin`. A number is ignored. Missing or null = default. */
   border_width?: "thin" | "none" | "medium" | "thick" | null;
-  /** Shape of standalone buttons. One of `match` (use the control radius), `square`, `pill`. Default: `match`. Missing or null = default. */
-  button_shape?: "match" | "square" | "pill" | null;
+  /** Corner radius of standalone buttons. Same format and range as `control_radius`. Missing, null or any other format = the control radius. */
+  button_radius?: string | null;
   /** Letter case of button labels. One of `normal`, `uppercase`. Default: `normal`. Missing or null = default. */
   button_text?: "normal" | "uppercase" | null;
   /** Font weight of button labels. One of `medium`, `regular`, `bold`. Default: `medium`. Missing or null = default. */
