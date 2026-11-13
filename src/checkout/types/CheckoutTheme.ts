@@ -17,6 +17,8 @@ export type CheckoutTheme = {
   accent_color?: string | null;
   /** Background of primary buttons. Hex color: `#RRGGBB` or `#RRGGBBAA`. Missing or null = default. */
   button_color?: string | null;
+  /** Background of outline buttons. Hex color: `#RRGGBB` or `#RRGGBBAA`. Missing or null = transparent. */
+  outline_button_color?: string | null;
   /** Color of error messages and invalid fields. Hex color: `#RRGGBB` or `#RRGGBBAA`. Missing or null = default. */
   error_color?: string | null;
   /** Color of field and card borders. Hex color: `#RRGGBB` or `#RRGGBBAA`. Missing or null = default. */
