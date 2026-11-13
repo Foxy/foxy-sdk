@@ -41,6 +41,10 @@ export type CheckoutTheme = {
   button_text?: "normal" | "uppercase" | null;
   /** Font weight of button labels. One of `medium`, `regular`, `bold`. Default: `medium`. Missing or null = default. */
   button_weight?: "medium" | "regular" | "bold" | null;
+  /** Letter case of field labels. One of `normal`, `uppercase`. Default: `normal`. Missing or null = default. */
+  field_label_text?: "normal" | "uppercase" | null;
+  /** Font weight of field labels. One of `medium`, `regular`, `bold`. Default: `medium`. Missing or null = default. */
+  field_label_weight?: "medium" | "regular" | "bold" | null;
   /**
    * Shadow of cards and panels: `"<x>px <y>px <blur>px <spread>px <color>"`, e.g.
    * `"0px 4px 12px 0px #0000001F"`. Whole numbers; x, y and spread from -40 to 40, blur from
