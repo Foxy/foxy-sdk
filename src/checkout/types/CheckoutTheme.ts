@@ -7,6 +7,8 @@ export type CheckoutTheme = {
   page_background?: string | null;
   /** Background of cards and panels. Hex color: `#RRGGBB` or `#RRGGBBAA`. Missing or null = default. */
   surface_background?: string | null;
+  /** Background of fields, selects and other inputs. Hex color: `#RRGGBB` or `#RRGGBBAA`. Missing or null = the surface background. */
+  field_background?: string | null;
   /** Color of body text. Hex color: `#RRGGBB` or `#RRGGBBAA`. Missing or null = default. */
   text_color?: string | null;
   /** Color of hints, labels and other muted text. Hex color: `#RRGGBB` or `#RRGGBBAA`. Missing or null = default. */
