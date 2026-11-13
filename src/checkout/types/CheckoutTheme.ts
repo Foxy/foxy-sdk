@@ -33,8 +33,8 @@ export type CheckoutTheme = {
    * any other format = default.
    */
   control_radius?: string | null;
-  /** Width of field and card borders. One of `thin`, `none`, `medium`, `thick`. Default: `thin`. A number is ignored. Missing or null = default. */
-  border_width?: "thin" | "none" | "medium" | "thick" | null;
+  /** Width of field and card borders: `"<n>rem"`, n from 0 to 0.5 with up to 4 decimals, clamped. Default: `0.0625rem` (1px). Missing, null or any other format = default. */
+  border_width?: string | null;
   /** Corner radius of standalone buttons. Same format and range as `control_radius`. Missing, null or any other format = the control radius. */
   button_radius?: string | null;
   /** Letter case of button labels. One of `normal`, `uppercase`. Default: `normal`. Missing or null = default. */
