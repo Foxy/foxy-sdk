@@ -58,6 +58,12 @@ export type CheckoutTheme = {
   surface_shadow?: string | null;
   /** Shadow of select lists, dialogs, popovers and tooltips. Same format as `surface_shadow`. Missing, null or any other format = no shadow. */
   popup_shadow?: string | null;
+  /** Background of select lists, dialogs, popovers, tooltips and the side cart. Hex color: `#RRGGBB` or `#RRGGBBAA`. Missing or null = the surface background. */
+  popup_background?: string | null;
+  /** Corner radius of popups. Same format and range as `surface_radius`; smaller popups (select lists, popovers, tooltips) use half and a quarter of it. Missing, null or any other format = the surface radius. */
+  popup_radius?: string | null;
+  /** Width of popup borders. Same format and range as `border_width`; `0rem` removes them. Missing, null or any other format = the border width. */
+  popup_border_width?: string | null;
   /** Layout of checkout sections. One of `cards` (each section in a card), `plain` (no card around sections). Default: `cards`. Missing or null = default. */
   sections?: "cards" | "plain" | null;
   /** Font family for body text: a Google Fonts name. Letters, digits and spaces only, 1 to 64 characters. Missing or null = the system font. */
