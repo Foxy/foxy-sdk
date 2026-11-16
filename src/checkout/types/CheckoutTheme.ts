@@ -64,8 +64,6 @@ export type CheckoutTheme = {
   popup_radius?: string | null;
   /** Width of popup borders. Same format and range as `border_width`; `0rem` removes them. Missing, null or any other format = the border width. */
   popup_border_width?: string | null;
-  /** Layout of checkout sections. One of `cards` (each section in a card), `plain` (no card around sections). Default: `cards`. Missing or null = default. */
-  sections?: "cards" | "plain" | null;
   /** Font family for body text: a Google Fonts name. Letters, digits and spaces only, 1 to 64 characters. Missing or null = the system font. */
   font_family?: string | null;
   /** Font family for headings. Same format as `font_family`. Missing or null = the system font. */
