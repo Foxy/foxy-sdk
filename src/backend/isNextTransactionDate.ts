@@ -2,7 +2,7 @@ import type { CustomerPortalSettings } from './Graph/customer_portal_settings';
 import type { Resource } from '../core/Resource/Resource';
 import type { Subscription } from './Graph/subscription';
 import { getNextTransactionDateConstraints } from './getNextTransactionDateConstraints.js';
-import parse from 'parse-duration';
+import { parseDuration } from './parseDuration.js';
 
 type Config = CustomerPortalSettings['props']['subscriptions']['allowNextDateModification'];
 
@@ -54,12 +54,12 @@ export function isNextTransactionDate(opts: Options): boolean {
   }
 
   if (constraints.min) {
-    const duration = parse(constraints.min);
+    const duration = parseDuration(constraints.min);
     if (duration !== null && Date.now() + duration >= valueAsTime) return false;
   }
 
   if (constraints.max) {
-    const duration = parse(constraints.max);
+    const duration = parseDuration(constraints.max);
     if (duration !== null && Date.now() + duration <= valueAsTime) return false;
   }
 

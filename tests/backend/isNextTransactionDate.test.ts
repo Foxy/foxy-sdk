@@ -172,5 +172,30 @@ describe('Backend', () => {
 
       expect(result).toBe(false);
     });
+
+    it('supports weeks and days in min and max', () => {
+      const inDays = (days: number) => {
+        const date = new Date();
+        date.setDate(date.getDate() + days);
+        const pad = (n: number) => `0${n}`.slice(-2);
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+      };
+
+      const check = (rule: { min?: string; max?: string }, days: number) =>
+        isNextTransactionDate({
+          settings: mockSettings([{ jsonataQuery: '*', ...rule }]),
+          subscription: mockSubscription('1m'),
+          value: inDays(days),
+        });
+
+      expect(check({ min: '2w' }, 7)).toBe(false);
+      expect(check({ min: '2w' }, 30)).toBe(true);
+      expect(check({ min: '10d' }, 5)).toBe(false);
+      expect(check({ min: '10d' }, 15)).toBe(true);
+      expect(check({ max: '2w' }, 7)).toBe(true);
+      expect(check({ max: '2w' }, 30)).toBe(false);
+      expect(check({ max: '10d' }, 5)).toBe(true);
+      expect(check({ max: '10d' }, 15)).toBe(false);
+    });
   });
 });
