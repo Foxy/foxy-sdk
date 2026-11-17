@@ -471,5 +471,115 @@ describe('Backend', () => {
       expect(fetchMock).toHaveBeenNthCalledWith(2, new Request(url, { headers }));
       expect(fetchMock).toHaveBeenNthCalledWith(3, new Request(url, { headers }));
     });
+
+    describe('with a custom fetch', () => {
+      type Call = [string, RequestInit & { headers: Record<string, string>; body?: ArrayBuffer }];
+
+      const tokenURL = new URL('token', BackendAPI.BASE_URL).toString();
+      const decode = (body?: ArrayBuffer) => {
+        const params: Record<string, string> = {};
+        new URLSearchParams(Buffer.from(body as ArrayBuffer).toString()).forEach((v, k) => (params[k] = v));
+        return params;
+      };
+
+      it('errors when constructed with a fetch that is not a function', () => {
+        const init = ({ ...commonInit, fetch: 'nope' } as unknown) as ConstructorParameters<typeof BackendAPI>[0];
+        expect(() => new BackendAPI(init)).toThrow();
+      });
+
+      it('errors when API.getToken() is called with a fetch that is not a function', async () => {
+        const opts = ({ ...commonInit, fetch: {} } as unknown) as Parameters<typeof BackendAPI['getToken']>[0];
+        await expect(() => BackendAPI.getToken(opts)).rejects.toThrow();
+      });
+
+      it('uses the custom fetch in API.getToken()', async () => {
+        const customFetch = jest.fn(() => Promise.resolve(new Response(JSON.stringify(sampleToken))));
+        const { clientId, clientSecret, refreshToken } = commonInit;
+        const token = await BackendAPI.getToken({ clientId, clientSecret, fetch: customFetch, refreshToken });
+
+        expect(token).toEqual(sampleToken);
+        expect(fetchMock).not.toHaveBeenCalled();
+        expect(customFetch).toHaveBeenCalledTimes(1);
+
+        const [url, init] = (customFetch.mock.calls[0] as unknown) as Call;
+        expect(url).toBe(tokenURL);
+        expect(init.method).toBe('POST');
+        expect(init.headers).toMatchObject({
+          'content-type': 'application/x-www-form-urlencoded',
+          'foxy-api-version': '1',
+        });
+        expect(decode(init.body)).toEqual({
+          client_id: clientId,
+          client_secret: clientSecret,
+          grant_type: 'refresh_token',
+          refresh_token: refreshToken,
+        });
+      });
+
+      it('sends the token request and the API request through the custom fetch', async () => {
+        const customFetch = jest
+          .fn()
+          .mockImplementationOnce(() => Promise.resolve(new Response(JSON.stringify(sampleToken))))
+          .mockImplementationOnce(() => Promise.resolve(new Response('{}')));
+
+        const api = new BackendAPI({ ...commonInit, fetch: customFetch });
+        const url = BackendAPI.BASE_URL.toString();
+        const response = await api.fetch(url);
+
+        expect(response.ok).toBe(true);
+        expect(fetchMock).not.toHaveBeenCalled();
+        expect(customFetch).toHaveBeenCalledTimes(2);
+
+        const calls = customFetch.mock.calls as Call[];
+        expect(calls[0][0]).toBe(tokenURL);
+        expect(decode(calls[0][1].body)).toHaveProperty('grant_type', 'refresh_token');
+        expect(calls[1][0]).toBe(url);
+        expect(calls[1][1].method).toBe('GET');
+        expect(calls[1][1].headers).toEqual({
+          'authorization': `Bearer ${sampleToken.access_token}`,
+          'content-type': 'application/json',
+          'foxy-api-version': '1',
+        });
+      });
+
+      it('refreshes a revoked access token through the custom fetch', async () => {
+        const customFetch = jest
+          .fn()
+          .mockImplementationOnce(() => Promise.resolve(new Response(JSON.stringify(tokenError), { status: 401 })))
+          .mockImplementationOnce(() => Promise.resolve(new Response(JSON.stringify(sampleToken))))
+          .mockImplementationOnce(() => Promise.resolve(new Response('{}')));
+
+        const api = new BackendAPI({ ...commonInit, fetch: customFetch });
+        const url = BackendAPI.BASE_URL.toString();
+        api.storage.setItem(BackendAPI.ACCESS_TOKEN, JSON.stringify(sampleStoredToken));
+
+        const response = await api.fetch(url, { body: '{"foo":"bar"}', method: 'POST' });
+
+        expect(response.ok).toBe(true);
+        expect(fetchMock).not.toHaveBeenCalled();
+        expect(customFetch).toHaveBeenCalledTimes(3);
+
+        const calls = customFetch.mock.calls as Call[];
+        expect(calls[0][0]).toBe(url);
+        expect(calls[0][1].headers).toHaveProperty('authorization', `Bearer ${sampleStoredToken.access_token}`);
+        expect(calls[1][0]).toBe(tokenURL);
+        expect(calls[2][0]).toBe(url);
+        expect(calls[2][1].method).toBe('POST');
+        expect(calls[2][1].headers).toHaveProperty('authorization', `Bearer ${sampleToken.access_token}`);
+        expect(Buffer.from(calls[2][1].body as ArrayBuffer).toString()).toBe('{"foo":"bar"}');
+      });
+
+      it('sends graph traversal requests through the custom fetch', async () => {
+        const customFetch = jest.fn(() => Promise.resolve(new Response(JSON.stringify({ _links: {} }))));
+        const api = new BackendAPI({ ...commonInit, fetch: customFetch });
+        api.storage.setItem(BackendAPI.ACCESS_TOKEN, JSON.stringify(sampleStoredToken));
+
+        await api.get();
+
+        expect(fetchMock).not.toHaveBeenCalled();
+        expect(customFetch).toHaveBeenCalledTimes(1);
+        expect((customFetch.mock.calls[0] as unknown) as Call).toHaveProperty([0], BackendAPI.BASE_URL.toString());
+      });
+    });
   });
 });
