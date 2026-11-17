@@ -92,8 +92,9 @@ export class API<TGraph extends Graph> extends Node<TGraph> {
   /**
    * Credentials storage implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API).
    * Access tokens and other related info will be stored here. Clearing this storage will log you out.
+   * Non-enumerable, so it's left out of `console.log()`, `util.inspect()` and `JSON.stringify()` output.
    */
-  readonly storage: Storage;
+  readonly storage!: Storage;
 
   /**
    * Resolver cache implementing [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API).
@@ -118,7 +119,14 @@ export class API<TGraph extends Graph> extends Node<TGraph> {
     });
 
     this.console = this._console;
-    this.storage = init.storage ?? new MemoryStorage();
+    // Non-enumerable so that logging or serializing the instance doesn't print stored credentials.
+    Object.defineProperty(this, 'storage', {
+      configurable: true,
+      enumerable: false,
+      value: init.storage ?? new MemoryStorage(),
+      writable: true,
+    });
+
     this.cache = this._cache;
     this.base = init.base;
   }

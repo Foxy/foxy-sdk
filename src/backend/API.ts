@@ -111,9 +111,11 @@ export class API extends Core.API<Graph> {
     return null;
   }
 
-  readonly refreshToken: string;
+  /** OAuth refresh token. Non-enumerable, so it's left out of `console.log()`, `util.inspect()` and `JSON.stringify()` output. */
+  readonly refreshToken!: string;
 
-  readonly clientSecret: string;
+  /** OAuth client secret. Non-enumerable, so it's left out of `console.log()`, `util.inspect()` and `JSON.stringify()` output. */
+  readonly clientSecret!: string;
 
   readonly clientId: string;
 
@@ -132,8 +134,12 @@ export class API extends Core.API<Graph> {
       storage: params.storage ?? new MemoryStorage(),
     });
 
-    this.refreshToken = params.refreshToken;
-    this.clientSecret = params.clientSecret;
+    // Non-enumerable so that logging or serializing the instance doesn't print the secrets.
+    Object.defineProperties(this, {
+      clientSecret: { configurable: true, enumerable: false, value: params.clientSecret, writable: true },
+      refreshToken: { configurable: true, enumerable: false, value: params.refreshToken, writable: true },
+    });
+
     this.clientId = params.clientId;
     this.version = params.version ?? API.VERSION;
 

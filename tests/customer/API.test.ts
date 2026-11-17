@@ -50,6 +50,26 @@ describe('Customer', () => {
       expect(typeof CustomerAPI.SESSION).toBe('string');
     });
 
+    it('keeps the stored session out of inspect, JSON and Object.keys output', () => {
+      const api = new CustomerAPI(commonInit);
+      api.storage.setItem(CustomerAPI.SESSION, JSON.stringify(sampleStoredSession));
+
+      const seen = new WeakSet();
+      const json = JSON.stringify(api, (_key, item) => {
+        if (typeof item === 'object' && item !== null) {
+          if (seen.has(item)) return undefined;
+          seen.add(item);
+        }
+
+        return item;
+      });
+
+      expect(inspect(api, { depth: null, showHidden: false })).not.toContain(sampleSession.session_token);
+      expect(json).not.toContain(sampleSession.session_token);
+      expect(Object.keys(api)).not.toContain('storage');
+      expect(api.storage.getItem(CustomerAPI.SESSION)).toContain(sampleSession.session_token);
+    });
+
     it('extends core API class', () => {
       expect(new CustomerAPI(commonInit)).toBeInstanceOf(CoreAPI);
     });

@@ -41,6 +41,54 @@ const sampleStoredToken = Object.assign({}, sampleToken, {
   date_created: new Date().toISOString(),
 });
 
+/** Storage that keeps items in an enumerable own property, so inspecting it prints them. */
+class VisibleStorage {
+  items: Record<string, string> = {};
+
+  get length(): number {
+    return Object.keys(this.items).length;
+  }
+
+  key(index: number): string | null {
+    return Object.keys(this.items)[index] ?? null;
+  }
+
+  getItem(key: string): string | null {
+    return this.items[key] ?? null;
+  }
+
+  setItem(key: string, value: string): void {
+    this.items[key] = value;
+  }
+
+  removeItem(key: string): void {
+    delete this.items[key];
+  }
+
+  clear(): void {
+    this.items = {};
+  }
+}
+
+/**
+ * JSON.stringify that skips circular references instead of throwing.
+ *
+ * @param value Value to serialize.
+ * @returns JSON string.
+ */
+function safeStringify(value: unknown): string {
+  const seen = new WeakSet();
+
+  return JSON.stringify(value, (_key, item) => {
+    if (typeof item === 'object' && item !== null) {
+      if (seen.has(item)) return undefined;
+      seen.add(item);
+    }
+
+    return item;
+  });
+}
+
 const tokenError = {
   error: 'invalid_token',
   error_description: 'The access token is invalid or expired',
@@ -225,6 +273,48 @@ describe('Backend', () => {
     it('stores refresh token as instance.refreshToken', () => {
       const api = new BackendAPI(commonInit);
       expect(api).toHaveProperty('refreshToken', commonInit.refreshToken);
+    });
+
+    it('keeps the client secret and refresh token out of inspect, JSON and Object.keys output', () => {
+      const api = new BackendAPI(commonInit);
+      const inspected = inspect(api, { depth: null, showHidden: false });
+      const json = safeStringify(api);
+
+      expect(inspected).not.toContain(commonInit.clientSecret);
+      expect(inspected).not.toContain(commonInit.refreshToken);
+      expect(json).not.toContain(commonInit.clientSecret);
+      expect(json).not.toContain(commonInit.refreshToken);
+      expect(Object.keys(api)).not.toContain('clientSecret');
+      expect(Object.keys(api)).not.toContain('refreshToken');
+
+      expect(api.clientSecret).toBe(commonInit.clientSecret);
+      expect(api.refreshToken).toBe(commonInit.refreshToken);
+      expect(api.clientId).toBe(commonInit.clientId);
+    });
+
+    it('keeps the stored access token out of inspect and JSON output', () => {
+      const storage = new VisibleStorage();
+      const api = new BackendAPI({ ...commonInit, storage });
+
+      api.storage.setItem(BackendAPI.ACCESS_TOKEN, JSON.stringify(sampleStoredToken));
+
+      expect(inspect(api, { depth: null, showHidden: false })).not.toContain(sampleStoredToken.access_token);
+      expect(safeStringify(api)).not.toContain(sampleStoredToken.access_token);
+      expect(Object.keys(api)).not.toContain('storage');
+      expect(api.storage).toBe(storage);
+    });
+
+    it('still uses hidden credentials when fetching a new access token', async () => {
+      fetchMock.mockImplementation(() => Promise.resolve(new Response(JSON.stringify(sampleToken))));
+
+      const api = new BackendAPI(commonInit);
+      await api.fetch(BackendAPI.BASE_URL.toString());
+
+      const init = fetchMock.mock.calls[0][1] as { body: URLSearchParams };
+      const body = new URLSearchParams(init.body.toString());
+      expect(body.get('client_id')).toBe(commonInit.clientId);
+      expect(body.get('client_secret')).toBe(commonInit.clientSecret);
+      expect(body.get('refresh_token')).toBe(commonInit.refreshToken);
     });
 
     it('stores version as instance.version', () => {
