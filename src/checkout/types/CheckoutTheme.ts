@@ -9,6 +9,10 @@ export type CheckoutTheme = {
   surface_background?: string | null;
   /** Background of fields, selects and other inputs. Hex color: `#RRGGBB` or `#RRGGBBAA`. Missing or null = the surface background. */
   field_background?: string | null;
+  /** Color of field borders. Hex color: `#RRGGBB` or `#RRGGBBAA`. Missing or null = `border_color`. */
+  field_border_color?: string | null;
+  /** Width of field borders. Same format and range as `border_width`; `0rem` removes them. Missing, null or any other format = `border_width`. */
+  field_border_width?: string | null;
   /** Color of body text. Hex color: `#RRGGBB` or `#RRGGBBAA`. Missing or null = default. */
   text_color?: string | null;
   /** Color of hints, labels and other muted text. Hex color: `#RRGGBB` or `#RRGGBBAA`. Missing or null = default. */
@@ -21,7 +25,7 @@ export type CheckoutTheme = {
   outline_button_color?: string | null;
   /** Color of error messages and invalid fields. Hex color: `#RRGGBB` or `#RRGGBBAA`. Missing or null = default. */
   error_color?: string | null;
-  /** Color of field and card borders. Hex color: `#RRGGBB` or `#RRGGBBAA`. Missing or null = default. */
+  /** Color of card borders, dividers and alerts. Hex color: `#RRGGBB` or `#RRGGBBAA`. Missing or null = default. */
   border_color?: string | null;
   /** Color of success messages and confirmed states. Hex color: `#RRGGBB` or `#RRGGBBAA`. Missing or null = default. */
   success_color?: string | null;
@@ -37,18 +41,16 @@ export type CheckoutTheme = {
    * any other format = default.
    */
   control_radius?: string | null;
-  /** Width of field and card borders: `"<n>rem"`, n from 0 to 0.5 with up to 4 decimals, clamped. Default: `0.0625rem` (1px). Missing, null or any other format = default. */
+  /** Width of card borders, dividers and alerts: `"<n>rem"`, n from 0 to 0.5 with up to 4 decimals, clamped. Default: `0.0625rem` (1px). Missing, null or any other format = default. */
   border_width?: string | null;
   /** Corner radius of standalone buttons. Same format and range as `control_radius`. Missing, null or any other format = the control radius. */
   button_radius?: string | null;
+  /** Width of button borders. Same format and range as `border_width`. Missing, null or any other format = `field_border_width`. */
+  button_border_width?: string | null;
   /** Letter case of button labels. One of `normal`, `uppercase`. Default: `normal`. Missing or null = default. */
   button_text?: "normal" | "uppercase" | null;
-  /** Font weight of button labels. One of `medium`, `regular`, `bold`. Default: `medium`. Missing or null = default. */
-  button_weight?: "medium" | "regular" | "bold" | null;
   /** Letter case of field labels. One of `normal`, `uppercase`. Default: `normal`. Missing or null = default. */
   field_label_text?: "normal" | "uppercase" | null;
-  /** Font weight of field labels. One of `medium`, `regular`, `bold`. Default: `medium`. Missing or null = default. */
-  field_label_weight?: "medium" | "regular" | "bold" | null;
   /**
    * Shadow of cards and panels: `"<x>px <y>px <blur>px <spread>px <color>"`, e.g.
    * `"0px 4px 12px 0px #0000001F"`. Whole numbers; x, y and spread from -40 to 40, blur from
@@ -60,6 +62,8 @@ export type CheckoutTheme = {
   popup_shadow?: string | null;
   /** Background of select lists, dialogs, popovers, tooltips and the side cart. Hex color: `#RRGGBB` or `#RRGGBBAA`. Missing or null = the surface background. */
   popup_background?: string | null;
+  /** Color of popup borders. Hex color: `#RRGGBB` or `#RRGGBBAA`. Missing or null = `border_color`. */
+  popup_border_color?: string | null;
   /** Corner radius of popups. Same format and range as `surface_radius`; smaller popups (select lists, popovers, tooltips) use half and a quarter of it. Missing, null or any other format = the surface radius. */
   popup_radius?: string | null;
   /** Width of popup borders. Same format and range as `border_width`; `0rem` removes them. Missing, null or any other format = the border width. */
