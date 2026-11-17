@@ -42,6 +42,21 @@ const api = new FoxySDK.Backend.API({
 
 This will create a hAPI version 1 client connecting to `https://api.foxy.io/` with the given credentials, using in-memory storage for access token and URL resolution, logging errors, warnings and informational messages to console. You can customize each one of these defaults in constructor params and you'll see similar options for Customer API as well.
 
+### Custom fetch
+
+To control how requests are sent, for example to route them through a proxy, pass a `fetch` function with the same signature as the standard [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/fetch) to the Backend or Customer API constructor. The SDK will use it for every request, including access token requests:
+
+```js
+const api = new FoxySDK.Backend.API({
+  refreshToken: 'your refresh token',
+  clientSecret: 'your client secret',
+  clientId: 'your client id',
+  fetch: (url, init) => myFetch(url, init),
+});
+```
+
+Your function is called with a URL string and a plain options object (`method`, `headers`, `body`). `FoxySDK.Backend.API.getToken()` accepts the same `fetch` option.
+
 Regardless of the API type you're working with, you'll see the same methods on each node: `.follow()`, `.get()`, `.put()`, `.post()`, `.patch()` and `.delete()`. Here's how you can use them in 3 steps:
 
 ### 1. Find a node

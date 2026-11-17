@@ -1,5 +1,6 @@
 import * as Core from '../core/index.js';
 
+import { Fetch, sendWithCustomFetch } from '../core/transport/index.js';
 import { Headers, Request, fetch } from 'cross-fetch';
 import { storageV8N, v8n } from '../core/v8n.js';
 
@@ -20,6 +21,12 @@ type BackendAPIInit = {
   version?: BackendAPIVersion;
   base?: URL; // pathname ending with "/" !!!
   cache?: Storage;
+  /**
+   * Custom [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) implementation.
+   * When provided, it's used for every request this client makes, including access token requests.
+   * Defaults to `cross-fetch`.
+   */
+  fetch?: Fetch;
 };
 
 type GrantOpts = ({ code: string } | { refreshToken: string }) & {
@@ -27,6 +34,8 @@ type GrantOpts = ({ code: string } | { refreshToken: string }) & {
   clientId: string;
   version?: BackendAPIVersion;
   base?: URL; // pathname ending with "/" !!!
+  /** Custom Fetch API implementation for the token request. Defaults to `cross-fetch`. */
+  fetch?: Fetch;
 };
 
 type Token = {
@@ -55,6 +64,7 @@ export class API extends Core.API<Graph> {
       cache: v8n().optional(storageV8N),
       clientId: v8n().string(),
       clientSecret: v8n().string(),
+      fetch: v8n().optional(v8n().typeOf('function')),
       level: v8n().optional(v8n().integer()),
       refreshToken: v8n().string(),
       storage: v8n().optional(storageV8N),
@@ -67,6 +77,7 @@ export class API extends Core.API<Graph> {
         base: v8n().optional(v8n().instanceOf(URL)),
         clientId: v8n().string(),
         clientSecret: v8n().string(),
+        fetch: v8n().optional(v8n().typeOf('function')),
         version: v8n().optional(v8n().passesAnyOf(v8n().exact('1'))),
       }),
   };
@@ -104,7 +115,10 @@ export class API extends Core.API<Graph> {
       body.set('refresh_token', opts.refreshToken);
     }
 
-    const response = await fetch(url, { body, headers, method: 'POST' });
+    const init = { body, headers, method: 'POST' };
+    const response = opts.fetch
+      ? await sendWithCustomFetch(opts.fetch, new Request(url, init))
+      : await fetch(url, init);
 
     if (response.ok) return response.json();
     if (throwOnFailure) throw new Error(await response.text());
@@ -120,6 +134,8 @@ export class API extends Core.API<Graph> {
   readonly version: BackendAPIVersion;
 
   private __tokenRefreshPromise: Promise<StoredToken | null> | null;
+
+  private readonly __customFetch?: Fetch;
 
   constructor(params: BackendAPIInit) {
     API.v8n.classConstructor.check(params);
@@ -138,6 +154,7 @@ export class API extends Core.API<Graph> {
     this.version = params.version ?? API.VERSION;
 
     this.__tokenRefreshPromise = null;
+    this.__customFetch = params.fetch;
   }
 
   private async __fetch(input: RequestInfo, init?: RequestInit): Promise<Response> {
@@ -153,7 +170,16 @@ export class API extends Core.API<Graph> {
       this.__tokenRefreshPromise = (async () => {
         try {
           this.console.trace('Fetching a new access token...');
-          const rawToken = await API.getToken(this, true).catch(err => {
+          const grantOpts: GrantOpts = {
+            base: this.base,
+            clientId: this.clientId,
+            clientSecret: this.clientSecret,
+            fetch: this.__customFetch,
+            refreshToken: this.refreshToken,
+            version: this.version,
+          };
+
+          const rawToken = await API.getToken(grantOpts, true).catch(err => {
             this.console.error(err.message);
             return null;
           });
@@ -200,7 +226,7 @@ export class API extends Core.API<Graph> {
     setHeaders(token?.access_token);
     const method = init?.method?.toUpperCase() ?? 'GET';
     this.console.trace(`${method} ${request.url}`);
-    let response = await fetch(request);
+    let response = await this.__send(request, init);
 
     if (response.status === 401) {
       const { error } = (await response.clone().json()) as { error: string };
@@ -218,11 +244,16 @@ export class API extends Core.API<Graph> {
           headers = request.headers;
           setHeaders(token.access_token);
           this.console.trace(`Retrying ${method} ${request.url}`);
-          response = await fetch(request);
+          response = await this.__send(request, init);
         }
       }
     }
 
     return response;
+  }
+
+  private __send(request: Request, init?: RequestInit): Promise<Response> {
+    if (this.__customFetch) return sendWithCustomFetch(this.__customFetch, request, init);
+    return fetch(request);
   }
 }

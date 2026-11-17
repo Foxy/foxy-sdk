@@ -326,5 +326,48 @@ describe('Customer', () => {
         false
       );
     });
+
+    it('errors when constructed with a fetch that is not a function', () => {
+      const init = ({ ...commonInit, fetch: 1 } as unknown) as ConstructorParameters<typeof CustomerAPI>[0];
+      expect(() => new CustomerAPI(init)).toThrow();
+    });
+
+    it('sends requests with session headers through a custom fetch', async () => {
+      fetchMock.mockClear();
+      const customFetch = jest.fn(() => Promise.resolve(new Response('{}')));
+      const api = new CustomerAPI({ ...commonInit, fetch: customFetch });
+      const url = new URL('./customer_portal_settings', api.base).toString();
+
+      api.storage.setItem(CustomerAPI.SESSION, JSON.stringify(sampleStoredSession));
+      await api.fetch(url);
+
+      expect(fetchMock).not.toHaveBeenCalled();
+      expect(customFetch).toHaveBeenCalledTimes(1);
+
+      const [calledURL, init] = (customFetch.mock.calls[0] as unknown) as [string, RequestInit];
+      expect(calledURL).toBe(url);
+      expect(init.method).toBe('GET');
+      expect(init.headers).toEqual({
+        'authorization': `Bearer ${sampleSession.session_token}`,
+        'content-type': 'application/json',
+        'foxy-api-version': '1',
+      });
+    });
+
+    it('signs in through a custom fetch', async () => {
+      fetchMock.mockClear();
+      const customFetch = jest.fn(() => Promise.resolve(new Response(JSON.stringify(sampleSession))));
+      const api = new CustomerAPI({ ...commonInit, fetch: customFetch });
+      const credentials = { email: 'foo@example.com', password: 'bar' };
+
+      await api.signIn(credentials);
+
+      expect(fetchMock).not.toHaveBeenCalled();
+      const [calledURL, init] = (customFetch.mock.calls[0] as unknown) as [string, RequestInit];
+      expect(calledURL).toBe(new URL('./authenticate', commonInit.base).toString());
+      expect(init.method).toBe('POST');
+      expect(JSON.parse(Buffer.from(init.body as ArrayBuffer).toString())).toEqual(credentials);
+      expect(JSON.parse(api.storage.getItem(CustomerAPI.SESSION) as string)).toMatchObject(sampleSession);
+    });
   });
 });
