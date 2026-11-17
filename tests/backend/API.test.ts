@@ -11,6 +11,7 @@ import { Headers, Request, Response, fetch } from 'cross-fetch';
 import { API as BackendAPI } from '../../src/backend/API';
 import { API as CoreAPI } from '../../src/core/API';
 import MemoryCache from 'fake-storage';
+import { clearProxyEnv } from '../utils/proxyEnv';
 
 const fetchMock = (fetch as unknown) as jest.MockInstance<unknown, unknown[]>;
 
@@ -46,6 +47,10 @@ const tokenError = {
 
 describe('Backend', () => {
   describe('API', () => {
+    let restoreEnv: () => void;
+
+    beforeAll(() => (restoreEnv = clearProxyEnv()));
+    afterAll(() => restoreEnv());
     beforeEach(() => fetchMock.mockClear());
 
     it('exposes numeric refresh threshold as static property', () => {

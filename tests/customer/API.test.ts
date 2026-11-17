@@ -11,6 +11,7 @@ import { Request, Response, fetch } from 'cross-fetch';
 import { API as CoreAPI } from '../../src/core/API';
 import { Credentials, SignUpParams } from '../../src/customer/types';
 import { API as CustomerAPI } from '../../src/customer/API';
+import { clearProxyEnv } from '../utils/proxyEnv';
 import { exec } from 'child_process';
 
 const fetchMock = (fetch as unknown) as jest.MockInstance<unknown, unknown[]>;
@@ -43,6 +44,11 @@ const sampleStoredExpiredSession = Object.assign({}, sampleSession, {
 
 describe('Customer', () => {
   describe('API', () => {
+    let restoreEnv: () => void;
+
+    beforeAll(() => (restoreEnv = clearProxyEnv()));
+    afterAll(() => restoreEnv());
+
     it('exposes storage key for session as static property', () => {
       expect(CustomerAPI).toHaveProperty('SESSION');
       expect(typeof CustomerAPI.SESSION).toBe('string');

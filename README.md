@@ -42,9 +42,11 @@ const api = new FoxySDK.Backend.API({
 
 This will create a hAPI version 1 client connecting to `https://api.foxy.io/` with the given credentials, using in-memory storage for access token and URL resolution, logging errors, warnings and informational messages to console. You can customize each one of these defaults in constructor params and you'll see similar options for Customer API as well.
 
-### Custom fetch
+### Proxies and custom fetch
 
-To control how requests are sent, for example to route them through a proxy, pass a `fetch` function with the same signature as the standard [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/fetch) to the Backend or Customer API constructor. The SDK will use it for every request, including access token requests:
+In Node, the SDK sends requests through an HTTP(S) proxy when one is set in the standard environment variables: `HTTPS_PROXY` (or `https_proxy`) for `https:` URLs, `HTTP_PROXY` (or `http_proxy`) for `http:` URLs, and `ALL_PROXY` (or `all_proxy`) for both. Hosts listed in `NO_PROXY` (or `no_proxy`) bypass the proxy. Entries can be host names (`api.example.com`), domain suffixes (`.example.com` or `*.example.com`), `host:port` pairs, or `*` to disable proxying. Without these variables, requests are made directly as before. Browsers use their own proxy settings.
+
+If you'd rather control the transport yourself, pass a `fetch` function with the same signature as the standard [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/fetch) to the Backend or Customer API constructor. The SDK will use it for every request, including access token requests, and won't apply its own proxy handling:
 
 ```js
 const api = new FoxySDK.Backend.API({

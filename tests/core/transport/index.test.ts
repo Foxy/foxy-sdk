@@ -7,13 +7,78 @@ jest.mock('cross-fetch', () => ({
 }));
 
 import { Request, Response, fetch } from 'cross-fetch';
-import { sendWithCustomFetch } from '../../../src/core/transport/index';
+import { defaultFetch, sendWithCustomFetch } from '../../../src/core/transport/index';
+
+import { API as CoreAPI } from '../../../src/core/API';
+import { HttpsProxyAgent } from 'https-proxy-agent';
+import { clearProxyEnv } from '../../utils/proxyEnv';
 
 const fetchMock = (fetch as unknown) as jest.Mock;
 
 describe('Core', () => {
   describe('transport', () => {
-    beforeEach(() => fetchMock.mockReset());
+    let restoreEnv: () => void;
+
+    beforeEach(() => {
+      restoreEnv = clearProxyEnv();
+      fetchMock.mockReset();
+      fetchMock.mockImplementation(() => Promise.resolve(new Response(null)));
+    });
+
+    afterEach(() => restoreEnv());
+
+    describe('defaultFetch', () => {
+      it('calls cross-fetch with the original arguments when no proxy is configured', async () => {
+        const request = new Request('https://api.foxy.io/');
+        const init = { method: 'POST' };
+
+        await defaultFetch(request);
+        await defaultFetch('https://api.foxy.io/', init);
+
+        expect(fetchMock).toHaveBeenNthCalledWith(1, request);
+        expect(fetchMock.mock.calls[0]).toHaveLength(1);
+        expect(fetchMock).toHaveBeenNthCalledWith(2, 'https://api.foxy.io/', init);
+      });
+
+      it('adds a proxy agent when HTTPS_PROXY is set', async () => {
+        process.env.HTTPS_PROXY = 'http://proxy.test:3128';
+        const request = new Request('https://api.foxy.io/');
+
+        await defaultFetch(request);
+        await defaultFetch('https://api.foxy.io/token', { method: 'POST' });
+
+        expect(fetchMock.mock.calls[0][0]).toBe(request);
+        expect(fetchMock.mock.calls[0][1].agent).toBeInstanceOf(HttpsProxyAgent);
+        expect(fetchMock.mock.calls[1][1].method).toBe('POST');
+        expect(fetchMock.mock.calls[1][1].agent).toBeInstanceOf(HttpsProxyAgent);
+      });
+
+      it('accepts URL instances', async () => {
+        process.env.HTTPS_PROXY = 'http://proxy.test:3128';
+        const url = new URL('https://api.foxy.io/');
+
+        await defaultFetch((url as unknown) as string);
+
+        expect(fetchMock.mock.calls[0][1].agent).toBeInstanceOf(HttpsProxyAgent);
+      });
+
+      it('does not add a proxy agent for hosts in NO_PROXY', async () => {
+        process.env.HTTPS_PROXY = 'http://proxy.test:3128';
+        process.env.NO_PROXY = '.foxy.io';
+        const request = new Request('https://api.foxy.io/');
+
+        await defaultFetch(request);
+
+        expect(fetchMock).toHaveBeenCalledWith(request);
+        expect(fetchMock.mock.calls[0]).toHaveLength(1);
+      });
+
+      it('is the default fetch of Core.API', async () => {
+        const api = new CoreAPI({ base: new URL('https://api.foxy.io/'), level: -1 });
+        await api.fetch('https://api.foxy.io/');
+        expect(fetchMock).toHaveBeenCalledWith('https://api.foxy.io/');
+      });
+    });
 
     describe('sendWithCustomFetch', () => {
       it('sends the request as a URL and plain options', async () => {

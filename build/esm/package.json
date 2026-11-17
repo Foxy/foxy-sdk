@@ -1,1 +1,6 @@
-{ "type": "module" }
+{
+  "type": "module",
+  "browser": {
+    "./core/transport/getProxyAgent.js": "./core/transport/getProxyAgent.browser.js"
+  }
+}

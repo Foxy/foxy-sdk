@@ -1,4 +1,5 @@
-import { Headers, Response } from 'cross-fetch';
+import { Headers, Response, fetch as crossFetch } from 'cross-fetch';
+import { getProxyAgent } from './getProxyAgent.js';
 
 /**
  * Checks whether a value is an instance of the `Response` class used by this SDK.
@@ -12,6 +13,24 @@ const isSDKResponse = (value: unknown): boolean => value instanceof Response;
 
 /** Function with the same signature as WHATWG fetch. */
 export type Fetch = Window['fetch'];
+
+/**
+ * Default transport: `fetch` from `cross-fetch`. In Node.js, requests are sent
+ * through an HTTP(S) proxy when one is configured with the standard `HTTPS_PROXY`,
+ * `HTTP_PROXY` and `NO_PROXY` environment variables. Without those variables
+ * (and in browsers) this is a plain `cross-fetch` call.
+ *
+ * @param input Request or URL.
+ * @param init Request options.
+ * @returns Fetch API response.
+ */
+export const defaultFetch: Fetch = async (input, init) => {
+  const url = typeof input === 'object' && input !== null && 'url' in input ? input.url : String(input);
+  const agent = getProxyAgent(url);
+
+  if (agent === undefined) return init === undefined ? crossFetch(input) : crossFetch(input, init);
+  return crossFetch(input, { ...init, agent } as RequestInit);
+};
 
 /**
  * Sends a request built by the SDK with a user-provided fetch. The request is passed

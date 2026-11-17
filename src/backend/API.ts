@@ -1,7 +1,7 @@
 import * as Core from '../core/index.js';
 
-import { Fetch, sendWithCustomFetch } from '../core/transport/index.js';
-import { Headers, Request, fetch } from 'cross-fetch';
+import { Fetch, defaultFetch, sendWithCustomFetch } from '../core/transport/index.js';
+import { Headers, Request } from 'cross-fetch';
 import { storageV8N, v8n } from '../core/v8n.js';
 
 import type { Graph } from './Graph';
@@ -23,8 +23,9 @@ type BackendAPIInit = {
   cache?: Storage;
   /**
    * Custom [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) implementation.
-   * When provided, it's used for every request this client makes, including access token requests.
-   * Defaults to `cross-fetch`.
+   * When provided, it's used for every request this client makes, including access token requests,
+   * and the built-in proxy support is skipped. Defaults to `cross-fetch`, which in Node honors
+   * the `HTTPS_PROXY`, `HTTP_PROXY` and `NO_PROXY` environment variables.
    */
   fetch?: Fetch;
 };
@@ -34,7 +35,7 @@ type GrantOpts = ({ code: string } | { refreshToken: string }) & {
   clientId: string;
   version?: BackendAPIVersion;
   base?: URL; // pathname ending with "/" !!!
-  /** Custom Fetch API implementation for the token request. Defaults to `cross-fetch`. */
+  /** Custom Fetch API implementation for the token request. Defaults to `cross-fetch` with proxy support in Node. */
   fetch?: Fetch;
 };
 
@@ -118,7 +119,7 @@ export class API extends Core.API<Graph> {
     const init = { body, headers, method: 'POST' };
     const response = opts.fetch
       ? await sendWithCustomFetch(opts.fetch, new Request(url, init))
-      : await fetch(url, init);
+      : await defaultFetch(url, init);
 
     if (response.ok) return response.json();
     if (throwOnFailure) throw new Error(await response.text());
@@ -254,6 +255,6 @@ export class API extends Core.API<Graph> {
 
   private __send(request: Request, init?: RequestInit): Promise<Response> {
     if (this.__customFetch) return sendWithCustomFetch(this.__customFetch, request, init);
-    return fetch(request);
+    return defaultFetch(request);
   }
 }

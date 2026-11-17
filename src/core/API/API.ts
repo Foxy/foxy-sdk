@@ -6,6 +6,7 @@ import { AuthError } from './AuthError.js';
 import type { Graph } from '../Graph';
 import MemoryStorage from 'fake-storage';
 import { Node } from './Node.js';
+import { defaultFetch } from '../transport/index.js';
 
 /** API constructor parameters. */
 type Init = {
@@ -24,6 +25,7 @@ type Init = {
   /**
    * Request handler implementing [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).
    * This function will be called whenever a resource is requested. Defaults to native fetch or a custom implementation of Fetch API for Node.
+   * In Node, the default implementation honors the `HTTPS_PROXY`, `HTTP_PROXY` and `NO_PROXY` environment variables.
    */
   fetch?: Window['fetch'];
 
@@ -113,7 +115,7 @@ export class API<TGraph extends Graph> extends Node<TGraph> {
     super({
       cache: init.cache ?? new MemoryStorage(),
       console: consola.create({ level: init.level }).withTag('@foxy.io/sdk'),
-      fetch: init.fetch ?? fetch,
+      fetch: init.fetch ?? defaultFetch,
       path: [init.base],
     });
 

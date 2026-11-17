@@ -6,6 +6,9 @@
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/types/index.d.ts",
+  "browser": {
+    "./dist/cjs/core/transport/getProxyAgent.js": "./dist/cjs/core/transport/getProxyAgent.browser.js"
+  },
   "exports": {
     ".": {
       "import": "./dist/esm/index.js",
@@ -169,10 +172,13 @@
     "consola": "^2.15.0",
     "cross-fetch": "^3.0.6",
     "fake-storage": "^2.0.0",
+    "http-proxy-agent": "^5.0.0",
+    "https-proxy-agent": "^5.0.1",
     "jsdom": "^16.4.0",
     "jsonata": "^1.8.4",
     "lodash-es": "^4.17.20",
     "parse-duration": "^0.4.4",
+    "proxy-from-env": "^2.1.0",
     "traverse": "^0.6.6",
     "v8n": "^1.3.3",
     "xstate": "^4.16.0"
