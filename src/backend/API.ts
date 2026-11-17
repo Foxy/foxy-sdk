@@ -1,7 +1,7 @@
 import * as Core from '../core/index.js';
 
 import { Headers, Request, fetch } from 'cross-fetch';
-import { storageV8N, v8n } from '../core/v8n.js';
+import { checkArgument, storageV8N, v8n } from '../core/v8n.js';
 
 import type { Graph } from './Graph';
 import type { LogLevel } from 'consola';
@@ -84,7 +84,7 @@ export class API extends Core.API<Graph> {
   static async getToken(opts: GrantOpts, throwOnFailure: true): Promise<Token>;
 
   static async getToken(opts: GrantOpts, throwOnFailure = false): Promise<Token | null> {
-    API.v8n.getAccessToken.check(opts);
+    checkArgument(API.v8n.getAccessToken, opts, 'opts');
 
     const headers = new Headers();
     const body = new URLSearchParams();
@@ -122,7 +122,7 @@ export class API extends Core.API<Graph> {
   private __tokenRefreshPromise: Promise<StoredToken | null> | null;
 
   constructor(params: BackendAPIInit) {
-    API.v8n.classConstructor.check(params);
+    checkArgument(API.v8n.classConstructor, params, 'params');
 
     super({
       base: params.base ?? API.BASE_URL,

@@ -1,3 +1,5 @@
+import { ArgumentError } from '../../src/core/v8n';
+import { inspect } from 'util';
 import { verifyWebhookSignature } from '../../src/backend/verifyWebhookSignature';
 
 describe('Backend', () => {
@@ -10,6 +12,24 @@ describe('Backend', () => {
       } as unknown) as Parameters<typeof verifyWebhookSignature>[0];
 
       expect(() => verifyWebhookSignature(invalidParams)).toThrow();
+    });
+
+    it('keeps the key out of the error when params are invalid', () => {
+      const params = ({ key: 'webhook-key-secret', payload: 'payload', signature: 0 } as unknown) as Parameters<
+        typeof verifyWebhookSignature
+      >[0];
+
+      let error: unknown;
+
+      try {
+        verifyWebhookSignature(params);
+      } catch (err) {
+        error = err;
+      }
+
+      expect(error).toBeInstanceOf(ArgumentError);
+      expect((error as Error).message).toContain('webhook.signature');
+      expect(inspect(error, { depth: null })).not.toContain('webhook-key-secret');
     });
 
     it('returns false when webhook signature is invalid', () => {

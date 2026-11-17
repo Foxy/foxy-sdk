@@ -8,9 +8,11 @@ jest.mock('cross-fetch', () => ({
 
 import { Headers, Request, Response, fetch } from 'cross-fetch';
 
+import { ArgumentError } from '../../src/core/v8n';
 import { API as BackendAPI } from '../../src/backend/API';
 import { API as CoreAPI } from '../../src/core/API';
 import MemoryCache from 'fake-storage';
+import { inspect } from 'util';
 
 const fetchMock = (fetch as unknown) as jest.MockInstance<unknown, unknown[]>;
 
@@ -173,6 +175,37 @@ describe('Backend', () => {
       } as unknown) as ConstructorParameters<typeof BackendAPI>[0];
 
       expect(() => new BackendAPI(incorrectInit)).toThrow();
+    });
+
+    it('keeps credentials out of the error when constructor params are invalid', () => {
+      const init = ({ ...commonInit, level: 'error' } as unknown) as ConstructorParameters<typeof BackendAPI>[0];
+      let error: unknown;
+
+      try {
+        new BackendAPI(init);
+      } catch (err) {
+        error = err;
+      }
+
+      expect(error).toBeInstanceOf(ArgumentError);
+      expect((error as Error).message).toContain('params.level');
+
+      const output = inspect(error, { depth: null });
+      expect(output).not.toContain(commonInit.clientSecret);
+      expect(output).not.toContain(commonInit.refreshToken);
+      expect(output).not.toContain(commonInit.clientId);
+    });
+
+    it('keeps credentials out of the error when API.getToken() params are invalid', async () => {
+      const opts = ({ ...commonInit, version: 2 } as unknown) as Parameters<typeof BackendAPI['getToken']>[0];
+      const error = await BackendAPI.getToken(opts).catch(err => err);
+
+      expect(error).toBeInstanceOf(ArgumentError);
+      expect((error as Error).message).toContain('opts.version');
+
+      const output = inspect(error, { depth: null });
+      expect(output).not.toContain(commonInit.clientSecret);
+      expect(output).not.toContain(commonInit.refreshToken);
     });
 
     it('extends core API class', () => {

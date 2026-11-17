@@ -8,10 +8,12 @@ jest.mock('cross-fetch', () => ({
 
 import { Request, Response, fetch } from 'cross-fetch';
 
+import { ArgumentError } from '../../src/core/v8n';
 import { API as CoreAPI } from '../../src/core/API';
 import { Credentials, SignUpParams } from '../../src/customer/types';
 import { API as CustomerAPI } from '../../src/customer/API';
 import { exec } from 'child_process';
+import { inspect } from 'util';
 
 const fetchMock = (fetch as unknown) as jest.MockInstance<unknown, unknown[]>;
 
@@ -120,6 +122,29 @@ describe('Customer', () => {
     it('throws an error when .signIn() is called with invalid params', async () => {
       const params = ({ email: 0, passw0rd: 'foo' } as unknown) as Credentials;
       await expect(new CustomerAPI(commonInit).signIn(params)).rejects.toThrow();
+    });
+
+    it('keeps the password out of the error when .signIn() params are invalid', async () => {
+      const params = ({ email: 0, password: 'customer-password-value' } as unknown) as Credentials;
+      const error = await new CustomerAPI(commonInit).signIn(params).catch(err => err);
+
+      expect(error).toBeInstanceOf(ArgumentError);
+      expect((error as Error).message).toContain('credentials.email');
+      expect(inspect(error, { depth: null })).not.toContain('customer-password-value');
+    });
+
+    it('keeps the password out of the error when .signUp() params are invalid', async () => {
+      const params = ({
+        email: 0,
+        password: 'customer-password-value',
+        verification: { token: 'abc', type: 'hcaptcha' },
+      } as unknown) as SignUpParams;
+
+      const error = await new CustomerAPI(commonInit).signUp(params).catch(err => err);
+
+      expect(error).toBeInstanceOf(ArgumentError);
+      expect((error as Error).message).toContain('params.email');
+      expect(inspect(error, { depth: null })).not.toContain('customer-password-value');
     });
 
     it('in .signIn(), throws Core.API.AuthError with code UNAUTHORIZED on 401', async () => {
