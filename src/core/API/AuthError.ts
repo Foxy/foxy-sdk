@@ -1,4 +1,4 @@
-import v8n from 'v8n';
+import { checkArgument, v8n } from '../v8n.js';
 
 /** Constructor parameters of the  {@link UniversalAPIAuthError} class. */
 type AuthErrorParams = {
@@ -61,7 +61,7 @@ export class AuthError extends Error {
   readonly code: UniversalAPIAuthErrorCode;
 
   constructor(params: AuthErrorParams) {
-    AuthError.v8n.constructor.check(params);
+    checkArgument(AuthError.v8n.constructor, params, 'params');
     super(`authentication failed with code ${params.code}`);
 
     this.originalError = params.originalError;

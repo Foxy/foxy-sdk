@@ -1,3 +1,5 @@
+import * as Core from '../../src/core/index';
+
 import { ArgumentError, checkArgument, v8n } from '../../src/core/v8n';
 
 import { inspect } from 'util';
@@ -57,6 +59,42 @@ describe('Core', () => {
       expect(() => checkArgument(v8n().not.string(), 'secret-value', 'value')).toThrow(
         'Invalid argument: value (not.string)'
       );
+    });
+
+    it('keeps the original error and the rule name when a rule throws', () => {
+      const thrown = new Error('db closed');
+      const value = {
+        get length(): number {
+          throw thrown;
+        },
+      };
+
+      let error: unknown;
+
+      try {
+        checkArgument(v8n().schema({ length: v8n().number() }), value, 'storage');
+      } catch (err) {
+        error = err;
+      }
+
+      expect(error).toBeInstanceOf(ArgumentError);
+      expect((error as ArgumentError).failures).toEqual([{ field: 'storage.length', rule: 'schema' }]);
+      expect((error as ArgumentError).cause).toBe(thrown);
+    });
+
+    it('rethrows errors that are not v8n errors', () => {
+      const thrown = new Error('not v8n');
+      const validator = {
+        check: () => {
+          throw thrown;
+        },
+      };
+
+      expect(() => checkArgument(validator, 'value', 'value')).toThrow(thrown);
+    });
+
+    it('is exported from the core entry point', () => {
+      expect(Core.ArgumentError).toBe(ArgumentError);
     });
   });
 });

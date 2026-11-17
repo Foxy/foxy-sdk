@@ -7,6 +7,7 @@ jest.mock('cross-fetch', () => ({
 }));
 
 import { Request, Response, fetch } from 'cross-fetch';
+import { VisibleStorage, safeStringify } from '../utils';
 
 import { ArgumentError } from '../../src/core/v8n';
 import { API as CoreAPI } from '../../src/core/API';
@@ -51,23 +52,35 @@ describe('Customer', () => {
     });
 
     it('keeps the stored session out of inspect, JSON and Object.keys output', () => {
-      const api = new CustomerAPI(commonInit);
+      const storage = new VisibleStorage();
+      const api = new CustomerAPI({ ...commonInit, storage });
       api.storage.setItem(CustomerAPI.SESSION, JSON.stringify(sampleStoredSession));
 
-      const seen = new WeakSet();
-      const json = JSON.stringify(api, (_key, item) => {
-        if (typeof item === 'object' && item !== null) {
-          if (seen.has(item)) return undefined;
-          seen.add(item);
-        }
-
-        return item;
-      });
-
       expect(inspect(api, { depth: null, showHidden: false })).not.toContain(sampleSession.session_token);
-      expect(json).not.toContain(sampleSession.session_token);
+      expect(safeStringify(api)).not.toContain(sampleSession.session_token);
       expect(Object.keys(api)).not.toContain('storage');
+      expect(api.storage).toBe(storage);
       expect(api.storage.getItem(CustomerAPI.SESSION)).toContain(sampleSession.session_token);
+    });
+
+    it('keeps the stored session out of the error when constructor params are invalid', () => {
+      const storage = new VisibleStorage();
+      storage.setItem(CustomerAPI.SESSION, JSON.stringify(sampleStoredSession));
+      const init = ({ ...commonInit, level: 'error', storage } as unknown) as ConstructorParameters<
+        typeof CustomerAPI
+      >[0];
+
+      let error: unknown;
+
+      try {
+        new CustomerAPI(init);
+      } catch (err) {
+        error = err;
+      }
+
+      expect(error).toBeInstanceOf(ArgumentError);
+      expect((error as Error).message).toContain('init.level');
+      expect(inspect(error, { depth: null })).not.toContain(sampleSession.session_token);
     });
 
     it('extends core API class', () => {

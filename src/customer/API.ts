@@ -132,7 +132,7 @@ export class API extends Core.API<Graph> {
   }
 
   set usesTemporaryPassword(value: boolean) {
-    API.v8n.boolean.check(value);
+    checkArgument(API.v8n.boolean, value, 'value');
     const session = this.storage.getItem(API.SESSION);
     if (session) {
       const storedSession = JSON.parse(session) as StoredSession;

@@ -7,6 +7,7 @@ jest.mock('cross-fetch', () => ({
 }));
 
 import { Headers, Request, Response, fetch } from 'cross-fetch';
+import { VisibleStorage, safeStringify } from '../utils';
 
 import { ArgumentError } from '../../src/core/v8n';
 import { API as BackendAPI } from '../../src/backend/API';
@@ -40,54 +41,6 @@ const sampleStoredToken = Object.assign({}, sampleToken, {
   access_token: '290af43rwef9e83ad0d79e97738992778derwett3t08324a9fee0521',
   date_created: new Date().toISOString(),
 });
-
-/** Storage that keeps items in an enumerable own property, so inspecting it prints them. */
-class VisibleStorage {
-  items: Record<string, string> = {};
-
-  get length(): number {
-    return Object.keys(this.items).length;
-  }
-
-  key(index: number): string | null {
-    return Object.keys(this.items)[index] ?? null;
-  }
-
-  getItem(key: string): string | null {
-    return this.items[key] ?? null;
-  }
-
-  setItem(key: string, value: string): void {
-    this.items[key] = value;
-  }
-
-  removeItem(key: string): void {
-    delete this.items[key];
-  }
-
-  clear(): void {
-    this.items = {};
-  }
-}
-
-/**
- * JSON.stringify that skips circular references instead of throwing.
- *
- * @param value Value to serialize.
- * @returns JSON string.
- */
-function safeStringify(value: unknown): string {
-  const seen = new WeakSet();
-
-  return JSON.stringify(value, (_key, item) => {
-    if (typeof item === 'object' && item !== null) {
-      if (seen.has(item)) return undefined;
-      seen.add(item);
-    }
-
-    return item;
-  });
-}
 
 const tokenError = {
   error: 'invalid_token',

@@ -1,6 +1,6 @@
 import { Headers, Request, Response, fetch } from 'cross-fetch';
+import { checkArgument, storageV8N, v8n } from '../v8n.js';
 import consola, { Consola, LogLevel } from 'consola';
-import { storageV8N, v8n } from '../v8n.js';
 
 import { AuthError } from './AuthError.js';
 import type { Graph } from '../Graph';
@@ -109,7 +109,7 @@ export class API<TGraph extends Graph> extends Node<TGraph> {
   readonly base: URL;
 
   constructor(init: Init) {
-    API.v8n.classConstructor.check(init);
+    checkArgument(API.v8n.classConstructor, init, 'init');
 
     super({
       cache: init.cache ?? new MemoryStorage(),

@@ -1,4 +1,4 @@
-import { V8N, storageV8N, v8n } from '../v8n.js';
+import { V8N, checkArgument, storageV8N, v8n } from '../v8n.js';
 import consola, { Consola } from 'consola';
 
 import type { Graph } from '../Graph';
@@ -101,7 +101,7 @@ export class Node<TGraph extends Graph> {
   protected readonly _path: CurieChain;
 
   constructor(init: NodeInit) {
-    Node.v8n.classConstructor.check(init);
+    checkArgument(Node.v8n.classConstructor, init, 'init');
 
     this._path = init.path;
     this._fetch = init.fetch;
@@ -121,7 +121,7 @@ export class Node<TGraph extends Graph> {
    * @returns Instance of {@link APIResponse} representing this resource.
    */
   async get(query?: Query<TGraph>): Promise<Response<TGraph>> {
-    Node.v8n.get.check(query);
+    checkArgument(Node.v8n.get, query, 'query');
 
     const url = await this._resolve();
     const { filters, fields, offset, limit, order, zoom } = query ?? {};
@@ -217,7 +217,7 @@ export class Node<TGraph extends Graph> {
    * @returns Instance of {@link APINode} representing the resource at curie location.
    */
   follow<C extends keyof TGraph['links']>(curie: C): Node<TGraph['links'][C]> {
-    Node.v8n.follow.check(curie);
+    checkArgument(Node.v8n.follow, curie, 'curie');
 
     const config = { cache: this._cache, console: this._console, fetch: this._fetch };
     const path = this._path.concat(curie as string) as CurieChain;
