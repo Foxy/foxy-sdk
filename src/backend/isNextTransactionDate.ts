@@ -2,7 +2,7 @@ import type { CustomerPortalSettings } from './Graph/customer_portal_settings';
 import type { Resource } from '../core/Resource/Resource';
 import type { Subscription } from './Graph/subscription';
 import { getNextTransactionDateConstraints } from './getNextTransactionDateConstraints.js';
-import parse from 'parse-duration';
+import { getTimeFromFrequency } from './getTimeFromFrequency.js';
 
 type Config = CustomerPortalSettings['props']['subscriptions']['allowNextDateModification'];
 
@@ -53,15 +53,9 @@ export function isNextTransactionDate(opts: Options): boolean {
     if (match) return false;
   }
 
-  if (constraints.min) {
-    const duration = parse(constraints.min);
-    if (duration !== null && Date.now() + duration >= valueAsTime) return false;
-  }
-
-  if (constraints.max) {
-    const duration = parse(constraints.max);
-    if (duration !== null && Date.now() + duration <= valueAsTime) return false;
-  }
+  // min and max are frequencies (already validated by getNextTransactionDateConstraints), so m means months
+  if (constraints.min && Date.now() + getTimeFromFrequency(constraints.min) >= valueAsTime) return false;
+  if (constraints.max && Date.now() + getTimeFromFrequency(constraints.max) <= valueAsTime) return false;
 
   return true;
 }
