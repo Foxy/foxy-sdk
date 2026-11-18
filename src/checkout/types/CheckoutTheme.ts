@@ -64,6 +64,8 @@ export type CheckoutTheme = {
   field_shadow?: string | null;
   /** Shadow of filled and outline buttons. Same format as `surface_shadow`. Missing, null or any other format = no shadow. */
   button_shadow?: string | null;
+  /** Spacing between and inside elements, and the height of fields and buttons. One of `tighter`, `tight`, `default`, `roomy`, `roomier`. Default: `default`. Missing or null = default. */
+  density?: "tighter" | "tight" | "default" | "roomy" | "roomier" | null;
   /** Background of select lists, dialogs, popovers, tooltips and the side cart. Hex color: `#RRGGBB` or `#RRGGBBAA`. Missing or null = the surface background. */
   popup_background?: string | null;
   /** Color of popup borders. Hex color: `#RRGGBB` or `#RRGGBBAA`. Missing or null = `border_color`. */
