@@ -7,11 +7,14 @@ jest.mock('cross-fetch', () => ({
 }));
 
 import { Request, Response, fetch } from 'cross-fetch';
+import { VisibleStorage, safeStringify } from '../utils';
 
+import { ArgumentError } from '../../src/core/v8n';
 import { API as CoreAPI } from '../../src/core/API';
 import { Credentials, SignUpParams } from '../../src/customer/types';
 import { API as CustomerAPI } from '../../src/customer/API';
 import { exec } from 'child_process';
+import { inspect } from 'util';
 
 const fetchMock = (fetch as unknown) as jest.MockInstance<unknown, unknown[]>;
 
@@ -46,6 +49,38 @@ describe('Customer', () => {
     it('exposes storage key for session as static property', () => {
       expect(CustomerAPI).toHaveProperty('SESSION');
       expect(typeof CustomerAPI.SESSION).toBe('string');
+    });
+
+    it('keeps the stored session out of inspect, JSON and Object.keys output', () => {
+      const storage = new VisibleStorage();
+      const api = new CustomerAPI({ ...commonInit, storage });
+      api.storage.setItem(CustomerAPI.SESSION, JSON.stringify(sampleStoredSession));
+
+      expect(inspect(api, { depth: null, showHidden: false })).not.toContain(sampleSession.session_token);
+      expect(safeStringify(api)).not.toContain(sampleSession.session_token);
+      expect(Object.keys(api)).not.toContain('storage');
+      expect(api.storage).toBe(storage);
+      expect(api.storage.getItem(CustomerAPI.SESSION)).toContain(sampleSession.session_token);
+    });
+
+    it('keeps the stored session out of the error when constructor params are invalid', () => {
+      const storage = new VisibleStorage();
+      storage.setItem(CustomerAPI.SESSION, JSON.stringify(sampleStoredSession));
+      const init = ({ ...commonInit, level: 'error', storage } as unknown) as ConstructorParameters<
+        typeof CustomerAPI
+      >[0];
+
+      let error: unknown;
+
+      try {
+        new CustomerAPI(init);
+      } catch (err) {
+        error = err;
+      }
+
+      expect(error).toBeInstanceOf(ArgumentError);
+      expect((error as Error).message).toContain('init.level');
+      expect(inspect(error, { depth: null })).not.toContain(sampleSession.session_token);
     });
 
     it('extends core API class', () => {
@@ -120,6 +155,29 @@ describe('Customer', () => {
     it('throws an error when .signIn() is called with invalid params', async () => {
       const params = ({ email: 0, passw0rd: 'foo' } as unknown) as Credentials;
       await expect(new CustomerAPI(commonInit).signIn(params)).rejects.toThrow();
+    });
+
+    it('keeps the password out of the error when .signIn() params are invalid', async () => {
+      const params = ({ email: 0, password: 'customer-password-value' } as unknown) as Credentials;
+      const error = await new CustomerAPI(commonInit).signIn(params).catch(err => err);
+
+      expect(error).toBeInstanceOf(ArgumentError);
+      expect((error as Error).message).toContain('credentials.email');
+      expect(inspect(error, { depth: null })).not.toContain('customer-password-value');
+    });
+
+    it('keeps the password out of the error when .signUp() params are invalid', async () => {
+      const params = ({
+        email: 0,
+        password: 'customer-password-value',
+        verification: { token: 'abc', type: 'hcaptcha' },
+      } as unknown) as SignUpParams;
+
+      const error = await new CustomerAPI(commonInit).signUp(params).catch(err => err);
+
+      expect(error).toBeInstanceOf(ArgumentError);
+      expect((error as Error).message).toContain('params.email');
+      expect(inspect(error, { depth: null })).not.toContain('customer-password-value');
     });
 
     it('in .signIn(), throws Core.API.AuthError with code UNAUTHORIZED on 401', async () => {

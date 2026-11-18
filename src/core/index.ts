@@ -9,3 +9,5 @@ export { BooleanSelector } from './BooleanSelector.js';
 export { getResourceId } from './getResourceId.js';
 export { Rumour } from './Rumour/index.js';
 export { API } from './API/index.js';
+export { ArgumentError } from './v8n.js';
+export type { ArgumentFailure } from './v8n.js';

@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
+import { checkArgument, storageV8N, v8n } from '../v8n.js';
 import consola, { Consola } from 'consola';
-import { storageV8N, v8n } from '../v8n.js';
 
 import type { FollowableResource } from '../FollowableResource';
 import { Response as GlobalThisResponse } from 'cross-fetch';
@@ -98,7 +98,7 @@ export class Response<
   protected readonly _cache: Storage;
 
   constructor(init: Init) {
-    Response.v8n.constructor.check(init);
+    checkArgument(Response.v8n.constructor, init, 'init');
     super(init.body, init);
 
     this._console = init.console;

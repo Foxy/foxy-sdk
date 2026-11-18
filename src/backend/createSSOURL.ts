@@ -1,7 +1,7 @@
 import * as crypto from 'crypto';
 
+import { checkArgument, v8n } from '../core/v8n.js';
 import { URL } from 'url';
-import v8n from 'v8n';
 
 interface Options {
   /**
@@ -77,7 +77,7 @@ const optionsV8N = v8n().schema({
  * @returns SSO URL as string.
  */
 export function createSSOURL(options: Options): string {
-  optionsV8N.check(options);
+  checkArgument(optionsV8N, options, 'options');
 
   const timestamp = options.timestamp ?? Math.floor(Date.now() / 1000) + 3600;
   const decodedToken = `${options.customer}|${timestamp}|${options.secret}`;

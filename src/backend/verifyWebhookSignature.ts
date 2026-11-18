@@ -1,6 +1,6 @@
 import * as crypto from 'crypto';
 
-import v8n from 'v8n';
+import { checkArgument, v8n } from '../core/v8n.js';
 
 interface Webhook {
   /** The `Foxy-Webhook-Signature` header value received with the webhook. */
@@ -25,7 +25,7 @@ const webhookV8N = v8n().schema({
  * @returns True if this webhook has a valid signature.
  */
 export function verifyWebhookSignature(webhook: Webhook): boolean {
-  webhookV8N.check(webhook);
+  checkArgument(webhookV8N, webhook, 'webhook');
   const computedSignature = crypto.createHmac('sha256', webhook.key).update(webhook.payload).digest('hex');
   return webhook.signature === computedSignature;
 }
