@@ -1,6 +1,7 @@
 import type { Credentials, Session, SignUpParams, StoredSession } from './types';
 import type { Graph } from './Graph';
 
+import { Fetch, sendWithCustomFetch } from '../core/transport/index.js';
 import { Request, fetch } from 'cross-fetch';
 import { checkArgument, v8n } from '../core/v8n.js';
 
@@ -38,8 +39,16 @@ export class API extends Core.API<Graph> {
     email: v8n().string(),
   });
 
+  private readonly __customFetch?: Fetch;
+
+  /**
+   * @param params Constructor parameters. If `params.fetch` is provided, it's used for every request
+   * this client makes (with session headers added) instead of the default `cross-fetch` transport.
+   */
   constructor(params: ConstructorParameters<typeof Core.API>[0]) {
+    checkArgument(API.v8n.classConstructor, params, 'init');
     super({ ...params, fetch: (...args) => this.__fetch(...args) });
+    this.__customFetch = params.fetch;
   }
 
   /**
@@ -163,7 +172,9 @@ export class API extends Core.API<Graph> {
     request.headers.set('FOXY-API-VERSION', '1');
 
     this.console.trace(`${request.method} ${request.url}`);
-    const response = await fetch(request);
+    const response = this.__customFetch
+      ? await sendWithCustomFetch(this.__customFetch, request, init)
+      : await fetch(request);
 
     if (session && response.ok) {
       const refreshedSession = { ...session, date_created: new Date().toISOString() };
