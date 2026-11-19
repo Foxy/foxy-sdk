@@ -383,28 +383,79 @@ describe('Backend', () => {
       expect(fetchMock).toHaveBeenNthCalledWith(3, new Request(url, { headers }));
     });
 
-    it('makes an unauthenticated request after a failure to obtain a new access token', async () => {
+    it('rejects with AuthError and sends no request when an access token cannot be obtained', async () => {
+      const body = JSON.stringify({ error: 'invalid_client', error_description: 'Client authentication failed' });
+      fetchMock.mockImplementationOnce(() => Promise.resolve(new Response(body, { status: 401 })));
+
+      const api = new BackendAPI(commonInit);
+      const error = await api.fetch(BackendAPI.BASE_URL.toString()).catch(err => err);
+
+      expect(error).toBeInstanceOf(CoreAPI.AuthError);
+      expect(error).toHaveProperty('code', 'UNAUTHORIZED');
+      expect((error.originalError as Error).message).toContain('Client authentication failed');
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+
+      const output = inspect(error, { depth: null });
+      expect(output).not.toContain(commonInit.clientSecret);
+      expect(output).not.toContain(commonInit.refreshToken);
+    });
+
+    it('rejects with AuthError when the token request fails with a network error', async () => {
+      fetchMock.mockImplementationOnce(() => Promise.reject(new TypeError('network error')));
+
+      const api = new BackendAPI(commonInit);
+      const error = await api.fetch(BackendAPI.BASE_URL.toString()).catch(err => err);
+
+      expect(error).toBeInstanceOf(CoreAPI.AuthError);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('uses a stored token that is still valid when refreshing it early fails', async () => {
       fetchMock
         .mockImplementationOnce(() => Promise.resolve(new Response(null, { status: 500 })))
         .mockImplementationOnce(() => Promise.resolve(new Response(null)));
 
       const url = BackendAPI.BASE_URL.toString();
       const api = new BackendAPI(commonInit);
+      const expiresIn = BackendAPI.REFRESH_THRESHOLD / 2 / 1000;
 
+      api.storage.setItem(BackendAPI.ACCESS_TOKEN, JSON.stringify({ ...sampleStoredToken, expires_in: expiresIn }));
       await api.fetch(url);
 
-      expect(fetchMock).toHaveBeenNthCalledWith(1, new URL('token', BackendAPI.BASE_URL.toString()).toString(), {
-        body: new URLSearchParams({
-          client_id: api.clientId,
-          client_secret: api.clientSecret,
-          grant_type: 'refresh_token',
-          refresh_token: api.refreshToken,
-        }),
-        headers: new Headers({ ...commonHeaders, 'Content-Type': 'application/x-www-form-urlencoded' }),
-        method: 'POST',
-      });
+      const headers = new Headers({ ...commonHeaders, Authorization: `Bearer ${sampleStoredToken.access_token}` });
+      expect(fetchMock).toHaveBeenNthCalledWith(2, new Request(url, { headers }));
+      expect(JSON.parse(api.storage.getItem(BackendAPI.ACCESS_TOKEN) ?? 'null')).toHaveProperty(
+        'access_token',
+        sampleStoredToken.access_token
+      );
+    });
 
-      expect(fetchMock).toHaveBeenNthCalledWith(2, new Request(url, { headers: commonHeaders }));
+    it('sends the request with a caller-supplied Authorization header when an access token cannot be obtained', async () => {
+      fetchMock
+        .mockImplementationOnce(() => Promise.resolve(new Response(null, { status: 401 })))
+        .mockImplementationOnce(() => Promise.resolve(new Response(null)));
+
+      const url = BackendAPI.BASE_URL.toString();
+      const api = new BackendAPI(commonInit);
+      const init = { headers: { Authorization: 'Bearer custom' } };
+      const response = await api.fetch(url, init);
+
+      expect(response.ok).toBe(true);
+      const headers = new Headers({ ...commonHeaders, ...init.headers });
+      expect(fetchMock).toHaveBeenNthCalledWith(2, new Request(url, { headers }));
+    });
+
+    it('returns the 401 response when the stored token is revoked and a new one cannot be obtained', async () => {
+      fetchMock
+        .mockImplementationOnce(() => Promise.resolve(new Response(JSON.stringify(tokenError), { status: 401 })))
+        .mockImplementationOnce(() => Promise.resolve(new Response(null, { status: 401 })));
+
+      const api = new BackendAPI(commonInit);
+      api.storage.setItem(BackendAPI.ACCESS_TOKEN, JSON.stringify(sampleStoredToken));
+      const response = await api.fetch(BackendAPI.BASE_URL.toString());
+
+      expect(response.status).toBe(401);
+      expect(fetchMock).toHaveBeenCalledTimes(2);
     });
 
     it('supports complex fetch requests with detailed arguments', async () => {
@@ -414,9 +465,11 @@ describe('Backend', () => {
       const info = BackendAPI.BASE_URL.toString();
       const init = { headers: { foo: 'bar' }, method: 'POST' };
 
+      api.storage.setItem(BackendAPI.ACCESS_TOKEN, JSON.stringify(sampleStoredToken));
       await api.fetch(info, init);
 
-      const headers = new Headers({ ...commonHeaders, ...init.headers });
+      const auth = { Authorization: `Bearer ${sampleStoredToken.access_token}` };
+      const headers = new Headers({ ...commonHeaders, ...auth, ...init.headers });
       expect(fetchMock).toHaveBeenLastCalledWith(new Request(info, { ...init, headers }));
     });
 
@@ -427,9 +480,11 @@ describe('Backend', () => {
       const info = BackendAPI.BASE_URL.toString();
       const init = { headers: { foo: 'bar' }, method: 'POST' };
 
+      api.storage.setItem(BackendAPI.ACCESS_TOKEN, JSON.stringify(sampleStoredToken));
       await api.fetch(new Request(info, init));
 
-      const headers = new Headers({ ...commonHeaders, ...init.headers });
+      const auth = { Authorization: `Bearer ${sampleStoredToken.access_token}` };
+      const headers = new Headers({ ...commonHeaders, ...auth, ...init.headers });
       expect(fetchMock).toHaveBeenLastCalledWith(new Request(info, { ...init, headers }));
     });
 

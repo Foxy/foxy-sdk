@@ -121,7 +121,7 @@ export class API extends Core.API<Graph> {
 
   readonly version: BackendAPIVersion;
 
-  private __tokenRefreshPromise: Promise<StoredToken | null> | null;
+  private __tokenRefreshPromise: Promise<StoredToken> | null;
 
   constructor(params: BackendAPIInit) {
     checkArgument(API.v8n.classConstructor, params, 'params');
@@ -150,7 +150,7 @@ export class API extends Core.API<Graph> {
     let request = new Request(input, init);
     let headers = request.headers;
 
-    const fetchNewAccessToken = async (): Promise<StoredToken | null> => {
+    const fetchNewAccessToken = async (): Promise<StoredToken> => {
       if (this.__tokenRefreshPromise) {
         this.console.trace('Token refresh already in progress, waiting...');
         return this.__tokenRefreshPromise;
@@ -159,20 +159,15 @@ export class API extends Core.API<Graph> {
       this.__tokenRefreshPromise = (async () => {
         try {
           this.console.trace('Fetching a new access token...');
-          const rawToken = await API.getToken(this, true).catch(err => {
-            this.console.error(err.message);
-            return null;
+          const rawToken = await API.getToken(this, true).catch(originalError => {
+            this.console.error(originalError.message);
+            throw new Core.API.AuthError({ code: 'UNAUTHORIZED', originalError });
           });
 
-          if (rawToken) {
-            const token = { ...rawToken, date_created: new Date().toISOString() };
-            this.storage.setItem(API.ACCESS_TOKEN, JSON.stringify(token));
-            this.console.info('Access token updated.');
-            return token;
-          } else {
-            this.console.warn('Failed to fetch access token. Proceeding without authentication.');
-            return null;
-          }
+          const token = { ...rawToken, date_created: new Date().toISOString() };
+          this.storage.setItem(API.ACCESS_TOKEN, JSON.stringify(token));
+          this.console.info('Access token updated.');
+          return token;
         } finally {
           this.__tokenRefreshPromise = null;
         }
@@ -187,6 +182,16 @@ export class API extends Core.API<Graph> {
       if (!headers.get('FOXY-API-VERSION')) headers.set('FOXY-API-VERSION', this.version);
     };
 
+    // Without a token we would send an unauthenticated request, which can look like a success
+    // (e.g. GET on the API root returns 200). So we throw instead, unless there is a usable fallback:
+    // a stored token that hasn't expired yet, or an Authorization header set by the caller.
+    const fetchTokenForRequest = (fallback: StoredToken | null) => {
+      return fetchNewAccessToken().catch(err => {
+        if (fallback || headers.get('Authorization')) return fallback;
+        throw err;
+      });
+    };
+
     let token = JSON.parse(this.storage.getItem(API.ACCESS_TOKEN) ?? 'null') as StoredToken | null;
 
     if (token) {
@@ -194,13 +199,18 @@ export class API extends Core.API<Graph> {
       const refreshAt = Date.now() + API.REFRESH_THRESHOLD;
 
       if (expiresAt < refreshAt) {
-        this.storage.removeItem(API.ACCESS_TOKEN);
-        this.console.info('Removed old access token from the storage.');
-        token = await fetchNewAccessToken();
+        const isUsable = expiresAt > Date.now();
+
+        if (!isUsable) {
+          this.storage.removeItem(API.ACCESS_TOKEN);
+          this.console.info('Removed old access token from the storage.');
+        }
+
+        token = await fetchTokenForRequest(isUsable ? token : null);
       }
     } else {
       this.console.trace("Access token isn't present in the storage.");
-      token = await fetchNewAccessToken();
+      token = await fetchTokenForRequest(null);
     }
 
     setHeaders(token?.access_token);
@@ -217,7 +227,8 @@ export class API extends Core.API<Graph> {
         this.storage.removeItem(API.ACCESS_TOKEN);
         this.console.info('Removed old access token from the storage.');
 
-        token = await fetchNewAccessToken();
+        // The request has already been sent, so return its 401 response if we can't get a new token.
+        token = await fetchNewAccessToken().catch(() => null);
 
         if (token) {
           request = new Request(input, init);
