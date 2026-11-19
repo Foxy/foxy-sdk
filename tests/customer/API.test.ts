@@ -387,7 +387,8 @@ describe('Customer', () => {
 
     it('errors when constructed with a fetch that is not a function', () => {
       const init = ({ ...commonInit, fetch: 1 } as unknown) as ConstructorParameters<typeof CustomerAPI>[0];
-      expect(() => new CustomerAPI(init)).toThrow();
+      expect(() => new CustomerAPI(init)).toThrow(ArgumentError);
+      expect(() => new CustomerAPI(init)).toThrow('init.fetch');
     });
 
     it('sends requests with session headers through a custom fetch', async () => {

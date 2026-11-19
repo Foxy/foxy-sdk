@@ -115,9 +115,11 @@ export class API extends Core.API<Graph> {
       body.set('refresh_token', opts.refreshToken);
     }
 
+    // An API instance has a `fetch` method that sends requests through the API itself, so use its custom fetch instead.
+    const customFetch = opts instanceof API ? opts.__customFetch : opts.fetch;
     const init = { body, headers, method: 'POST' };
-    const response = opts.fetch
-      ? await sendWithCustomFetch(opts.fetch, new Request(url, init))
+    const response = customFetch
+      ? await sendWithCustomFetch(customFetch, new Request(url, init))
       : await fetch(url, init);
 
     if (response.ok) return response.json();
@@ -176,16 +178,7 @@ export class API extends Core.API<Graph> {
       this.__tokenRefreshPromise = (async () => {
         try {
           this.console.trace('Fetching a new access token...');
-          const grantOpts: GrantOpts = {
-            base: this.base,
-            clientId: this.clientId,
-            clientSecret: this.clientSecret,
-            fetch: this.__customFetch,
-            refreshToken: this.refreshToken,
-            version: this.version,
-          };
-
-          const rawToken = await API.getToken(grantOpts, true).catch(err => {
+          const rawToken = await API.getToken(this, true).catch(err => {
             this.console.error(err.message);
             return null;
           });

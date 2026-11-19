@@ -46,7 +46,7 @@ export class API extends Core.API<Graph> {
    * this client makes (with session headers added) instead of the default `cross-fetch` transport.
    */
   constructor(params: ConstructorParameters<typeof Core.API>[0]) {
-    API.v8n.classConstructor.check(params);
+    checkArgument(API.v8n.classConstructor, params, 'init');
     super({ ...params, fetch: (...args) => this.__fetch(...args) });
     this.__customFetch = params.fetch;
   }

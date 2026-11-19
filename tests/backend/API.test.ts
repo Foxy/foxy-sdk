@@ -484,7 +484,8 @@ describe('Backend', () => {
 
       it('errors when constructed with a fetch that is not a function', () => {
         const init = ({ ...commonInit, fetch: 'nope' } as unknown) as ConstructorParameters<typeof BackendAPI>[0];
-        expect(() => new BackendAPI(init)).toThrow();
+        expect(() => new BackendAPI(init)).toThrow(ArgumentError);
+        expect(() => new BackendAPI(init)).toThrow('params.fetch');
       });
 
       it('errors when API.getToken() is called with a fetch that is not a function', async () => {
@@ -514,6 +515,23 @@ describe('Backend', () => {
           grant_type: 'refresh_token',
           refresh_token: refreshToken,
         });
+      });
+
+      it("uses the API's custom fetch when API.getToken() is given an API instance", async () => {
+        const customFetch = jest.fn(() => Promise.resolve(new Response(JSON.stringify(sampleToken))));
+        const api = new BackendAPI({ ...commonInit, fetch: customFetch });
+
+        expect(await BackendAPI.getToken(api)).toEqual(sampleToken);
+        expect(fetchMock).not.toHaveBeenCalled();
+        expect(customFetch).toHaveBeenCalledTimes(1);
+        expect(((customFetch.mock.calls[0] as unknown) as Call)[0]).toBe(tokenURL);
+      });
+
+      it('uses the default fetch when API.getToken() is given an API instance without a custom fetch', async () => {
+        fetchMock.mockImplementation(() => Promise.resolve(new Response(JSON.stringify(sampleToken))));
+        expect(await BackendAPI.getToken(new BackendAPI(commonInit))).toEqual(sampleToken);
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+        expect(fetchMock.mock.calls[0][0]).toBe(tokenURL);
       });
 
       it('sends the token request and the API request through the custom fetch', async () => {
