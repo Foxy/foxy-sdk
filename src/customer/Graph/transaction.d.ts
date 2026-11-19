@@ -3,6 +3,7 @@ import type { CustomFields } from './custom_fields';
 import type { Graph as Customer } from './index';
 import type { Graph } from '../../core';
 import type { Items } from './items';
+import type { Receipt } from './receipt';
 
 export interface Transaction extends Graph {
   curie: 'fx:transaction';

@@ -1,5 +1,6 @@
 import type { Graph } from '../../core';
 import type { ItemOptions } from './item_options';
+import type { Transaction } from './transaction';
 
 export interface Item extends Graph {
   curie: 'fx:item';
