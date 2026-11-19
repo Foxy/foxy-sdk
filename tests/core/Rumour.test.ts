@@ -319,5 +319,133 @@ describe('Core', () => {
       rumour.share({ data: ignoredUpdate, source: ignoredUpdate._links.self.href });
       expect(syncedData).toEqual(trackedUpdate);
     });
+
+    describe('patch and merge details', () => {
+      const sync = (state: unknown, share: Parameters<Rumour['share']>[0]) => {
+        const rumour = new Rumour();
+        let result: unknown;
+        rumour.track(update => (result = update(state as TestResource)));
+        rumour.share(share);
+        return result;
+      };
+
+      it('patches a resource in an embedded array, keeping its own _embedded and the input intact', () => {
+        const state = {
+          _embedded: {
+            items: [
+              {
+                _embedded: { bar: { _links: { self: { href: 'https://foxy.test/bar' } }, x: 1 } },
+                _links: { self: { href: 'https://foxy.test/foos/0' } },
+                a: 1,
+              },
+              { _links: { self: { href: 'https://foxy.test/foos/1' } }, a: 1 },
+            ],
+          },
+          _links: { first: { href: 'https://foxy.test/foos' }, self: { href: 'https://foxy.test/foos?limit=2' } },
+        };
+
+        const snapshot = JSON.parse(JSON.stringify(state));
+        const result = sync(state, {
+          data: {
+            _embedded: { bar: { _links: { self: { href: 'https://foxy.test/bar' } }, x: 2 } },
+            _links: { self: { href: 'https://foxy.test/foos/0' } },
+            a: 2,
+          } as TestResource,
+          source: 'https://foxy.test/foos/0',
+        });
+
+        expect(state).toEqual(snapshot);
+        expect(result).not.toBe(state);
+        expect(result).toEqual({
+          ...snapshot,
+          _embedded: {
+            items: [
+              // children of an updated node are not visited, so the embedded `bar` keeps x: 1
+              { ...snapshot._embedded.items[0], a: 2 },
+              snapshot._embedded.items[1],
+            ],
+          },
+        });
+
+        // Objects on the walked path are new copies; objects below the updated resource keep their references.
+        const typed = result as typeof state;
+        expect(typed._embedded).not.toBe(state._embedded);
+        expect(typed._embedded.items[1]).not.toBe(state._embedded.items[1]);
+        expect(typed._embedded.items[0]._embedded).toBe(state._embedded.items[0]._embedded);
+        expect(typed._links).not.toBe(state._links);
+      });
+
+      it('strips _embedded at every depth from patch props', () => {
+        const state = { _links: { self: { href: 'https://foxy.test/foo' } }, meta: { y: 1 } };
+        const result = sync(state, {
+          data: { _links: { self: { href: 'https://foxy.test/foo' } }, meta: { _embedded: 'x', y: 2 } } as TestResource,
+          source: 'https://foxy.test/foo',
+        });
+
+        expect(result).toEqual({ _links: { self: { href: 'https://foxy.test/foo' } }, meta: { y: 2 } });
+      });
+
+      it('skips collections as patch sources but still patches their items', () => {
+        const page = {
+          _embedded: { items: [{ _links: { self: { href: 'https://foxy.test/foos/0' } }, a: 2 }] },
+          _links: { first: { href: 'https://foxy.test/foos' }, self: { href: 'https://foxy.test/foos' } },
+          total: 2,
+        };
+
+        const oldPage = { ...page, _embedded: { items: [] }, total: 1 };
+        const oldItem = { _links: { self: { href: 'https://foxy.test/foos/0' } }, a: 1 };
+
+        expect(sync(oldPage, { data: page, source: page._links.self.href })).toBe(oldPage);
+        expect(sync(oldItem, { data: page, source: page._links.self.href })).toEqual({ ...oldItem, a: 2 });
+      });
+
+      it('uses the last occurrence when a resource appears more than once in the update', () => {
+        const state = { _links: { self: { href: 'https://foxy.test/foo' } }, v: 0 };
+        const result = sync(state, {
+          data: {
+            _embedded: {
+              x: { _links: { self: { href: 'https://foxy.test/foo' } }, v: 1 },
+              y: { _links: { self: { href: 'https://foxy.test/foo' } }, v: 2 },
+            },
+            _links: { self: { href: 'https://foxy.test/bar' } },
+          } as TestResource,
+          source: 'https://foxy.test/bar',
+        });
+
+        expect(result).toEqual({ ...state, v: 2 });
+      });
+
+      it('returns the same reference when nothing changes', () => {
+        const state = { _links: { self: { href: 'https://foxy.test/foo' } }, v: 1 };
+        expect(sync(state, { data: { ...state }, source: 'https://foxy.test/foo' })).toBe(state);
+      });
+
+      it('handles circular references in shared data and in local state', () => {
+        const loop: Record<string, unknown> = { x: 1 };
+        loop.self = loop;
+
+        const state = {
+          _embedded: { bar: { _links: { self: { href: 'https://foxy.test/bar' } }, v: 1 } },
+          _links: { self: { href: 'https://foxy.test/foo' } },
+          loop,
+        };
+
+        const result = sync(state, {
+          data: { _links: { self: { href: 'https://foxy.test/bar' } }, loop, v: 2 } as TestResource,
+          source: 'https://foxy.test/bar',
+        }) as typeof state & { _embedded: { bar: { loop: typeof loop; v: number } } };
+
+        expect(result._embedded.bar.v).toBe(2);
+        expect(result._embedded.bar.loop.x).toBe(1);
+        expect(result.loop.x).toBe(1);
+      });
+
+      it('matches related URIs without query string or hash', () => {
+        const state = { _links: { self: { href: 'https://foxy.test/foos?limit=20#top' } } };
+        const update = () =>
+          sync(state, { data: null, related: ['https://foxy.test/foos'], source: 'https://foxy.test/foos/0' });
+        expect(update).toThrow(UpdateError);
+      });
+    });
   });
 });

@@ -1,8 +1,7 @@
 import type { CeaseCallback, Collection, Patch, Resource, Share, TrackCallback } from './types';
-import { get, isEqual } from 'lodash';
+import { clone, get, isEqual } from 'lodash';
 
 import { UpdateError } from './UpdateError.js';
-import traverse from 'traverse';
 
 /**
  * Rumour is a schemaless state manager for `application/hal+json` resources.
@@ -121,56 +120,114 @@ export class Rumour {
     }
   }
 
-  private static __createPatch(data: Resource): Patch {
-    return traverse(data).reduce(function (patch: Patch, value) {
-      if (!Rumour.__isResource(value) || Rumour.__isCollection(value)) return patch;
+  /**
+   * Calls `callback` for `value` and every object nested in it, parents first.
+   * Circular references are passed to `callback` but not walked into.
+   *
+   * @param value Value to walk.
+   * @param callback Function to call for each object.
+   * @param ancestors Objects on the path to `value`.
+   */
+  private static __forEachObject(
+    value: unknown,
+    callback: (node: Record<string, unknown>) => void,
+    ancestors: unknown[] = []
+  ): void {
+    if (typeof value !== 'object' || value === null) return;
+    callback(value as Record<string, unknown>);
+    if (ancestors.includes(value)) return;
 
-      const props = traverse(value).map(function () {
-        if (this.key === '_embedded') return this.delete(true);
-      });
-
-      patch.set(value._links.self.href, props);
-      return patch;
-    }, new Map());
+    ancestors.push(value);
+    Object.values(value as Record<string, unknown>).forEach(child => {
+      Rumour.__forEachObject(child, callback, ancestors);
+    });
+    ancestors.pop();
   }
 
-  private static __applyPatch(patch: Patch, data: Resource, related?: ReadonlyArray<string>) {
-    const approximateRelatedURIs = related?.map(uri => Rumour.__approximateURI(uri)) ?? [];
+  /**
+   * Returns a deep copy of `value` without `_embedded` keys at any depth.
+   * Circular references are copied one level deep but not walked into.
+   *
+   * @param value Value to copy.
+   * @param ancestors Objects on the path to `value`.
+   * @returns Copy of `value`.
+   */
+  private static __copyWithoutEmbeds(value: unknown, ancestors: unknown[] = []): unknown {
+    if (typeof value !== 'object' || value === null) return value;
 
-    const result = traverse({ data }).map(function (node) {
-      if (!Rumour.__isResource(node)) return;
+    const copy = clone(value) as Record<string, unknown>;
+    if (ancestors.includes(value)) return copy;
 
-      const exactURI = node._links.self.href;
-      const approximateURI = Rumour.__approximateURI(exactURI);
+    delete copy._embedded;
+    ancestors.push(value);
+    for (const key of Object.keys(copy)) copy[key] = Rumour.__copyWithoutEmbeds(copy[key], ancestors);
+    ancestors.pop();
+    return copy;
+  }
 
-      // This resource was referenced in the `related` array and is considered to be somehow affected by the update.
-      // An error is usually thrown here if a resource is added to a collection – Rumour can't know for sure
-      // where to insert the new resource in a collection page, so it asks the data host to reload its state.
-      if (approximateRelatedURIs.includes(approximateURI)) throw new Rumour.UpdateError();
+  private static __createPatch(data: Resource): Patch {
+    const patch: Patch = new Map();
 
-      if (patch.has(exactURI)) {
-        const props = patch.get(exactURI);
-
-        // When props ending with `_uri` or `_id` change, it's possible that the embedded content
-        // will change as well, so we throw an error to ask the data host to reload its state.
-        if (props) {
-          for (const key in props) {
-            if (!key.endsWith('_uri') && !key.endsWith('_id')) continue;
-            if ((node as Record<string, unknown>)[key] === props[key]) continue;
-            throw new Rumour.UpdateError();
-          }
-        }
-
-        if (props) return this.update({ ...node, ...props }, true);
-        if (!(this.parent as traverse.TraverseContext).parent) return this.delete(true);
-
-        // Deleting an embedded resource may result in differences between server-side and client-side states.
-        // For example, deleting a resource from a collection page shifts the content and changes some of the page fields.
-        // At this point, Rumour is unable to perform such updates reliably, so it asks the data host to reload its state instead.
-        throw new Rumour.UpdateError();
-      }
+    Rumour.__forEachObject(data, node => {
+      if (!Rumour.__isResource(node) || Rumour.__isCollection(node)) return;
+      patch.set(node._links.self.href, Rumour.__copyWithoutEmbeds(node) as Record<string, unknown>);
     });
 
-    return result.data ?? null;
+    return patch;
+  }
+
+  private static __applyPatch<T extends Resource>(patch: Patch, data: T, related?: ReadonlyArray<string>) {
+    const approximateRelatedURIs = related?.map(uri => Rumour.__approximateURI(uri)) ?? [];
+
+    const ancestors: unknown[] = [];
+    const visit = (node: unknown, isRoot: boolean): unknown => {
+      if (typeof node !== 'object' || node === null) return node;
+
+      if (Rumour.__isResource(node)) {
+        const exactURI = node._links.self.href;
+        const approximateURI = Rumour.__approximateURI(exactURI);
+
+        // This resource was referenced in the `related` array and is considered to be somehow affected by the update.
+        // An error is usually thrown here if a resource is added to a collection – Rumour can't know for sure
+        // where to insert the new resource in a collection page, so it asks the data host to reload its state.
+        if (approximateRelatedURIs.includes(approximateURI)) throw new Rumour.UpdateError();
+
+        if (patch.has(exactURI)) {
+          const props = patch.get(exactURI);
+
+          // When props ending with `_uri` or `_id` change, it's possible that the embedded content
+          // will change as well, so we throw an error to ask the data host to reload its state.
+          if (props) {
+            for (const key in props) {
+              if (!key.endsWith('_uri') && !key.endsWith('_id')) continue;
+              if ((node as Record<string, unknown>)[key] === props[key]) continue;
+              throw new Rumour.UpdateError();
+            }
+          }
+
+          // Updated nodes are not walked further, so their own `_embedded` content stays as is.
+          if (props) return { ...node, ...props };
+          if (isRoot) return null;
+
+          // Deleting an embedded resource may result in differences between server-side and client-side states.
+          // For example, deleting a resource from a collection page shifts the content and changes some of the page fields.
+          // At this point, Rumour is unable to perform such updates reliably, so it asks the data host to reload its state instead.
+          throw new Rumour.UpdateError();
+        }
+      }
+
+      // Each visited object is copied one level deep, so the input is never mutated and
+      // objects below an updated resource keep their references (consumers may compare them with `===`).
+      // Circular references are copied but not walked into.
+      const copy = clone(node) as Record<string, unknown>;
+      if (ancestors.includes(node)) return copy;
+
+      ancestors.push(node);
+      for (const key of Object.keys(copy)) copy[key] = visit(copy[key], false);
+      ancestors.pop();
+      return copy;
+    };
+
+    return (visit(data, true) ?? null) as T | null;
   }
 }
