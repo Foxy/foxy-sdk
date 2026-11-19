@@ -66,6 +66,7 @@ export { client } from "./client";
 export { sideCart } from "./side-cart";
 export type { SideCart } from "./side-cart";
 export type { AddToCartDetail } from "./add-to-cart";
+export { resolveCheckoutTheme } from "./theme";
 export { toCountryOptions } from "./countryOptions";
 export type { CountryOption } from "./countryOptions";
 export { loadRegionMessages, regionLabelMessageId, toRegionOptions } from "./regionOptions";

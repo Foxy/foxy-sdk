@@ -1,8 +1,20 @@
 /**
  * Theme for the checkout. Every key is optional. A missing or null key, or a
  * value in the wrong format, keeps the default.
+ *
+ * `corners`, `outlines` and `shadows` set the corner radius, border width and shadow of every
+ * group at once, and `page_background` and `text_color` drive the surface, field and border
+ * colors. Each detailed key (`surface_radius`, `border_width`, `field_shadow`, ...) overrides
+ * what those would give. `resolveCheckoutTheme` from `@foxy.io/sdk/checkout/theme` fills the
+ * detailed keys that are not set.
  */
 export type CheckoutTheme = {
+  /** Corner style of cards, popups, fields and buttons. One of `sharp`, `subtle`, `regular`, `soft`. Sets `surface_radius`, `popup_radius`, `control_radius` and `button_radius` when they are not set. Missing, null or any other value = no change. */
+  corners?: "sharp" | "subtle" | "regular" | "soft" | null;
+  /** Border width of cards, popups, fields and buttons. One of `none`, `thin`, `medium`, `bold`. Sets `border_width`, `popup_border_width`, `field_border_width` and `button_border_width` when they are not set; fields keep a thin border for `none`. Missing, null or any other value = no change. */
+  outlines?: "none" | "thin" | "medium" | "bold" | null;
+  /** Shadow style of cards, popups, fields and buttons. One of `none`, `light`, `medium`, `heavy`, `sharp`. Sets `surface_shadow`, `popup_shadow`, `field_shadow` and `button_shadow` when they are not set. `sharp` uses `text_color` for a hard offset shadow. Missing, null or any other value = no change. */
+  shadows?: "none" | "light" | "medium" | "heavy" | "sharp" | null;
   /** Background of the page behind the checkout. Hex color: `#RRGGBB` or `#RRGGBBAA`. Missing or null = default. */
   page_background?: string | null;
   /** Background of cards and panels. Hex color: `#RRGGBB` or `#RRGGBBAA`. Missing or null = default. */
@@ -64,8 +76,8 @@ export type CheckoutTheme = {
   field_shadow?: string | null;
   /** Shadow of filled and outline buttons. Same format as `surface_shadow`. Missing, null or any other format = no shadow. */
   button_shadow?: string | null;
-  /** Spacing between and inside elements, and the height of fields and buttons. One of `tighter`, `tight`, `default`, `roomy`, `roomier`. Default: `default`. Missing, null or any other value = default. */
-  density?: "tighter" | "tight" | "default" | "roomy" | "roomier" | null;
+  /** Spacing between and inside elements, and the height of fields and buttons. One of `tight`, `default`, `roomy`. Default: `default`. Missing, null or any other value = default. */
+  density?: "tight" | "default" | "roomy" | null;
   /** Background of select lists, dialogs, popovers, tooltips and the side cart. Hex color: `#RRGGBB` or `#RRGGBBAA`. Missing or null = the surface background. */
   popup_background?: string | null;
   /** Color of popup borders. Hex color: `#RRGGBB` or `#RRGGBBAA`. Missing or null = `border_color`. */

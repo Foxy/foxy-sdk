@@ -24,6 +24,10 @@
       "types": "./dist/npm/checkout/loader.d.ts",
       "import": "./dist/npm/checkout/loader.js"
     },
+    "./checkout/theme": {
+      "types": "./dist/npm/checkout/theme.d.ts",
+      "import": "./dist/npm/checkout/theme.js"
+    },
     "./internal/side-cart/protocol": {
       "types": "./dist/npm/internal/side-cart/protocol.d.ts",
       "import": "./dist/npm/internal/side-cart/protocol.js"

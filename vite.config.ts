@@ -20,6 +20,7 @@ const entryMap = {
   "admin/subscriptions": resolve(__dirname, "src/admin/subscriptions.ts"),
   checkout: resolve(__dirname, "src/checkout/index.ts"),
   "checkout/loader": resolve(__dirname, "src/checkout/loader.ts"),
+  "checkout/theme": resolve(__dirname, "src/checkout/theme.ts"),
   "internal/side-cart/protocol": resolve(__dirname, "src/checkout/side-cart/protocol.ts"),
   "internal/core": resolve(__dirname, "src/core/index.ts"),
   customer: resolve(__dirname, "src/customer/index.ts"),

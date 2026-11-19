@@ -12,6 +12,7 @@ describe('package.json', () => {
       './admin/subscriptions',
       './checkout',
       './checkout/loader',
+      './checkout/theme',
       './customer',
       './customer/subscriptions',
       './internal/core',
