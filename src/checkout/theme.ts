@@ -5,9 +5,9 @@ export type { CheckoutTheme };
 type Rgb = [number, number, number];
 
 const COLOR = /^#([0-9a-fA-F]{6})([0-9a-fA-F]{2})?$/;
-const REM = /^(\d+(?:\.\d{1,4})?)rem$/;
+const REM = /^\d{1,2}(?:\.\d{1,4})?rem$/;
 const SHADOW =
-  /^(-?\d+)px (-?\d+)px (\d+)px (-?\d+)px #[0-9a-fA-F]{6}(?:[0-9a-fA-F]{2})?$/;
+  /^-?\d{1,3}px -?\d{1,3}px \d{1,3}px -?\d{1,3}px #(?:[0-9a-f]{6}|[0-9a-f]{8})$/i;
 const WHITE: Rgb = [255, 255, 255];
 
 /** Parses `#RRGGBB[AA]` and composites it over `over` (white by default). */
@@ -46,21 +46,24 @@ function contrast(a: Rgb, b: Rgb): number {
   return (hi + 0.05) / (lo + 0.05);
 }
 
-/** Moves `c` toward `target` in 2% steps until it reaches `ratio` against `base`. */
+/** Rounds to what the hex output holds, so contrast is checked on the colors that are written. */
+const rounded = (c: Rgb): Rgb => parse(toHex(c))!;
+
+/** Moves `c` toward `target` in 2% steps until its hex output reaches `ratio` against `base`'s. */
 function moveUntil(c: Rgb, target: Rgb, base: Rgb, ratio: number): Rgb {
+  const behind = rounded(base);
   for (let t = 0; t <= 1; t += 0.02) {
     const candidate = mix(c, target, t);
-    if (contrast(candidate, base) >= ratio) return candidate;
+    if (contrast(rounded(candidate), behind) >= ratio) return candidate;
   }
   return target;
 }
 
-// Format only: the checkout clamps out-of-range numbers, so they count as set.
-const rem = (pill: boolean) => (v: unknown) =>
-  typeof v === "string" && ((pill && v === "pill") || REM.test(v));
+// Format only, as strict as the checkout's parsers: it clamps out-of-range numbers, so they count as set.
+const isRem = (v: unknown) => typeof v === "string" && REM.test(v);
+const isRemOrPill = (v: unknown) => v === "pill" || isRem(v);
 
 const isColor = (v: unknown) => parse(v) !== null;
-const isCase = (v: unknown) => v === "normal" || v === "uppercase";
 
 const isShadow = (v: unknown) => typeof v === "string" && SHADOW.test(v);
 
@@ -73,20 +76,18 @@ const VALID: Record<string, (v: unknown) => boolean> = {
   popup_border_color: isColor,
   field_border_color: isColor,
   secondary_text_color: isColor,
-  surface_radius: rem(false),
-  popup_radius: rem(false),
-  control_radius: rem(true),
-  button_radius: rem(true),
-  border_width: rem(false),
-  popup_border_width: rem(false),
-  field_border_width: rem(false),
-  button_border_width: rem(false),
+  surface_radius: isRem,
+  popup_radius: isRem,
+  control_radius: isRemOrPill,
+  button_radius: isRemOrPill,
+  border_width: isRem,
+  popup_border_width: isRem,
+  field_border_width: isRem,
+  button_border_width: isRem,
   surface_shadow: isShadow,
   popup_shadow: isShadow,
   field_shadow: isShadow,
   button_shadow: isShadow,
-  button_text: isCase,
-  field_label_text: isCase,
 };
 
 const RADII = {

@@ -165,6 +165,55 @@ describe("resolveCheckoutTheme", () => {
       ).toBeGreaterThanOrEqual(4.5);
     });
 
+    it.each([
+      ["#2D216B", "#4DE045"],
+      ["#914C36", "#E1FD40"],
+    ])(
+      "keeps contrast after rounding (%s on %s)",
+      (page_background, text_color) => {
+        const out = resolveCheckoutTheme({ page_background, text_color });
+        expect(
+          ratio(out.field_border_color!, out.surface_background!),
+        ).toBeGreaterThanOrEqual(3);
+        expect(
+          ratio(out.secondary_text_color!, out.surface_background!),
+        ).toBeGreaterThanOrEqual(4.5);
+      },
+    );
+
+    it("keeps both ratios on the hex outputs for seeded random pairs", () => {
+      let seed = 12345;
+      const rnd = () =>
+        (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648;
+      const color = () =>
+        "#" +
+        [0, 1, 2]
+          .map(() =>
+            Math.floor(rnd() * 256)
+              .toString(16)
+              .padStart(2, "0"),
+          )
+          .join("")
+          .toUpperCase();
+      let checked = 0;
+      for (let i = 0; i < 600; i++) {
+        const page_background = color();
+        const text_color = color();
+        const out = resolveCheckoutTheme({ page_background, text_color });
+        if (ratio(text_color, out.surface_background!) < 4.5) continue;
+        checked++;
+        expect(
+          ratio(out.field_border_color!, out.surface_background!),
+          `${page_background} ${text_color}`,
+        ).toBeGreaterThanOrEqual(3);
+        expect(
+          ratio(out.secondary_text_color!, out.surface_background!),
+          `${page_background} ${text_color}`,
+        ).toBeGreaterThanOrEqual(4.5);
+      }
+      expect(checked).toBeGreaterThan(50);
+    });
+
     it("works with only one of the two keys, and composites translucent colors over white", () => {
       expect(
         resolveCheckoutTheme({ text_color: "#202020" }).surface_background,
@@ -238,6 +287,26 @@ describe("resolveCheckoutTheme", () => {
       });
       expect(out.surface_radius).toBe("1.5rem");
       expect(out.popup_radius).toBe("2.5rem");
+    });
+
+    it.each([
+      ["surface_radius", "100rem"],
+      ["border_width", "100rem"],
+      ["surface_shadow", "0px 1px 2px 0px #000000".replace("1px", "1000px")],
+      ["popup_shadow", "0px 1px 2px 1000px #000000"],
+    ])("derives %s with too many digits (%s)", (key, value) => {
+      const out = resolveCheckoutTheme({ ...theme, [key]: value });
+      expect(out[key as keyof CheckoutTheme]).toBe(
+        resolveCheckoutTheme(theme)[key as keyof CheckoutTheme],
+      );
+    });
+
+    it("accepts the widest numbers the checkout accepts", () => {
+      const lower = {
+        surface_radius: "99.9999rem",
+        surface_shadow: "-999px 999px 999px -999px #aabbcc",
+      };
+      expect(resolveCheckoutTheme({ ...theme, ...lower })).toMatchObject(lower);
     });
 
     it("never fills one lower key from another", () => {
