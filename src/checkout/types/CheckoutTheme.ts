@@ -5,7 +5,8 @@
  * `corners`, `outlines` and `shadows` set the corner radius, border width and shadow of every
  * group at once, and `page_background` and `text_color` drive the surface, field and border
  * colors. Each detailed key (`surface_radius`, `border_width`, `field_shadow`, ...) overrides
- * what those would give. `resolveCheckoutTheme` from `@foxy.io/sdk/checkout/theme` fills the
+ * what those would give; a value in the right format counts as set even when out of range (the
+ * checkout clamps it), a value in the wrong format counts as unset. `resolveCheckoutTheme` from `@foxy.io/sdk/checkout/theme` fills the
  * detailed keys that are not set.
  */
 export type CheckoutTheme = {

@@ -199,19 +199,45 @@ describe("resolveCheckoutTheme", () => {
 
     it.each([
       ["surface_background", "red"],
-      ["surface_radius", "2.5rem"],
+      ["surface_radius", "big"],
       ["surface_radius", "pill"],
-      ["control_radius", "1.5001rem"],
+      ["border_width", "0.5 rem"],
+      ["surface_shadow", "0px 1px 2.5px 0px #000000"],
       ["border_width", "1px"],
-      ["border_width", "0.6rem"],
       ["surface_shadow", "0 1px 2px #000"],
-      ["surface_shadow", "0px 1px 81px 0px #000000"],
       ["button_shadow", null],
     ])("derives an invalid %s (%s)", (key, value) => {
       const out = resolveCheckoutTheme({ ...theme, [key]: value });
       expect(out[key as keyof CheckoutTheme]).toBe(
         resolveCheckoutTheme(theme)[key as keyof CheckoutTheme],
       );
+    });
+
+    it.each([
+      ["surface_radius", "2.5rem"],
+      ["control_radius", "1.5001rem"],
+      ["border_width", "0.6rem"],
+      ["surface_shadow", "0px 1px 81px 0px #000000"],
+      ["popup_shadow", "90px -90px 0px 90px #000000"],
+    ])(
+      "keeps an out-of-range %s (%s) for the checkout to clamp",
+      (key, value) => {
+        expect(
+          resolveCheckoutTheme({ ...theme, [key]: value })[
+            key as keyof CheckoutTheme
+          ],
+        ).toBe(value);
+      },
+    );
+
+    it("derives a wrong-format value next to an out-of-range one", () => {
+      const out = resolveCheckoutTheme({
+        corners: "soft",
+        surface_radius: "big",
+        popup_radius: "2.5rem",
+      });
+      expect(out.surface_radius).toBe("1.5rem");
+      expect(out.popup_radius).toBe("2.5rem");
     });
 
     it("never fills one lower key from another", () => {

@@ -55,29 +55,14 @@ function moveUntil(c: Rgb, target: Rgb, base: Rgb, ratio: number): Rgb {
   return target;
 }
 
-const remIn =
-  (max: number, pill = false) =>
-  (v: unknown) => {
-    if (typeof v !== "string") return false;
-    if (pill && v === "pill") return true;
-    const match = REM.exec(v);
-    return !!match && parseFloat(match[1]) <= max;
-  };
+// Format only: the checkout clamps out-of-range numbers, so they count as set.
+const rem = (pill: boolean) => (v: unknown) =>
+  typeof v === "string" && ((pill && v === "pill") || REM.test(v));
 
 const isColor = (v: unknown) => parse(v) !== null;
 const isCase = (v: unknown) => v === "normal" || v === "uppercase";
 
-function isShadow(v: unknown): boolean {
-  const match = typeof v === "string" ? SHADOW.exec(v) : null;
-  if (!match) return false;
-  const [x, y, blur, spread] = match.slice(1).map(Number);
-  return (
-    Math.abs(x) <= 40 &&
-    Math.abs(y) <= 40 &&
-    blur <= 80 &&
-    Math.abs(spread) <= 40
-  );
-}
+const isShadow = (v: unknown) => typeof v === "string" && SHADOW.test(v);
 
 /** What a lower key accepts. Keys that are not here are left alone. */
 const VALID: Record<string, (v: unknown) => boolean> = {
@@ -88,14 +73,14 @@ const VALID: Record<string, (v: unknown) => boolean> = {
   popup_border_color: isColor,
   field_border_color: isColor,
   secondary_text_color: isColor,
-  surface_radius: remIn(2),
-  popup_radius: remIn(2),
-  control_radius: remIn(1.5, true),
-  button_radius: remIn(1.5, true),
-  border_width: remIn(0.5),
-  popup_border_width: remIn(0.5),
-  field_border_width: remIn(0.5),
-  button_border_width: remIn(0.5),
+  surface_radius: rem(false),
+  popup_radius: rem(false),
+  control_radius: rem(true),
+  button_radius: rem(true),
+  border_width: rem(false),
+  popup_border_width: rem(false),
+  field_border_width: rem(false),
+  button_border_width: rem(false),
   surface_shadow: isShadow,
   popup_shadow: isShadow,
   field_shadow: isShadow,
