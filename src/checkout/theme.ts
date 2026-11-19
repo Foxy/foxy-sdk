@@ -49,14 +49,23 @@ function contrast(a: Rgb, b: Rgb): number {
 /** Rounds to what the hex output holds, so contrast is checked on the colors that are written. */
 const rounded = (c: Rgb): Rgb => parse(toHex(c))!;
 
-/** Moves `c` toward `target` in 2% steps until its hex output reaches `ratio` against `base`'s. */
+/** Black or white, whichever contrasts more with `base`. */
+const extreme = (base: Rgb): Rgb =>
+  contrast(base, [0, 0, 0]) < contrast(base, WHITE) ? WHITE : [0, 0, 0];
+
+/**
+ * Moves `c` toward `target` in 2% steps until its hex output reaches `ratio` against `base`'s.
+ * If the target is too faint to get there, keeps going toward black or white instead.
+ */
 function moveUntil(c: Rgb, target: Rgb, base: Rgb, ratio: number): Rgb {
   const behind = rounded(base);
-  for (let t = 0; t <= 1; t += 0.02) {
-    const candidate = mix(c, target, t);
-    if (contrast(rounded(candidate), behind) >= ratio) return candidate;
+  for (const end of [target, extreme(behind)]) {
+    for (let t = 0; t <= 1; t += 0.02) {
+      const candidate = mix(c, end, t);
+      if (contrast(rounded(candidate), behind) >= ratio) return candidate;
+    }
   }
-  return target;
+  return extreme(behind);
 }
 
 // Format only, as strict as the checkout's parsers: it clamps out-of-range numbers, so they count as set.
@@ -174,7 +183,9 @@ export function resolveCheckoutTheme(
   }
 
   if (input.shadows === "sharp") {
-    const ink = fg ? (input.text_color as string) : "#1A1A1A";
+    const wanted = fg ? (input.text_color as string) : "#1A1A1A";
+    const ink =
+      contrast(parse(wanted, page)!, page) >= 3 ? wanted : toHex(extreme(page));
     const hard = (n: number) => `${n}px ${n}px 0px 0px ${ink}`;
     derived.surface_shadow = derived.popup_shadow = hard(4);
     derived.field_shadow = derived.button_shadow = hard(2);

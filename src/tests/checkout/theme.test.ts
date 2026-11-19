@@ -119,6 +119,18 @@ describe("resolveCheckoutTheme", () => {
     );
   });
 
+  it("shadows sharp switches to a readable ink on a dark page", () => {
+    for (const theme of [
+      { page_background: "#14120F" },
+      { page_background: "#14120F", text_color: "#2A2824" },
+    ]) {
+      const out = resolveCheckoutTheme({ ...theme, shadows: "sharp" });
+      const ink = out.field_shadow!.split(" ").pop()!;
+      expect(ratio(ink, "#14120F")).toBeGreaterThanOrEqual(3);
+      expect(out.surface_shadow!.endsWith(ink)).toBe(true);
+    }
+  });
+
   it("ignores invalid theme-level values", () => {
     const input = {
       corners: "round",
@@ -181,6 +193,20 @@ describe("resolveCheckoutTheme", () => {
       },
     );
 
+    it.each([
+      [{ page_background: "#14120F" }],
+      [{ page_background: "#0B0B0F" }],
+      [{ text_color: "#F2F2F2" }],
+    ])("keeps both ratios when the Foreground is too faint (%j)", (theme) => {
+      const out = resolveCheckoutTheme(theme);
+      expect(
+        ratio(out.field_border_color!, out.surface_background!),
+      ).toBeGreaterThanOrEqual(3);
+      expect(
+        ratio(out.secondary_text_color!, out.surface_background!),
+      ).toBeGreaterThanOrEqual(4.5);
+    });
+
     it("keeps both ratios on the hex outputs for seeded random pairs", () => {
       let seed = 12345;
       const rnd = () =>
@@ -195,13 +221,10 @@ describe("resolveCheckoutTheme", () => {
           )
           .join("")
           .toUpperCase();
-      let checked = 0;
       for (let i = 0; i < 600; i++) {
         const page_background = color();
         const text_color = color();
         const out = resolveCheckoutTheme({ page_background, text_color });
-        if (ratio(text_color, out.surface_background!) < 4.5) continue;
-        checked++;
         expect(
           ratio(out.field_border_color!, out.surface_background!),
           `${page_background} ${text_color}`,
@@ -211,7 +234,6 @@ describe("resolveCheckoutTheme", () => {
           `${page_background} ${text_color}`,
         ).toBeGreaterThanOrEqual(4.5);
       }
-      expect(checked).toBeGreaterThan(50);
     });
 
     it("works with only one of the two keys, and composites translucent colors over white", () => {
