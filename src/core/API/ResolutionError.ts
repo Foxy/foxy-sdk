@@ -1,5 +1,5 @@
+import { checkArgument, v8n } from '../v8n.js';
 import { Response } from 'cross-fetch';
-import v8n from 'v8n';
 
 /**
  * This error is thrown when one of the requests for a resource
@@ -18,7 +18,7 @@ export class ResolutionError extends Error {
 
   constructor(response: Response) {
     super();
-    ResolutionError.v8n.constructor.check(response);
+    checkArgument(ResolutionError.v8n.constructor, response, 'response');
     this.response = response;
   }
 }

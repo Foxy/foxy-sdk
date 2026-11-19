@@ -10,6 +10,19 @@ import { Headers, Response } from 'cross-fetch';
  */
 const isSDKResponse = (value: unknown): boolean => value instanceof Response;
 
+/** `Request` properties that are also `fetch()` options. */
+const REQUEST_OPTIONS = [
+  'cache',
+  'credentials',
+  'integrity',
+  'keepalive',
+  'mode',
+  'redirect',
+  'referrer',
+  'referrerPolicy',
+  'signal',
+] as const;
+
 /** Function with the same signature as WHATWG fetch. */
 export type Fetch = Window['fetch'];
 
@@ -37,7 +50,15 @@ export async function sendWithCustomFetch(customFetch: Fetch, request: Request, 
     if (buffer.byteLength > 0) body = buffer;
   }
 
-  const response = await customFetch(request.url, { ...init, body, headers, method });
+  // Carry over the options the request holds (such as `signal` or `redirect`), skipping ones the
+  // SDK's Request class doesn't set. Options in `init` win, since some Request classes drop them.
+  const requestOptions: Record<string, unknown> = {};
+  REQUEST_OPTIONS.forEach(key => {
+    const value = ((request as unknown) as Record<string, unknown>)[key];
+    if (value !== undefined && value !== null) requestOptions[key] = value;
+  });
+
+  const response = await customFetch(request.url, { ...requestOptions, ...init, body, headers, method });
   if (isSDKResponse(response)) return response;
 
   const nullBody = [101, 204, 205, 304].indexOf(response.status) !== -1;

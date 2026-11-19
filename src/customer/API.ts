@@ -3,7 +3,7 @@ import type { Graph } from './Graph';
 
 import { Fetch, sendWithCustomFetch } from '../core/transport/index.js';
 import { Request, fetch } from 'cross-fetch';
-import { v8n } from '../core/v8n.js';
+import { checkArgument, v8n } from '../core/v8n.js';
 
 import * as Core from '../core/index.js';
 
@@ -46,7 +46,7 @@ export class API extends Core.API<Graph> {
    * this client makes (with session headers added) instead of the default `cross-fetch` transport.
    */
   constructor(params: ConstructorParameters<typeof Core.API>[0]) {
-    API.v8n.classConstructor.check(params);
+    checkArgument(API.v8n.classConstructor, params, 'init');
     super({ ...params, fetch: (...args) => this.__fetch(...args) });
     this.__customFetch = params.fetch;
   }
@@ -58,7 +58,7 @@ export class API extends Core.API<Graph> {
    * @param credentials Customer email and password (one-time code).
    */
   async signIn(credentials: Credentials): Promise<void> {
-    API.v8n.credentials.check(credentials);
+    checkArgument(API.v8n.credentials, credentials, 'credentials');
 
     const response = await this.fetch(new URL('./authenticate', this.base).toString(), {
       body: JSON.stringify(credentials),
@@ -84,7 +84,7 @@ export class API extends Core.API<Graph> {
    * @param params Customer information.
    */
   async signUp(params: SignUpParams): Promise<void> {
-    API.v8n.signUpParams.check(params);
+    checkArgument(API.v8n.signUpParams, params, 'params');
 
     const url = new URL('./sign_up', this.base);
     const response = await this.fetch(url.toString(), {
@@ -108,7 +108,7 @@ export class API extends Core.API<Graph> {
    * @param params.email Customer email.
    */
   async sendPasswordResetEmail(params: { email: string }): Promise<void> {
-    API.v8n.email.check(params.email);
+    checkArgument(API.v8n.email, params.email, 'params.email');
 
     const response = await this.fetch(new URL('./forgot_password', this.base).toString(), {
       body: JSON.stringify(params),
@@ -141,7 +141,7 @@ export class API extends Core.API<Graph> {
   }
 
   set usesTemporaryPassword(value: boolean) {
-    API.v8n.boolean.check(value);
+    checkArgument(API.v8n.boolean, value, 'value');
     const session = this.storage.getItem(API.SESSION);
     if (session) {
       const storedSession = JSON.parse(session) as StoredSession;

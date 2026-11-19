@@ -38,6 +38,23 @@ describe('Core', () => {
         expect(Buffer.from(init.body as ArrayBuffer).toString()).toBe('{"name":"test"}');
       });
 
+      it('carries over options set on the request, letting init override them', async () => {
+        const customFetch = jest.fn(() => Promise.resolve(new Response('{}')));
+        // Stand-in for AbortSignal (not global in this Jest environment). node-fetch only checks the class name.
+        class AbortSignal {}
+        const signal = (new AbortSignal() as unknown) as RequestInit['signal'];
+        const request = new Request('https://api.foxy.io/', { redirect: 'manual', signal });
+
+        await sendWithCustomFetch(customFetch, request);
+        await sendWithCustomFetch(customFetch, request, { redirect: 'error' });
+
+        const calls = (customFetch.mock.calls as unknown) as [string, RequestInit][];
+        expect(calls[0][1].signal).toBe(signal);
+        expect(calls[0][1].redirect).toBe('manual');
+        expect(calls[1][1].signal).toBe(signal);
+        expect(calls[1][1].redirect).toBe('error');
+      });
+
       it('sends no body for GET requests and empty bodies', async () => {
         const customFetch = jest.fn(() => Promise.resolve(new Response('{}')));
 

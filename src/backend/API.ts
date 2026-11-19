@@ -2,7 +2,7 @@ import * as Core from '../core/index.js';
 
 import { Fetch, sendWithCustomFetch } from '../core/transport/index.js';
 import { Headers, Request, fetch } from 'cross-fetch';
-import { storageV8N, v8n } from '../core/v8n.js';
+import { checkArgument, storageV8N, v8n } from '../core/v8n.js';
 
 import type { Graph } from './Graph';
 import type { LogLevel } from 'consola';
@@ -95,7 +95,7 @@ export class API extends Core.API<Graph> {
   static async getToken(opts: GrantOpts, throwOnFailure: true): Promise<Token>;
 
   static async getToken(opts: GrantOpts, throwOnFailure = false): Promise<Token | null> {
-    API.v8n.getAccessToken.check(opts);
+    checkArgument(API.v8n.getAccessToken, opts, 'opts');
 
     const headers = new Headers();
     const body = new URLSearchParams();
@@ -115,9 +115,11 @@ export class API extends Core.API<Graph> {
       body.set('refresh_token', opts.refreshToken);
     }
 
+    // An API instance has a `fetch` method that sends requests through the API itself, so use its custom fetch instead.
+    const customFetch = opts instanceof API ? opts.__customFetch : opts.fetch;
     const init = { body, headers, method: 'POST' };
-    const response = opts.fetch
-      ? await sendWithCustomFetch(opts.fetch, new Request(url, init))
+    const response = customFetch
+      ? await sendWithCustomFetch(customFetch, new Request(url, init))
       : await fetch(url, init);
 
     if (response.ok) return response.json();
@@ -125,9 +127,11 @@ export class API extends Core.API<Graph> {
     return null;
   }
 
-  readonly refreshToken: string;
+  /** OAuth refresh token. Non-enumerable, so it's left out of `console.log()`, `util.inspect()` and `JSON.stringify()` output. */
+  readonly refreshToken!: string;
 
-  readonly clientSecret: string;
+  /** OAuth client secret. Non-enumerable, so it's left out of `console.log()`, `util.inspect()` and `JSON.stringify()` output. */
+  readonly clientSecret!: string;
 
   readonly clientId: string;
 
@@ -138,7 +142,7 @@ export class API extends Core.API<Graph> {
   private readonly __customFetch?: Fetch;
 
   constructor(params: BackendAPIInit) {
-    API.v8n.classConstructor.check(params);
+    checkArgument(API.v8n.classConstructor, params, 'params');
 
     super({
       base: params.base ?? API.BASE_URL,
@@ -148,8 +152,12 @@ export class API extends Core.API<Graph> {
       storage: params.storage ?? new MemoryStorage(),
     });
 
-    this.refreshToken = params.refreshToken;
-    this.clientSecret = params.clientSecret;
+    // Non-enumerable so that logging or serializing the instance doesn't print the secrets.
+    Object.defineProperties(this, {
+      clientSecret: { configurable: true, enumerable: false, value: params.clientSecret, writable: true },
+      refreshToken: { configurable: true, enumerable: false, value: params.refreshToken, writable: true },
+    });
+
     this.clientId = params.clientId;
     this.version = params.version ?? API.VERSION;
 
@@ -170,16 +178,7 @@ export class API extends Core.API<Graph> {
       this.__tokenRefreshPromise = (async () => {
         try {
           this.console.trace('Fetching a new access token...');
-          const grantOpts: GrantOpts = {
-            base: this.base,
-            clientId: this.clientId,
-            clientSecret: this.clientSecret,
-            fetch: this.__customFetch,
-            refreshToken: this.refreshToken,
-            version: this.version,
-          };
-
-          const rawToken = await API.getToken(grantOpts, true).catch(err => {
+          const rawToken = await API.getToken(this, true).catch(err => {
             this.console.error(err.message);
             return null;
           });

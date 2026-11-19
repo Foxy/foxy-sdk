@@ -1,4 +1,6 @@
+import { ArgumentError } from '../../src/core/v8n';
 import { createSSOURL } from '../../src/backend/createSSOURL';
+import { inspect } from 'util';
 
 describe('Backend', () => {
   describe('createSSOURL', () => {
@@ -14,6 +16,26 @@ describe('Backend', () => {
       } as unknown) as Parameters<typeof createSSOURL>[0];
 
       expect(() => createSSOURL(incorrectParams)).toThrow();
+    });
+
+    it('keeps the secret out of the error when params are invalid', () => {
+      const params = ({
+        customer: '0',
+        domain: 'https://example.test',
+        secret: 'sso-secret-value',
+      } as unknown) as Parameters<typeof createSSOURL>[0];
+
+      let error: unknown;
+
+      try {
+        createSSOURL(params);
+      } catch (err) {
+        error = err;
+      }
+
+      expect(error).toBeInstanceOf(ArgumentError);
+      expect((error as Error).message).toContain('options.customer');
+      expect(inspect(error, { depth: null })).not.toContain('sso-secret-value');
     });
 
     it('works with required params', () => {

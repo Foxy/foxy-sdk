@@ -7,10 +7,13 @@ jest.mock('cross-fetch', () => ({
 }));
 
 import { Headers, Request, Response, fetch } from 'cross-fetch';
+import { VisibleStorage, safeStringify } from '../utils';
 
+import { ArgumentError } from '../../src/core/v8n';
 import { API as BackendAPI } from '../../src/backend/API';
 import { API as CoreAPI } from '../../src/core/API';
 import MemoryCache from 'fake-storage';
+import { inspect } from 'util';
 
 const fetchMock = (fetch as unknown) as jest.MockInstance<unknown, unknown[]>;
 
@@ -175,6 +178,37 @@ describe('Backend', () => {
       expect(() => new BackendAPI(incorrectInit)).toThrow();
     });
 
+    it('keeps credentials out of the error when constructor params are invalid', () => {
+      const init = ({ ...commonInit, level: 'error' } as unknown) as ConstructorParameters<typeof BackendAPI>[0];
+      let error: unknown;
+
+      try {
+        new BackendAPI(init);
+      } catch (err) {
+        error = err;
+      }
+
+      expect(error).toBeInstanceOf(ArgumentError);
+      expect((error as Error).message).toContain('params.level');
+
+      const output = inspect(error, { depth: null });
+      expect(output).not.toContain(commonInit.clientSecret);
+      expect(output).not.toContain(commonInit.refreshToken);
+      expect(output).not.toContain(commonInit.clientId);
+    });
+
+    it('keeps credentials out of the error when API.getToken() params are invalid', async () => {
+      const opts = ({ ...commonInit, version: 2 } as unknown) as Parameters<typeof BackendAPI['getToken']>[0];
+      const error = await BackendAPI.getToken(opts).catch(err => err);
+
+      expect(error).toBeInstanceOf(ArgumentError);
+      expect((error as Error).message).toContain('opts.version');
+
+      const output = inspect(error, { depth: null });
+      expect(output).not.toContain(commonInit.clientSecret);
+      expect(output).not.toContain(commonInit.refreshToken);
+    });
+
     it('extends core API class', () => {
       expect(new BackendAPI(commonInit)).toBeInstanceOf(CoreAPI);
     });
@@ -192,6 +226,48 @@ describe('Backend', () => {
     it('stores refresh token as instance.refreshToken', () => {
       const api = new BackendAPI(commonInit);
       expect(api).toHaveProperty('refreshToken', commonInit.refreshToken);
+    });
+
+    it('keeps the client secret and refresh token out of inspect, JSON and Object.keys output', () => {
+      const api = new BackendAPI(commonInit);
+      const inspected = inspect(api, { depth: null, showHidden: false });
+      const json = safeStringify(api);
+
+      expect(inspected).not.toContain(commonInit.clientSecret);
+      expect(inspected).not.toContain(commonInit.refreshToken);
+      expect(json).not.toContain(commonInit.clientSecret);
+      expect(json).not.toContain(commonInit.refreshToken);
+      expect(Object.keys(api)).not.toContain('clientSecret');
+      expect(Object.keys(api)).not.toContain('refreshToken');
+
+      expect(api.clientSecret).toBe(commonInit.clientSecret);
+      expect(api.refreshToken).toBe(commonInit.refreshToken);
+      expect(api.clientId).toBe(commonInit.clientId);
+    });
+
+    it('keeps the stored access token out of inspect and JSON output', () => {
+      const storage = new VisibleStorage();
+      const api = new BackendAPI({ ...commonInit, storage });
+
+      api.storage.setItem(BackendAPI.ACCESS_TOKEN, JSON.stringify(sampleStoredToken));
+
+      expect(inspect(api, { depth: null, showHidden: false })).not.toContain(sampleStoredToken.access_token);
+      expect(safeStringify(api)).not.toContain(sampleStoredToken.access_token);
+      expect(Object.keys(api)).not.toContain('storage');
+      expect(api.storage).toBe(storage);
+    });
+
+    it('still uses hidden credentials when fetching a new access token', async () => {
+      fetchMock.mockImplementation(() => Promise.resolve(new Response(JSON.stringify(sampleToken))));
+
+      const api = new BackendAPI(commonInit);
+      await api.fetch(BackendAPI.BASE_URL.toString());
+
+      const init = fetchMock.mock.calls[0][1] as { body: URLSearchParams };
+      const body = new URLSearchParams(init.body.toString());
+      expect(body.get('client_id')).toBe(commonInit.clientId);
+      expect(body.get('client_secret')).toBe(commonInit.clientSecret);
+      expect(body.get('refresh_token')).toBe(commonInit.refreshToken);
     });
 
     it('stores version as instance.version', () => {
@@ -408,7 +484,8 @@ describe('Backend', () => {
 
       it('errors when constructed with a fetch that is not a function', () => {
         const init = ({ ...commonInit, fetch: 'nope' } as unknown) as ConstructorParameters<typeof BackendAPI>[0];
-        expect(() => new BackendAPI(init)).toThrow();
+        expect(() => new BackendAPI(init)).toThrow(ArgumentError);
+        expect(() => new BackendAPI(init)).toThrow('params.fetch');
       });
 
       it('errors when API.getToken() is called with a fetch that is not a function', async () => {
@@ -438,6 +515,23 @@ describe('Backend', () => {
           grant_type: 'refresh_token',
           refresh_token: refreshToken,
         });
+      });
+
+      it("uses the API's custom fetch when API.getToken() is given an API instance", async () => {
+        const customFetch = jest.fn(() => Promise.resolve(new Response(JSON.stringify(sampleToken))));
+        const api = new BackendAPI({ ...commonInit, fetch: customFetch });
+
+        expect(await BackendAPI.getToken(api)).toEqual(sampleToken);
+        expect(fetchMock).not.toHaveBeenCalled();
+        expect(customFetch).toHaveBeenCalledTimes(1);
+        expect(((customFetch.mock.calls[0] as unknown) as Call)[0]).toBe(tokenURL);
+      });
+
+      it('uses the default fetch when API.getToken() is given an API instance without a custom fetch', async () => {
+        fetchMock.mockImplementation(() => Promise.resolve(new Response(JSON.stringify(sampleToken))));
+        expect(await BackendAPI.getToken(new BackendAPI(commonInit))).toEqual(sampleToken);
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+        expect(fetchMock.mock.calls[0][0]).toBe(tokenURL);
       });
 
       it('sends the token request and the API request through the custom fetch', async () => {

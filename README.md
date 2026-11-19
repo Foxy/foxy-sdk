@@ -55,7 +55,7 @@ const api = new FoxySDK.Backend.API({
 });
 ```
 
-Your function is called with a URL string and a plain options object (`method`, `headers`, `body`). `FoxySDK.Backend.API.getToken()` accepts the same `fetch` option.
+Your function is called with a URL string and a plain options object (`method`, `headers`, `body`, and options such as `signal` when they're set). `FoxySDK.Backend.API.getToken()` accepts the same `fetch` option.
 
 Regardless of the API type you're working with, you'll see the same methods on each node: `.follow()`, `.get()`, `.put()`, `.post()`, `.patch()` and `.delete()`. Here's how you can use them in 3 steps:
 
