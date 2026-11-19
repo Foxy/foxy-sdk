@@ -1,3 +1,4 @@
+import type { Graph as Customer } from './index';
 import type { Graph } from '../../core';
 
 export interface DefaultPaymentMethod extends Graph {
