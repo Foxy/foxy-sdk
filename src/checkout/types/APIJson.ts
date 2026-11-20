@@ -54,10 +54,7 @@ export type APIJson = {
   saved_payment_methods: SavedPaymentMethod[] | null;
   /** Payment gateway configurations available for this order. */
   payment_gateways: PaymentGatewayConfig[] | null;
-  /**
-   * Client-side fraud protections the shopper must complete before submitting.
-   * Empty when none is required. Can change between responses, so read it on every update.
-   */
+  /** Client-side fraud protections the shopper must complete before submitting. Empty when none is required. */
   fraud_protections: FraudProtection[];
   /** Language strings for localization, keyed by string identifiers. */
   language_strings: Record<string, string>;
