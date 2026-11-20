@@ -401,6 +401,7 @@ function createApiJson(
     },
     custom_config: {},
     payment_gateways,
+    fraud_protections: [],
     language_strings: {},
   };
 }

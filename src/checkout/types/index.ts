@@ -46,6 +46,7 @@ export type {
 export type { CustomFields } from "./CustomFields";
 export type { CustomConfig } from "./CustomConfig";
 export type { SavedPaymentMethod } from "./SavedPaymentMethod";
+export type { FraudProtection } from "./FraudProtection";
 export type {
   AchHostedFieldsPublicState,
   AchHostedFieldsTokenizeErrorCode,

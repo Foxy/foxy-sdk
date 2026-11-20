@@ -4,6 +4,7 @@ import type { CustomFields } from "./CustomFields";
 import type { Customer } from "./Customer";
 import type { Display } from "./Display";
 import type { Format } from "./Format";
+import type { FraudProtection } from "./FraudProtection";
 import type { Item } from "./Item";
 import type { Message } from "./Message";
 import type { NextAction } from "./NextAction";
@@ -53,6 +54,11 @@ export type APIJson = {
   saved_payment_methods: SavedPaymentMethod[] | null;
   /** Payment gateway configurations available for this order. */
   payment_gateways: PaymentGatewayConfig[] | null;
+  /**
+   * Client-side fraud protections the shopper must complete before submitting.
+   * Empty when none is required. Can change between responses, so read it on every update.
+   */
+  fraud_protections: FraudProtection[];
   /** Language strings for localization, keyed by string identifiers. */
   language_strings: Record<string, string>;
   /** Follow-up action the client must complete before the checkout submission resolves. */

@@ -31,6 +31,7 @@ export type {
   GooglePayConfig,
   PaymentGatewayConfig,
   SavedPaymentMethod,
+  FraudProtection,
   AchHostedFieldsPublicState,
   AchHostedFieldsTokenizeErrorCode,
   CardValidationField,
